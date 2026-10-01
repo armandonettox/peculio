@@ -1,6 +1,14 @@
+import { MoreVertical, Pencil } from "lucide-react";
+
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
 import { LabelChip } from "@/components/label-chip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   counterpartyLabel,
@@ -36,7 +44,9 @@ function Labels({ split, categories, tags }: { split: TransactionSplit } & Looku
   );
 }
 
-export function TransactionRow({ transaction, categories, tags }: { transaction: Transaction } & Lookups) {
+type RowProps = { transaction: Transaction; onEdit: (transaction: Transaction) => void } & Lookups;
+
+export function TransactionRow({ transaction, categories, tags, onEdit }: RowProps) {
   const splits = transaction.splits;
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
@@ -65,9 +75,28 @@ export function TransactionRow({ transaction, categories, tags }: { transaction:
             </p>
           )}
         </div>
-        {total && (
-          <p className={cn("shrink-0 text-base font-semibold tabular-nums", first && amountClass(first))}>{total}</p>
-        )}
+        <div className="flex shrink-0 items-start gap-1">
+          {total && (
+            <p className={cn("text-base font-semibold tabular-nums", first && amountClass(first))}>{total}</p>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Ações do lançamento ${transactionTitle(transaction)}`}
+                className="-mr-2 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <MoreVertical className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-40">
+              <DropdownMenuItem onSelect={() => onEdit(transaction)}>
+                <Pencil />
+                Editar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {isSplit && (

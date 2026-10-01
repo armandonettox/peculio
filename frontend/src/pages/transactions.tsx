@@ -1,11 +1,11 @@
-import { ArrowLeftRight, Search } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { ArrowLeftRight, Plus, Search } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useCategories, useTags } from "@/api/labels";
-import { useTransactions } from "@/api/transactions";
+import { useTransactions, type Transaction } from "@/api/transactions";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/features/transactions/filter-bar";
 import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "@/features/transactions/filters";
 import { groupByDay } from "@/features/transactions/presentation";
+import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { useDraftFilter } from "@/features/transactions/use-draft-filter";
 import { parseMoneyInput } from "@/lib/money";
@@ -40,6 +41,8 @@ function amountError(draft: string): string | undefined {
 
 export default function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  // "new": dialogo de criar; um lancamento: dialogo de editar
+  const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
 
@@ -135,6 +138,12 @@ export default function TransactionsPage() {
           icon={ArrowLeftRight}
           title="Nenhum lançamento ainda"
           description="Os lançamentos que você registrar aparecem aqui, agrupados por dia."
+          action={
+            <Button onClick={() => setDialog("new")}>
+              <Plus />
+              Novo lançamento
+            </Button>
+          }
         />
       );
   } else {
@@ -155,6 +164,7 @@ export default function TransactionsPage() {
                     transaction={transaction}
                     categories={lookups.categories}
                     tags={lookups.tags}
+                    onEdit={setDialog}
                   />
                 ))}
               </ul>
@@ -184,7 +194,16 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader title="Transações" description="Tudo o que entrou, saiu ou mudou de conta" />
+      <PageHeader
+        title="Transações"
+        description="Tudo o que entrou, saiu ou mudou de conta"
+        actions={
+          <Button onClick={() => setDialog("new")}>
+            <Plus />
+            Novo lançamento
+          </Button>
+        }
+      />
 
       <FilterBar
         filters={filters}
@@ -206,6 +225,13 @@ export default function TransactionsPage() {
       />
 
       {content}
+
+      {dialog && (
+        <TransactionFormDialog
+          transaction={dialog === "new" ? undefined : dialog}
+          onClose={() => setDialog(null)}
+        />
+      )}
     </>
   );
 }

@@ -1,7 +1,9 @@
 import { http, HttpResponse } from "msw";
 
-import type { Transaction } from "@/api/transactions";
+import type { Account } from "@/api/accounts";
+import type { Transaction, TransactionCreate } from "@/api/transactions";
 import { transactionDate } from "@/features/transactions/presentation";
+import { makeSplit, makeTransaction } from "./transaction-fixtures";
 
 function matches(transaction: Transaction, query: URLSearchParams): boolean {
   const q = (query.get("q") ?? "").toLowerCase();
@@ -31,10 +33,15 @@ function matches(transaction: Transaction, query: URLSearchParams): boolean {
  * API de transacoes de mentira: filtra, ordena (data do lancamento, mais recente primeiro) e
  * pagina como o backend, e guarda os parametros de cada chamada para o teste conferir.
  */
-export function fakeTransactionsApi(initial: Transaction[] = []) {
+export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Account[] = []) {
   const state = {
     items: [...initial],
     requests: [] as URLSearchParams[],
+    // Corpos recebidos em POST e PUT, e erro devolvido na proxima gravacao
+    writes: [] as { method: "POST" | "PUT"; id?: string; body: TransactionCreate }[],
+    nextWriteError: null as { status: number; code: string } | null,
+    counterparties: [] as { id: string; name: string; type: string }[],
+    counterpartyRequests: [] as URLSearchParams[],
     listError: false,
     // Falha uma vez a pagina que comeca neste offset (para testar "Carregar mais" com erro)
     failOffsetOnce: null as number | null,
@@ -64,7 +71,77 @@ export function fakeTransactionsApi(initial: Transaction[] = []) {
     });
   });
 
+  // Monta o lancamento salvo a partir do corpo, com os nomes das contas conhecidas
+  const toTransaction = (body: TransactionCreate, id?: string): Transaction => {
+    const name = (accountId: string | null | undefined, fallback: string) =>
+      accounts.find((account) => account.id === accountId)?.name ?? fallback;
+    const type = (accountId: string | null | undefined) => accounts.find((a) => a.id === accountId)?.type;
+    const splits = body.splits.map((split) => {
+      const own = name(split.account_id, "Conta");
+      const ownType = type(split.account_id) ?? "asset";
+      const otherName = name(split.counterparty_account_id, split.counterparty_name ?? "Contraparte");
+      const otherType =
+        type(split.counterparty_account_id) ?? (split.type === "withdrawal" ? "expense" : "revenue");
+      const outgoing = split.type !== "deposit";
+      return makeSplit({
+        type: split.type,
+        date: split.date,
+        description: split.description,
+        amount: String(split.amount),
+        currency_code: split.currency_code,
+        foreign_amount: split.foreign_amount == null ? null : String(split.foreign_amount),
+        foreign_currency_code: split.foreign_currency_code ?? null,
+        category_id: split.category_id ?? null,
+        tag_ids: split.tag_ids ?? [],
+        notes: split.notes ?? null,
+        source_account_id: outgoing ? split.account_id : (split.counterparty_account_id ?? "externo"),
+        source_account_name: outgoing ? own : otherName,
+        source_account_type: (outgoing ? ownType : otherType) as Transaction["splits"][number]["source_account_type"],
+        destination_account_id: outgoing ? (split.counterparty_account_id ?? "externo") : split.account_id,
+        destination_account_name: outgoing ? otherName : own,
+        destination_account_type: (outgoing ? otherType : ownType) as Transaction["splits"][number]["destination_account_type"],
+      });
+    });
+    return { ...makeTransaction({ ...(id ? { id } : {}), title: body.title ?? null }), splits };
+  };
+
+  const failWrite = () => {
+    const error = state.nextWriteError;
+    state.nextWriteError = null;
+    return error ? HttpResponse.json({ detail: "erro", code: error.code }, { status: error.status }) : null;
+  };
+
+  const writeHandlers = [
+    http.post("*/api/v1/transactions", async ({ request }) => {
+      const body = (await request.json()) as TransactionCreate;
+      state.writes.push({ method: "POST", body });
+      const error = failWrite();
+      if (error) return error;
+      const created = toTransaction(body);
+      state.items.push(created);
+      return HttpResponse.json(created, { status: 201 });
+    }),
+    http.put("*/api/v1/transactions/:id", async ({ request, params }) => {
+      const body = (await request.json()) as TransactionCreate;
+      state.writes.push({ method: "PUT", id: String(params.id), body });
+      const error = failWrite();
+      if (error) return error;
+      const saved = toTransaction(body, String(params.id));
+      state.items = state.items.map((item) => (item.id === params.id ? saved : item));
+      return HttpResponse.json(saved);
+    }),
+    http.get("*/api/v1/transactions/counterparties", ({ request }) => {
+      const query = new URL(request.url).searchParams;
+      state.counterpartyRequests.push(query);
+      const type = query.get("type");
+      const q = (query.get("q") ?? "").toLowerCase();
+      return HttpResponse.json(
+        state.counterparties.filter((item) => item.type === type && item.name.toLowerCase().includes(q)),
+      );
+    }),
+  ];
+
   const params = (index = -1) => Object.fromEntries((state.requests.at(index) ?? new URLSearchParams()).entries());
   const withParam = (name: string) => state.requests.filter((request) => request.has(name));
-  return { handler, state, params, withParam };
+  return { handler, handlers: [handler, ...writeHandlers], state, params, withParam };
 }
