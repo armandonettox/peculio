@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.models.account import AccountType
 from app.models.transaction import TransactionType
 
 # Dinheiro: ate 18 digitos e 2 casas. No JSON sai como texto ("1234.50"), nunca como float.
@@ -86,6 +87,12 @@ class TransactionSplitOut(BaseModel):
     description: str
     source_account_id: uuid.UUID
     destination_account_id: uuid.UUID
+    # Nome e tipo das duas pontas: a tela mostra "Supermercado" sem precisar buscar a conta
+    # de despesa ou receita, que a lista de contas esconde
+    source_account_name: str
+    source_account_type: AccountType
+    destination_account_name: str
+    destination_account_type: AccountType
     amount: Money
     currency_code: str
     foreign_amount: Money | None
@@ -121,3 +128,12 @@ class TransactionOut(BaseModel):
     title: str | None
     created_at: datetime
     splits: list[TransactionSplitOut]
+
+
+class CounterpartyOut(BaseModel):
+    """Contraparte ja usada (conta de despesa ou receita), para sugerir ao digitar."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str

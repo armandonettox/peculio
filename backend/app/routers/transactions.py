@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.user import User
-from app.schemas.transaction import TransactionCreate, TransactionOut, TransactionUpdate
+from app.schemas.transaction import CounterpartyOut, TransactionCreate, TransactionOut, TransactionUpdate
 from app.services import transactions as service
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
@@ -53,6 +53,18 @@ def list_transactions(
         min_amount=min_amount,
         max_amount=max_amount,
     )
+
+
+# Precisa vir antes de /{transaction_id}: senao "counterparties" seria lido como um id
+@router.get("/counterparties", response_model=list[CounterpartyOut])
+def list_counterparties(
+    type: Literal["expense", "revenue"],
+    q: str | None = None,
+    limit: int = Query(20, ge=1, le=50),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.list_counterparties(db, user.id, type, q, limit)
 
 
 @router.get("/{transaction_id}", response_model=TransactionOut)

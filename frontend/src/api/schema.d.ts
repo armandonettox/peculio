@@ -296,6 +296,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions/counterparties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Counterparties */
+        get: operations["list_counterparties_api_v1_transactions_counterparties_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions/{transaction_id}": {
         parameters: {
             query?: never;
@@ -441,6 +458,19 @@ export interface components {
             color?: string | null;
             /** Name */
             name?: string | null;
+        };
+        /**
+         * CounterpartyOut
+         * @description Contraparte ja usada (conta de despesa ou receita), para sugerir ao digitar.
+         */
+        CounterpartyOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** CurrencyOut */
         CurrencyOut: {
@@ -690,6 +720,9 @@ export interface components {
              * Format: uuid
              */
             destination_account_id: string;
+            /** Destination Account Name */
+            destination_account_name: string;
+            destination_account_type: components["schemas"]["AccountType"];
             /** Foreign Amount */
             foreign_amount: string | null;
             /** Foreign Currency Code */
@@ -706,6 +739,9 @@ export interface components {
              * Format: uuid
              */
             source_account_id: string;
+            /** Source Account Name */
+            source_account_name: string;
+            source_account_type: components["schemas"]["AccountType"];
             /** Tag Ids */
             tag_ids: string[];
             type: components["schemas"]["TransactionType"];
@@ -1596,6 +1632,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_counterparties_api_v1_transactions_counterparties_get: {
+        parameters: {
+            query: {
+                type: "expense" | "revenue";
+                q?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CounterpartyOut"][];
                 };
             };
             /** @description Validation Error */

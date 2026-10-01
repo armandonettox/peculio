@@ -277,6 +277,11 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
         splits_by_transaction[split.transaction_id].append(split)
 
     tag_map = tag_ids_by_split(db, [split.id for split in splits])
+    account_ids = {split.source_account_id for split in splits} | {split.destination_account_id for split in splits}
+    accounts = {
+        row.id: row
+        for row in db.execute(select(Account.id, Account.name, Account.type).where(Account.id.in_(account_ids)))
+    }
     codes = {split.currency_code for split in splits} | {
         split.foreign_currency_code for split in splits if split.foreign_currency_code
     }
@@ -299,6 +304,10 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
                     "description": split.description,
                     "source_account_id": split.source_account_id,
                     "destination_account_id": split.destination_account_id,
+                    "source_account_name": accounts[split.source_account_id].name,
+                    "source_account_type": accounts[split.source_account_id].type,
+                    "destination_account_name": accounts[split.destination_account_id].name,
+                    "destination_account_type": accounts[split.destination_account_id].type,
                     "amount": money(split.amount, split.currency_code),
                     "currency_code": split.currency_code,
                     "foreign_amount": money(split.foreign_amount, split.foreign_currency_code),
@@ -391,3 +400,11 @@ def list_transactions(
         "limit": params.limit,
         "offset": params.offset,
     }
+
+
+def list_counterparties(db: Session, user_id: uuid.UUID, account_type: str, q: str | None, limit: int) -> list[Account]:
+    """Nomes de despesa ou receita que o usuario ja usou, em ordem alfabetica, para sugerir ao digitar."""
+    statement = select(Account).where(Account.user_id == user_id, Account.type == AccountType(account_type))
+    if q and q.strip():
+        statement = statement.where(func.lower(Account.name).contains(q.strip().lower(), autoescape=True))
+    return list(db.execute(statement.order_by(func.lower(Account.name), Account.id).limit(limit)).scalars())

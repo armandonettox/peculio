@@ -454,6 +454,26 @@
         "title": "CategoryUpdate",
         "type": "object"
       },
+      "CounterpartyOut": {
+        "description": "Contraparte ja usada (conta de despesa ou receita), para sugerir ao digitar.",
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CounterpartyOut",
+        "type": "object"
+      },
       "CurrencyOut": {
         "properties": {
           "code": {
@@ -1090,6 +1110,13 @@
             "title": "Destination Account Id",
             "type": "string"
           },
+          "destination_account_name": {
+            "title": "Destination Account Name",
+            "type": "string"
+          },
+          "destination_account_type": {
+            "$ref": "#/components/schemas/AccountType"
+          },
           "foreign_amount": {
             "anyOf": [
               {
@@ -1134,6 +1161,13 @@
             "title": "Source Account Id",
             "type": "string"
           },
+          "source_account_name": {
+            "title": "Source Account Name",
+            "type": "string"
+          },
+          "source_account_type": {
+            "$ref": "#/components/schemas/AccountType"
+          },
           "tag_ids": {
             "items": {
               "format": "uuid",
@@ -1153,6 +1187,10 @@
           "description",
           "source_account_id",
           "destination_account_id",
+          "source_account_name",
+          "source_account_type",
+          "destination_account_name",
+          "destination_account_type",
           "amount",
           "currency_code",
           "foreign_amount",
@@ -2762,6 +2800,89 @@
           }
         ],
         "summary": "Create Transaction",
+        "tags": [
+          "transactions"
+        ]
+      }
+    },
+    "/api/v1/transactions/counterparties": {
+      "get": {
+        "operationId": "list_counterparties_api_v1_transactions_counterparties_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "enum": [
+                "expense",
+                "revenue"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CounterpartyOut"
+                  },
+                  "title": "Response List Counterparties Api V1 Transactions Counterparties Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Counterparties",
         "tags": [
           "transactions"
         ]
