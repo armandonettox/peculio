@@ -5,6 +5,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { UserMenu } from "@/components/user-menu";
 import { Brand } from "./brand";
 import { SidebarNav } from "./sidebar-nav";
 
@@ -55,8 +56,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <span className="text-base font-semibold text-primary-text lg:hidden">finance-app</span>
 
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
+            <UserMenu />
           </div>
         </header>
 

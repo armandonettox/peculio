@@ -11,7 +11,7 @@ type Api = typeof defaultApi;
 type Credentials = { email: string; password: string };
 type RegisterInput = Credentials & { name: string; inviteToken?: string };
 
-type AuthContextValue = {
+export type AuthContextValue = {
   user: User | null;
   isAuthenticated: boolean;
   login: (credentials: Credentials) => Promise<void>;
@@ -20,7 +20,8 @@ type AuthContextValue = {
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+// Exportado para os testes poderem montar um estado de login fixo, sem passar pela API
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 // Renova o token antes de ele vencer (60 min) enquanto a aba esta aberta
 export const REFRESH_INTERVAL_MS = 20 * 60 * 1000;

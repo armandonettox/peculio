@@ -17,7 +17,9 @@ export function createApiClient({
   baseUrl = window.location.origin,
   tokenStore = defaultTokenStore,
 }: ApiClientOptions = {}) {
-  const client = createClient<paths>({ baseUrl });
+  // O fetch e resolvido a cada chamada, nao guardado na criacao. Assim quem troca o
+  // fetch global depois (os testes, com msw) continua sendo respeitado.
+  const client = createClient<paths>({ baseUrl, fetch: (request) => globalThis.fetch(request) });
 
   // Varios pedidos podem tomar 401 ao mesmo tempo. Todos esperam a mesma renovacao,
   // senao cada um dispararia a sua e os tokens se atropelariam.

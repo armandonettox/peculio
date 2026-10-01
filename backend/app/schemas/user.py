@@ -49,6 +49,11 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class AuthStatus(BaseModel):
+    # So um booleano: nao revela quantos usuarios existem nem quem sao
+    setup_required: bool
+
+
 class InviteCreate(BaseModel):
     email: EmailStr
 

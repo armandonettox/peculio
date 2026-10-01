@@ -19,7 +19,7 @@ from app.core.security import (
     verify_password_constant_time,
 )
 from app.models.user import Invite, User
-from app.schemas.user import Token, UserCreate, UserLogin, UserOut
+from app.schemas.user import AuthStatus, Token, UserCreate, UserLogin, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,6 +44,13 @@ def _consume_invite(db: Session, data: UserCreate) -> None:
     if invite.email != data.email:
         raise invalid
     invite.used_at = datetime.now(timezone.utc)
+
+
+@router.get("/status", response_model=AuthStatus)
+def auth_status(db: Session = Depends(get_db)):
+    """Publico. Diz se a instancia ainda nao tem nenhum usuario, para o frontend saber se
+    mostra "criar conta de administrador" ou "entrar / usar convite"."""
+    return AuthStatus(setup_required=db.execute(select(User.id).limit(1)).first() is None)
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)

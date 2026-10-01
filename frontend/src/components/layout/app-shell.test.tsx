@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { mockMatchMedia } from "@/test-utils/match-media";
+import { FakeAuth } from "@/test-utils/providers";
 import { AppShell, MAIN_CONTENT_ID } from "./app-shell";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -14,7 +15,11 @@ function renderShell() {
     [{ path: "*", element: <AppShell><p>Conteúdo da página</p></AppShell> }],
     { initialEntries: ["/"] },
   );
-  render(<RouterProvider router={router} />);
+  render(
+    <FakeAuth>
+      <RouterProvider router={router} />
+    </FakeAuth>,
+  );
   return router;
 }
 
@@ -35,9 +40,10 @@ it("tem o link para pular para o conteudo apontando para o main", () => {
   );
 });
 
-it("tem o alternador de tema no topo", () => {
+it("tem o alternador de tema e o menu do usuario no topo", () => {
   renderShell();
   expect(screen.getByRole("button", { name: /Mudar para o tema/ })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Menu do usuário" })).toBeInTheDocument();
 });
 
 it("a gaveta comeca fechada e abre pelo botao do menu", async () => {

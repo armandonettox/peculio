@@ -1,6 +1,19 @@
 {
   "components": {
     "schemas": {
+      "AuthStatus": {
+        "properties": {
+          "setup_required": {
+            "title": "Setup Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "setup_required"
+        ],
+        "title": "AuthStatus",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -467,6 +480,28 @@
           }
         },
         "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/status": {
+      "get": {
+        "description": "Publico. Diz se a instancia ainda nao tem nenhum usuario, para o frontend saber se\nmostra \"criar conta de administrador\" ou \"entrar / usar convite\".",
+        "operationId": "auth_status_api_v1_auth_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Auth Status",
         "tags": [
           "auth"
         ]

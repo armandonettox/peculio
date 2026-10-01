@@ -1,16 +1,28 @@
 import { Route, Routes } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/app-shell";
+import { AuthLayout } from "@/components/layout/auth-layout";
+import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
 import DashboardPage from "@/pages/dashboard";
+import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
+import RegisterPage from "@/pages/register";
 
-// As rotas de login e registro e o ProtectedRoute entram na etapa 4
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+      <Route element={<PublicOnlyRoute />}>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Route>
     </Routes>
   );
