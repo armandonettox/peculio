@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
 import { useAccounts, useCurrencies } from "@/api/accounts";
+import { useBudgets, type Budget } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
 import { useCategories, useTags, type Tag } from "@/api/labels";
@@ -32,6 +33,7 @@ import {
   remainder,
   validateForm,
   accountOf,
+  budgetAllowed,
   type FormContext,
   type FormErrors,
   type FormState,
@@ -93,6 +95,8 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
   const currencies = useCurrencies();
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
+  // Todos, inclusive arquivados: editar um lancamento ligado a um orcamento arquivado precisa mostrar o nome dele
+  const budgets = useBudgets({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
 
@@ -130,6 +134,7 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
             transaction={transaction}
             categories={categories.data?.items ?? []}
             tags={tags.data?.items ?? []}
+            budgets={budgets.data ?? []}
             create={create}
             update={update}
             onClose={onClose}
@@ -145,12 +150,13 @@ type BodyProps = {
   transaction?: Transaction;
   categories: { id: string; name: string }[];
   tags: Tag[];
+  budgets: Budget[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
   onClose: () => void;
 };
 
-function FormBody({ ctx, transaction, categories, tags, create, update, onClose }: BodyProps) {
+function FormBody({ ctx, transaction, categories, tags, budgets, create, update, onClose }: BodyProps) {
   const editing = transaction !== undefined;
 
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
@@ -167,6 +173,11 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
   const other = foreignAccount(state, ctx);
   const splittable = canSplit(state, ctx);
   const left = remainder(state, ctx);
+
+  // Orcamentos da moeda da conta; um arquivado so aparece se ja for o escolhido
+  const budgetOptions = (selectedId: string) =>
+    budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
+  const clearBudgets = (rows: SplitDraft[] | null) => rows?.map((row) => ({ ...row, budgetId: "" })) ?? null;
 
   const searchType = state.kind === "withdrawal" ? "expense" : "revenue";
   const usesNameSearch = state.kind !== "transfer" && !state.ownCounterparty;
@@ -209,7 +220,9 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
         counterpartyName: "",
         counterpartyAccountId: "",
         foreignAmount: "",
-        splits: kind === "transfer" ? null : state.splits,
+        // Orcamento so vale em saida: trocar o tipo solta o que estava escolhido
+        budgetId: "",
+        splits: kind === "transfer" ? null : clearBudgets(state.splits),
       },
       "counterparty",
       "foreignAmount",
@@ -233,6 +246,7 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
           description: current.description,
           amount: current.amount,
           categoryId: current.categoryId,
+          budgetId: current.budgetId,
           tagIds: current.tagIds,
         }),
       ],
@@ -247,6 +261,7 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
         splits: null,
         description: current.description || first?.description || "",
         categoryId: first?.categoryId ?? current.categoryId,
+        budgetId: first?.budgetId ?? current.budgetId,
         tagIds: first?.tagIds ?? current.tagIds,
       };
     });
@@ -341,7 +356,20 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
             <Select
               {...props}
               value={state.accountId}
-              onChange={(e) => patch({ accountId: e.target.value, foreignAmount: "" }, "accountId", "foreignAmount")}
+              onChange={(e) => {
+                const next = accountOf(ctx, e.target.value);
+                // Outra moeda: o orcamento escolhido deixa de valer
+                const sameCurrency = next?.currency_code === currency;
+                patch(
+                  {
+                    accountId: e.target.value,
+                    foreignAmount: "",
+                    ...(sameCurrency ? {} : { budgetId: "", splits: clearBudgets(state.splits) }),
+                  },
+                  "accountId",
+                  "foreignAmount",
+                );
+              }}
             >
               <option value="">Escolha...</option>
               {selectable.map((option) => (
@@ -449,7 +477,12 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
             <button
               type="button"
               className="self-start text-xs text-primary-text underline underline-offset-2"
-              onClick={() => patch({ ownCounterparty: true, counterpartyName: "" }, "counterparty")}
+              onClick={() =>
+                patch(
+                  { ownCounterparty: true, counterpartyName: "", budgetId: "", splits: clearBudgets(state.splits) },
+                  "counterparty",
+                )
+              }
             >
               {state.kind === "withdrawal" ? "Pagar uma dívida" : "Receber de uma dívida"}
             </button>
@@ -563,6 +596,25 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
                     </Select>
                   )}
                 </FormField>
+                {budgetAllowed(state) && budgetOptions(row.budgetId).length > 0 && (
+                  <FormField id={`${row.key}-budget`} label={`Orçamento da linha ${index + 1}`}>
+                    {(props) => (
+                      <Select
+                        {...props}
+                        value={row.budgetId}
+                        onChange={(e) => changeSplit(row.key, { budgetId: e.target.value })}
+                      >
+                        <option value="">Sem orçamento</option>
+                        {budgetOptions(row.budgetId).map((budget) => (
+                          <option key={budget.id} value={budget.id}>
+                            {budget.name}
+                            {budget.active ? "" : " (arquivado)"}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  </FormField>
+                )}
                 <TagPicker
                   tags={tags}
                   selected={row.tagIds}
@@ -614,6 +666,21 @@ function FormBody({ ctx, transaction, categories, tags, create, update, onClose 
               </Select>
             )}
           </FormField>
+          {budgetAllowed(state) && budgetOptions(state.budgetId).length > 0 && (
+            <FormField id="tx-budget" label="Orçamento">
+              {(props) => (
+                <Select {...props} value={state.budgetId} onChange={(e) => patch({ budgetId: e.target.value })}>
+                  <option value="">Sem orçamento</option>
+                  {budgetOptions(state.budgetId).map((budget) => (
+                    <option key={budget.id} value={budget.id}>
+                      {budget.name}
+                      {budget.active ? "" : " (arquivado)"}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
+          )}
           <TagPicker tags={tags} selected={state.tagIds} label="Tags" onChange={(next) => patch({ tagIds: next })} />
           {splittable && (
             <Button type="button" variant="outline" size="sm" className="self-start" onClick={startSplit}>

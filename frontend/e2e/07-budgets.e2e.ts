@@ -115,6 +115,26 @@ test("meses sem gasto aparecem zerados e o botao Mes atual volta", async ({ page
   await expect(card(page)).toContainText("R$ 850,00");
 });
 
+test("registrar uma saida pelo formulario escolhendo o orcamento faz o progresso subir", async ({ page }) => {
+  await loginAndWaitForDashboard(page);
+  const nav = page.getByRole("navigation", { name: "Navegação principal" });
+  await nav.getByRole("link", { name: "Transações" }).click();
+  await page.getByRole("button", { name: "Novo lançamento" }).click();
+
+  await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: "Conta Orc E2E" });
+  await dialog(page).getByLabel("Descrição", { exact: true }).fill("Feira pelo formulario");
+  await dialog(page).getByLabel("Para quem", { exact: true }).fill("Feira Orc");
+  await dialog(page).getByLabel("Valor (BRL)").fill("25,00");
+  // O campo so mostra orcamentos ativos na moeda da conta escolhida
+  await dialog(page).getByLabel("Orçamento", { exact: true }).selectOption({ label: NAME });
+  await dialog(page).getByRole("button", { name: "Criar lançamento" }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  await nav.getByRole("link", { name: "Orçamentos" }).click();
+  await expect(card(page)).toContainText("R$ 875,00");
+  await expect(card(page)).toContainText("Restam R$ 1.125,00");
+});
+
 test("arquivar esconde o orcamento; mostrar arquivados e restaurar traz de volta", async ({ page }) => {
   await openBudgets(page);
   await menu(page, "Arquivar");

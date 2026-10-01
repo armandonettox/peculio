@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { makeAccount } from "@/test-utils/accounts-api";
 import { deposit, makeSplit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
 import {
+  budgetAllowed,
   buildPayload,
   canSplit,
   emptyForm,
@@ -274,6 +275,7 @@ describe("buildPayload", () => {
           account_id: nubank.id,
           counterparty_name: "Supermercado",
           category_id: null,
+          budget_id: null,
           tag_ids: [],
           notes: null,
         },
@@ -509,5 +511,82 @@ describe("formFromTransaction", () => {
 
   it("recusa editar um grupo sem linhas", () => {
     expect(formFromTransaction(makeTransaction({ splits: [] }), ctx).ok).toBe(false);
+  });
+});
+
+describe("orcamento", () => {
+  it("so saida para um nome pode ter orcamento", () => {
+    expect(budgetAllowed(form())).toBe(true);
+    expect(budgetAllowed(form({ kind: "deposit" }))).toBe(false);
+    expect(budgetAllowed(form({ kind: "transfer", counterpartyAccountId: poupanca.id }))).toBe(false);
+    expect(budgetAllowed(form({ ownCounterparty: true, counterpartyAccountId: divida.id }))).toBe(false);
+  });
+
+  it("a saida leva o orcamento escolhido", () => {
+    expect(buildPayload(form({ budgetId: "b1" }), ctx).splits[0].budget_id).toBe("b1");
+  });
+
+  it("sem escolher orcamento manda nulo", () => {
+    expect(buildPayload(form(), ctx).splits[0].budget_id).toBeNull();
+  });
+
+  it.each([
+    ["entrada", { kind: "deposit" as const }],
+    ["transferencia", { kind: "transfer" as const, counterpartyAccountId: poupanca.id }],
+    ["pagamento de divida", { ownCounterparty: true, counterpartyAccountId: divida.id }],
+  ])("um orcamento que sobrou no estado nao vai junto em %s", (_label, overrides) => {
+    expect(buildPayload(form({ budgetId: "b1", ...overrides }), ctx).splits[0].budget_id).toBeNull();
+  });
+
+  it("no lancamento dividido cada linha leva o seu orcamento", () => {
+    const payload = buildPayload(
+      form({
+        amount: "100,00",
+        splits: [
+          emptySplit({ description: "a", amount: "60,00", budgetId: "b1" }),
+          emptySplit({ description: "b", amount: "40,00" }),
+        ],
+      }),
+      ctx,
+    );
+    expect(payload.splits.map((s) => s.budget_id)).toEqual(["b1", null]);
+  });
+
+  it("linhas de uma entrada dividida nao levam orcamento, mesmo com id sobrando no estado", () => {
+    const payload = buildPayload(
+      form({
+        kind: "deposit",
+        amount: "100,00",
+        counterpartyName: "Empregador",
+        splits: [
+          emptySplit({ description: "a", amount: "60,00", budgetId: "b1" }),
+          emptySplit({ description: "b", amount: "40,00", budgetId: "b2" }),
+        ],
+      }),
+      ctx,
+    );
+    expect(payload.splits.map((s) => s.budget_id)).toEqual([null, null]);
+  });
+
+  it("editar reabre o orcamento da saida e o corpo volta igual", () => {
+    const t = makeTransaction({}, [{ source_account_id: nubank.id, destination_account_id: "e1", budget_id: "b1" }]);
+    const loaded = formFromTransaction(t, ctx);
+    expect(loaded.ok && loaded.state.budgetId).toBe("b1");
+    expect(loaded.ok && buildPayload(loaded.state, ctx).splits[0].budget_id).toBe("b1");
+  });
+
+  it("editar um lancamento dividido reabre o orcamento de cada linha", () => {
+    const t = makeTransaction({ title: "Compras" }, [
+      { description: "a", amount: "60.00", source_account_id: nubank.id, destination_account_id: "e1", budget_id: "b1" },
+      { description: "b", amount: "40.00", source_account_id: nubank.id, destination_account_id: "e1" },
+    ]);
+    const loaded = formFromTransaction(t, ctx);
+    expect(loaded.ok && loaded.state.splits?.map((row) => row.budgetId)).toEqual(["b1", ""]);
+  });
+
+  it("sem orcamento a saida abre com o campo vazio", () => {
+    const t = makeTransaction({}, [{ source_account_id: nubank.id, destination_account_id: "e1" }]);
+    const loaded = formFromTransaction(t, ctx);
+    expect(loaded.ok && loaded.state.budgetId).toBe("");
   });
 });

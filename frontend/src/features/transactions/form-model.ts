@@ -14,6 +14,8 @@ export type SplitDraft = {
   description: string;
   amount: string;
   categoryId: string;
+  // Orcamento da linha ("" = nenhum). So existe em saida para uma despesa.
+  budgetId: string;
   tagIds: string[];
   // Nao aparece na tela; guarda a nota de um lancamento criado pela API para nao perde-la ao salvar
   notes: string;
@@ -34,6 +36,8 @@ export type FormState = {
   // Valor que chega na outra conta quando as moedas sao diferentes
   foreignAmount: string;
   categoryId: string;
+  // Orcamento do lancamento ("" = nenhum); no modo dividido cada linha tem o seu
+  budgetId: string;
   tagIds: string[];
   notes: string;
   // null: um lancamento so. Lista: o lancamento dividido em linhas.
@@ -61,7 +65,16 @@ let keyCounter = 0;
 export const newSplitKey = () => `split-${++keyCounter}`;
 
 export function emptySplit(overrides: Partial<SplitDraft> = {}): SplitDraft {
-  return { key: newSplitKey(), description: "", amount: "", categoryId: "", tagIds: [], notes: "", ...overrides };
+  return {
+    key: newSplitKey(),
+    description: "",
+    amount: "",
+    categoryId: "",
+    budgetId: "",
+    tagIds: [],
+    notes: "",
+    ...overrides,
+  };
 }
 
 export const accountOf = (ctx: FormContext, id: string) => ctx.accounts.find((account) => account.id === id);
@@ -86,6 +99,7 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     amount: "",
     foreignAmount: "",
     categoryId: "",
+    budgetId: "",
     tagIds: [],
     notes: "",
     splits: null,
@@ -106,6 +120,11 @@ export function foreignAccount(state: FormState, ctx: FormContext): Account | nu
   const other = accountOf(ctx, state.counterpartyAccountId);
   if (!source || !other || source.currency_code === other.currency_code) return null;
   return other;
+}
+
+/** Orcamento so vale para gasto: saida para um nome (despesa), nunca entrada, transferencia ou divida. */
+export function budgetAllowed(state: FormState): boolean {
+  return state.kind === "withdrawal" && !state.ownCounterparty;
 }
 
 /** Dividir so faz sentido em saida e entrada na mesma moeda. */
@@ -248,6 +267,7 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       description: state.description.trim(),
       amount: money(state.amount),
       category_id: state.categoryId || null,
+      budget_id: budgetAllowed(state) ? state.budgetId || null : null,
       tag_ids: state.tagIds,
       notes: state.notes.trim() || null,
       ...(other
@@ -267,6 +287,7 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       description: row.description.trim(),
       amount: money(row.amount),
       category_id: row.categoryId || null,
+      budget_id: budgetAllowed(state) ? row.budgetId || null : null,
       tag_ids: row.tagIds,
       notes: row.notes.trim() || null,
     })),
@@ -343,6 +364,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
         amount: toDraft(first.amount),
         foreignAmount,
         categoryId: first.category_id ?? "",
+        budgetId: first.budget_id ?? "",
         tagIds: first.tag_ids,
         notes: first.notes ?? "",
         splits: null,
@@ -367,6 +389,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
           description: split.description,
           amount: toDraft(split.amount),
           categoryId: split.category_id ?? "",
+          budgetId: split.budget_id ?? "",
           tagIds: split.tag_ids,
           notes: split.notes ?? "",
         }),

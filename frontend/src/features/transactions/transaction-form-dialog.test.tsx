@@ -6,6 +6,7 @@ import { expect, it } from "vitest";
 import type { Transaction } from "@/api/transactions";
 import { todayLocal } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
+import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
@@ -30,14 +31,33 @@ const financiamento = makeAccount({
   balance: "-1000.00",
 });
 
-type Options = { transactions?: Transaction[]; accounts?: ReturnType<typeof makeAccount>[] };
+const mercadoOrc = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a1", name: "Mercado orc" });
+const lazerOrc = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a2", name: "Lazer orc" });
+const velhoOrc = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a3", name: "Velho orc", active: false });
+const dolarOrc = makeBudget({
+  id: "b0000000-0000-4000-8000-0000000000a4",
+  name: "Dolar orc",
+  currency_code: "USD",
+  amount: "100.00",
+});
 
-function renderPage({ transactions = [], accounts = [nubank, poupanca, antiga, wise, financiamento] }: Options = {}) {
+type Options = {
+  transactions?: Transaction[];
+  accounts?: ReturnType<typeof makeAccount>[];
+  budgets?: ReturnType<typeof makeBudget>[];
+};
+
+function renderPage({
+  transactions = [],
+  accounts = [nubank, poupanca, antiga, wise, financiamento],
+  budgets = [mercadoOrc, lazerOrc, velhoOrc, dolarOrc],
+}: Options = {}) {
   const tx = fakeTransactionsApi(transactions, accounts);
   const accountsApi = fakeAccountsApi(accounts);
   server.use(
     ...tx.handlers,
     ...accountsApi.handlers,
+    ...fakeBudgetsApi(budgets).handlers,
     ...fakeLabelsApi("categories", [mercado, lazer]).handlers,
     ...fakeLabelsApi("tags", [viagem, casa]).handlers,
   );
@@ -593,4 +613,209 @@ it("excluir um lancamento dividido usa o titulo do grupo", async () => {
   renderPage({ transactions: [makeTransaction({ title: "Compras da semana" }, [split("Frutas"), split("Limpeza")])] });
   await screen.findByText("Compras da semana", { selector: "p" });
   expect(await openRemove("Compras da semana")).toHaveTextContent("Compras da semana");
+});
+
+// ---------- Orcamento ----------
+
+const budgetOptions = () =>
+  within(d().getByLabelText("Orçamento")).getAllByRole("option").map((option) => option.textContent);
+
+it("saida mostra so os orcamentos ativos na moeda da conta", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+
+  expect(budgetOptions()).toEqual(["Sem orçamento", "Lazer orc", "Mercado orc"]);
+});
+
+it("escolher um orcamento manda o budget_id na saida", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].budget_id).toBe(mercadoOrc.id);
+});
+
+it("sem escolher manda budget_id nulo", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].budget_id).toBeNull();
+});
+
+it("sem nenhum orcamento cadastrado o campo nem aparece", async () => {
+  renderPage({ budgets: [] });
+  await openNew();
+  await pick("Conta", "Nubank");
+  expect(d().queryByLabelText("Orçamento")).not.toBeInTheDocument();
+});
+
+it("entrada e transferencia nao tem o campo de orcamento", async () => {
+  renderPage();
+  await openNew();
+  await waitFor(() => expect(d().getByLabelText("Orçamento")).toBeInTheDocument());
+
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  expect(d().queryByLabelText("Orçamento")).not.toBeInTheDocument();
+
+  await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
+  expect(d().queryByLabelText("Orçamento")).not.toBeInTheDocument();
+});
+
+it("pagar uma divida tira o campo e solta o orcamento escolhido", async () => {
+  const { tx } = renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+
+  await userEvent.click(d().getByRole("button", { name: "Pagar uma dívida" }));
+  expect(d().queryByLabelText("Orçamento")).not.toBeInTheDocument();
+  await type("Descrição", "Parcela");
+  await pick("Dívida", "Financiamento");
+  await type(/^Valor/, "400");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].budget_id).toBeNull();
+});
+
+it("trocar o tipo e voltar para saida nao traz o orcamento de volta", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
+
+  expect(d().getByLabelText("Orçamento")).toHaveValue("");
+});
+
+it("trocar a conta para outra moeda solta o orcamento escolhido", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+
+  await pick("Conta", "Wise - USD");
+
+  expect(budgetOptions()).toEqual(["Sem orçamento", "Dolar orc"]);
+  expect(d().getByLabelText("Orçamento")).toHaveValue("");
+});
+
+it("o corpo enviado depois de trocar para outra moeda nao leva o orcamento antigo", async () => {
+  const { tx } = renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+
+  // O select mostra vazio porque o orcamento em reais nao esta nas opcoes em dolar;
+  // o que importa e o que vai para a API
+  await pick("Conta", "Wise - USD");
+  await type("Descrição", "Assinatura");
+  await type("Para quem", "Servico");
+  await type(/^Valor/, "10");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ currency_code: "USD", budget_id: null });
+});
+
+it("trocar de conta na mesma moeda mantem o orcamento", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+
+  await pick("Conta", "Poupanca");
+
+  expect(d().getByLabelText("Orçamento")).toHaveValue(mercadoOrc.id);
+});
+
+it("no lancamento dividido cada linha escolhe o seu orcamento", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(budgetOptions()).toContain("Mercado orc"));
+  await pick("Orçamento", "Mercado orc");
+  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
+
+  // A primeira linha herda o orcamento do lancamento
+  expect(d().getByLabelText("Orçamento da linha 1")).toHaveValue(mercadoOrc.id);
+  const amount1 = d().getByLabelText("Valor da linha 1");
+  await userEvent.clear(amount1);
+  await userEvent.type(amount1, "1000");
+  await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
+  await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Cinema");
+  await userEvent.type(d().getByLabelText("Valor da linha 2"), "234,50");
+  await pick("Orçamento da linha 2", "Lazer orc");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits.map((split) => split.budget_id)).toEqual([mercadoOrc.id, lazerOrc.id]);
+});
+
+it("desfazer a divisao volta com o orcamento da primeira linha", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
+  await waitFor(() =>
+    expect(within(d().getByLabelText("Orçamento da linha 1")).getAllByRole("option").length).toBeGreaterThan(1),
+  );
+  await pick("Orçamento da linha 1", "Lazer orc");
+
+  await userEvent.click(d().getByRole("button", { name: "Desfazer divisão" }));
+
+  expect(d().getByLabelText("Orçamento")).toHaveValue(lazerOrc.id);
+});
+
+it("editar reabre o orcamento escolhido e salva o novo", async () => {
+  const transaction = makeTransaction({}, [
+    {
+      description: "Padaria",
+      amount: "12.50",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Padaria do Ze",
+      budget_id: mercadoOrc.id,
+    },
+  ]);
+  const { tx } = renderPage({ transactions: [transaction] });
+  await screen.findByText("Padaria", { selector: "p" });
+  await openEdit("Padaria");
+
+  await waitFor(() => expect(d().getByLabelText("Orçamento")).toHaveValue(mercadoOrc.id));
+  await pick("Orçamento", "Sem orçamento");
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].budget_id).toBeNull();
+});
+
+it("editar um lancamento ligado a orcamento arquivado mostra o nome dele marcado", async () => {
+  const transaction = makeTransaction({}, [
+    {
+      description: "Padaria",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Padaria do Ze",
+      budget_id: velhoOrc.id,
+    },
+  ]);
+  renderPage({ transactions: [transaction] });
+  await screen.findByText("Padaria", { selector: "p" });
+  await openEdit("Padaria");
+
+  await waitFor(() => expect(budgetOptions()).toContain("Velho orc (arquivado)"));
+  expect(d().getByLabelText("Orçamento")).toHaveValue(velhoOrc.id);
 });
