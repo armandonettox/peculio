@@ -80,6 +80,8 @@ class TransactionSplit(Base):
     foreign_currency_code: Mapped[str | None] = mapped_column(ForeignKey("currencies.code"))
     # Categoria do split (uma por linha, para a divisao da compra entre categorias)
     category_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
+    # Orcamento a que a saida pertence. Excluir o orcamento solta o lancamento, nao o apaga.
+    budget_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("budgets.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

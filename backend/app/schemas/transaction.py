@@ -29,6 +29,8 @@ class TransactionSplitCreate(BaseModel):
     foreign_amount: PositiveMoney | None = None
     foreign_currency_code: str | None = Field(default=None, min_length=3, max_length=3)
     category_id: uuid.UUID | None = None
+    # Orcamento: so em saida para uma despesa, na moeda do orcamento (validado no servico)
+    budget_id: uuid.UUID | None = None
     tag_ids: list[uuid.UUID] = Field(default_factory=list)
     notes: str | None = Field(default=None, max_length=2000)
 
@@ -98,6 +100,7 @@ class TransactionSplitOut(BaseModel):
     foreign_amount: Money | None
     foreign_currency_code: str | None
     category_id: uuid.UUID | None
+    budget_id: uuid.UUID | None
     tag_ids: list[uuid.UUID]
     notes: str | None
 

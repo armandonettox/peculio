@@ -40,6 +40,10 @@ class ErrorCode(StrEnum):
     CATEGORY_NAME_TAKEN = "category_name_taken"
     TAG_NOT_FOUND = "tag_not_found"
     TAG_NAME_TAKEN = "tag_name_taken"
+    # Orcamentos
+    BUDGET_NOT_FOUND = "budget_not_found"
+    BUDGET_NAME_TAKEN = "budget_name_taken"
+    BUDGET_NOT_ALLOWED = "budget_not_allowed"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

@@ -20,6 +20,7 @@ export function makeSplit(overrides: Partial<TransactionSplit> = {}): Transactio
     foreign_amount: null,
     foreign_currency_code: null,
     category_id: null,
+    budget_id: null,
     tag_ids: [],
     notes: null,
     ...overrides,
