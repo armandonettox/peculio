@@ -10,3 +10,5 @@ bcrypt
 slowapi
 pytest
 httpx
+pyotp
+cryptography

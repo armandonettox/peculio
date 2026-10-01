@@ -23,6 +23,13 @@ class ErrorCode(StrEnum):
     SESSION_EXPIRED = "session_expired"
     SESSION_INVALID = "session_invalid"
     ADMIN_REQUIRED = "admin_required"
+    # Dois fatores (2FA)
+    TWO_FACTOR_INVALID_CODE = "two_factor_invalid_code"
+    TWO_FACTOR_CHALLENGE_INVALID = "two_factor_challenge_invalid"
+    TWO_FACTOR_ALREADY_ENABLED = "two_factor_already_enabled"
+    TWO_FACTOR_NOT_ENABLED = "two_factor_not_enabled"
+    TWO_FACTOR_SETUP_REQUIRED = "two_factor_setup_required"
+    INVALID_PASSWORD = "invalid_password"
     # Cadastro e convites
     INVITE_REQUIRED = "invite_required"
     INVITE_INVALID = "invite_invalid"

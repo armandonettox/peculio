@@ -50,6 +50,47 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginOut(BaseModel):
+    """Resposta do passo 1. Sem 2FA vem o token de acesso; com 2FA vem so o desafio."""
+
+    access_token: str | None = None
+    token_type: str = "bearer"
+    two_factor_required: bool = False
+    challenge_token: str | None = None
+
+
+class TwoFactorVerify(BaseModel):
+    challenge_token: str
+    # Codigo de 6 digitos do app autenticador ou codigo de recuperacao
+    code: str = Field(min_length=1, max_length=32)
+
+
+class TwoFactorSetupOut(BaseModel):
+    secret: str
+    otpauth_url: str
+
+
+class TwoFactorCode(BaseModel):
+    code: str = Field(min_length=1, max_length=32)
+
+
+class TwoFactorConfirm(BaseModel):
+    """Para desligar o 2FA ou gerar novos codigos: senha e um codigo valido."""
+
+    password: str
+    code: str = Field(min_length=1, max_length=32)
+
+
+class RecoveryCodesOut(BaseModel):
+    # Aparecem so nesta resposta. No banco fica apenas o hash.
+    recovery_codes: list[str]
+
+
+class TwoFactorStatus(BaseModel):
+    enabled: bool
+    recovery_codes_remaining: int
+
+
 class AuthStatus(BaseModel):
     # So um booleano: nao revela quantos usuarios existem nem quem sao
     setup_required: bool

@@ -66,6 +66,24 @@ describe("login", () => {
     expect(result.current.isAuthenticated).toBe(false);
   });
 
+  it("conta com 2FA devolve so o desafio: nao vira sessao", async () => {
+    server.use(
+      http.post("*/api/v1/auth/login", () =>
+        HttpResponse.json({ access_token: null, two_factor_required: true, challenge_token: "desafio" }),
+      ),
+    );
+    const { result, tokenStore } = setup();
+
+    const error = await act(() =>
+      result.current.login({ email: "ana@example.com", password: "SenhaForte123" }).catch((e) => e),
+    );
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.code).toBe("two_factor_not_supported");
+    expect(tokenStore.get()).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
   it("se nao conseguir carregar o usuario, desfaz o login", async () => {
     server.use(
       loginOk(),

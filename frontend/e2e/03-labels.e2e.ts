@@ -17,6 +17,8 @@ const rowMenu = (page: Page, name: string) => page.getByRole("button", { name: `
 
 // Contraste (WCAG) entre o texto e o fundo do selo, calculado no navegador
 async function chipContrast(page: Page, name: string): Promise<number> {
+  // Espera o selo ter fundo pintado: logo apos criar, o elemento pode ainda estar "transparent"
+  await expect(chip(page, name)).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   return chip(page, name).evaluate((element) => {
     const toRgb = (value: string) => value.match(/\d+/g)!.slice(0, 3).map(Number);
     const lum = ([r, g, b]: number[]) => {

@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { api as defaultApi, unwrap } from "@/api/client";
+import { ApiError } from "@/api/errors";
 import type { components } from "@/api/schema";
 import { tokenStore as defaultTokenStore, type TokenStore } from "./token-store";
 
@@ -65,10 +66,14 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
 
   const login = useCallback(
     async ({ email, password }: Credentials) => {
-      const token = await unwrap(
+      const result = await unwrap(
         api.client.POST("/api/v1/auth/login", { body: { email, password } }),
       );
-      tokenStore.set(token.access_token);
+      // Provisorio: o segundo passo do 2FA (codigo) ainda nao tem tela. A Parte 2 troca isto.
+      if (!result.access_token) {
+        throw new ApiError(401, "two_factor_not_supported", "Esta conta usa 2FA");
+      }
+      tokenStore.set(result.access_token);
       try {
         setUser(await unwrap(api.client.GET("/api/v1/auth/me")));
       } catch (error) {

@@ -8,6 +8,10 @@ import jwt
 
 from app.core.config import settings
 
+ACCESS_TYPE = "access"
+CHALLENGE_TYPE = "2fa_challenge"
+CHALLENGE_MINUTES = 5
+
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -45,6 +49,7 @@ def create_access_token(
     expire = now + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
         "sub": subject,
+        "typ": ACCESS_TYPE,
         "exp": expire,
         "auth_at": int((auth_at or now).timestamp()),
         "pv": password_fingerprint(password_hash),
@@ -53,7 +58,32 @@ def create_access_token(
 
 
 def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    claims = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    # Token do passo 1 do 2FA (typ diferente) nunca vale como token de acesso. Tokens de
+    # acesso antigos nao tem `typ`, entao a ausencia conta como acesso.
+    if claims.get("typ", ACCESS_TYPE) != ACCESS_TYPE:
+        raise jwt.InvalidTokenError("tipo de token invalido")
+    return claims
+
+
+def create_challenge_token(subject: str, password_hash: str | None) -> str:
+    """Token de curta duracao entregue depois da senha correta, quando a conta tem 2FA. So serve
+    para chamar /auth/2fa/verify. `pv` invalida o desafio se a senha mudar no meio."""
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": subject,
+        "typ": CHALLENGE_TYPE,
+        "exp": now + timedelta(minutes=CHALLENGE_MINUTES),
+        "pv": password_fingerprint(password_hash),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def decode_challenge_token(token: str) -> dict:
+    claims = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    if claims.get("typ") != CHALLENGE_TYPE:
+        raise jwt.InvalidTokenError("tipo de token invalido")
+    return claims
 
 
 def generate_invite_token() -> str:

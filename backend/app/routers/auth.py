@@ -12,6 +12,7 @@ from app.core.errors import AppError, ErrorCode
 from app.core.rate_limit import limiter
 from app.core.security import (
     create_access_token,
+    create_challenge_token,
     decode_access_token,
     hash_invite_token,
     hash_password,
@@ -19,7 +20,8 @@ from app.core.security import (
     verify_password_constant_time,
 )
 from app.models.user import Invite, User
-from app.schemas.user import AuthStatus, Token, UserCreate, UserLogin, UserOut
+from app.schemas.user import AuthStatus, LoginOut, Token, UserCreate, UserLogin, UserOut
+from app.services.login_attempts import ensure_not_locked, register_failure, register_success
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -85,15 +87,12 @@ def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
     return user
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=LoginOut)
 @limiter.limit("10/minute")
 def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(User.email == data.email)).scalar_one_or_none()
 
-    if user and user.locked_until and user.locked_until > datetime.now(timezone.utc):
-        raise AppError(
-            423, ErrorCode.ACCOUNT_LOCKED, "Conta bloqueada temporariamente por excesso de tentativas"
-        )
+    ensure_not_locked(user)
 
     # Roda o bcrypt mesmo quando o usuario nao existe, para nao revelar pelo tempo de resposta
     # quais emails estao cadastrados.
@@ -102,20 +101,20 @@ def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     )
     if not user or not password_ok:
         if user:
-            user.failed_login_attempts += 1
-            if user.failed_login_attempts >= settings.max_failed_login_attempts:
-                user.locked_until = datetime.now(timezone.utc) + timedelta(
-                    minutes=settings.account_lock_minutes
-                )
-            db.commit()
+            register_failure(db, user)
         raise AppError(401, ErrorCode.INVALID_CREDENTIALS, "Email ou senha invalidos")
 
-    user.failed_login_attempts = 0
-    user.locked_until = None
-    db.commit()
+    # Com 2FA ligado a senha certa ainda nao basta: entrega so o desafio, que o passo 2 troca
+    # pelo token de acesso. As tentativas so zeram quando o segundo passo tambem passa.
+    if user.totp_enabled:
+        return LoginOut(
+            two_factor_required=True,
+            challenge_token=create_challenge_token(str(user.id), user.hashed_password),
+        )
 
+    register_success(db, user)
     token = create_access_token(subject=str(user.id), password_hash=user.hashed_password)
-    return Token(access_token=token)
+    return LoginOut(access_token=token)
 
 
 @router.post("/refresh", response_model=Token)
