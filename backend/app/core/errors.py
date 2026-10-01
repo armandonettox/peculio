@@ -44,6 +44,10 @@ class ErrorCode(StrEnum):
     BUDGET_NOT_FOUND = "budget_not_found"
     BUDGET_NAME_TAKEN = "budget_name_taken"
     BUDGET_NOT_ALLOWED = "budget_not_allowed"
+    # Contas a pagar
+    BILL_NOT_FOUND = "bill_not_found"
+    BILL_NAME_TAKEN = "bill_name_taken"
+    BILL_NOT_ALLOWED = "bill_not_allowed"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

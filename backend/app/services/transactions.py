@@ -18,6 +18,7 @@ from app.models.transaction import Transaction, TransactionSplit, TransactionTyp
 from app.models.user import User
 from app.schemas.transaction import TransactionCreate, TransactionSplitCreate
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
+from app.services.bills import find_matching_bill, get_owned_bill
 from app.services.budgets import get_owned_budget
 
 # Conta de contraparte criada automaticamente com esse tipo, conforme o sentido da transacao
@@ -183,6 +184,31 @@ def _check_budget(db: Session, user: User, data: TransactionSplitCreate, destina
     return budget
 
 
+def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destination_id: uuid.UUID):
+    """Conta a pagar do split. Com `bill_id` no corpo (um id ou null) vale o que veio; sem ele, liga sozinho
+    quando exatamente uma conta a pagar combina. So saidas para uma despesa entram."""
+    if data.type != "withdrawal":
+        if data.bill_id is not None:
+            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Conta a pagar so vale para saidas para uma despesa")
+        return None
+    destination = db.get(Account, destination_id)
+    is_expense = destination.type == AccountType.expense
+    if "bill_id" in data.model_fields_set:
+        if data.bill_id is None:
+            return None
+        bill = get_owned_bill(db, user.id, data.bill_id)
+        if not is_expense:
+            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Conta a pagar so vale para saidas para uma despesa")
+        if data.currency_code != bill.currency_code:
+            raise _mismatch(f"A moeda do lancamento deve ser a da conta a pagar ({bill.currency_code})")
+        return bill
+    if not is_expense:
+        return None
+    return find_matching_bill(
+        db, user.id, data.currency_code, data.amount, [data.description, destination.name]
+    )
+
+
 def _build_split(
     db: Session, user: User, transaction_id: uuid.UUID, data: TransactionSplitCreate, position: int
 ) -> TransactionSplit:
@@ -199,6 +225,7 @@ def _build_split(
         category = get_owned_category(db, user.id, data.category_id)
     tags = get_owned_tags(db, user.id, data.tag_ids)
     budget = _check_budget(db, user, data, destination_id) if data.budget_id is not None else None
+    bill = _resolve_bill(db, user, data, destination_id)
 
     split = TransactionSplit(
         transaction_id=transaction_id,
@@ -215,6 +242,7 @@ def _build_split(
         foreign_currency_code=data.foreign_currency_code,
         category_id=category.id if category else None,
         budget_id=budget.id if budget else None,
+        bill_id=bill.id if bill else None,
         notes=data.notes,
     )
     db.add(split)
@@ -332,6 +360,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
                     "foreign_currency_code": split.foreign_currency_code,
                     "category_id": split.category_id,
                     "budget_id": split.budget_id,
+                    "bill_id": split.bill_id,
                     "tag_ids": tag_map.get(split.id, []),
                     "notes": split.notes,
                 }
@@ -354,6 +383,7 @@ def list_transactions(
     account_id: uuid.UUID | None = None,
     category_id: uuid.UUID | None = None,
     budget_id: uuid.UUID | None = None,
+    bill_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
@@ -375,6 +405,8 @@ def list_transactions(
         conditions.append(TransactionSplit.category_id == category_id)
     if budget_id is not None:
         conditions.append(TransactionSplit.budget_id == budget_id)
+    if bill_id is not None:
+        conditions.append(TransactionSplit.bill_id == bill_id)
     if date_from is not None:
         conditions.append(TransactionSplit.date >= date_from)
     if date_to is not None:

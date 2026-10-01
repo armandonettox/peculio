@@ -266,6 +266,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Bills */
+        get: operations["list_bills_api_v1_bills_get"];
+        put?: never;
+        /** Create Bill */
+        post: operations["create_bill_api_v1_bills_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bills/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bills Status
+         * @description Ultimo e proximo vencimento de cada conta a pagar na data `on` (hoje, se omitida), e se o
+         *     ultimo foi pago. Ordenadas pelo proximo vencimento.
+         */
+        get: operations["bills_status_api_v1_bills_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bills/{bill_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Bill */
+        get: operations["get_bill_api_v1_bills__bill_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Bill */
+        delete: operations["delete_bill_api_v1_bills__bill_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Bill */
+        patch: operations["update_bill_api_v1_bills__bill_id__patch"];
+        trace?: never;
+    };
     "/api/v1/budgets": {
         parameters: {
             query?: never;
@@ -599,6 +657,128 @@ export interface components {
             /** Setup Required */
             setup_required: boolean;
         };
+        /** BillCreate */
+        BillCreate: {
+            /** Amount Max */
+            amount_max: number | string;
+            /** Amount Min */
+            amount_min: number | string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * First Due Date
+             * Format: date
+             */
+            first_due_date: string;
+            frequency: components["schemas"]["BillFrequency"];
+            /** Match Text */
+            match_text?: string | null;
+            /** Name */
+            name: string;
+        };
+        /**
+         * BillFrequency
+         * @enum {string}
+         */
+        BillFrequency: "weekly" | "monthly" | "quarterly" | "half_yearly" | "yearly";
+        /** BillOut */
+        BillOut: {
+            /** Active */
+            active: boolean;
+            /** Amount Max */
+            amount_max: string;
+            /** Amount Min */
+            amount_min: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * First Due Date
+             * Format: date
+             */
+            first_due_date: string;
+            frequency: components["schemas"]["BillFrequency"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Match Text */
+            match_text: string | null;
+            /** Name */
+            name: string;
+        };
+        /**
+         * BillStatusOut
+         * @description A conta a pagar com a situacao na data pedida.
+         */
+        BillStatusOut: {
+            /** Active */
+            active: boolean;
+            /** Amount Max */
+            amount_max: string;
+            /** Amount Min */
+            amount_min: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * First Due Date
+             * Format: date
+             */
+            first_due_date: string;
+            frequency: components["schemas"]["BillFrequency"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Due Date */
+            last_due_date: string | null;
+            /** Match Text */
+            match_text: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Next Due Date
+             * Format: date
+             */
+            next_due_date: string;
+            /** Next Due Paid */
+            next_due_paid: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "upcoming" | "paid" | "overdue";
+        };
+        /**
+         * BillUpdate
+         * @description A moeda nao muda. `match_text` enviado como null apaga a ligacao automatica.
+         */
+        BillUpdate: {
+            /** Active */
+            active?: boolean | null;
+            /** Amount Max */
+            amount_max?: number | string | null;
+            /** Amount Min */
+            amount_min?: number | string | null;
+            /** First Due Date */
+            first_due_date?: string | null;
+            frequency?: components["schemas"]["BillFrequency"] | null;
+            /** Match Text */
+            match_text?: string | null;
+            /** Name */
+            name?: string | null;
+        };
         /** BudgetCreate */
         BudgetCreate: {
             /** Amount */
@@ -841,6 +1021,17 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[BillOut] */
+        Page_BillOut_: {
+            /** Items */
+            items: components["schemas"]["BillOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** Page[BudgetOut] */
         Page_BudgetOut_: {
             /** Items */
@@ -969,6 +1160,8 @@ export interface components {
             account_id: string;
             /** Amount */
             amount: number | string;
+            /** Bill Id */
+            bill_id?: string | null;
             /** Budget Id */
             budget_id?: string | null;
             /** Category Id */
@@ -1004,6 +1197,8 @@ export interface components {
         TransactionSplitOut: {
             /** Amount */
             amount: string;
+            /** Bill Id */
+            bill_id: string | null;
             /** Budget Id */
             budget_id: string | null;
             /** Category Id */
@@ -1644,6 +1839,200 @@ export interface operations {
             };
         };
     };
+    list_bills_api_v1_bills_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                active?: boolean | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_BillOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_bill_api_v1_bills_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bills_status_api_v1_bills_status_get: {
+        parameters: {
+            query?: {
+                on?: string | null;
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillStatusOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bill_api_v1_bills__bill_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_bill_api_v1_bills__bill_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_bill_api_v1_bills__bill_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_budgets_api_v1_budgets_get: {
         parameters: {
             query?: {
@@ -2280,6 +2669,7 @@ export interface operations {
                 account_id?: string | null;
                 category_id?: string | null;
                 budget_id?: string | null;
+                bill_id?: string | null;
                 tag_id?: string | null;
                 date_from?: string | null;
                 date_to?: string | null;

@@ -82,6 +82,8 @@ class TransactionSplit(Base):
     category_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     # Orcamento a que a saida pertence. Excluir o orcamento solta o lancamento, nao o apaga.
     budget_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("budgets.id", ondelete="SET NULL"))
+    # Conta a pagar que esta saida quitou. Excluir a conta a pagar solta o lancamento.
+    bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bills.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
