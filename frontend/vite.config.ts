@@ -20,5 +20,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test-setup.ts",
+    // Os testes E2E (e2e/) sao do Playwright e rodam com `npm run e2e`
+    exclude: ["**/node_modules/**", "e2e/**"],
   },
 });

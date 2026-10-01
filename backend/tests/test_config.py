@@ -38,6 +38,14 @@ def test_development_accepts_default_secrets():
     assert settings.jwt_secret == DEFAULT_SECRET
 
 
+def test_rate_limit_is_enabled_by_default():
+    assert make_settings().rate_limit_enabled is True
+
+
+def test_rate_limit_can_be_disabled_by_setting():
+    assert make_settings(rate_limit_enabled=False).rate_limit_enabled is False
+
+
 def test_cors_origins_list_splits_and_trims():
     settings = make_settings(cors_origins="http://a.com, http://b.com ,")
     assert settings.cors_origins_list == ["http://a.com", "http://b.com"]

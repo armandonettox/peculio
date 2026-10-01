@@ -8,3 +8,5 @@ dist/
 *.log
 docker-compose.override.yml
 *.tsbuildinfo
+playwright-report/
+test-results/

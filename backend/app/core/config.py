@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     # define X-Forwarded-For. Exposto direto na internet, qualquer cliente poderia forjar o
     # header e escapar do rate limit.
     trust_proxy_headers: bool = False
+    # Ligado por padrao. So desligar em teste automatizado (E2E), que entra varias vezes por
+    # minuto a partir do mesmo IP. Em uso real o limite protege o login de forca bruta.
+    rate_limit_enabled: bool = True
 
     @model_validator(mode="after")
     def reject_default_secrets_in_production(self):
