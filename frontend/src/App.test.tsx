@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 
 import { mockMatchMedia } from "@/test-utils/match-media";
@@ -6,20 +7,25 @@ import App from "./App";
 
 afterEach(() => vi.unstubAllGlobals());
 
-it("mostra o status da API quando ela responde", async () => {
+function renderAt(path: string) {
   mockMatchMedia(false);
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({ json: () => Promise.resolve({ status: "ok" }) }),
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>,
   );
-  render(<App />);
-  expect(screen.getByRole("heading", { name: "finance-app" })).toBeInTheDocument();
-  expect(await screen.findByText("API: ok")).toBeInTheDocument();
+}
+
+it("na raiz mostra o painel dentro do layout", () => {
+  renderAt("/");
+  expect(screen.getByRole("heading", { level: 1, name: "Painel" })).toBeInTheDocument();
+  expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
+  expect(screen.getByText("Nenhuma conta ainda")).toBeInTheDocument();
 });
 
-it("avisa quando a API esta fora do ar", async () => {
-  mockMatchMedia(false);
-  vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("sem rede")));
-  render(<App />);
-  expect(await screen.findByText("API: fora do ar")).toBeInTheDocument();
+it("endereco inexistente mostra a pagina nao encontrada, ainda dentro do layout", () => {
+  renderAt("/nao-existe");
+  expect(screen.getByRole("heading", { level: 1, name: "Página não encontrada" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/");
+  expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
 });
