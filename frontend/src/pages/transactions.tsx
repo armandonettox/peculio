@@ -5,14 +5,15 @@ import { useSearchParams } from "react-router-dom";
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useCategories, useTags } from "@/api/labels";
-import { useTransactions, type Transaction } from "@/api/transactions";
+import { useDeleteTransaction, useTransactions, type Transaction } from "@/api/transactions";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/features/transactions/filter-bar";
 import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "@/features/transactions/filters";
-import { groupByDay } from "@/features/transactions/presentation";
+import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { useDraftFilter } from "@/features/transactions/use-draft-filter";
@@ -43,6 +44,8 @@ export default function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   // "new": dialogo de criar; um lancamento: dialogo de editar
   const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
+  const [removing, setRemoving] = useState<Transaction | null>(null);
+  const remove = useDeleteTransaction();
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
 
@@ -165,6 +168,7 @@ export default function TransactionsPage() {
                     categories={lookups.categories}
                     tags={lookups.tags}
                     onEdit={setDialog}
+                    onRemove={setRemoving}
                   />
                 ))}
               </ul>
@@ -225,6 +229,16 @@ export default function TransactionsPage() {
       />
 
       {content}
+
+      {removing && (
+        <ConfirmDeleteDialog
+          title="Excluir lançamento"
+          itemName={transactionTitle(removing)}
+          consequence="O saldo das contas envolvidas volta ao que era antes dele."
+          onConfirm={() => remove.mutateAsync(removing.id)}
+          onClose={() => setRemoving(null)}
+        />
+      )}
 
       {dialog && (
         <TransactionFormDialog

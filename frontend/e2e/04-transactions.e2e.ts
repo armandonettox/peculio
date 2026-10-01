@@ -185,10 +185,13 @@ test("filtra por categoria, por tag e por conta", async ({ page }) => {
   await expect(rowOf(page, "Aluguel de marco")).toBeVisible();
 
   await page.getByLabel("Categoria", { exact: true }).selectOption({ label: "Todas" });
+  // Espera a URL refletir a limpeza antes do proximo filtro (os dois escrevem na mesma URL)
+  await expect(page).not.toHaveURL(/categoria=/);
   await page.getByLabel("Tag", { exact: true }).selectOption({ label: "fixo" });
   await expect(main(page).getByText("1 lançamento com os filtros escolhidos")).toBeVisible();
 
   await page.getByLabel("Tag", { exact: true }).selectOption({ label: "Todas" });
+  await expect(page).not.toHaveURL(/tag=/);
   await page.getByLabel("Conta", { exact: true }).selectOption({ label: "Dolar E2E" });
   // So a transferencia mexe na conta em dolar
   await expect(main(page).getByText("1 lançamento com os filtros escolhidos")).toBeVisible();

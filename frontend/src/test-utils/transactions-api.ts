@@ -39,6 +39,7 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
     requests: [] as URLSearchParams[],
     // Corpos recebidos em POST e PUT, e erro devolvido na proxima gravacao
     writes: [] as { method: "POST" | "PUT"; id?: string; body: TransactionCreate }[],
+    removed: [] as string[],
     nextWriteError: null as { status: number; code: string } | null,
     counterparties: [] as { id: string; name: string; type: string }[],
     counterpartyRequests: [] as URLSearchParams[],
@@ -130,7 +131,14 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
       state.items = state.items.map((item) => (item.id === params.id ? saved : item));
       return HttpResponse.json(saved);
     }),
-    http.get("*/api/v1/transactions/counterparties", ({ request }) => {
+    http.delete("*/api/v1/transactions/:id", ({ params }) => {
+      state.removed.push(String(params.id));
+      const error = failWrite();
+      if (error) return error;
+      state.items = state.items.filter((item) => item.id !== params.id);
+      return new HttpResponse(null, { status: 204 });
+    }),
+    http.get("*/api/v1/transactions/counterparties",({ request }) => {
       const query = new URL(request.url).searchParams;
       state.counterpartyRequests.push(query);
       const type = query.get("type");

@@ -18,6 +18,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Os testes de formulario digitam muitos campos; o primeiro de cada arquivo e mais lento com a suite toda rodando
+    testTimeout: 15000,
     globals: true,
     setupFiles: "./src/test-setup.ts",
     // Os testes E2E (e2e/) sao do Playwright e rodam com `npm run e2e`

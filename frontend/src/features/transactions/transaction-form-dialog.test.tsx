@@ -535,3 +535,62 @@ it("o estado vazio tambem oferece criar o primeiro lancamento", async () => {
   await userEvent.click(button);
   expect(await screen.findByRole("dialog", { name: "Novo lançamento" })).toBeInTheDocument();
 });
+
+// ---------- Excluir ----------
+
+const openRemove = async (title: string) => {
+  await userEvent.click(await screen.findByRole("button", { name: `Ações do lançamento ${title}` }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Excluir" }));
+  return await screen.findByRole("dialog", { name: "Excluir lançamento" });
+};
+
+it("excluir pede confirmacao, apaga e some da lista", async () => {
+  const keep = saved([{ description: "Padaria" }]);
+  const gone = makeTransaction({}, [{ description: "Cafe", source_account_id: nubank.id }]);
+  const { tx } = renderPage({ transactions: [keep, gone] });
+  await screen.findByText("Cafe", { selector: "p" });
+  const confirm = await openRemove("Cafe");
+
+  expect(confirm).toHaveTextContent("Cafe");
+  expect(tx.state.removed).toHaveLength(0);
+  await userEvent.click(within(confirm).getByRole("button", { name: "Excluir" }));
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(tx.state.removed).toEqual([gone.id]);
+  await waitFor(() => expect(screen.queryByText("Cafe", { selector: "p" })).not.toBeInTheDocument());
+  expect(screen.getByText("Padaria", { selector: "p" })).toBeInTheDocument();
+});
+
+it("cancelar a exclusao nao apaga nada", async () => {
+  const { tx } = renderPage({ transactions: [saved()] });
+  await screen.findByText("Padaria", { selector: "p" });
+  const confirm = await openRemove("Padaria");
+  await userEvent.click(within(confirm).getByRole("button", { name: "Cancelar" }));
+
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(tx.state.removed).toHaveLength(0);
+  expect(screen.getByText("Padaria", { selector: "p" })).toBeInTheDocument();
+});
+
+it("erro ao excluir aparece no dialogo e o lancamento continua na lista", async () => {
+  const { tx } = renderPage({ transactions: [saved()] });
+  await screen.findByText("Padaria", { selector: "p" });
+  tx.state.nextWriteError = { status: 500, code: "internal_error" };
+  const confirm = await openRemove("Padaria");
+  await userEvent.click(within(confirm).getByRole("button", { name: "Excluir" }));
+
+  expect(await within(confirm).findByRole("alert")).toBeInTheDocument();
+  expect(screen.getByRole("dialog", { name: "Excluir lançamento" })).toBeInTheDocument();
+  expect(screen.getByText("Padaria", { selector: "p" })).toBeInTheDocument();
+});
+
+it("excluir um lancamento dividido usa o titulo do grupo", async () => {
+  const split = (description: string) => ({
+    description,
+    source_account_id: nubank.id,
+    destination_account_id: "e0000000-0000-4000-8000-000000000001",
+  });
+  renderPage({ transactions: [makeTransaction({ title: "Compras da semana" }, [split("Frutas"), split("Limpeza")])] });
+  await screen.findByText("Compras da semana", { selector: "p" });
+  expect(await openRemove("Compras da semana")).toHaveTextContent("Compras da semana");
+});

@@ -1,4 +1,4 @@
-import { MoreVertical, Pencil } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
@@ -7,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -44,9 +45,13 @@ function Labels({ split, categories, tags }: { split: TransactionSplit } & Looku
   );
 }
 
-type RowProps = { transaction: Transaction; onEdit: (transaction: Transaction) => void } & Lookups;
+type RowProps = {
+  transaction: Transaction;
+  onEdit: (transaction: Transaction) => void;
+  onRemove: (transaction: Transaction) => void;
+} & Lookups;
 
-export function TransactionRow({ transaction, categories, tags, onEdit }: RowProps) {
+export function TransactionRow({ transaction, categories, tags, onEdit, onRemove }: RowProps) {
   const splits = transaction.splits;
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
@@ -93,6 +98,11 @@ export function TransactionRow({ transaction, categories, tags, onEdit }: RowPro
               <DropdownMenuItem onSelect={() => onEdit(transaction)}>
                 <Pencil />
                 Editar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => onRemove(transaction)} className="text-destructive">
+                <Trash2 />
+                Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

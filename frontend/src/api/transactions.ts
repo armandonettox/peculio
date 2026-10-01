@@ -86,6 +86,15 @@ export function useUpdateTransaction() {
   });
 }
 
+export function useDeleteTransaction() {
+  const refresh = useRefreshAfterChange();
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.client.DELETE("/api/v1/transactions/{transaction_id}", { params: { path: { transaction_id: id } } })),
+    onSuccess: refresh,
+  });
+}
+
 /** Nomes de despesa ou receita ja usados, para sugerir ao digitar. */
 export function useCounterparties(type: "expense" | "revenue", search: string, { enabled = true } = {}) {
   return useQuery({

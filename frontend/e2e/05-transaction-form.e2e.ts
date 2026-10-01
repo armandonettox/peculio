@@ -173,6 +173,27 @@ test("editar um lancamento muda o valor e o saldo acompanha", async ({ page }) =
   await expectBalance(page, WALLET, "R$ 400,00");
 });
 
+test("excluir pede confirmacao; cancelar mantem e confirmar devolve o saldo", async ({ page }) => {
+  await loginAndWaitForDashboard(page);
+  await goTo(page, "Transações");
+  const menu = page.getByRole("button", { name: "Ações do lançamento Mercado do bairro F5" });
+
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Excluir" }).click();
+  await expect(dialog(page)).toContainText("Mercado do bairro F5");
+  await dialog(page).getByRole("button", { name: "Cancelar" }).click();
+  await expect(dialog(page)).toBeHidden();
+  await expect(menu).toBeVisible();
+
+  await menu.click();
+  await page.getByRole("menuitem", { name: "Excluir" }).click();
+  await dialog(page).getByRole("button", { name: "Excluir" }).click();
+  await expect(dialog(page)).toBeHidden();
+  await expect(menu).toBeHidden();
+  // Estava em R$ 400,00 com a saida de R$ 300,00
+  await expectBalance(page, WALLET, "R$ 700,00");
+});
+
 test("a conta Poupanca continua zerada: nada vazou para outra conta", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await goTo(page, "Contas");
