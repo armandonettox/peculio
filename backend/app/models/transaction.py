@@ -11,6 +11,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     Table,
@@ -68,6 +69,8 @@ class TransactionSplit(Base):
     type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, native_enum=False, length=32))
     date: Mapped[date] = mapped_column(Date)
     description: Mapped[str] = mapped_column(String(255))
+    # Ordem em que o usuario escreveu os splits do grupo. Sem isso a ordem seria a do UUID (aleatoria).
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # RESTRICT: o banco recusa apagar uma conta que tem movimento
     source_account_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("accounts.id", ondelete="RESTRICT"))
     destination_account_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("accounts.id", ondelete="RESTRICT"))

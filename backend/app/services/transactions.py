@@ -170,7 +170,9 @@ def _resolve_accounts(db: Session, user: User, data: TransactionSplitCreate) -> 
     return (account.id, other.id) if is_withdrawal else (other.id, account.id)
 
 
-def _build_split(db: Session, user: User, transaction_id: uuid.UUID, data: TransactionSplitCreate) -> TransactionSplit:
+def _build_split(
+    db: Session, user: User, transaction_id: uuid.UUID, data: TransactionSplitCreate, position: int
+) -> TransactionSplit:
     source_id, destination_id = _resolve_accounts(db, user, data)
 
     currency = get_currency(db, data.currency_code)
@@ -190,6 +192,7 @@ def _build_split(db: Session, user: User, transaction_id: uuid.UUID, data: Trans
         type=data.type,
         date=data.date,
         description=data.description,
+        position=position,
         source_account_id=source_id,
         destination_account_id=destination_id,
         amount=data.amount,
@@ -213,8 +216,8 @@ def create_transaction(db: Session, user: User, data: TransactionCreate) -> Tran
     transaction = Transaction(user_id=user.id, title=data.title)
     db.add(transaction)
     db.flush()
-    for split_data in data.splits:
-        _build_split(db, user, transaction.id, split_data)
+    for position, split_data in enumerate(data.splits):
+        _build_split(db, user, transaction.id, split_data, position)
     db.flush()
     return transaction
 
@@ -228,8 +231,8 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     transaction.title = data.title
     db.execute(delete(TransactionSplit).where(TransactionSplit.transaction_id == transaction.id))
     db.flush()
-    for split_data in data.splits:
-        _build_split(db, user, transaction.id, split_data)
+    for position, split_data in enumerate(data.splits):
+        _build_split(db, user, transaction.id, split_data, position)
     db.flush()
     return transaction
 
@@ -267,7 +270,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
         db.execute(
             select(TransactionSplit)
             .where(TransactionSplit.transaction_id.in_(ids))
-            .order_by(TransactionSplit.date, TransactionSplit.id)
+            .order_by(TransactionSplit.position, TransactionSplit.id)
         )
         .scalars()
         .all()

@@ -449,3 +449,45 @@ def test_listing_does_not_run_a_query_per_transaction(client, headers):
 
     assert client.get(URL, headers=headers).json()["total"] == 13
     assert many == few
+
+
+# ---------- Ordem das linhas de um lancamento dividido ----------
+
+
+def six_splits(account_id):
+    return [withdrawal(account_id, description=f"Linha {n}", amount="1.00") for n in range(1, 7)]
+
+
+def descriptions(transaction):
+    return [split["description"] for split in transaction["splits"]]
+
+
+def test_splits_come_back_in_the_order_the_user_wrote_them(client, headers):
+    account_id = make_account(client, headers)
+    created = post(client, headers, *six_splits(account_id)).json()
+    expected = [f"Linha {n}" for n in range(1, 7)]
+    # O id e aleatorio: sem a posicao, a ordem sairia embaralhada
+    assert descriptions(created) == expected
+    assert descriptions(client.get(f"{URL}/{created['id']}", headers=headers).json()) == expected
+    assert descriptions(client.get(URL, headers=headers).json()["items"][0]) == expected
+
+
+def test_the_order_follows_the_user_even_when_later_lines_have_earlier_dates(client, headers):
+    account_id = make_account(client, headers)
+    created = post(
+        client,
+        headers,
+        withdrawal(account_id, description="Primeira", date="2026-03-10"),
+        withdrawal(account_id, description="Segunda", date="2026-01-05"),
+    ).json()
+    assert descriptions(created) == ["Primeira", "Segunda"]
+
+
+def test_editing_keeps_the_new_order(client, headers):
+    account_id = make_account(client, headers)
+    created = post(client, headers, *six_splits(account_id)).json()
+    reversed_lines = list(reversed(six_splits(account_id)))
+    updated = client.put(f"{URL}/{created['id']}", json={"splits": reversed_lines}, headers=headers).json()
+    expected = [f"Linha {n}" for n in range(6, 0, -1)]
+    assert descriptions(updated) == expected
+    assert descriptions(client.get(f"{URL}/{created['id']}", headers=headers).json()) == expected
