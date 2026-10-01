@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 
 import { accountsKey } from "./accounts";
 import { api, unwrap } from "./client";
+import { budgetsKey } from "./query-keys";
 import type { components } from "./schema";
 
 export type Transaction = components["schemas"]["TransactionOut"];
@@ -55,8 +56,8 @@ export function useTransactions(filters: TransactionFilters, { enabled = true }:
   });
 }
 
-// Criar, editar ou apagar um lancamento muda o saldo das contas e pode criar uma contraparte nova:
-// recarrega as tres listas.
+// Criar, editar ou apagar um lancamento muda o saldo das contas, o gasto dos orcamentos e pode
+// criar uma contraparte nova: recarrega todas essas listas.
 function useRefreshAfterChange() {
   const queryClient = useQueryClient();
   return () =>
@@ -64,6 +65,7 @@ function useRefreshAfterChange() {
       queryClient.invalidateQueries({ queryKey: transactionsKey }),
       queryClient.invalidateQueries({ queryKey: accountsKey }),
       queryClient.invalidateQueries({ queryKey: counterpartiesKey }),
+      queryClient.invalidateQueries({ queryKey: budgetsKey }),
     ]);
 }
 

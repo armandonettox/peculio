@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/layout/app-shell";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
 import AccountsPage from "@/pages/accounts";
+import BudgetsPage from "@/pages/budgets";
 import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
 import LoginPage from "@/pages/login";
@@ -26,6 +27,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="orcamentos" element={<BudgetsPage />} />
           <Route path="contas" element={<AccountsPage />} />
           <Route path="transacoes" element={<TransactionsPage />} />
           <Route path="categorias" element={<CategoriesPage />} />

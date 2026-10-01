@@ -29,6 +29,13 @@ it("o item Contas e um link para /contas", () => {
   expect(screen.getByRole("link", { name: "Painel" })).not.toHaveAttribute("aria-current");
 });
 
+it("o item Orçamentos e um link para /orcamentos", () => {
+  renderNav("/orcamentos");
+  const link = screen.getByRole("link", { name: "Orçamentos" });
+  expect(link).toHaveAttribute("href", "/orcamentos");
+  expect(link).toHaveAttribute("aria-current", "page");
+});
+
 it("marca o painel como pagina atual", () => {
   renderNav("/");
   expect(screen.getByRole("link", { name: "Painel" })).toHaveAttribute("aria-current", "page");
@@ -36,11 +43,11 @@ it("marca o painel como pagina atual", () => {
 
 it("itens sem tela aparecem desabilitados e nao sao links", () => {
   renderNav();
-  expect(screen.queryByRole("link", { name: /Orçamentos/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: /Relatórios/ })).not.toBeInTheDocument();
   const disabled = navItems.filter((item) => !item.to);
   expect(disabled.length).toBeGreaterThan(0);
   expect(screen.getAllByText("Em breve")).toHaveLength(disabled.length);
-  expect(screen.getByText("Orçamentos").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
+  expect(screen.getByText("Relatórios").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
 });
 
 it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
@@ -53,6 +60,6 @@ it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
 it("clicar num item desabilitado nao faz nada", async () => {
   const onNavigate = vi.fn();
   renderNav("/", onNavigate);
-  await userEvent.click(screen.getByText("Orçamentos"));
+  await userEvent.click(screen.getByText("Relatórios"));
   expect(onNavigate).not.toHaveBeenCalled();
 });

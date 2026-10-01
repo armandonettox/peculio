@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDayHeading, shiftDay, todayLocal } from "./dates";
+import { firstOfMonth, formatDateRange, formatDayHeading, formatMonthYear, shiftDay, shiftMonth, todayLocal } from "./dates";
 
 describe("shiftDay", () => {
   it("soma e subtrai dias", () => {
@@ -45,4 +45,42 @@ describe("formatDayHeading", () => {
 
 it("todayLocal devolve a data no formato AAAA-MM-DD", () => {
   expect(todayLocal()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+});
+
+describe("firstOfMonth", () => {
+  it.each([
+    ["2026-03-15", "2026-03-01"],
+    ["2026-03-01", "2026-03-01"],
+    ["2026-12-31", "2026-12-01"],
+  ])("%s -> %s", (date, expected) => expect(firstOfMonth(date)).toBe(expected));
+});
+
+describe("shiftMonth", () => {
+  it.each([
+    ["2026-03-15", 1, "2026-04-01"],
+    ["2026-03-15", -1, "2026-02-01"],
+    ["2026-01-31", -1, "2025-12-01"],
+    ["2026-12-10", 1, "2027-01-01"],
+    ["2026-03-31", 0, "2026-03-01"],
+    ["2026-01-31", 1, "2026-02-01"],
+    ["2026-03-10", -14, "2025-01-01"],
+  ])("%s %i meses -> %s", (date, months, expected) => expect(shiftMonth(date, months)).toBe(expected));
+});
+
+describe("formatMonthYear", () => {
+  it("escreve o mes por extenso com a primeira letra maiuscula", () => {
+    expect(formatMonthYear("2026-03-15")).toBe("Março de 2026");
+    expect(formatMonthYear("2026-12-01")).toBe("Dezembro de 2026");
+  });
+});
+
+describe("formatDateRange", () => {
+  it("mostra dia e mes quando o periodo fica no mesmo ano", () => {
+    expect(formatDateRange("2026-03-09", "2026-03-15")).toBe("09/03 a 15/03");
+    expect(formatDateRange("2026-01-01", "2026-12-31")).toBe("01/01 a 31/12");
+  });
+
+  it("mostra o ano nas duas pontas quando o periodo muda de ano", () => {
+    expect(formatDateRange("2025-12-29", "2026-01-04")).toBe("29/12/2025 a 04/01/2026");
+  });
 });

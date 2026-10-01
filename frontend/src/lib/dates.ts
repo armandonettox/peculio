@@ -28,3 +28,36 @@ export function formatDayHeading(date: string, today: string): string {
   }).format(new Date(Date.UTC(year, month - 1, day)));
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+/** Primeiro dia do mes de uma data "AAAA-MM-DD". */
+export function firstOfMonth(date: string): string {
+  const [year, month] = parts(date);
+  return `${year}-${String(month).padStart(2, "0")}-01`;
+}
+
+/** Primeiro dia do mes `months` meses depois (ou antes, se negativo) do mes da data. */
+export function shiftMonth(date: string, months: number): string {
+  const [year, month] = parts(date);
+  return new Date(Date.UTC(year, month - 1 + months, 1)).toISOString().slice(0, 10);
+}
+
+/** "Marco de 2026". */
+export function formatMonthYear(date: string): string {
+  const [year, month] = parts(date);
+  const text = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month - 1, 1)),
+  );
+  return text.replace(/^./, (letter) => letter.toUpperCase());
+}
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
+/** "09/03 a 15/03"; com o ano nas duas pontas quando o periodo muda de ano ("29/12/2025 a 04/01/2026"). */
+export function formatDateRange(start: string, end: string): string {
+  const [startYear, startMonth, startDay] = parts(start);
+  const [endYear, endMonth, endDay] = parts(end);
+  if (startYear !== endYear) {
+    return `${pad(startDay)}/${pad(startMonth)}/${startYear} a ${pad(endDay)}/${pad(endMonth)}/${endYear}`;
+  }
+  return `${pad(startDay)}/${pad(startMonth)} a ${pad(endDay)}/${pad(endMonth)}`;
+}

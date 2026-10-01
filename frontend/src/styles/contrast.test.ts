@@ -48,6 +48,8 @@ const pairs: [string, string, number, string][] = [
   ["destructive", "background", AA_TEXT, "mensagem de erro"],
   ["positive", "background", AA_TEXT, "valor que entra"],
   ["positive", "card", AA_TEXT, "valor que entra no card"],
+  ["warning", "background", AA_TEXT, "aviso de orcamento perto do limite"],
+  ["warning", "card", AA_TEXT, "aviso de orcamento perto do limite no card"],
   ["ring", "background", AA_NON_TEXT, "anel de foco"],
   ["ring", "card", AA_NON_TEXT, "anel de foco no card"],
 ];

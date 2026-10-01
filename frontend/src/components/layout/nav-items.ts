@@ -23,7 +23,7 @@ export const navItems: NavItem[] = [
   { label: "Transações", icon: ArrowLeftRight, to: "/transacoes" },
   { label: "Categorias", icon: Tags, to: "/categorias" },
   { label: "Tags", icon: Tag, to: "/tags" },
-  { label: "Orçamentos", icon: PiggyBank },
+  { label: "Orçamentos", icon: PiggyBank, to: "/orcamentos" },
   { label: "Relatórios", icon: BarChart3 },
   { label: "Configurações", icon: Settings },
 ];
