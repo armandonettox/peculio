@@ -2,6 +2,8 @@ from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_SECRET = "change-me-in-env"
+# Minimo recomendado para chave HMAC-SHA256 (RFC 7518)
+MIN_SECRET_LENGTH = 32
 
 
 class Settings(BaseSettings):
@@ -20,6 +22,13 @@ class Settings(BaseSettings):
     # Teto absoluto da sessao deslizante, em horas. 0 desliga o teto.
     session_max_hours: int = 168
     cors_origins: str = "http://localhost:5173"
+    max_failed_login_attempts: int = 5
+    account_lock_minutes: int = 15
+    invite_expire_days: int = 7
+    # Ligar so quando o backend roda atras de um proxy confiavel (Nginx, Caddy) que sempre
+    # define X-Forwarded-For. Exposto direto na internet, qualquer cliente poderia forjar o
+    # header e escapar do rate limit.
+    trust_proxy_headers: bool = False
 
     @model_validator(mode="after")
     def reject_default_secrets_in_production(self):
@@ -28,6 +37,10 @@ class Settings(BaseSettings):
             if DEFAULT_SECRET in (self.jwt_secret, self.encryption_key):
                 raise ValueError(
                     "JWT_SECRET e ENCRYPTION_KEY precisam ser definidos em producao"
+                )
+            if min(len(self.jwt_secret), len(self.encryption_key)) < MIN_SECRET_LENGTH:
+                raise ValueError(
+                    f"JWT_SECRET e ENCRYPTION_KEY precisam ter pelo menos {MIN_SECRET_LENGTH} caracteres"
                 )
         return self
 
