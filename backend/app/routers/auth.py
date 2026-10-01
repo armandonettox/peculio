@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user, oauth2_scheme
+from app.core.errors import AppError, ErrorCode
 from app.core.rate_limit import limiter
 from app.core.security import (
     create_access_token,
@@ -28,9 +29,9 @@ REGISTRATION_LOCK_KEY = 7421001
 
 def _consume_invite(db: Session, data: UserCreate) -> None:
     """Valida o convite e marca como usado na mesma transacao que cria o usuario."""
-    invalid = HTTPException(status_code=403, detail="Convite invalido ou expirado")
+    invalid = AppError(403, ErrorCode.INVITE_INVALID, "Convite invalido ou expirado")
     if not data.invite_token:
-        raise HTTPException(status_code=403, detail="Cadastro disponivel somente por convite")
+        raise AppError(403, ErrorCode.INVITE_REQUIRED, "Cadastro disponivel somente por convite")
 
     # with_for_update trava a linha: dois registros com o mesmo convite nao passam juntos
     invite = db.execute(
@@ -59,7 +60,7 @@ def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
 
     if db.execute(select(User.id).where(User.email == data.email)).first():
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email ja cadastrado")
+        raise AppError(400, ErrorCode.EMAIL_ALREADY_REGISTERED, "Email ja cadastrado")
 
     user = User(
         name=data.name,
@@ -72,7 +73,7 @@ def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email ja cadastrado")
+        raise AppError(400, ErrorCode.EMAIL_ALREADY_REGISTERED, "Email ja cadastrado")
     db.refresh(user)
     return user
 
@@ -83,8 +84,8 @@ def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(User.email == data.email)).scalar_one_or_none()
 
     if user and user.locked_until and user.locked_until > datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=423, detail="Conta bloqueada temporariamente por excesso de tentativas"
+        raise AppError(
+            423, ErrorCode.ACCOUNT_LOCKED, "Conta bloqueada temporariamente por excesso de tentativas"
         )
 
     # Roda o bcrypt mesmo quando o usuario nao existe, para nao revelar pelo tempo de resposta
@@ -100,7 +101,7 @@ def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
                     minutes=settings.account_lock_minutes
                 )
             db.commit()
-        raise HTTPException(status_code=401, detail="Email ou senha invalidos")
+        raise AppError(401, ErrorCode.INVALID_CREDENTIALS, "Email ou senha invalidos")
 
     user.failed_login_attempts = 0
     user.locked_until = None
@@ -126,10 +127,10 @@ def refresh_session(
     auth_at = datetime.fromtimestamp(claims["auth_at"], tz=timezone.utc) if "auth_at" in claims else now
 
     if settings.session_max_hours > 0 and now - auth_at > timedelta(hours=settings.session_max_hours):
-        raise HTTPException(status_code=401, detail="Sessao expirada, entre novamente")
+        raise AppError(401, ErrorCode.SESSION_EXPIRED, "Sessao expirada, entre novamente")
 
     if "pv" in claims and claims["pv"] != password_fingerprint(current_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Sessao invalida, entre novamente")
+        raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao invalida, entre novamente")
 
     new_token = create_access_token(
         subject=str(current_user.id), auth_at=auth_at, password_hash=current_user.hashed_password

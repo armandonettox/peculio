@@ -24,8 +24,8 @@ def test_admin_creates_invite_and_token_is_shown_once(client, db_session):
     assert invite.token_hash != token
 
     listing = client.get("/api/v1/invites", headers=headers).json()
-    assert len(listing) == 1
-    assert "token" not in listing[0]
+    assert listing["total"] == 1
+    assert "token" not in listing["items"][0]
 
 
 def test_non_admin_cannot_manage_invites(client, db_session):

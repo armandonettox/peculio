@@ -1,13 +1,15 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_admin
+from app.core.errors import AppError, ErrorCode
+from app.core.pagination import Page, PageParams, paginate
 from app.core.security import generate_invite_token, hash_invite_token
 from app.models.user import Invite, User
 from app.schemas.user import InviteCreate, InviteCreated, InviteOut
@@ -22,7 +24,7 @@ def create_invite(
     db: Session = Depends(get_db),
 ):
     if db.execute(select(User.id).where(User.email == data.email)).first():
-        raise HTTPException(status_code=400, detail="Ja existe um usuario com esse email")
+        raise AppError(400, ErrorCode.EMAIL_ALREADY_REGISTERED, "Ja existe um usuario com esse email")
 
     token = generate_invite_token()
     invite = Invite(
@@ -37,12 +39,15 @@ def create_invite(
     return InviteCreated(**InviteOut.model_validate(invite).model_dump(), token=token)
 
 
-@router.get("", response_model=list[InviteOut])
+@router.get("", response_model=Page[InviteOut])
 def list_invites(
+    params: PageParams = Depends(),
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    return db.execute(select(Invite).order_by(Invite.created_at.desc())).scalars().all()
+    # Desempate por id: sem ele, convites criados no mesmo instante trocam de pagina
+    statement = select(Invite).order_by(Invite.created_at.desc(), Invite.id)
+    return paginate(db, statement, params)
 
 
 @router.delete("/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -53,7 +58,7 @@ def revoke_invite(
 ):
     invite = db.get(Invite, invite_id)
     if not invite:
-        raise HTTPException(status_code=404, detail="Convite nao encontrado")
+        raise AppError(404, ErrorCode.INVITE_NOT_FOUND, "Convite nao encontrado")
     db.delete(invite)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
