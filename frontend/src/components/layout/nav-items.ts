@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   PiggyBank,
   Settings,
+  Tag,
   Tags,
   type LucideIcon,
 } from "lucide-react";
@@ -20,7 +21,8 @@ export const navItems: NavItem[] = [
   { label: "Painel", icon: LayoutDashboard, to: "/" },
   { label: "Contas", icon: Landmark, to: "/contas" },
   { label: "Transações", icon: ArrowLeftRight },
-  { label: "Categorias", icon: Tags },
+  { label: "Categorias", icon: Tags, to: "/categorias" },
+  { label: "Tags", icon: Tag, to: "/tags" },
   { label: "Orçamentos", icon: PiggyBank },
   { label: "Relatórios", icon: BarChart3 },
   { label: "Configurações", icon: Settings },
