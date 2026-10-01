@@ -61,7 +61,7 @@ test("link direto para uma pagina interna volta para ela depois de entrar", asyn
   await login(page, ADMIN);
 
   await expect(page).toHaveURL("/contas");
-  await expect(page.getByRole("heading", { level: 1, name: "Página não encontrada" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Contas" })).toBeVisible();
 });
 
 test("?next= para outro site nunca leva para fora do app", async ({ page }) => {

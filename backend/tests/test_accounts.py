@@ -325,6 +325,43 @@ def test_update_opening_balance_changes_balance_without_duplicating_the_transact
     assert db_session.query(TransactionSplit).count() == 1
 
 
+def test_editing_details_and_opening_balance_in_the_same_request_applies_everything(client, headers):
+    """Regressao: trocar o saldo inicial recria a transacao de abertura, e isso nao pode
+    descartar o nome, o papel e as notas que vieram na mesma edicao."""
+    account_id = make(client, headers, opening_balance="100.00").json()["id"]
+    resp = client.patch(
+        f"{URL}/{account_id}",
+        json={
+            "name": "Nubank Roxinho",
+            "role": "savings",
+            "notes": "reserva",
+            "active": False,
+            "opening_balance": "250.00",
+        },
+        headers=headers,
+    )
+    body = resp.json()
+    assert body["name"] == "Nubank Roxinho"
+    assert body["role"] == "savings"
+    assert body["notes"] == "reserva"
+    assert body["active"] is False
+    assert body["balance"] == "250.00"
+
+    # E persistiu de verdade, nao so na resposta
+    saved = client.get(f"{URL}/{account_id}", headers=headers).json()
+    assert saved["name"] == "Nubank Roxinho"
+    assert saved["notes"] == "reserva"
+
+
+def test_removing_the_opening_balance_keeps_the_other_edits(client, headers):
+    account_id = make(client, headers, opening_balance="100.00").json()["id"]
+    body = client.patch(
+        f"{URL}/{account_id}", json={"name": "Outro nome", "opening_balance": "0"}, headers=headers
+    ).json()
+    assert body["name"] == "Outro nome"
+    assert body["balance"] == "0.00"
+
+
 def test_update_opening_balance_can_flip_the_direction(client, headers):
     account_id = make(client, headers, opening_balance="100.00").json()["id"]
     body = client.patch(f"{URL}/{account_id}", json={"opening_balance": "-40.00"}, headers=headers).json()

@@ -102,6 +102,10 @@ def _opening_splits_query(account_ids):
 
 
 def _remove_opening(db: Session, account: Account) -> None:
+    # Grava antes o que ja foi alterado na sessao (nome, papel, notas). O expire_all abaixo
+    # descarta o que esta pendente: sem este flush, uma edicao que troca o nome E o saldo
+    # inicial perdia o nome.
+    db.flush()
     splits = db.execute(_opening_splits_query([account.id])).scalars().all()
     if splits:
         # Apagar o grupo apaga os splits dele (cascata no banco)

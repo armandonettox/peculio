@@ -18,7 +18,7 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   { label: "Painel", icon: LayoutDashboard, to: "/" },
-  { label: "Contas", icon: Landmark },
+  { label: "Contas", icon: Landmark, to: "/contas" },
   { label: "Transações", icon: ArrowLeftRight },
   { label: "Categorias", icon: Tags },
   { label: "Orçamentos", icon: PiggyBank },
