@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Tokens da paleta Netto Code v3. Nenhum componente usa cor solta: tudo vem daqui.
+  Os testes (src/styles/contrast.test.ts) conferem o contraste de cada par texto e fundo.
+
+  Cores fora da paleta, necessarias para a interface funcionar:
+  - destructive: vermelho de erro (a paleta nao tem cor de perigo)
+*/
+:root {
+  --background: #f8f9fa;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+
+  /* Navy: botoes e titulos. Como cor de texto sobre o fundo, usar --primary-text */
+  --primary: #1e3a6b;
+  --primary-foreground: #ffffff;
+  --primary-text: #1e3a6b;
+
+  /* Verde: destaque. Branco sobre ele nao passa em contraste, entao o texto e escuro */
+  --brand-accent: #00a878;
+  --brand-accent-foreground: #171717;
+  --support: #01603b;
+
+  --muted-foreground: #6b7280;
+  --border: #d9e2ec;
+  --input: #d9e2ec;
+  /* No tema claro o verde medio fica com contraste 2,9 no fundo; o escuro passa de 3 */
+  --ring: #01603b;
+
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #111111;
+  --foreground: #f1f5f9;
+  --card: #0f1e14;
+  --card-foreground: #f1f5f9;
+  --popover: #0f1e14;
+  --popover-foreground: #f1f5f9;
+
+  --primary: #1e3a6b;
+  --primary-foreground: #ffffff;
+  /* O navy sobre fundo escuro quase some (contraste 1,6). Aqui o texto usa uma versao clara */
+  --primary-text: #a5b0c4;
+
+  --brand-accent: #00a878;
+  --brand-accent-foreground: #171717;
+  --support: #01603b;
+
+  --muted-foreground: #94a3b8;
+  --border: #1f3d2a;
+  --input: #1f3d2a;
+  --ring: #00a878;
+
+  --destructive: #f87171;
+  --destructive-foreground: #171717;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --color-support: var(--support);
+  --color-muted: color-mix(in srgb, var(--border) 40%, var(--background));
+  --color-muted-foreground: var(--muted-foreground);
+  /* Fundo de hover de itens neutros: um toque do navy sobre o fundo */
+  --color-accent: color-mix(in srgb, var(--primary) 8%, var(--background));
+  --color-accent-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
