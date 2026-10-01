@@ -1,4 +1,5 @@
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import {
   DropdownMenu,
@@ -39,6 +40,12 @@ export function UserMenu() {
           <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/seguranca">
+            <ShieldCheck />
+            Segurança
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={logout}>
           <LogOut />
           Sair

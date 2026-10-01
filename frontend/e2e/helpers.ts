@@ -1,3 +1,5 @@
+import { createHmac } from "node:crypto";
+
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 // Dados ficticios. O primeiro teste cria o administrador; os seguintes reutilizam a conta.
@@ -38,4 +40,29 @@ export async function apiPost(
   const response = await request.post(`/api/v1${path}`, { headers, data });
   expect(response.status(), await response.text()).toBe(201);
   return response.json();
+}
+
+// ---------- 2FA ----------
+
+const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+function base32Decode(text: string): Buffer {
+  let bits = "";
+  for (const char of text.replace(/=+$/, "").toUpperCase()) bits += BASE32.indexOf(char).toString(2).padStart(5, "0");
+  const bytes: number[] = [];
+  for (let index = 0; index + 8 <= bits.length; index += 8) bytes.push(parseInt(bits.slice(index, index + 8), 2));
+  return Buffer.from(bytes);
+}
+
+/** Codigo TOTP (RFC 6238, 6 digitos, passo de 30 s) de um segredo em base32, no instante `atMs`. */
+export function totp(secret: string, atMs: number = Date.now()): string {
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(atMs / 30_000)));
+  const hmac = createHmac("sha1", base32Decode(secret));
+  hmac.write(counter);
+  hmac.end();
+  const digest = hmac.read() as Buffer;
+  const offset = digest[digest.length - 1] & 0x0f;
+  const value = digest.readUInt32BE(offset) & 0x7fffffff;
+  return String(value % 1_000_000).padStart(6, "0");
 }

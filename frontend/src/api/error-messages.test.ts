@@ -26,7 +26,7 @@ describe("mensagens de erro", () => {
   });
 
   it("nao ha mensagem para codigo que o backend nao tem (exceto os do cliente)", () => {
-    const clientOnly = ["network_error", "two_factor_not_supported"];
+    const clientOnly = ["network_error"];
     const extra = Object.keys(ERROR_MESSAGES).filter(
       (code) => !backendCodes.includes(code) && !clientOnly.includes(code),
     );

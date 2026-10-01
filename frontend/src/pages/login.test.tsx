@@ -233,3 +233,163 @@ it("a senha digitada nao aparece em nenhuma mensagem de erro", async () => {
   await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
   expect(screen.getByRole("alert")).not.toHaveTextContent("minha-senha-secreta");
 });
+
+// ---------- Segundo passo (2FA) ----------
+
+const twoFactorLogin = () =>
+  http.post("*/api/v1/auth/login", () =>
+    HttpResponse.json({ access_token: null, two_factor_required: true, challenge_token: "desafio" }),
+  );
+const verifyOk = (onBody?: (body: unknown) => void) =>
+  http.post("*/api/v1/auth/2fa/verify", async ({ request }) => {
+    onBody?.(await request.json());
+    return HttpResponse.json({ access_token: "tok2", token_type: "bearer" });
+  });
+const verifyFails = (code: string, httpStatus = 401) =>
+  http.post("*/api/v1/auth/2fa/verify", () => HttpResponse.json({ detail: "x", code }, { status: httpStatus }));
+
+const codeField = () => screen.getByLabelText(/^Código de/);
+const verifyButton = () => screen.getByRole("button", { name: /Verificar|Verificando/ });
+
+async function reachSecondStep() {
+  renderLogin();
+  await screen.findByRole("heading", { name: "Entrar" });
+  await fillAndSubmit();
+  return await screen.findByRole("heading", { name: "Verificação em duas etapas" });
+}
+
+it("senha certa em conta com 2FA mostra o segundo passo e nao entra", async () => {
+  server.use(status(), twoFactorLogin());
+  await reachSecondStep();
+
+  expect(codeField()).toHaveAccessibleName("Código de verificação");
+  expect(codeField()).toHaveFocus();
+  expect(screen.queryByLabelText("Senha")).not.toBeInTheDocument();
+  expect(screen.queryByText("Painel logado")).not.toBeInTheDocument();
+});
+
+it("o codigo certo abre a sessao e leva ao painel", async () => {
+  let sent: unknown;
+  server.use(status(), twoFactorLogin(), verifyOk((body) => (sent = body)), meOk());
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), " 123456 ");
+  await userEvent.click(verifyButton());
+
+  expect(await screen.findByText("Painel logado")).toBeInTheDocument();
+  expect(sent).toEqual({ challenge_token: "desafio", code: "123456" });
+});
+
+it("codigo vazio mostra o erro, foca o campo e nao chama a API", async () => {
+  let calls = 0;
+  server.use(
+    status(),
+    twoFactorLogin(),
+    http.post("*/api/v1/auth/2fa/verify", () => {
+      calls += 1;
+      return HttpResponse.json({ access_token: "x", token_type: "bearer" });
+    }),
+  );
+  await reachSecondStep();
+
+  await userEvent.click(verifyButton());
+
+  expect(screen.getByText("Informe o código de 6 dígitos.")).toBeInTheDocument();
+  expect(codeField()).toHaveFocus();
+  expect(calls).toBe(0);
+});
+
+it("codigo errado mostra a mensagem e continua no segundo passo", async () => {
+  server.use(status(), twoFactorLogin(), verifyFails("two_factor_invalid_code"));
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), "000000");
+  await userEvent.click(verifyButton());
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Código inválido");
+  expect(screen.getByRole("heading", { name: "Verificação em duas etapas" })).toBeInTheDocument();
+  expect(verifyButton()).toBeEnabled();
+});
+
+it("conta bloqueada no segundo passo mostra o aviso de bloqueio", async () => {
+  server.use(status(), twoFactorLogin(), verifyFails("account_locked", 423));
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), "000000");
+  await userEvent.click(verifyButton());
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Conta bloqueada");
+});
+
+it("usar codigo de recuperacao troca o texto, limpa o campo e envia o codigo digitado", async () => {
+  let sent: unknown;
+  server.use(status(), twoFactorLogin(), verifyOk((body) => (sent = body)), meOk());
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), "123");
+  await userEvent.click(screen.getByRole("button", { name: "Usar um código de recuperação" }));
+
+  expect(codeField()).toHaveAccessibleName("Código de recuperação");
+  expect(codeField()).toHaveValue("");
+  expect(codeField()).toHaveFocus();
+  await userEvent.type(codeField(), "abcdef-123456");
+  await userEvent.click(verifyButton());
+
+  expect(await screen.findByText("Painel logado")).toBeInTheDocument();
+  expect(sent).toEqual({ challenge_token: "desafio", code: "abcdef-123456" });
+});
+
+it("da para voltar ao codigo do app depois de escolher recuperacao", async () => {
+  server.use(status(), twoFactorLogin());
+  await reachSecondStep();
+
+  await userEvent.click(screen.getByRole("button", { name: "Usar um código de recuperação" }));
+  await userEvent.click(screen.getByRole("button", { name: "Usar o código do app" }));
+
+  expect(codeField()).toHaveAccessibleName("Código de verificação");
+});
+
+it("Voltar retorna a senha com o e-mail preservado e a senha vazia", async () => {
+  server.use(status(), twoFactorLogin());
+  await reachSecondStep();
+
+  await userEvent.click(screen.getByRole("button", { name: "Voltar" }));
+
+  expect(screen.getByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+  expect(emailField()).toHaveValue("ana@example.com");
+  expect(passwordField()).toHaveValue("");
+});
+
+it("desafio vencido volta para a senha com a mensagem", async () => {
+  server.use(status(), twoFactorLogin(), verifyFails("two_factor_challenge_invalid"));
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), "123456");
+  await userEvent.click(verifyButton());
+
+  expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
+  expect(screen.getByRole("alert")).toHaveTextContent("O tempo para informar o código acabou");
+});
+
+it("o botao fica desabilitado enquanto verifica, sem enviar duas vezes", async () => {
+  let calls = 0;
+  server.use(
+    status(),
+    twoFactorLogin(),
+    http.post("*/api/v1/auth/2fa/verify", async () => {
+      calls += 1;
+      await delay(150);
+      return HttpResponse.json({ access_token: "tok2", token_type: "bearer" });
+    }),
+    meOk(),
+  );
+  await reachSecondStep();
+
+  await userEvent.type(codeField(), "123456");
+  await userEvent.click(verifyButton());
+  expect(verifyButton()).toBeDisabled();
+  await userEvent.click(verifyButton());
+
+  await screen.findByText("Painel logado");
+  expect(calls).toBe(1);
+});

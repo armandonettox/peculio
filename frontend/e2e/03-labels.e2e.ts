@@ -15,10 +15,10 @@ const dialog = (page: Page, name: string | RegExp) => page.getByRole("dialog", {
 const chip = (page: Page, name: string) => page.getByText(name, { exact: true }).locator("visible=true").first();
 const rowMenu = (page: Page, name: string) => page.getByRole("button", { name: `Ações de ${name}` });
 
-// Contraste (WCAG) entre o texto e o fundo do selo, calculado no navegador
+// Contraste (WCAG) entre o texto e o fundo do selo, calculado no navegador. Quem chama usa
+// toPass (repete se falhar): depois de criar, a lista recarrega e o selo e recriado, e ler o
+// estilo de um elemento que acabou de sair da pagina devolve texto vazio.
 async function chipContrast(page: Page, name: string): Promise<number> {
-  // Espera o selo ter fundo pintado: logo apos criar, o elemento pode ainda estar "transparent"
-  await expect(chip(page, name)).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   return chip(page, name).evaluate((element) => {
     const toRgb = (value: string) => value.match(/\d+/g)!.slice(0, 3).map(Number);
     const lum = ([r, g, b]: number[]) => {
@@ -79,7 +79,9 @@ test("o texto continua legivel sobre qualquer cor, inclusive branco, preto e ama
   ]) {
     await createCategory(page, name, color);
     await expect(chip(page, name)).toHaveAttribute("data-color", color);
-    expect(await chipContrast(page, name), `contraste em ${name}`).toBeGreaterThanOrEqual(4.5);
+    await expect(async () => {
+      expect(await chipContrast(page, name), `contraste em ${name}`).toBeGreaterThanOrEqual(4.5);
+    }).toPass();
   }
 });
 

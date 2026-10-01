@@ -9,13 +9,17 @@ import { tokenStore as defaultTokenStore, type TokenStore } from "./token-store"
 export type User = components["schemas"]["UserOut"];
 type Api = typeof defaultApi;
 
-type Credentials = { email: string; password: string };
+export type LoginResult = { status: "ok" } | { status: "two_factor"; challengeToken: string };
+
+type Credentials ={ email: string; password: string };
 type RegisterInput = Credentials & { name: string; inviteToken?: string };
 
 export type AuthContextValue = {
   user: User | null;
   isAuthenticated: boolean;
-  login: (credentials: Credentials) => Promise<void>;
+  // "two_factor": a senha esta certa, falta o codigo (verifyTwoFactor com o challengeToken)
+  login: (credentials: Credentials) => Promise<LoginResult>;
+  verifyTwoFactor: (challengeToken: string, code: string) => Promise<void>;
   // Cria a conta e ja entra com ela
   register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
@@ -64,25 +68,44 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
     };
   }, [isAuthenticated, api]);
 
-  const login = useCallback(
-    async ({ email, password }: Credentials) => {
-      const result = await unwrap(
-        api.client.POST("/api/v1/auth/login", { body: { email, password } }),
-      );
-      // Provisorio: o segundo passo do 2FA (codigo) ainda nao tem tela. A Parte 2 troca isto.
-      if (!result.access_token) {
-        throw new ApiError(401, "two_factor_not_supported", "Esta conta usa 2FA");
-      }
-      tokenStore.set(result.access_token);
+  // Guarda o token e carrega o usuario; sem conseguir carregar o usuario nao ha sessao de verdade
+  const startSession = useCallback(
+    async (accessToken: string) => {
+      tokenStore.set(accessToken);
       try {
         setUser(await unwrap(api.client.GET("/api/v1/auth/me")));
       } catch (error) {
-        // Sem conseguir carregar o usuario nao ha sessao de verdade
         tokenStore.clear();
         throw error;
       }
     },
     [api, tokenStore],
+  );
+
+  const login = useCallback(
+    async ({ email, password }: Credentials): Promise<LoginResult> => {
+      const result = await unwrap(api.client.POST("/api/v1/auth/login", { body: { email, password } }));
+      // Conta com 2FA: a senha certa so rende um desafio, que o segundo passo troca pelo token
+      if (result.two_factor_required && result.challenge_token) {
+        return { status: "two_factor", challengeToken: result.challenge_token };
+      }
+      if (!result.access_token) {
+        throw new ApiError(500, "internal_error", "Resposta de login sem token");
+      }
+      await startSession(result.access_token);
+      return { status: "ok" };
+    },
+    [api, startSession],
+  );
+
+  const verifyTwoFactor = useCallback(
+    async (challengeToken: string, code: string) => {
+      const token = await unwrap(
+        api.client.POST("/api/v1/auth/2fa/verify", { body: { challenge_token: challengeToken, code } }),
+      );
+      await startSession(token.access_token);
+    },
+    [api, startSession],
   );
 
   const register = useCallback(
@@ -102,8 +125,8 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
   }, [tokenStore]);
 
   const value = useMemo(
-    () => ({ user, isAuthenticated, login, register, logout }),
-    [user, isAuthenticated, login, register, logout],
+    () => ({ user, isAuthenticated, login, verifyTwoFactor, register, logout }),
+    [user, isAuthenticated, login, verifyTwoFactor, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

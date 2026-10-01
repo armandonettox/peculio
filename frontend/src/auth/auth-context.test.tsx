@@ -26,6 +26,10 @@ function setup() {
 }
 
 const loginOk = () => http.post("*/api/v1/auth/login", () => HttpResponse.json({ access_token: "tok", token_type: "bearer" }));
+const twoFactorLogin = () =>
+  http.post("*/api/v1/auth/login", () =>
+    HttpResponse.json({ access_token: null, two_factor_required: true, challenge_token: "desafio" }),
+  );
 const meOk = () => http.get("*/api/v1/auth/me", () => HttpResponse.json(sampleUser));
 
 afterEach(() => vi.useRealTimers());
@@ -66,20 +70,66 @@ describe("login", () => {
     expect(result.current.isAuthenticated).toBe(false);
   });
 
+  it("sem 2FA devolve status ok", async () => {
+    server.use(loginOk(), meOk());
+    const { result } = setup();
+    const outcome = await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
+    expect(outcome).toEqual({ status: "ok" });
+  });
+
   it("conta com 2FA devolve so o desafio: nao vira sessao", async () => {
+    server.use(twoFactorLogin());
+    const { result, tokenStore } = setup();
+
+    const outcome = await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
+
+    expect(outcome).toEqual({ status: "two_factor", challengeToken: "desafio" });
+    expect(tokenStore.get()).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("verifyTwoFactor manda o desafio e o codigo e abre a sessao", async () => {
+    let sent: unknown;
     server.use(
-      http.post("*/api/v1/auth/login", () =>
-        HttpResponse.json({ access_token: null, two_factor_required: true, challenge_token: "desafio" }),
+      meOk(),
+      http.post("*/api/v1/auth/2fa/verify", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ access_token: "tok2", token_type: "bearer" });
+      }),
+    );
+    const { result, tokenStore } = setup();
+
+    await act(() => result.current.verifyTwoFactor("desafio", "123456"));
+
+    expect(sent).toEqual({ challenge_token: "desafio", code: "123456" });
+    expect(tokenStore.get()).toBe("tok2");
+    expect(result.current.user).toEqual(sampleUser);
+  });
+
+  it("codigo errado lanca ApiError e nao deixa sessao", async () => {
+    server.use(
+      http.post("*/api/v1/auth/2fa/verify", () =>
+        HttpResponse.json({ detail: "x", code: "two_factor_invalid_code" }, { status: 401 }),
       ),
     );
     const { result, tokenStore } = setup();
 
-    const error = await act(() =>
-      result.current.login({ email: "ana@example.com", password: "SenhaForte123" }).catch((e) => e),
-    );
+    const error = await act(() => result.current.verifyTwoFactor("desafio", "000000").catch((e) => e));
 
     expect(error).toBeInstanceOf(ApiError);
-    expect(error.code).toBe("two_factor_not_supported");
+    expect(error.code).toBe("two_factor_invalid_code");
+    expect(tokenStore.get()).toBeNull();
+  });
+
+  it("verifyTwoFactor desfaz a sessao se nao conseguir carregar o usuario", async () => {
+    server.use(
+      http.post("*/api/v1/auth/2fa/verify", () => HttpResponse.json({ access_token: "tok2", token_type: "bearer" })),
+      http.get("*/api/v1/auth/me", () => HttpResponse.json({ detail: "x", code: "internal_error" }, { status: 500 })),
+    );
+    const { result, tokenStore } = setup();
+
+    await act(() => result.current.verifyTwoFactor("desafio", "123456").catch(() => undefined));
+
     expect(tokenStore.get()).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
   });

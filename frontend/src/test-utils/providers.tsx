@@ -37,7 +37,8 @@ export function FakeAuth({
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
-    login: async () => undefined,
+    login: async () => ({ status: "ok" }),
+    verifyTwoFactor: async () => undefined,
     register: async () => undefined,
     logout,
   };
