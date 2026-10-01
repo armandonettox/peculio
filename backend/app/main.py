@@ -5,7 +5,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.core.rate_limit import limiter
-from app.routers import accounts, auth, currencies, invites
+from app.routers import accounts, auth, categories, currencies, invites, tags
 
 app = FastAPI(title="finance-app", version="0.1.0")
 
@@ -24,6 +24,8 @@ api_v1.include_router(auth.router)
 api_v1.include_router(invites.router)
 api_v1.include_router(currencies.router)
 api_v1.include_router(accounts.router)
+api_v1.include_router(categories.router)
+api_v1.include_router(tags.router)
 app.include_router(api_v1)
 
 

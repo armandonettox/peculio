@@ -28,6 +28,11 @@ class ErrorCode(StrEnum):
     INVITE_INVALID = "invite_invalid"
     INVITE_NOT_FOUND = "invite_not_found"
     EMAIL_ALREADY_REGISTERED = "email_already_registered"
+    # Categorias e tags
+    CATEGORY_NOT_FOUND = "category_not_found"
+    CATEGORY_NAME_TAKEN = "category_name_taken"
+    TAG_NOT_FOUND = "tag_not_found"
+    TAG_NAME_TAKEN = "tag_name_taken"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"
