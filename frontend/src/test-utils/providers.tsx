@@ -7,7 +7,7 @@ export const testUser: User = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Ana Teste",
   email: "ana@example.com",
-  is_admin: true,
+  is_admin: true, default_currency: "BRL",
 };
 
 export function newTestQueryClient() {

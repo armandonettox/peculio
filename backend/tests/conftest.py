@@ -92,6 +92,11 @@ def bearer(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
+def auth_headers(client, email="admin@example.com", password=DEFAULT_PASSWORD) -> dict:
+    """Cabecalho de login de um usuario que ja existe."""
+    return bearer(login_token(client, email=email, password=password))
+
+
 def make_user(db_session, email="user@example.com", password=DEFAULT_PASSWORD, is_admin=False) -> User:
     """Cria usuario direto no banco, sem passar pelo fluxo de convite."""
     user = User(name="Teste", email=email, hashed_password=hash_password(password), is_admin=is_admin)

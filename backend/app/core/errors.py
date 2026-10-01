@@ -28,6 +28,12 @@ class ErrorCode(StrEnum):
     INVITE_INVALID = "invite_invalid"
     INVITE_NOT_FOUND = "invite_not_found"
     EMAIL_ALREADY_REGISTERED = "email_already_registered"
+    # Contas e moedas
+    ACCOUNT_NOT_FOUND = "account_not_found"
+    ACCOUNT_NAME_TAKEN = "account_name_taken"
+    ACCOUNT_HAS_TRANSACTIONS = "account_has_transactions"
+    CURRENCY_NOT_FOUND = "currency_not_found"
+    INVALID_AMOUNT = "invalid_amount"
     # Genericos
     VALIDATION_ERROR = "validation_error"
     RATE_LIMITED = "rate_limited"

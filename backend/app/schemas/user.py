@@ -42,6 +42,7 @@ class UserOut(BaseModel):
     name: str
     email: EmailStr
     is_admin: bool
+    default_currency: str
 
 
 class Token(BaseModel):

@@ -50,20 +50,20 @@ it("sem login e instancia vazia, /login leva para criar o administrador", async 
 });
 
 it("logado, a raiz mostra o painel com a saudacao dentro do layout", () => {
-  renderAt("/", { id: "1", name: "Ana Teste", email: "ana@example.com", is_admin: true });
+  renderAt("/", { id: "1", name: "Ana Teste", email: "ana@example.com", is_admin: true, default_currency: "BRL" });
   expect(screen.getByRole("heading", { level: 1, name: "Painel" })).toBeInTheDocument();
   expect(screen.getByText(/Olá, Ana\./)).toBeInTheDocument();
   expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
 });
 
 it("logado, /login e /register levam para o painel", () => {
-  renderAt("/login", { id: "1", name: "Ana", email: "ana@example.com", is_admin: true });
+  renderAt("/login", { id: "1", name: "Ana", email: "ana@example.com", is_admin: true, default_currency: "BRL" });
   expect(screen.getByRole("heading", { level: 1, name: "Painel" })).toBeInTheDocument();
   expect(location()).toHaveTextContent(/^\/$/);
 });
 
 it("logado, endereco inexistente mostra a pagina nao encontrada dentro do layout", () => {
-  renderAt("/nao-existe", { id: "1", name: "Ana", email: "ana@example.com", is_admin: true });
+  renderAt("/nao-existe", { id: "1", name: "Ana", email: "ana@example.com", is_admin: true, default_currency: "BRL" });
   expect(screen.getByRole("heading", { level: 1, name: "Página não encontrada" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Voltar ao painel" })).toHaveAttribute("href", "/");
   expect(screen.getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
