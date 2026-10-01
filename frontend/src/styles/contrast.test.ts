@@ -46,6 +46,8 @@ const pairs: [string, string, number, string][] = [
   ["brand-accent-foreground", "brand-accent", AA_TEXT, "texto sobre o verde de destaque"],
   ["destructive-foreground", "destructive", AA_TEXT, "texto do botao de excluir"],
   ["destructive", "background", AA_TEXT, "mensagem de erro"],
+  ["positive", "background", AA_TEXT, "valor que entra"],
+  ["positive", "card", AA_TEXT, "valor que entra no card"],
   ["ring", "background", AA_NON_TEXT, "anel de foco"],
   ["ring", "card", AA_NON_TEXT, "anel de foco no card"],
 ];

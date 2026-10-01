@@ -10,6 +10,7 @@ import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
 import RegisterPage from "@/pages/register";
 import TagsPage from "@/pages/tags";
+import TransactionsPage from "@/pages/transactions";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="contas" element={<AccountsPage />} />
+          <Route path="transacoes" element={<TransactionsPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
           <Route path="*" element={<NotFoundPage />} />

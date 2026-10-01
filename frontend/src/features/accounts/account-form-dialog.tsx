@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { todayLocal } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
 import { DEFAULT_ROLE, KIND_LABELS, ROLE_LABELS, ROLES_BY_KIND, type AccountKind } from "./labels";
 
@@ -27,9 +28,6 @@ type Errors = Partial<Record<Field, string>>;
 type Role = NonNullable<Account["role"]>;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-// Data de hoje no fuso do usuario (toISOString usaria UTC e viraria o dia perto da meia-noite)
-const todayLocal = () => new Date().toLocaleDateString("sv-SE");
 
 // O backend usa ponto nos centavos; na tela mostramos virgula
 const toInputText = (value: string) => value.replace(".", ",");
