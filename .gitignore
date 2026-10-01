@@ -10,3 +10,5 @@ docker-compose.override.yml
 *.tsbuildinfo
 playwright-report/
 test-results/
+autonomo.log
+nohup.out
