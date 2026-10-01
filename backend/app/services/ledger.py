@@ -2,9 +2,10 @@ import uuid
 from collections.abc import Sequence
 from decimal import Decimal
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, case, func, select
+from sqlalchemy.orm import Session, aliased
 
+from app.models.account import Account
 from app.models.transaction import TransactionSplit
 
 
@@ -17,9 +18,25 @@ def balances_by_account(db: Session, account_ids: Sequence[uuid.UUID]) -> dict[u
     if not account_ids:
         return {}
 
+    # O valor (`amount`) esta na moeda de quem paga. Quando a conta que recebe tem outra moeda
+    # (transferencia ou pagamento de divida entre moedas), o que entra nela e o `foreign_amount`,
+    # que a validacao garante estar na moeda dela. Nos demais casos o foreign_amount e so
+    # informativo (compra feita em dolar e paga em real) e o saldo usa o `amount`.
+    destination = aliased(Account)
+    credited = case(
+        (
+            and_(
+                TransactionSplit.currency_code != destination.currency_code,
+                TransactionSplit.foreign_currency_code == destination.currency_code,
+            ),
+            TransactionSplit.foreign_amount,
+        ),
+        else_=TransactionSplit.amount,
+    )
     inflow = dict(
         db.execute(
-            select(TransactionSplit.destination_account_id, func.sum(TransactionSplit.amount))
+            select(TransactionSplit.destination_account_id, func.sum(credited))
+            .join(destination, destination.id == TransactionSplit.destination_account_id)
             .where(TransactionSplit.destination_account_id.in_(account_ids))
             .group_by(TransactionSplit.destination_account_id)
         ).all()

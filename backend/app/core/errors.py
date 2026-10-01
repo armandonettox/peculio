@@ -39,6 +39,10 @@ class ErrorCode(StrEnum):
     ACCOUNT_HAS_TRANSACTIONS = "account_has_transactions"
     CURRENCY_NOT_FOUND = "currency_not_found"
     INVALID_AMOUNT = "invalid_amount"
+    # Transacoes
+    TRANSACTION_NOT_FOUND = "transaction_not_found"
+    INVALID_SPLIT_ACCOUNTS = "invalid_split_accounts"
+    CURRENCY_MISMATCH = "currency_mismatch"
     # Genericos
     VALIDATION_ERROR = "validation_error"
     RATE_LIMITED = "rate_limited"

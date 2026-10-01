@@ -3,7 +3,21 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, Index, Numeric, String, Text, Uuid, func
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    Table,
+    Text,
+    Uuid,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -61,5 +75,16 @@ class TransactionSplit(Base):
     currency_code: Mapped[str] = mapped_column(ForeignKey("currencies.code"))
     foreign_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
     foreign_currency_code: Mapped[str | None] = mapped_column(ForeignKey("currencies.code"))
+    # Categoria do split (uma por linha, para a divisao da compra entre categorias)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# Tags do split: N:N, um split pode ter varias tags e uma tag aparece em varios splits
+transaction_split_tags = Table(
+    "transaction_split_tags",
+    Base.metadata,
+    Column("transaction_split_id", ForeignKey("transaction_splits.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+)

@@ -278,6 +278,43 @@ export interface paths {
         patch: operations["update_tag_api_v1_tags__tag_id__patch"];
         trace?: never;
     };
+    "/api/v1/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Transactions */
+        get: operations["list_transactions_api_v1_transactions_get"];
+        put?: never;
+        /** Create Transaction */
+        post: operations["create_transaction_api_v1_transactions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Transaction */
+        get: operations["get_transaction_api_v1_transactions__transaction_id__get"];
+        /** Update Transaction */
+        put: operations["update_transaction_api_v1_transactions__transaction_id__put"];
+        post?: never;
+        /** Delete Transaction */
+        delete: operations["delete_transaction_api_v1_transactions__transaction_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -525,6 +562,17 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[TransactionOut] */
+        Page_TransactionOut_: {
+            /** Items */
+            items: components["schemas"]["TransactionOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** TagCreate */
         TagCreate: {
             /** Name */
@@ -559,6 +607,123 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /** TransactionCreate */
+        TransactionCreate: {
+            /** Splits */
+            splits: components["schemas"]["TransactionSplitCreate"][];
+            /** Title */
+            title?: string | null;
+        };
+        /** TransactionOut */
+        TransactionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Splits */
+            splits: components["schemas"]["TransactionSplitOut"][];
+            /** Title */
+            title: string | null;
+        };
+        /** TransactionSplitCreate */
+        TransactionSplitCreate: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Amount */
+            amount: number | string;
+            /** Category Id */
+            category_id?: string | null;
+            /** Counterparty Account Id */
+            counterparty_account_id?: string | null;
+            /** Counterparty Name */
+            counterparty_name?: string | null;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /** Foreign Amount */
+            foreign_amount?: number | string | null;
+            /** Foreign Currency Code */
+            foreign_currency_code?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Tag Ids */
+            tag_ids?: string[];
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "withdrawal" | "deposit" | "transfer";
+        };
+        /** TransactionSplitOut */
+        TransactionSplitOut: {
+            /** Amount */
+            amount: string;
+            /** Category Id */
+            category_id: string | null;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /**
+             * Destination Account Id
+             * Format: uuid
+             */
+            destination_account_id: string;
+            /** Foreign Amount */
+            foreign_amount: string | null;
+            /** Foreign Currency Code */
+            foreign_currency_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Source Account Id
+             * Format: uuid
+             */
+            source_account_id: string;
+            /** Tag Ids */
+            tag_ids: string[];
+            type: components["schemas"]["TransactionType"];
+        };
+        /**
+         * TransactionType
+         * @enum {string}
+         */
+        TransactionType: "withdrawal" | "deposit" | "transfer" | "opening_balance" | "reconciliation";
+        /**
+         * TransactionUpdate
+         * @description Mesma forma da criacao: a edicao troca o grupo inteiro (titulo e splits).
+         */
+        TransactionUpdate: {
+            /** Splits */
+            splits: components["schemas"]["TransactionSplitCreate"][];
+            /** Title */
+            title?: string | null;
         };
         /** UserCreate */
         UserCreate: {
@@ -1359,6 +1524,174 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TagOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_transactions_api_v1_transactions_get: {
+        parameters: {
+            query?: {
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                min_amount?: number | string | null;
+                max_amount?: number | string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_TransactionOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_transaction_api_v1_transactions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_transaction_api_v1_transactions__transaction_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_transaction_api_v1_transactions__transaction_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_transaction_api_v1_transactions__transaction_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
