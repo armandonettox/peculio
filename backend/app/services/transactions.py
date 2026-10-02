@@ -1,6 +1,7 @@
 import uuid
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
@@ -403,6 +404,80 @@ def build_output(db: Session, transaction: Transaction) -> dict:
     return build_outputs(db, [transaction])[0]
 
 
+@dataclass(frozen=True)
+class TransactionFilters:
+    """Filtros da lista de transacoes. A mesma forma serve a lista e a exportacao em CSV."""
+
+    account_id: uuid.UUID | None = None
+    category_id: uuid.UUID | None = None
+    budget_id: uuid.UUID | None = None
+    bill_id: uuid.UUID | None = None
+    tag_id: uuid.UUID | None = None
+    date_from: date | None = None
+    date_to: date | None = None
+    q: str | None = None
+    min_amount: Decimal | None = None
+    max_amount: Decimal | None = None
+
+
+def _matched_groups(user_id: uuid.UUID, filters: TransactionFilters):
+    """Subconsulta com os grupos do usuario (e a data mais recente de cada um) que atendem aos filtros.
+
+    Um grupo entra se algum split dele atende a TODOS os filtros ao mesmo tempo.
+    Os valores minimo e maximo comparam o `amount` do split, na moeda dele.
+    """
+    conditions = [TransactionSplit.user_id == user_id, TransactionSplit.type.in_(LISTED_TYPES)]
+    if filters.account_id is not None:
+        conditions.append(
+            or_(
+                TransactionSplit.source_account_id == filters.account_id,
+                TransactionSplit.destination_account_id == filters.account_id,
+            )
+        )
+    if filters.category_id is not None:
+        conditions.append(TransactionSplit.category_id == filters.category_id)
+    if filters.budget_id is not None:
+        conditions.append(TransactionSplit.budget_id == filters.budget_id)
+    if filters.bill_id is not None:
+        conditions.append(TransactionSplit.bill_id == filters.bill_id)
+    if filters.date_from is not None:
+        conditions.append(TransactionSplit.date >= filters.date_from)
+    if filters.date_to is not None:
+        conditions.append(TransactionSplit.date <= filters.date_to)
+    if filters.min_amount is not None:
+        conditions.append(TransactionSplit.amount >= filters.min_amount)
+    if filters.max_amount is not None:
+        conditions.append(TransactionSplit.amount <= filters.max_amount)
+    if filters.q and filters.q.strip():
+        # autoescape: um "%" ou "_" digitado na busca e texto comum, nao curinga
+        term = filters.q.strip().lower()
+        conditions.append(
+            or_(
+                func.lower(TransactionSplit.description).contains(term, autoescape=True),
+                func.lower(func.coalesce(Transaction.title, "")).contains(term, autoescape=True),
+            )
+        )
+
+    matching = select(
+        TransactionSplit.transaction_id.label("transaction_id"),
+        func.max(TransactionSplit.date).label("last_date"),
+    ).join(Transaction, Transaction.id == TransactionSplit.transaction_id)
+    if filters.tag_id is not None:
+        matching = matching.join(
+            transaction_split_tags, transaction_split_tags.c.transaction_split_id == TransactionSplit.id
+        ).where(transaction_split_tags.c.tag_id == filters.tag_id)
+    return matching.where(*conditions).group_by(TransactionSplit.transaction_id).subquery()
+
+
+def _ordered_transactions(matched):
+    return (
+        select(Transaction)
+        .join(matched, matched.c.transaction_id == Transaction.id)
+        # Desempate por created_at e id: sem ele, grupos do mesmo dia trocam de pagina
+        .order_by(matched.c.last_date.desc(), Transaction.created_at.desc(), Transaction.id)
+    )
+
+
 def list_transactions(
     db: Session,
     user_id: uuid.UUID,
@@ -419,69 +494,45 @@ def list_transactions(
     min_amount: Decimal | None = None,
     max_amount: Decimal | None = None,
 ) -> dict:
-    """Lista os grupos do usuario, do mais recente para o mais antigo (pela data do lancamento).
-
-    Um grupo entra na lista se algum split dele atende a TODOS os filtros ao mesmo tempo.
-    Os valores minimo e maximo comparam o `amount` do split, na moeda dele.
-    """
-    conditions = [TransactionSplit.user_id == user_id, TransactionSplit.type.in_(LISTED_TYPES)]
-    if account_id is not None:
-        conditions.append(
-            or_(TransactionSplit.source_account_id == account_id, TransactionSplit.destination_account_id == account_id)
-        )
-    if category_id is not None:
-        conditions.append(TransactionSplit.category_id == category_id)
-    if budget_id is not None:
-        conditions.append(TransactionSplit.budget_id == budget_id)
-    if bill_id is not None:
-        conditions.append(TransactionSplit.bill_id == bill_id)
-    if date_from is not None:
-        conditions.append(TransactionSplit.date >= date_from)
-    if date_to is not None:
-        conditions.append(TransactionSplit.date <= date_to)
-    if min_amount is not None:
-        conditions.append(TransactionSplit.amount >= min_amount)
-    if max_amount is not None:
-        conditions.append(TransactionSplit.amount <= max_amount)
-    if q and q.strip():
-        # autoescape: um "%" ou "_" digitado na busca e texto comum, nao curinga
-        term = q.strip().lower()
-        conditions.append(
-            or_(
-                func.lower(TransactionSplit.description).contains(term, autoescape=True),
-                func.lower(func.coalesce(Transaction.title, "")).contains(term, autoescape=True),
-            )
-        )
-
-    matching = select(
-        TransactionSplit.transaction_id.label("transaction_id"),
-        func.max(TransactionSplit.date).label("last_date"),
-    ).join(Transaction, Transaction.id == TransactionSplit.transaction_id)
-    if tag_id is not None:
-        matching = matching.join(
-            transaction_split_tags, transaction_split_tags.c.transaction_split_id == TransactionSplit.id
-        ).where(transaction_split_tags.c.tag_id == tag_id)
-    matched = matching.where(*conditions).group_by(TransactionSplit.transaction_id).subquery()
-
-    total = db.scalar(select(func.count()).select_from(matched))
-    page = (
-        db.execute(
-            select(Transaction)
-            .join(matched, matched.c.transaction_id == Transaction.id)
-            # Desempate por created_at e id: sem ele, grupos do mesmo dia trocam de pagina
-            .order_by(matched.c.last_date.desc(), Transaction.created_at.desc(), Transaction.id)
-            .limit(params.limit)
-            .offset(params.offset)
-        )
-        .scalars()
-        .all()
+    """Lista os grupos do usuario, do mais recente para o mais antigo (pela data do lancamento)."""
+    filters = TransactionFilters(
+        account_id=account_id,
+        category_id=category_id,
+        budget_id=budget_id,
+        bill_id=bill_id,
+        tag_id=tag_id,
+        date_from=date_from,
+        date_to=date_to,
+        q=q,
+        min_amount=min_amount,
+        max_amount=max_amount,
     )
+    matched = _matched_groups(user_id, filters)
+    total = db.scalar(select(func.count()).select_from(matched))
+    page = db.execute(_ordered_transactions(matched).limit(params.limit).offset(params.offset)).scalars().all()
     return {
         "items": build_outputs(db, page),
         "total": total,
         "limit": params.limit,
         "offset": params.offset,
     }
+
+
+def iter_transaction_blocks(
+    db: Session, user_id: uuid.UUID, filters: TransactionFilters, block_size: int
+) -> Iterator[list[dict]]:
+    """Os mesmos grupos e a mesma ordem de `list_transactions`, em blocos de `block_size` grupos.
+    Cada bloco e uma consulta de paginas, entao a memoria nunca guarda a lista inteira."""
+    statement = _ordered_transactions(_matched_groups(user_id, filters))
+    offset = 0
+    while True:
+        page = db.execute(statement.limit(block_size).offset(offset)).scalars().all()
+        if not page:
+            return
+        yield build_outputs(db, page)
+        if len(page) < block_size:
+            return
+        offset += block_size
 
 
 def list_counterparties(db: Session, user_id: uuid.UUID, account_type: str, q: str | None, limit: int) -> list[Account]:

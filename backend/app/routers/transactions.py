@@ -4,14 +4,17 @@ from decimal import Decimal
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from app.core import clock
+from app.core.database import SessionLocal, get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.user import User
 from app.schemas.transaction import CounterpartyOut, TransactionCreate, TransactionOut, TransactionUpdate
 from app.services import transactions as service
+from app.services import transactions_csv
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -56,6 +59,48 @@ def list_transactions(
         q=q,
         min_amount=min_amount,
         max_amount=max_amount,
+    )
+
+
+def _csv_stream(user_id: uuid.UUID, filters: service.TransactionFilters):
+    # Sessao propria: o arquivo e gerado aos poucos, depois que a rota ja respondeu, e a sessao da
+    # dependencia nao deve ficar presa a esse tempo todo
+    with SessionLocal() as db:
+        yield from transactions_csv.export_csv_chunks(db, user_id, filters)
+
+
+# Precisa vir antes de /{transaction_id}, como /counterparties
+@router.get("/export.csv")
+def export_transactions_csv(
+    account_id: uuid.UUID | None = None,
+    category_id: uuid.UUID | None = None,
+    budget_id: uuid.UUID | None = None,
+    bill_id: uuid.UUID | None = None,
+    tag_id: uuid.UUID | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    q: str | None = None,
+    min_amount: AmountFilter = None,
+    max_amount: AmountFilter = None,
+    user: User = Depends(get_current_user),
+):
+    filters = service.TransactionFilters(
+        account_id=account_id,
+        category_id=category_id,
+        budget_id=budget_id,
+        bill_id=bill_id,
+        tag_id=tag_id,
+        date_from=date_from,
+        date_to=date_to,
+        q=q,
+        min_amount=min_amount,
+        max_amount=max_amount,
+    )
+    filename = f"lancamentos-{clock.today().isoformat()}.csv"
+    return StreamingResponse(
+        _csv_stream(user.id, filters),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

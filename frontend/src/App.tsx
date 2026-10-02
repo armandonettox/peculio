@@ -13,6 +13,7 @@ import NotFoundPage from "@/pages/not-found";
 import PiggyBanksPage from "@/pages/piggy-banks";
 import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
+import ReportsPage from "@/pages/reports";
 import SecurityPage from "@/pages/security";
 import TagsPage from "@/pages/tags";
 import TransactionsPage from "@/pages/transactions";
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
           <Route path="webhooks" element={<WebhooksPage />} />
+          <Route path="relatorios" element={<ReportsPage />} />
           <Route path="seguranca" element={<SecurityPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
