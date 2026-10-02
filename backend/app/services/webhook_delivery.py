@@ -25,6 +25,10 @@ RETRY_DELAYS = (timedelta(minutes=1), timedelta(minutes=5), timedelta(minutes=30
 EXCERPT_CHARS = 500
 # Quanto da resposta lemos antes de parar (bem acima do trecho guardado)
 MAX_RESPONSE_BYTES = 4000
+# Quanto tempo uma entrega reivindicada fica "reservada" para quem esta enviando. Bem acima do
+# pior caso do POST (timeout de 10 s por etapa, ate 3 IPs), e e o tempo que uma entrega leva para
+# voltar a fila se o processo morrer no meio do envio.
+LEASE = timedelta(minutes=5)
 # Motivo gravado (e mostrado no historico) quando uma entrega expira por causa da pausa
 PAUSED_REASON = "Webhook pausado: entrega expirada sem ser enviada"
 
@@ -74,20 +78,23 @@ def _clean(text: str, limit: int | None = None) -> str:
 
 
 def post_webhook(
-    webhook: Webhook,
+    url: str,
+    secret_encrypted: str,
     delivery_id: uuid.UUID,
     event: str,
     payload: dict,
     now: datetime,
     resolver: Resolver | None = None,
 ) -> Outcome:
-    """Faz o POST assinado. Nunca levanta: qualquer falha vira um Outcome com a mensagem."""
-    secret = decrypt_secret(webhook.secret_encrypted)
+    """Faz o POST assinado. Nunca levanta: qualquer falha vira um Outcome com a mensagem.
+
+    Nao recebe a sessao do banco de proposito: o HTTP roda sem transacao e sem lock."""
+    secret = decrypt_secret(secret_encrypted)
     if secret is None:
         return Outcome(False, error="Nao foi possivel ler o segredo do webhook")
     try:
         # De novo antes de entregar: o DNS pode ter mudado desde o cadastro
-        validate_webhook_url(webhook.url, resolver=resolver)
+        validate_webhook_url(url, resolver=resolver)
     except WebhookUrlError as error:
         return Outcome(False, error=str(error))
 
@@ -103,7 +110,7 @@ def post_webhook(
     }
     try:
         with client_factory() as client:
-            with client.stream("POST", webhook.url, content=body, headers=headers) as response:
+            with client.stream("POST", url, content=body, headers=headers) as response:
                 chunks: list[bytes] = []
                 size = 0
                 for chunk in response.iter_bytes():
@@ -157,18 +164,38 @@ def expire_delivery(delivery: WebhookDelivery, reason: str, now: datetime) -> No
     delivery.finished_at = now
 
 
-def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | None = None) -> bool:
-    """Trata UMA pendente vencida e confirma. False se nao havia nenhuma.
+@dataclass
+class Claim:
+    """O que o POST precisa saber, copiado para fora da sessao (depois do commit a linha nao e mais
+    nossa para ler)."""
+
+    delivery_id: uuid.UUID
+    event: str
+    payload: dict
+    url: str
+    secret_encrypted: str
+    # Valor que next_attempt_at ganhou ao reivindicar. Serve para saber, na hora de gravar o
+    # resultado, se a entrega continua sendo nossa (ver finish_attempt).
+    lease_until: datetime | None = None
+    # True quando nao ha nada para enviar (a entrega expirou porque o webhook esta pausado)
+    expired: bool = False
+
+
+def claim_next(db: Session, now: datetime) -> Claim | None:
+    """Transacao curta 1: reivindica UMA pendente vencida e confirma. None se nao havia nenhuma.
+
+    O SELECT ... FOR UPDATE SKIP LOCKED faz dois processos (ou duas rodadas) nunca pegarem a mesma
+    entrega: quem chega depois pula a linha travada. Em vez de segurar esse lock durante o POST,
+    a entrega recebe um lease: next_attempt_at vai para `now + LEASE` e o commit solta o lock.
+    Enquanto o lease nao vence, ninguem mais a ve como vencida. Se o processo morrer no meio do
+    POST, o lease vence sozinho e outra rodada tenta de novo (a tentativa so e contada quando o
+    resultado e gravado).
 
     Se o webhook esta pausado, a entrega expira (estado final, motivo no historico) em vez de ser
     enviada. Reativar o webhook depois NAO reenvia o que expirou: um aviso de lancamento que chega
-    dias depois, fora de ordem, faz mais mal do que bem. A reativacao vale so para eventos novos.
-
-    O SELECT ... FOR UPDATE SKIP LOCKED faz dois processos (ou duas rodadas) nunca pegarem a mesma
-    entrega: quem chega depois pula a linha travada. O lock fica ate o commit, durante o POST."""
-    now = now or datetime.now(timezone.utc)
+    dias depois, fora de ordem, faz mais mal do que bem. A reativacao vale so para eventos novos."""
     row = db.execute(
-        select(WebhookDelivery, Webhook.active)
+        select(WebhookDelivery, Webhook)
         .join(Webhook, Webhook.id == WebhookDelivery.webhook_id)
         .where(
             WebhookDelivery.status == DeliveryStatus.pending,
@@ -180,16 +207,54 @@ def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | 
     ).first()
     if row is None:
         db.rollback()
-        return False
-    delivery, webhook_active = row
-    if not webhook_active:
+        return None
+    delivery, webhook = row
+    claim = Claim(delivery.id, delivery.event, delivery.payload, webhook.url, webhook.secret_encrypted)
+    if not webhook.active:
         expire_delivery(delivery, PAUSED_REASON, now)
-        db.commit()
-        return True
-    webhook = db.get(Webhook, delivery.webhook_id)
-    outcome = post_webhook(webhook, delivery.id, delivery.event, delivery.payload, now, resolver)
+        claim.expired = True
+    else:
+        claim.lease_until = now + LEASE
+        delivery.next_attempt_at = claim.lease_until
+    db.commit()
+    return claim
+
+
+def finish_attempt(db: Session, claim: Claim, outcome: Outcome, now: datetime) -> bool:
+    """Transacao curta 2: grava o resultado do POST. False se o resultado foi descartado.
+
+    Descarta quando a entrega nao e mais nossa: foi apagada (webhook excluido), ja saiu da fila
+    (ex: o webhook foi pausado durante o POST e a entrega expirou) ou o lease mudou, o que
+    significa que ele venceu e outro worker a reivindicou. Assim um worker lento nunca
+    sobrescreve o resultado de quem esta com o lease atual."""
+    delivery = db.get(WebhookDelivery, claim.delivery_id, with_for_update=True, populate_existing=True)
+    if (
+        delivery is None
+        or delivery.status != DeliveryStatus.pending
+        or delivery.next_attempt_at != claim.lease_until
+    ):
+        db.rollback()
+        return False
     apply_outcome(delivery, outcome, now)
     db.commit()
+    return True
+
+
+def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | None = None) -> bool:
+    """Trata UMA pendente vencida. False se nao havia nenhuma.
+
+    Tres passos, e o HTTP fica de fora de qualquer transacao ou lock: reivindicar (commit),
+    fazer o POST, gravar o resultado (outra transacao)."""
+    now = now or datetime.now(timezone.utc)
+    claim = claim_next(db, now)
+    if claim is None:
+        return False
+    if claim.expired:
+        return True
+    outcome = post_webhook(
+        claim.url, claim.secret_encrypted, claim.delivery_id, claim.event, claim.payload, now, resolver
+    )
+    finish_attempt(db, claim, outcome, now)
     return True
 
 
@@ -260,7 +325,7 @@ def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None) -
         attempts=0,
         id=uuid.uuid4(),
     )
-    outcome = post_webhook(webhook, delivery.id, TEST_EVENT, payload, now, resolver)
+    outcome = post_webhook(webhook.url, webhook.secret_encrypted, delivery.id, TEST_EVENT, payload, now, resolver)
     apply_outcome(delivery, outcome, now)
     if delivery.status == DeliveryStatus.pending:
         # Sem retentativa: uma falha aqui encerra a entrega
