@@ -8,9 +8,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.two_factor import decrypt_secret
 from app.core.webhook_url import Resolver, WebhookUrlError, validate_webhook_url
 from app.models.webhook import TEST_EVENT, DeliveryStatus, Webhook, WebhookDelivery
@@ -135,22 +136,25 @@ def apply_outcome(delivery: WebhookDelivery, outcome: Outcome, now: datetime) ->
     if outcome.ok:
         delivery.status = DeliveryStatus.delivered
         delivery.delivered_at = now
+        delivery.finished_at = now
         delivery.next_attempt_at = None
         return
     delay = retry_delay(delivery.attempts)
     if delay is None:
         delivery.status = DeliveryStatus.failed
         delivery.next_attempt_at = None
+        delivery.finished_at = now
     else:
         delivery.status = DeliveryStatus.pending
         delivery.next_attempt_at = now + delay
 
 
-def expire_delivery(delivery: WebhookDelivery, reason: str) -> None:
+def expire_delivery(delivery: WebhookDelivery, reason: str, now: datetime) -> None:
     """Tira a entrega da fila com um estado final proprio. Nao conta como tentativa: nada foi enviado."""
     delivery.status = DeliveryStatus.expired
     delivery.next_attempt_at = None
     delivery.last_error = reason
+    delivery.finished_at = now
 
 
 def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | None = None) -> bool:
@@ -179,7 +183,7 @@ def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | 
         return False
     delivery, webhook_active = row
     if not webhook_active:
-        expire_delivery(delivery, PAUSED_REASON)
+        expire_delivery(delivery, PAUSED_REASON, now)
         db.commit()
         return True
     webhook = db.get(Webhook, delivery.webhook_id)
@@ -195,6 +199,47 @@ def run_due(db: Session, limit: int = 100, resolver: Resolver | None = None) -> 
     while done < limit and deliver_next(db, resolver=resolver):
         done += 1
     return done
+
+
+FINAL_STATUSES = (DeliveryStatus.delivered, DeliveryStatus.failed, DeliveryStatus.expired)
+PURGE_BATCH_SIZE = 500
+
+
+def purge_finished(
+    db: Session,
+    now: datetime | None = None,
+    retention_days: int | None = None,
+    batch_size: int = PURGE_BATCH_SIZE,
+) -> int:
+    """Apaga o historico de entregas FINALIZADAS (entregue, falhou de vez, expirada) cujo
+    finished_at passou do prazo de retencao. Entrega pendente nunca e apagada, por mais velha que seja.
+
+    Apaga em lotes, um commit por lote, para nao segurar lock nem inchar a transacao. O lote escolhe
+    as linhas com FOR UPDATE SKIP LOCKED: duas instancias rodando juntas nunca esperam uma pela outra
+    e nunca apagam a mesma linha (quem chega depois pula o que o outro ja travou; o que sobrar
+    sai na proxima rodada). Rodar de novo e inofensivo. Devolve quantas linhas apagou."""
+    if retention_days is None:
+        retention_days = settings.webhook_delivery_retention_days
+    if retention_days < 1:
+        raise ValueError("retention_days precisa ser pelo menos 1")
+    if batch_size < 1:
+        raise ValueError("batch_size precisa ser pelo menos 1")
+    cutoff = (now or datetime.now(timezone.utc)) - timedelta(days=retention_days)
+    total = 0
+    while True:
+        batch = (
+            select(WebhookDelivery.id)
+            .where(WebhookDelivery.status.in_(FINAL_STATUSES), WebhookDelivery.finished_at < cutoff)
+            .order_by(WebhookDelivery.finished_at, WebhookDelivery.id)
+            .limit(batch_size)
+            .with_for_update(skip_locked=True)
+            .scalar_subquery()
+        )
+        removed = db.execute(delete(WebhookDelivery).where(WebhookDelivery.id.in_(batch))).rowcount
+        db.commit()
+        total += removed
+        if removed < batch_size:
+            return total
 
 
 def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None) -> WebhookDelivery:
@@ -221,6 +266,7 @@ def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None) -
         # Sem retentativa: uma falha aqui encerra a entrega
         delivery.status = DeliveryStatus.failed
         delivery.next_attempt_at = None
+        delivery.finished_at = now
     db.add(delivery)
     db.flush()
     return delivery

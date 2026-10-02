@@ -1,6 +1,6 @@
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_SECRET = "change-me-in-env"
@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # Libera webhooks para IP privado, loopback e http. Por padrao so https para enderecos publicos,
     # para um webhook nao servir de ponte para a rede interna (SSRF). Ligar so em rede de confianca.
     webhook_allow_private: bool = False
+    # Quantos dias o historico de entregas finalizadas (entregue, falhou de vez, expirada) fica
+    # guardado. Depois disso a linha e apagada. Entrega pendente nunca e apagada.
+    webhook_delivery_retention_days: int = Field(default=30, ge=1)
+    # De quanto em quanto tempo o laco confere se ha historico velho para apagar
+    webhook_cleanup_interval_seconds: int = Field(default=3600, ge=60)
     # Pasta dos anexos dos lancamentos (um volume em producao) e tamanho maximo de cada arquivo
     attachments_dir: str = "/data/attachments"
     attachment_max_bytes: int = 10 * 1024 * 1024

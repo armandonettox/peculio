@@ -95,7 +95,12 @@ def expire_pending(db: Session, webhook_id: uuid.UUID) -> int:
     result = db.execute(
         update(WebhookDelivery)
         .where(WebhookDelivery.webhook_id == webhook_id, WebhookDelivery.status == DeliveryStatus.pending)
-        .values(status=DeliveryStatus.expired, next_attempt_at=None, last_error=PAUSED_REASON)
+        .values(
+            status=DeliveryStatus.expired,
+            next_attempt_at=None,
+            last_error=PAUSED_REASON,
+            finished_at=datetime.now(timezone.utc),
+        )
     )
     return result.rowcount
 
