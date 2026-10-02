@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import event, select
 
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import SessionLocal, engine
 from app.main import app
 from app.models.attachment import Attachment
 from app.models.transaction import Transaction
@@ -170,6 +170,7 @@ EXECUTABLE = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00"
 HTML = b"<html><script>alert(1)</script></html>"
 SVG = b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
 ZIP = b"PK\x03\x04\x14\x00\x00\x00\x08\x00" + b"\x00" * 20
+WAV = b"RIFF" + bytes([36, 0, 0, 0]) + b"WAVEfmt " + bytes(20)
 GIF = b"GIF89a\x01\x00\x01\x00\x00\x00\x00;"
 
 
@@ -186,6 +187,7 @@ GIF = b"GIF89a\x01\x00\x01\x00\x00\x00\x00;"
         ("binario.txt", b"abc\x00def"),
         ("binario.csv", b"a;b\n1;2\x00\n"),
         ("animacao.gif", GIF),
+        ("audio.webp", WAV),
         ("imagem.png", PDF),
         ("imagem.pdf", PNG),
         ("documento.txt", PDF),
@@ -319,6 +321,47 @@ def test_concurrent_uploads_cannot_exceed_the_limit(client, headers, db_session,
     db_session.expire_all()
     assert len(db_session.scalars(select(Attachment)).all()) == 10
     assert len(files_on_disk(storage_dir)) == 10
+
+
+def test_upload_waits_for_the_transaction_lock_and_sees_the_latest_count(client, headers, db_session, storage_dir):
+    """O envio trava o lancamento: enquanto outra sessao o segura, ele espera e depois conta de novo."""
+    transaction_id = make_transaction(client, headers)
+    for index in range(9):
+        assert upload(client, headers, transaction_id, TEXT, f"nota-{index}.txt").status_code == 201
+
+    user_id = db_session.scalars(select(Transaction.user_id).where(Transaction.id == uuid.UUID(transaction_id))).one()
+    holder = SessionLocal()
+    holder.execute(select(Transaction).where(Transaction.id == uuid.UUID(transaction_id)).with_for_update())
+
+    results: list[int] = []
+
+    def worker() -> None:
+        with TestClient(app) as local:
+            results.append(upload(local, headers, transaction_id, TEXT, "esperando.txt").status_code)
+
+    thread = threading.Thread(target=worker)
+    thread.start()
+    thread.join(timeout=2)
+    # Segurando o lock, a outra sessao ainda nao terminou o envio
+    assert thread.is_alive()
+    assert results == []
+
+    holder.add(
+        Attachment(
+            user_id=user_id,
+            transaction_id=uuid.UUID(transaction_id),
+            original_name="decimo.txt",
+            content_type="text/plain",
+            size_bytes=1,
+            sha256="0" * 64,
+            storage_name=uuid.uuid4().hex,
+        )
+    )
+    holder.commit()
+    holder.close()
+    thread.join(timeout=20)
+
+    assert results == [409]
 
 
 # ---------- Higienizacao do nome ----------

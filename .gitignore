@@ -12,3 +12,6 @@ playwright-report/
 test-results/
 autonomo.log
 nohup.out
+
+# Worktrees temporarios dos workflows de agentes
+.claude/worktrees/
