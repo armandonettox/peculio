@@ -16,6 +16,7 @@ import RegisterPage from "@/pages/register";
 import SecurityPage from "@/pages/security";
 import TagsPage from "@/pages/tags";
 import TransactionsPage from "@/pages/transactions";
+import WebhooksPage from "@/pages/webhooks";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="transacoes" element={<TransactionsPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
+          <Route path="webhooks" element={<WebhooksPage />} />
           <Route path="seguranca" element={<SecurityPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

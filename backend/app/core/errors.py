@@ -57,6 +57,11 @@ class ErrorCode(StrEnum):
     PIGGY_BANK_ACCOUNT_INVALID = "piggy_bank_account_invalid"
     PIGGY_BANK_NOT_ENOUGH_AVAILABLE = "piggy_bank_not_enough_available"
     PIGGY_BANK_NOT_ENOUGH_SAVED = "piggy_bank_not_enough_saved"
+    # Webhooks
+    WEBHOOK_NOT_FOUND = "webhook_not_found"
+    WEBHOOK_NAME_TAKEN = "webhook_name_taken"
+    WEBHOOK_LIMIT_REACHED = "webhook_limit_reached"
+    WEBHOOK_URL_INVALID = "webhook_url_invalid"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

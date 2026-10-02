@@ -9,3 +9,4 @@ from app.models.recurrence import Recurrence  # noqa: F401
 from app.models.tag import Tag  # noqa: F401
 from app.models.transaction import Transaction, TransactionSplit  # noqa: F401
 from app.models.user import Invite, User  # noqa: F401
+from app.models.webhook import Webhook, WebhookDelivery  # noqa: F401

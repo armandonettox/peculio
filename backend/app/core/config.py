@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # Laco que cria os lancamentos das recorrentes. Desligado nos testes; em uso real fica ligado.
     recurrence_scheduler_enabled: bool = True
     recurrence_interval_seconds: int = 300
+    # Intervalo do laco que entrega os webhooks pendentes (liga e desliga junto com o das recorrentes)
+    webhook_interval_seconds: int = 30
+    # Libera webhooks para IP privado, loopback e http. Por padrao so https para enderecos publicos,
+    # para um webhook nao servir de ponte para a rede interna (SSRF). Ligar so em rede de confianca.
+    webhook_allow_private: bool = False
     # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
     app_timezone: str = "America/Sao_Paulo"
 

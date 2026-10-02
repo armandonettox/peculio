@@ -677,6 +677,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Webhooks */
+        get: operations["list_webhooks_api_v1_webhooks_get"];
+        put?: never;
+        /** Create Webhook */
+        post: operations["create_webhook_api_v1_webhooks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/{webhook_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Webhook */
+        get: operations["get_webhook_api_v1_webhooks__webhook_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Webhook */
+        delete: operations["delete_webhook_api_v1_webhooks__webhook_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Webhook */
+        patch: operations["update_webhook_api_v1_webhooks__webhook_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/webhooks/{webhook_id}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Deliveries */
+        get: operations["list_deliveries_api_v1_webhooks__webhook_id__deliveries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/{webhook_id}/rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate Secret
+         * @description Gera um segredo novo e invalida o antigo na hora. O novo aparece so nesta resposta.
+         */
+        post: operations["rotate_secret_api_v1_webhooks__webhook_id__rotate_secret_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/{webhook_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Webhook
+         * @description Envia o evento webhook.test agora, sem passar pela fila, e devolve o resultado.
+         */
+        post: operations["test_webhook_api_v1_webhooks__webhook_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1041,6 +1135,49 @@ export interface components {
             /** Symbol */
             symbol: string;
         };
+        /** DeliveryOut */
+        DeliveryOut: {
+            /** Attempts */
+            attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delivered At */
+            delivered_at: string | null;
+            /**
+             * Event
+             * @enum {string}
+             */
+            event: "transaction.created" | "transaction.updated" | "transaction.deleted" | "webhook.test";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Last Status Code */
+            last_status_code: number | null;
+            /** Next Attempt At */
+            next_attempt_at: string | null;
+            /** Response Excerpt */
+            response_excerpt: string | null;
+            status: components["schemas"]["DeliveryStatus"];
+            /**
+             * Webhook Id
+             * Format: uuid
+             */
+            webhook_id: string;
+        };
+        /**
+         * DeliveryStatus
+         * @enum {string}
+         */
+        DeliveryStatus: "pending" | "delivered" | "failed";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1170,6 +1307,17 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[DeliveryOut] */
+        Page_DeliveryOut_: {
+            /** Items */
+            items: components["schemas"]["DeliveryOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** Page[InviteOut] */
         Page_InviteOut_: {
             /** Items */
@@ -1229,6 +1377,17 @@ export interface components {
         Page_TransactionOut_: {
             /** Items */
             items: components["schemas"]["TransactionOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[WebhookOut] */
+        Page_WebhookOut_: {
+            /** Items */
+            items: components["schemas"]["WebhookOut"][];
             /** Limit */
             limit: number;
             /** Offset */
@@ -1736,6 +1895,84 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** WebhookCreate */
+        WebhookCreate: {
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /** Events */
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+        };
+        /** WebhookOut */
+        WebhookOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Events */
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Delivery At */
+            last_delivery_at: string | null;
+            last_delivery_status: components["schemas"]["DeliveryStatus"] | null;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+        };
+        /** WebhookUpdate */
+        WebhookUpdate: {
+            /** Active */
+            active?: boolean | null;
+            /** Events */
+            events?: ("transaction.created" | "transaction.updated" | "transaction.deleted")[] | null;
+            /** Name */
+            name?: string | null;
+            /** Url */
+            url?: string | null;
+        };
+        /**
+         * WebhookWithSecretOut
+         * @description Resposta da criacao e da rotacao: unica vez em que o segredo aparece.
+         */
+        WebhookWithSecretOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Events */
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Delivery At */
+            last_delivery_at: string | null;
+            last_delivery_status: components["schemas"]["DeliveryStatus"] | null;
+            /** Name */
+            name: string;
+            /** Secret */
+            secret: string;
+            /** Url */
+            url: string;
         };
     };
     responses: never;
@@ -3653,6 +3890,264 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_webhooks_api_v1_webhooks_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_WebhookOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_webhook_api_v1_webhooks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookWithSecretOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_webhook_api_v1_webhooks__webhook_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_webhook_api_v1_webhooks__webhook_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_webhook_api_v1_webhooks__webhook_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_deliveries_api_v1_webhooks__webhook_id__deliveries_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["DeliveryStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_DeliveryOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rotate_secret_api_v1_webhooks__webhook_id__rotate_secret_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookWithSecretOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_webhook_api_v1_webhooks__webhook_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryOut"];
+                };
             };
             /** @description Validation Error */
             422: {
