@@ -57,6 +57,12 @@ class ErrorCode(StrEnum):
     PIGGY_BANK_ACCOUNT_INVALID = "piggy_bank_account_invalid"
     PIGGY_BANK_NOT_ENOUGH_AVAILABLE = "piggy_bank_not_enough_available"
     PIGGY_BANK_NOT_ENOUGH_SAVED = "piggy_bank_not_enough_saved"
+    # Anexos
+    ATTACHMENT_NOT_FOUND = "attachment_not_found"
+    ATTACHMENT_TYPE_NOT_ALLOWED = "attachment_type_not_allowed"
+    ATTACHMENT_TOO_LARGE = "attachment_too_large"
+    ATTACHMENT_EMPTY = "attachment_empty"
+    ATTACHMENT_LIMIT_REACHED = "attachment_limit_reached"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

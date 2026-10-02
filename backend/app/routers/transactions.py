@@ -12,6 +12,7 @@ from app.core.pagination import Page, PageParams
 from app.models.user import User
 from app.schemas.transaction import CounterpartyOut, TransactionCreate, TransactionOut, TransactionUpdate
 from app.services import transactions as service
+from app.services.attachment_storage import remove_files
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -93,6 +94,8 @@ def update_transaction(
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(transaction_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     transaction = service.get_owned_transaction(db, user.id, transaction_id)
-    service.delete_transaction(db, transaction)
+    paths = service.delete_transaction(db, transaction)
     db.commit()
+    # Os arquivos so saem do disco depois do commit: se ele falhar, os anexos continuam inteiros
+    remove_files(paths)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

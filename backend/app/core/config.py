@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     # Laco que cria os lancamentos das recorrentes. Desligado nos testes; em uso real fica ligado.
     recurrence_scheduler_enabled: bool = True
     recurrence_interval_seconds: int = 300
+    # Pasta dos anexos dos lancamentos (um volume em producao) e tamanho maximo de cada arquivo
+    attachments_dir: str = "/data/attachments"
+    attachment_max_bytes: int = 10 * 1024 * 1024
     # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
     app_timezone: str = "America/Sao_Paulo"
 
