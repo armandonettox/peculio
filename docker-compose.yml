@@ -29,6 +29,8 @@ services:
       # Libera webhooks para IP privado e http (padrao: so https para enderecos publicos)
       WEBHOOK_ALLOW_PRIVATE: ${WEBHOOK_ALLOW_PRIVATE:-false}
       WEBHOOK_DELIVERY_RETENTION_DAYS: ${WEBHOOK_DELIVERY_RETENTION_DAYS:-30}
+      # De quantos em quantos segundos o app tenta entregar os webhooks pendentes
+      WEBHOOK_INTERVAL_SECONDS: ${WEBHOOK_INTERVAL_SECONDS:-30}
       # Anexos dos lancamentos ficam no volume attachments_data
       ATTACHMENTS_DIR: /data/attachments
       ATTACHMENT_MAX_BYTES: ${ATTACHMENT_MAX_BYTES:-10485760}

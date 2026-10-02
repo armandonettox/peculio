@@ -33,6 +33,10 @@ const env = {
   FRONTEND_PORT: String(port),
   // O E2E entra varias vezes por minuto do mesmo IP; so aqui o limite fica desligado
   RATE_LIMIT_ENABLED: "false",
+  // O receptor do E2E dos webhooks roda na maquina de teste (destino local); so aqui isso e liberado
+  WEBHOOK_ALLOW_PRIVATE: "true",
+  // Entrega rapida para o teste nao esperar os 30 s do padrao
+  WEBHOOK_INTERVAL_SECONDS: "2",
   E2E_BASE_URL: `http://localhost:${port}`,
 };
 
