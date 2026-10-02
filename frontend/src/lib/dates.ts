@@ -61,3 +61,16 @@ export function formatDateRange(start: string, end: string): string {
   }
   return `${pad(startDay)}/${pad(startMonth)} a ${pad(endDay)}/${pad(endMonth)}`;
 }
+
+/** "05/03/2026". */
+export function formatDate(date: string): string {
+  const [year, month, day] = parts(date);
+  return `${pad(day)}/${pad(month)}/${year}`;
+}
+
+/** Dias de `from` ate `to` (positivo se `to` e depois; negativo se antes). */
+export function daysBetween(from: string, to: string): number {
+  const [fromYear, fromMonth, fromDay] = parts(from);
+  const [toYear, toMonth, toDay] = parts(to);
+  return Math.round((Date.UTC(toYear, toMonth - 1, toDay) - Date.UTC(fromYear, fromMonth - 1, fromDay)) / 86_400_000);
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { firstOfMonth, formatDateRange, formatDayHeading, formatMonthYear, shiftDay, shiftMonth, todayLocal } from "./dates";
+import { daysBetween, firstOfMonth, formatDate, formatDateRange, formatDayHeading, formatMonthYear, shiftDay, shiftMonth, todayLocal } from "./dates";
 
 describe("shiftDay", () => {
   it("soma e subtrai dias", () => {
@@ -83,4 +83,23 @@ describe("formatDateRange", () => {
   it("mostra o ano nas duas pontas quando o periodo muda de ano", () => {
     expect(formatDateRange("2025-12-29", "2026-01-04")).toBe("29/12/2025 a 04/01/2026");
   });
+});
+
+describe("formatDate", () => {
+  it("escreve dia, mes e ano com dois digitos", () => {
+    expect(formatDate("2026-03-05")).toBe("05/03/2026");
+    expect(formatDate("2026-12-31")).toBe("31/12/2026");
+  });
+});
+
+describe("daysBetween", () => {
+  it.each([
+    ["2026-03-10", "2026-03-10", 0],
+    ["2026-03-10", "2026-03-15", 5],
+    ["2026-03-15", "2026-03-10", -5],
+    ["2026-02-28", "2026-03-01", 1],
+    ["2028-02-28", "2028-03-01", 2],
+    ["2026-12-31", "2027-01-01", 1],
+    ["2026-03-28", "2026-03-30", 2],
+  ])("de %s a %s: %i dias", (from, to, expected) => expect(daysBetween(from, to)).toBe(expected));
 });

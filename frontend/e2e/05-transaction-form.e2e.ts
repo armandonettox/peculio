@@ -17,7 +17,7 @@ const input = (page: Page, label: string) => dialog(page).getByLabel(label, { ex
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 
 async function goTo(page: Page, link: "Transações" | "Contas") {
-  await nav(page).getByRole("link", { name: link }).click();
+  await nav(page).getByRole("link", { name: link, exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: link })).toBeVisible();
 }
 

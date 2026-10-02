@@ -9,7 +9,7 @@ test.describe.configure({ mode: "serial" });
 async function openAccounts(page: Page) {
   await loginAndWaitForDashboard(page);
   // Pelo menu, sem recarregar: recarregar apagaria o login (o token fica so em memoria)
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas" }).click();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Contas" })).toBeVisible();
 }
 
@@ -159,7 +159,7 @@ test("no celular a lista fica em uma coluna e o formulario cabe na tela", async 
   await page.setViewportSize({ width: 390, height: 800 });
   await loginAndWaitForDashboard(page);
   await page.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Contas" }).click();
+  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Contas", exact: true }).click();
 
   await expect(card(page, "Nubank Roxinho")).toBeVisible();
   await page.getByRole("button", { name: "Nova conta" }).first().click();

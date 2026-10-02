@@ -4,6 +4,7 @@ import {
   Landmark,
   LayoutDashboard,
   PiggyBank,
+  Receipt,
   Settings,
   Tag,
   Tags,
@@ -24,6 +25,7 @@ export const navItems: NavItem[] = [
   { label: "Categorias", icon: Tags, to: "/categorias" },
   { label: "Tags", icon: Tag, to: "/tags" },
   { label: "Orçamentos", icon: PiggyBank, to: "/orcamentos" },
+  { label: "Contas a pagar", icon: Receipt, to: "/contas-a-pagar" },
   { label: "Relatórios", icon: BarChart3 },
   { label: "Configurações", icon: Settings },
 ];

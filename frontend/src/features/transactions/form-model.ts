@@ -16,6 +16,8 @@ export type SplitDraft = {
   categoryId: string;
   // Orcamento da linha ("" = nenhum). So existe em saida para uma despesa.
   budgetId: string;
+  // Conta a pagar da linha: "" = automatico, "none" = nao ligar, ou o id de uma conta a pagar
+  billId: string;
   tagIds: string[];
   // Nao aparece na tela; guarda a nota de um lancamento criado pela API para nao perde-la ao salvar
   notes: string;
@@ -38,6 +40,8 @@ export type FormState = {
   categoryId: string;
   // Orcamento do lancamento ("" = nenhum); no modo dividido cada linha tem o seu
   budgetId: string;
+  // Conta a pagar: "" = o servidor liga sozinho se uma so combinar, "none" = nao ligar, ou o id de uma
+  billId: string;
   tagIds: string[];
   notes: string;
   // null: um lancamento so. Lista: o lancamento dividido em linhas.
@@ -71,6 +75,7 @@ export function emptySplit(overrides: Partial<SplitDraft> = {}): SplitDraft {
     amount: "",
     categoryId: "",
     budgetId: "",
+    billId: "",
     tagIds: [],
     notes: "",
     ...overrides,
@@ -100,6 +105,7 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     foreignAmount: "",
     categoryId: "",
     budgetId: "",
+    billId: "",
     tagIds: [],
     notes: "",
     splits: null,
@@ -125,6 +131,12 @@ export function foreignAccount(state: FormState, ctx: FormContext): Account | nu
 /** Orcamento so vale para gasto: saida para um nome (despesa), nunca entrada, transferencia ou divida. */
 export function budgetAllowed(state: FormState): boolean {
   return state.kind === "withdrawal" && !state.ownCounterparty;
+}
+
+/** Campo bill_id do corpo: omitido no automatico, null em "nao ligar", ou o id. So vale onde ha orcamento. */
+function billField(state: FormState, value: string): { bill_id?: string | null } {
+  if (!budgetAllowed(state) || value === "") return {};
+  return { bill_id: value === "none" ? null : value };
 }
 
 /** Dividir so faz sentido em saida e entrada na mesma moeda. */
@@ -268,6 +280,7 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       amount: money(state.amount),
       category_id: state.categoryId || null,
       budget_id: budgetAllowed(state) ? state.budgetId || null : null,
+      ...billField(state, state.billId),
       tag_ids: state.tagIds,
       notes: state.notes.trim() || null,
       ...(other
@@ -288,6 +301,7 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       amount: money(row.amount),
       category_id: row.categoryId || null,
       budget_id: budgetAllowed(state) ? row.budgetId || null : null,
+      ...billField(state, row.billId),
       tag_ids: row.tagIds,
       notes: row.notes.trim() || null,
     })),
@@ -300,6 +314,13 @@ export type Loaded = { ok: true; state: FormState } | { ok: false; reason: strin
 
 const KINDS: Kind[] = ["withdrawal", "deposit", "transfer"];
 const toDraft = (value: string) => value.replace(".", ",");
+
+// Ao editar, o que ja esta salvo vale: sem conta a pagar vira "nao ligar", para um ajuste qualquer nao
+// religar sozinho o que a pessoa deixou solto. Fora de saida para um nome o campo nem existe.
+function billOf(billId: string | null, kind: Kind, ownCounterparty: boolean): string {
+  if (kind !== "withdrawal" || ownCounterparty) return "";
+  return billId ?? "none";
+}
 
 /**
  * Transforma um lancamento ja salvo em estado de formulario. Lancamentos criados pela API
@@ -365,6 +386,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
         foreignAmount,
         categoryId: first.category_id ?? "",
         budgetId: first.budget_id ?? "",
+        billId: billOf(first.bill_id, kind, ownCounterparty),
         tagIds: first.tag_ids,
         notes: first.notes ?? "",
         splits: null,
@@ -390,6 +412,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
           amount: toDraft(split.amount),
           categoryId: split.category_id ?? "",
           budgetId: split.budget_id ?? "",
+          billId: billOf(split.bill_id, kind, ownCounterparty),
           tagIds: split.tag_ids,
           notes: split.notes ?? "",
         }),

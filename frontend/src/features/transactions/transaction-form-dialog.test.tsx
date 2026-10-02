@@ -6,6 +6,7 @@ import { expect, it } from "vitest";
 import type { Transaction } from "@/api/transactions";
 import { todayLocal } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
+import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -41,16 +42,29 @@ const dolarOrc = makeBudget({
   amount: "100.00",
 });
 
+const netflixBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b1", name: "Netflix conta" });
+const aluguelBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b2", name: "Aluguel conta" });
+const velhaBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b3", name: "Velha conta", active: false });
+const dolarBill = makeBill({
+  id: "d0000000-0000-4000-8000-0000000000b4",
+  name: "Dolar conta",
+  currency_code: "USD",
+  amount_min: "10.00",
+  amount_max: "10.00",
+});
+
 type Options = {
   transactions?: Transaction[];
   accounts?: ReturnType<typeof makeAccount>[];
   budgets?: ReturnType<typeof makeBudget>[];
+  bills?: ReturnType<typeof makeBill>[];
 };
 
 function renderPage({
   transactions = [],
   accounts = [nubank, poupanca, antiga, wise, financiamento],
   budgets = [mercadoOrc, lazerOrc, velhoOrc, dolarOrc],
+  bills = [netflixBill, aluguelBill, velhaBill, dolarBill],
 }: Options = {}) {
   const tx = fakeTransactionsApi(transactions, accounts);
   const accountsApi = fakeAccountsApi(accounts);
@@ -58,6 +72,7 @@ function renderPage({
     ...tx.handlers,
     ...accountsApi.handlers,
     ...fakeBudgetsApi(budgets).handlers,
+    ...fakeBillsApi(bills).handlers,
     ...fakeLabelsApi("categories", [mercado, lazer]).handlers,
     ...fakeLabelsApi("tags", [viagem, casa]).handlers,
   );
@@ -818,4 +833,208 @@ it("editar um lancamento ligado a orcamento arquivado mostra o nome dele marcado
 
   await waitFor(() => expect(budgetOptions()).toContain("Velho orc (arquivado)"));
   expect(d().getByLabelText("Orçamento")).toHaveValue(velhoOrc.id);
+});
+
+// ---------- Conta a pagar ----------
+
+const billOptionsList = () =>
+  within(d().getByLabelText("Conta a pagar")).getAllByRole("option").map((option) => option.textContent);
+
+it("saida mostra Ligar automaticamente, Nao ligar e so as contas a pagar ativas na moeda da conta", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+
+  expect(billOptionsList()).toEqual([
+    "Ligar automaticamente",
+    "Não ligar a nenhuma",
+    "Aluguel conta",
+    "Netflix conta",
+  ]);
+  expect(d().getByLabelText("Conta a pagar")).toHaveValue("");
+});
+
+it("por padrao o corpo nao leva bill_id, para o servidor ligar sozinho", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("bill_id");
+});
+
+it("escolher uma conta a pagar manda o bill_id dela", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await pick("Conta a pagar", "Netflix conta");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(netflixBill.id);
+});
+
+it("Nao ligar manda bill_id nulo", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await pick("Conta a pagar", "Não ligar a nenhuma");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toHaveProperty("bill_id", null);
+});
+
+it("sem nenhuma conta a pagar cadastrada o campo nem aparece", async () => {
+  renderPage({ bills: [] });
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(d().getByLabelText("Orçamento")).toBeInTheDocument());
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+});
+
+it("entrada, transferencia e pagamento de divida nao tem o campo", async () => {
+  renderPage();
+  await openNew();
+  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toBeInTheDocument());
+
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+  await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+
+  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
+  await userEvent.click(d().getByRole("button", { name: "Pagar uma dívida" }));
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+});
+
+it("trocar o tipo e voltar para saida volta ao automatico", async () => {
+  renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await pick("Conta a pagar", "Netflix conta");
+
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
+
+  expect(d().getByLabelText("Conta a pagar")).toHaveValue("");
+});
+
+it("o corpo depois de trocar para outra moeda nao leva a conta a pagar antiga", async () => {
+  const { tx } = renderPage();
+  await openNew();
+  await pick("Conta", "Nubank");
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await pick("Conta a pagar", "Netflix conta");
+
+  await pick("Conta", "Wise - USD");
+  await type("Descrição", "Assinatura");
+  await type("Para quem", "Servico");
+  await type(/^Valor/, "10");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ currency_code: "USD" });
+  expect(tx.state.writes[0].body.splits[0].bill_id).toBeUndefined();
+});
+
+it("no lancamento dividido cada linha escolhe a sua conta a pagar", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await pick("Conta a pagar", "Netflix conta");
+  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
+
+  // A primeira linha herda a escolha do lancamento
+  expect(d().getByLabelText("Conta a pagar da linha 1")).toHaveValue(netflixBill.id);
+  const amount1 = d().getByLabelText("Valor da linha 1");
+  await userEvent.clear(amount1);
+  await userEvent.type(amount1, "1000");
+  await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
+  await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Aluguel do mes");
+  await userEvent.type(d().getByLabelText("Valor da linha 2"), "234,50");
+  await pick("Conta a pagar da linha 2", "Aluguel conta");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits.map((split) => split.bill_id)).toEqual([netflixBill.id, aluguelBill.id]);
+});
+
+it("editar um lancamento ligado reabre a conta a pagar e da para trocar", async () => {
+  const transaction = makeTransaction({}, [
+    {
+      description: "Netflix",
+      amount: "50.00",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Streaming",
+      bill_id: netflixBill.id,
+    },
+  ]);
+  const { tx } = renderPage({ transactions: [transaction] });
+  await screen.findByText("Netflix", { selector: "p" });
+  await openEdit("Netflix");
+
+  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toHaveValue(netflixBill.id));
+  await pick("Conta a pagar", "Aluguel conta");
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(aluguelBill.id);
+});
+
+it("editar um lancamento sem conta a pagar abre em Nao ligar e salvar mantem solto", async () => {
+  const transaction = makeTransaction({}, [
+    {
+      description: "Padaria",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Padaria do Ze",
+      bill_id: null,
+    },
+  ]);
+  const { tx } = renderPage({ transactions: [transaction] });
+  await screen.findByText("Padaria", { selector: "p" });
+  await openEdit("Padaria");
+
+  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toHaveValue("none"));
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toHaveProperty("bill_id", null);
+});
+
+it("editar um lancamento ligado a conta arquivada mostra o nome dela marcado", async () => {
+  const transaction = makeTransaction({}, [
+    {
+      description: "Padaria",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Padaria do Ze",
+      bill_id: velhaBill.id,
+    },
+  ]);
+  renderPage({ transactions: [transaction] });
+  await screen.findByText("Padaria", { selector: "p" });
+  await openEdit("Padaria");
+
+  await waitFor(() => expect(billOptionsList()).toContain("Velha conta (arquivada)"));
+  expect(d().getByLabelText("Conta a pagar")).toHaveValue(velhaBill.id);
+});
+
+it("desfazer a divisao volta com a conta a pagar da primeira linha", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
+  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
+  await waitFor(() =>
+    expect(within(d().getByLabelText("Conta a pagar da linha 1")).getAllByRole("option").length).toBeGreaterThan(2),
+  );
+  await pick("Conta a pagar da linha 1", "Aluguel conta");
+
+  await userEvent.click(d().getByRole("button", { name: "Desfazer divisão" }));
+
+  expect(d().getByLabelText("Conta a pagar")).toHaveValue(aluguelBill.id);
 });

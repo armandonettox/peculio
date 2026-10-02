@@ -249,7 +249,7 @@ test("um link com filtros funciona depois do login e guarda a consulta", async (
 
 test("o saldo das contas na tela de Contas bate com os lancamentos", async ({ page }) => {
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas" }).click();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas", exact: true }).click();
   const card = (name: string) =>
     page.getByRole("heading", { level: 3, name, exact: true }).locator("xpath=ancestor::li");
   await expect(card("Conta E2E")).toContainText("R$ 10.900,00");

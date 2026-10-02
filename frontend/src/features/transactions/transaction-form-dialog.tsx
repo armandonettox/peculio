@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
 import { useAccounts, useCurrencies } from "@/api/accounts";
+import { useBills, type Bill } from "@/api/bills";
 import { useBudgets, type Budget } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -97,6 +98,7 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
   const tags = useTags({ search: "" });
   // Todos, inclusive arquivados: editar um lancamento ligado a um orcamento arquivado precisa mostrar o nome dele
   const budgets = useBudgets({ activeOnly: false });
+  const bills = useBills({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
 
@@ -135,6 +137,7 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
             categories={categories.data?.items ?? []}
             tags={tags.data?.items ?? []}
             budgets={budgets.data ?? []}
+            bills={bills.data ?? []}
             create={create}
             update={update}
             onClose={onClose}
@@ -151,12 +154,13 @@ type BodyProps = {
   categories: { id: string; name: string }[];
   tags: Tag[];
   budgets: Budget[];
+  bills: Bill[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
   onClose: () => void;
 };
 
-function FormBody({ ctx, transaction, categories, tags, budgets, create, update, onClose }: BodyProps) {
+function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, update, onClose }: BodyProps) {
   const editing = transaction !== undefined;
 
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
@@ -177,7 +181,11 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
   // Orcamentos da moeda da conta; um arquivado so aparece se ja for o escolhido
   const budgetOptions = (selectedId: string) =>
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
-  const clearBudgets = (rows: SplitDraft[] | null) => rows?.map((row) => ({ ...row, budgetId: "" })) ?? null;
+  const clearBudgets = (rows: SplitDraft[] | null) =>
+    rows?.map((row) => ({ ...row, budgetId: "", billId: "" })) ?? null;
+  // Contas a pagar da moeda da conta; uma arquivada so aparece se ja for a escolhida
+  const billOptions = (selectedId: string) =>
+    bills.filter((bill) => bill.currency_code === currency && (bill.active || bill.id === selectedId));
 
   const searchType = state.kind === "withdrawal" ? "expense" : "revenue";
   const usesNameSearch = state.kind !== "transfer" && !state.ownCounterparty;
@@ -222,6 +230,7 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
         foreignAmount: "",
         // Orcamento so vale em saida: trocar o tipo solta o que estava escolhido
         budgetId: "",
+        billId: "",
         splits: kind === "transfer" ? null : clearBudgets(state.splits),
       },
       "counterparty",
@@ -247,6 +256,7 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
           amount: current.amount,
           categoryId: current.categoryId,
           budgetId: current.budgetId,
+          billId: current.billId,
           tagIds: current.tagIds,
         }),
       ],
@@ -262,6 +272,7 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
         description: current.description || first?.description || "",
         categoryId: first?.categoryId ?? current.categoryId,
         budgetId: first?.budgetId ?? current.budgetId,
+        billId: first?.billId ?? current.billId,
         tagIds: first?.tagIds ?? current.tagIds,
       };
     });
@@ -364,7 +375,7 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
                   {
                     accountId: e.target.value,
                     foreignAmount: "",
-                    ...(sameCurrency ? {} : { budgetId: "", splits: clearBudgets(state.splits) }),
+                    ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
                   },
                   "accountId",
                   "foreignAmount",
@@ -479,7 +490,13 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
               className="self-start text-xs text-primary-text underline underline-offset-2"
               onClick={() =>
                 patch(
-                  { ownCounterparty: true, counterpartyName: "", budgetId: "", splits: clearBudgets(state.splits) },
+                  {
+                    ownCounterparty: true,
+                    counterpartyName: "",
+                    budgetId: "",
+                    billId: "",
+                    splits: clearBudgets(state.splits),
+                  },
                   "counterparty",
                 )
               }
@@ -615,6 +632,26 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
                     )}
                   </FormField>
                 )}
+                {budgetAllowed(state) && billOptions(row.billId).length > 0 && (
+                  <FormField id={`${row.key}-bill`} label={`Conta a pagar da linha ${index + 1}`}>
+                    {(props) => (
+                      <Select
+                        {...props}
+                        value={row.billId}
+                        onChange={(e) => changeSplit(row.key, { billId: e.target.value })}
+                      >
+                        <option value="">Ligar automaticamente</option>
+                        <option value="none">Não ligar a nenhuma</option>
+                        {billOptions(row.billId).map((bill) => (
+                          <option key={bill.id} value={bill.id}>
+                            {bill.name}
+                            {bill.active ? "" : " (arquivada)"}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  </FormField>
+                )}
                 <TagPicker
                   tags={tags}
                   selected={row.tagIds}
@@ -675,6 +712,22 @@ function FormBody({ ctx, transaction, categories, tags, budgets, create, update,
                     <option key={budget.id} value={budget.id}>
                       {budget.name}
                       {budget.active ? "" : " (arquivado)"}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
+          )}
+          {budgetAllowed(state) && billOptions(state.billId).length > 0 && (
+            <FormField id="tx-bill" label="Conta a pagar">
+              {(props) => (
+                <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
+                  <option value="">Ligar automaticamente</option>
+                  <option value="none">Não ligar a nenhuma</option>
+                  {billOptions(state.billId).map((bill) => (
+                    <option key={bill.id} value={bill.id}>
+                      {bill.name}
+                      {bill.active ? "" : " (arquivada)"}
                     </option>
                   ))}
                 </Select>

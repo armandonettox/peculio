@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 
 import { accountsKey } from "./accounts";
 import { api, unwrap } from "./client";
-import { budgetsKey } from "./query-keys";
+import { billsKey, budgetsKey } from "./query-keys";
 import type { components } from "./schema";
 
 export type Transaction = components["schemas"]["TransactionOut"];
@@ -66,6 +66,7 @@ function useRefreshAfterChange() {
       queryClient.invalidateQueries({ queryKey: accountsKey }),
       queryClient.invalidateQueries({ queryKey: counterpartiesKey }),
       queryClient.invalidateQueries({ queryKey: budgetsKey }),
+      queryClient.invalidateQueries({ queryKey: billsKey }),
     ]);
 }
 

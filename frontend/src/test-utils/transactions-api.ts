@@ -94,6 +94,7 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
         foreign_currency_code: split.foreign_currency_code ?? null,
         category_id: split.category_id ?? null,
         budget_id: split.budget_id ?? null,
+        bill_id: split.bill_id ?? null,
         tag_ids: split.tag_ids ?? [],
         notes: split.notes ?? null,
         source_account_id: outgoing ? split.account_id : (split.counterparty_account_id ?? "externo"),
