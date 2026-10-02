@@ -10,6 +10,7 @@ import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
+import PiggyBanksPage from "@/pages/piggy-banks";
 import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
 import SecurityPage from "@/pages/security";
@@ -29,6 +30,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="cofrinhos" element={<PiggyBanksPage />} />
           <Route path="recorrentes" element={<RecurrencesPage />} />
           <Route path="contas-a-pagar" element={<BillsPage />} />
           <Route path="orcamentos" element={<BudgetsPage />} />

@@ -3,3 +3,4 @@
 export const budgetsKey = ["budgets"] as const;
 export const billsKey = ["bills"] as const;
 export const recurrencesKey = ["recurrences"] as const;
+export const piggyBanksKey = ["piggy-banks"] as const;

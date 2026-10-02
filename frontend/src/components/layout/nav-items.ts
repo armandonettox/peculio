@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   BarChart3,
+  Coins,
   Landmark,
   LayoutDashboard,
   PiggyBank,
@@ -28,6 +29,7 @@ export const navItems: NavItem[] = [
   { label: "Orçamentos", icon: PiggyBank, to: "/orcamentos" },
   { label: "Contas a pagar", icon: Receipt, to: "/contas-a-pagar" },
   { label: "Recorrentes", icon: Repeat, to: "/recorrentes" },
+  { label: "Cofrinhos", icon: Coins, to: "/cofrinhos" },
   { label: "Relatórios", icon: BarChart3 },
   { label: "Configurações", icon: Settings },
 ];
