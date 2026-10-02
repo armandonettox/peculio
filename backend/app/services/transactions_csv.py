@@ -37,7 +37,7 @@ TYPE_LABELS = {"withdrawal": "Saída", "deposit": "Entrada", "transfer": "Transf
 # O Excel e o LibreOffice tratam texto que comeca com estes caracteres como formula
 FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
-UTF8_BOM = "﻿"
+UTF8_BOM = "\ufeff"
 
 
 def safe_text(value: str | None) -> str:
