@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.core.rate_limit import limiter
 from app.core.scheduler import start_scheduler
+from app.core.upload_limit import UploadSizeLimitMiddleware
 from app.routers import (
     accounts,
     attachments,
@@ -46,6 +47,8 @@ app = FastAPI(title="finance-app", version="0.1.0", lifespan=lifespan)
 
 app.state.limiter = limiter
 register_error_handlers(app)
+# Mais interno de todos: o 413 cedo passa pelo CORS e o corte em partes cai no tratador de erros
+app.add_middleware(UploadSizeLimitMiddleware)
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     CORSMiddleware,
