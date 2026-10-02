@@ -25,6 +25,8 @@ from app.services.accounts import check_amount, get_currency, get_owned_account,
 from app.services.attachment_storage import storage_path
 from app.services.bills import find_matching_bill, get_owned_bill
 from app.services.budgets import get_owned_budget
+from app.services.rule_defs import load_rule_defs
+from app.services.rules_engine import RuleDef, SplitFacts, apply_rules
 from app.services.webhooks import enqueue_event
 
 # Conta de contraparte criada automaticamente com esse tipo, conforme o sentido da transacao
@@ -215,10 +217,74 @@ def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destina
     )
 
 
+def _apply_rules(
+    db: Session,
+    user: User,
+    data: TransactionSplitCreate,
+    source_id: uuid.UUID,
+    destination_id: uuid.UUID,
+    rules: list[RuleDef],
+) -> TransactionSplitCreate:
+    """Preenche com as regras so o que o lancamento deixou vazio; o que a pessoa escolheu nunca muda.
+
+    Um alvo que a regra cita e nao serve para este lancamento (categoria ou etiqueta excluida,
+    orcamento numa entrada, moeda diferente...) e ignorado em silencio: a regra nunca derruba o
+    lancamento. Um `bill_id: null` explicito conta como escolha de nao ligar."""
+    if not rules:
+        return data
+    other = db.get(Account, destination_id if data.account_id == source_id else source_id)
+    fill = apply_rules(
+        rules,
+        SplitFacts(
+            type=TransactionType(data.type).value,
+            description=data.description,
+            amount=data.amount,
+            account_id=data.account_id,
+            counterparty_name=other.name if other else None,
+            category_id=data.category_id,
+            budget_id=data.budget_id,
+            bill_id=data.bill_id,
+            tag_ids=tuple(data.tag_ids),
+        ),
+    )
+    changes: dict = {}
+    if fill.category_id is not None:
+        owned = db.scalar(select(Category.id).where(Category.id == fill.category_id, Category.user_id == user.id))
+        if owned is not None:
+            changes["category_id"] = fill.category_id
+    if fill.budget_id is not None:
+        try:
+            _check_budget(db, user, data.model_copy(update={"budget_id": fill.budget_id}), destination_id)
+            changes["budget_id"] = fill.budget_id
+        except AppError:
+            pass
+    if fill.bill_id is not None and not ("bill_id" in data.model_fields_set and data.bill_id is None):
+        try:
+            candidate = data.model_copy(update={"bill_id": fill.bill_id})
+            if _resolve_bill(db, user, candidate, destination_id) is not None:
+                changes["bill_id"] = fill.bill_id
+        except AppError:
+            pass
+    if fill.add_tag_ids:
+        owned_tags = set(
+            db.scalars(select(Tag.id).where(Tag.id.in_(fill.add_tag_ids), Tag.user_id == user.id))
+        )
+        new_tags = [tag_id for tag_id in fill.add_tag_ids if tag_id in owned_tags]
+        if new_tags:
+            changes["tag_ids"] = [*data.tag_ids, *new_tags]
+    return data.model_copy(update=changes) if changes else data
+
+
 def _build_split(
-    db: Session, user: User, transaction_id: uuid.UUID, data: TransactionSplitCreate, position: int
+    db: Session,
+    user: User,
+    transaction_id: uuid.UUID,
+    data: TransactionSplitCreate,
+    position: int,
+    rules: list[RuleDef],
 ) -> TransactionSplit:
     source_id, destination_id = _resolve_accounts(db, user, data)
+    data = _apply_rules(db, user, data, source_id, destination_id, rules)
 
     currency = get_currency(db, data.currency_code)
     check_amount(currency, data.amount)
@@ -286,8 +352,9 @@ def create_transaction(
     )
     db.add(transaction)
     db.flush()
+    rules = load_rule_defs(db, user.id)
     for position, split_data in enumerate(data.splits):
-        _build_split(db, user, transaction.id, split_data, position)
+        _build_split(db, user, transaction.id, split_data, position, rules)
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_created, transaction)
     return transaction
@@ -302,8 +369,9 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     transaction.title = data.title
     db.execute(delete(TransactionSplit).where(TransactionSplit.transaction_id == transaction.id))
     db.flush()
+    rules = load_rule_defs(db, user.id)
     for position, split_data in enumerate(data.splits):
-        _build_split(db, user, transaction.id, split_data, position)
+        _build_split(db, user, transaction.id, split_data, position, rules)
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
     return transaction

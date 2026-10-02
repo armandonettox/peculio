@@ -1,5 +1,4 @@
 import uuid
-from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -20,20 +19,9 @@ from app.schemas.rule import (
 from app.services.accounts import get_owned_account
 from app.services.bills import get_owned_bill
 from app.services.budgets import get_owned_budget
-from app.services.rules_engine import Action, ActionKind, RuleDef, Trigger, TriggerField
+from app.services.rule_defs import rule_order
+from app.services.rules_engine import ActionKind, TriggerField
 from app.services.transactions import get_owned_category, get_owned_tags
-
-
-def _rule_order():
-    """Ordem de execucao: grupos pela posicao, regras pela posicao dentro do grupo; as regras
-    sem grupo vem depois de todos os grupos. Empates se resolvem por criacao e id."""
-    return (
-        RuleGroup.position.asc().nulls_last(),
-        RuleGroup.id.asc().nulls_last(),
-        Rule.position.asc(),
-        Rule.created_at.asc(),
-        Rule.id.asc(),
-    )
 
 
 # ---------- Grupos ----------
@@ -177,42 +165,9 @@ def list_rules(db: Session, user_id: uuid.UUID, params: PageParams, q: str | Non
         statement = statement.where(Rule.active == active)
     if q and q.strip():
         statement = statement.where(func.lower(Rule.name).contains(q.strip().lower(), autoescape=True))
-    return paginate(db, statement.order_by(*_rule_order()), params)
+    return paginate(db, statement.order_by(*rule_order()), params)
 
 
 def delete_rule(db: Session, rule: Rule) -> None:
     db.delete(rule)
     db.flush()
-
-
-# ---------- Para o motor ----------
-
-
-def _to_trigger(raw: dict) -> Trigger:
-    trigger = TriggerIn(**raw)
-    value: str | Decimal | uuid.UUID = trigger.value
-    if trigger.field == TriggerField.amount:
-        value = Decimal(trigger.value)
-    elif trigger.field == TriggerField.account:
-        value = uuid.UUID(trigger.value)
-    return Trigger(trigger.field, trigger.op, value)
-
-
-def load_rule_defs(db: Session, user_id: uuid.UUID) -> list[RuleDef]:
-    """Regras ativas do usuario, ja na ordem de execucao."""
-    statement = (
-        select(Rule)
-        .outerjoin(RuleGroup, Rule.group_id == RuleGroup.id)
-        .where(Rule.user_id == user_id, Rule.active.is_(True))
-        .order_by(*_rule_order())
-    )
-    return [
-        RuleDef(
-            id=rule.id,
-            match_mode=rule.match_mode,
-            triggers=tuple(_to_trigger(raw) for raw in rule.triggers),
-            actions=tuple(Action(ActionKind(raw["kind"]), uuid.UUID(raw["target_id"])) for raw in rule.actions),
-            stop_processing=rule.stop_processing,
-        )
-        for rule in db.execute(statement).scalars()
-    ]
