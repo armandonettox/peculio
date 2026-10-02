@@ -85,11 +85,11 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
                 <th scope="row" className="px-3 py-2 text-left font-normal">
                   {longMonthLabel(point.month)}
                 </th>
-                <td className="px-3 py-2 text-right tabular-nums text-positive">{formatMoney(point.income, code)}</td>
-                <td className="px-3 py-2 text-right tabular-nums text-destructive">
+                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-positive">{formatMoney(point.income, code)}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-destructive">
                   {formatMoney(point.expense, code)}
                 </td>
-                <td className={`px-3 py-2 text-right tabular-nums ${netClass(point.net)}`}>
+                <td className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${netClass(point.net)}`}>
                   {formatMoney(point.net, code)}
                 </td>
               </tr>

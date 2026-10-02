@@ -45,7 +45,8 @@ export function CurrencySection({ totals, monthly, grouped }: CurrencySectionPro
 
       {monthly && <MonthlyChart block={monthly} />}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* grid-cols-1 (minmax 0): sem isso a coluna cresce ate a largura da tabela e a pagina rola para o lado no celular */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {DIMENSIONS.map((dimension, index) => {
           const block = grouped[index];
           return block ? <BreakdownTable key={dimension.key} dimension={dimension} block={block} /> : null;

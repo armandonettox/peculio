@@ -62,11 +62,11 @@ export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
                       </span>
                     )}
                   </th>
-                  <td className="px-3 py-2 text-right tabular-nums text-positive">{formatMoney(row.income, code)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-destructive">
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-positive">{formatMoney(row.income, code)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-destructive">
                     {formatMoney(row.expense, code)}
                   </td>
-                  <td className={`px-3 py-2 text-right tabular-nums ${netClass(row.net)}`}>
+                  <td className={`whitespace-nowrap px-3 py-2 text-right tabular-nums ${netClass(row.net)}`}>
                     {formatMoney(row.net, code)}
                   </td>
                 </tr>

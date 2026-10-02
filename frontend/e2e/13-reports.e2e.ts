@@ -138,3 +138,21 @@ test("exportar CSV baixa so os lancamentos filtrados, com BOM, ponto e virgula e
   expect(body).not.toContain(";=1+1 formula;");
   expect(body).not.toContain("Loja do outro");
 });
+
+test("no celular a pagina nao ganha rolagem horizontal e os valores negativos nao quebram de linha", async ({ page }) => {
+  // Navega no tamanho normal (no celular o menu vira gaveta) e so depois encolhe a janela
+  await openReports(page, { filterByAccount: true });
+  await expect(main(page).getByRole("region", { name: "Relatório em BRL" })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(main(page).getByRole("region", { name: "Relatório em BRL" })).toBeVisible();
+  const widths = await page.evaluate(() => ({
+    page: document.documentElement.scrollWidth,
+    window: window.innerWidth,
+  }));
+  expect(widths.page).toBeLessThanOrEqual(widths.window);
+  // Despesa na linha de categoria: "-R$ 100,00" cabe numa linha so
+  const negative = main(page).getByRole("cell", { name: "-R$ 100,00" }).first();
+  await expect(negative).toBeVisible();
+  const height = (await negative.boundingBox())?.height ?? 999;
+  expect(height).toBeLessThan(60);
+});
