@@ -22,6 +22,7 @@ from app.routers import (
     tags,
     transactions,
     two_factor,
+    webhooks,
 )
 
 
@@ -63,6 +64,7 @@ api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)
 api_v1.include_router(piggy_banks.router)
 api_v1.include_router(transactions.router)
+api_v1.include_router(webhooks.router)
 app.include_router(api_v1)
 
 

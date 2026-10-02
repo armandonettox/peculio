@@ -191,10 +191,14 @@ def process_recurrence(db: Session, recurrence: Recurrence, today: date) -> int:
         day = recurrence.next_date
         savepoint = db.begin_nested()
         try:
-            transaction = create_transaction(db, user, _at(TransactionCreate.model_validate(recurrence.template), day))
-            transaction.recurrence_id = recurrence.id
-            transaction.recurrence_date = day
-            db.flush()
+            # A ligacao com a recorrente entra na criacao, para o evento do webhook ja sair com ela
+            create_transaction(
+                db,
+                user,
+                _at(TransactionCreate.model_validate(recurrence.template), day),
+                recurrence_id=recurrence.id,
+                recurrence_date=day,
+            )
             savepoint.commit()
         except AppError as error:
             savepoint.rollback()

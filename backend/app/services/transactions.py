@@ -16,10 +16,12 @@ from app.models.currency import Currency
 from app.models.tag import Tag
 from app.models.transaction import Transaction, TransactionSplit, TransactionType, transaction_split_tags
 from app.models.user import User
-from app.schemas.transaction import TransactionCreate, TransactionSplitCreate
+from app.models.webhook import WebhookEvent
+from app.schemas.transaction import TransactionCreate, TransactionOut, TransactionSplitCreate
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
 from app.services.bills import find_matching_bill, get_owned_bill
 from app.services.budgets import get_owned_budget
+from app.services.webhooks import enqueue_event
 
 # Conta de contraparte criada automaticamente com esse tipo, conforme o sentido da transacao
 COUNTERPARTY_TYPE = {"withdrawal": AccountType.expense, "deposit": AccountType.revenue}
@@ -255,13 +257,35 @@ def _build_split(
     return split
 
 
-def create_transaction(db: Session, user: User, data: TransactionCreate) -> Transaction:
-    transaction = Transaction(user_id=user.id, title=data.title)
+def _enqueue(db: Session, user_id: uuid.UUID, event: WebhookEvent, transaction: Transaction) -> None:
+    """Avisa os webhooks que assinaram o evento, na mesma transacao do banco da operacao.
+    O corpo e o lancamento no mesmo formato da API (dinheiro como texto)."""
+    enqueue_event(
+        db,
+        user_id,
+        event.value,
+        lambda: TransactionOut.model_validate(build_output(db, transaction)).model_dump(mode="json"),
+    )
+
+
+def create_transaction(
+    db: Session,
+    user: User,
+    data: TransactionCreate,
+    recurrence_id: uuid.UUID | None = None,
+    recurrence_date: date | None = None,
+) -> Transaction:
+    """Ponto unico de criacao: o POST da API e as recorrentes passam por aqui, entao os dois geram o
+    evento transaction.created."""
+    transaction = Transaction(
+        user_id=user.id, title=data.title, recurrence_id=recurrence_id, recurrence_date=recurrence_date
+    )
     db.add(transaction)
     db.flush()
     for position, split_data in enumerate(data.splits):
         _build_split(db, user, transaction.id, split_data, position)
     db.flush()
+    _enqueue(db, user.id, WebhookEvent.transaction_created, transaction)
     return transaction
 
 
@@ -277,10 +301,13 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     for position, split_data in enumerate(data.splits):
         _build_split(db, user, transaction.id, split_data, position)
     db.flush()
+    _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
     return transaction
 
 
 def delete_transaction(db: Session, transaction: Transaction) -> None:
+    # O evento leva o retrato do lancamento de antes de excluir, por isso vem primeiro
+    _enqueue(db, transaction.user_id, WebhookEvent.transaction_deleted, transaction)
     db.delete(transaction)
     db.flush()
 

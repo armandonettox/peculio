@@ -26,6 +26,8 @@ services:
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
       # Define "hoje" para recorrentes, orcamentos e contas a pagar
       APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      # Libera webhooks para IP privado e http (padrao: so https para enderecos publicos)
+      WEBHOOK_ALLOW_PRIVATE: ${WEBHOOK_ALLOW_PRIVATE:-false}
     depends_on:
       db:
         condition: service_healthy
