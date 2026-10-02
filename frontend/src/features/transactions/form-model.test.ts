@@ -9,6 +9,7 @@ import {
   emptyForm,
   emptySplit,
   foreignAccount,
+  formFromTemplate,
   formFromTransaction,
   formatRemainder,
   hasErrors,
@@ -679,3 +680,120 @@ function deposit_() {
     description: "Salario",
   };
 }
+
+describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
+  const split = (overrides = {}) => ({
+    type: "withdrawal" as const,
+    date: "2026-01-01",
+    description: "Aluguel",
+    amount: "1500.00",
+    currency_code: "BRL",
+    account_id: nubank.id,
+    counterparty_name: "Imobiliaria",
+    tag_ids: [],
+    ...overrides,
+  });
+  const open = (template: Parameters<typeof formFromTemplate>[0], date = "2026-03-05") =>
+    formFromTemplate(template, ctx, date);
+
+  it("reabre uma saida simples com a primeira data", () => {
+    const loaded = open({ splits: [split({ category_id: "c1", budget_id: "b1", tag_ids: ["t1"], notes: "nota" })] });
+    expect(loaded.ok && loaded.state).toMatchObject({
+      kind: "withdrawal",
+      date: "2026-03-05",
+      accountId: nubank.id,
+      description: "Aluguel",
+      counterpartyName: "Imobiliaria",
+      ownCounterparty: false,
+      amount: "1500,00",
+      categoryId: "c1",
+      budgetId: "b1",
+      tagIds: ["t1"],
+      notes: "nota",
+      splits: null,
+    });
+  });
+
+  it("o corpo montado de volta e igual ao modelo (ida e volta)", () => {
+    const template = { splits: [split({ category_id: "c1", budget_id: "b1", tag_ids: ["t1"], notes: "nota" })] };
+    const loaded = open(template);
+    expect(loaded.ok && buildPayload(loaded.state, ctx).splits[0]).toMatchObject({
+      type: "withdrawal",
+      description: "Aluguel",
+      amount: "1500.00",
+      account_id: nubank.id,
+      counterparty_name: "Imobiliaria",
+      category_id: "c1",
+      budget_id: "b1",
+      tag_ids: ["t1"],
+      notes: "nota",
+    });
+  });
+
+  it("conta a pagar: ausente e automatico, null e nao ligar, id e a conta", () => {
+    const billOf = (overrides = {}) => {
+      const loaded = open({ splits: [split(overrides)] });
+      return loaded.ok ? loaded.state.billId : "erro";
+    };
+    expect(billOf()).toBe("");
+    expect(billOf({ bill_id: null })).toBe("none");
+    expect(billOf({ bill_id: "d1" })).toBe("d1");
+  });
+
+  it("transferencia reabre com a conta de destino", () => {
+    const loaded = open({
+      splits: [split({ type: "transfer", counterparty_name: undefined, counterparty_account_id: poupanca.id })],
+    });
+    expect(loaded.ok && loaded.state).toMatchObject({ kind: "transfer", counterpartyAccountId: poupanca.id });
+  });
+
+  it("pagamento de divida reabre como divida propria", () => {
+    const loaded = open({ splits: [split({ counterparty_name: undefined, counterparty_account_id: divida.id })] });
+    expect(loaded.ok && loaded.state).toMatchObject({ ownCounterparty: true, counterpartyAccountId: divida.id });
+  });
+
+  it("transferencia entre moedas reabre com o valor que chega", () => {
+    const loaded = open({
+      splits: [
+        split({
+          type: "transfer",
+          counterparty_name: undefined,
+          counterparty_account_id: wise.id,
+          amount: "500.00",
+          foreign_amount: "92.50",
+          foreign_currency_code: "USD",
+        }),
+      ],
+    });
+    expect(loaded.ok && loaded.state.foreignAmount).toBe("92,50");
+  });
+
+  it("modelo dividido reabre em linhas, com o titulo e o total somado", () => {
+    const loaded = open({
+      title: "Compras",
+      splits: [
+        split({ description: "Frutas", amount: "60.00", budget_id: "b1" }),
+        split({ description: "Limpeza", amount: "40.10", bill_id: null }),
+      ],
+    });
+    expect(loaded.ok && loaded.state).toMatchObject({ description: "Compras", amount: "100,10" });
+    expect(loaded.ok && loaded.state.splits?.map((row) => [row.description, row.amount, row.budgetId, row.billId])).toEqual([
+      ["Frutas", "60,00", "b1", ""],
+      ["Limpeza", "40,10", "", "none"],
+    ]);
+  });
+
+  it("recusa linhas com contas ou tipos diferentes", () => {
+    expect(open({ splits: [split(), split({ account_id: poupanca.id })] }).ok).toBe(false);
+    expect(open({ splits: [split(), split({ type: "deposit" })] }).ok).toBe(false);
+  });
+
+  it("recusa valor original em outra moeda que e so informativo", () => {
+    const loaded = open({ splits: [split({ foreign_amount: "10.00", foreign_currency_code: "USD" })] });
+    expect(loaded.ok).toBe(false);
+  });
+
+  it("recusa um modelo sem linhas", () => {
+    expect(open({ splits: [] }).ok).toBe(false);
+  });
+});

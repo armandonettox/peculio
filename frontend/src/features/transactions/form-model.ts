@@ -420,3 +420,94 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
     },
   };
 }
+
+// ---------- Reabrir o modelo de uma recorrente ----------
+
+/**
+ * Transforma o modelo salvo de uma recorrente (o corpo de um lancamento, sem datas que importem) em estado de
+ * formulario, o inverso de buildPayload. `date` e a primeira data da recorrente.
+ */
+export function formFromTemplate(template: TransactionCreate, ctx: FormContext, date: string): Loaded {
+  const [first] = template.splits;
+  if (!first) return { ok: false, reason: "Este modelo não tem linhas." };
+  const kind = first.type as Kind;
+
+  const uniform = template.splits.every(
+    (split) =>
+      split.type === first.type &&
+      split.account_id === first.account_id &&
+      (split.counterparty_account_id ?? null) === (first.counterparty_account_id ?? null) &&
+      (split.counterparty_name ?? null) === (first.counterparty_name ?? null) &&
+      split.currency_code === first.currency_code,
+  );
+  if (!uniform) {
+    return { ok: false, reason: "As linhas deste modelo têm tipos ou contas diferentes. Ele só pode ser editado pela API." };
+  }
+
+  const ownCounterparty = kind !== "transfer" && first.counterparty_account_id != null;
+  const base = emptyForm(ctx, {
+    kind,
+    date,
+    accountId: first.account_id,
+    ownCounterparty,
+    counterpartyName: first.counterparty_name ?? "",
+    counterpartyAccountId: first.counterparty_account_id ?? "",
+  });
+
+  const needsForeign = foreignAccount(base, ctx) !== null;
+  if (template.splits.some((split) => split.foreign_amount != null && !needsForeign)) {
+    return {
+      ok: false,
+      reason: "Este modelo guarda o valor original em outra moeda, que o formulário ainda não edita.",
+    };
+  }
+
+  const billOf = (split: TransactionSplitCreate): string => {
+    if (!("bill_id" in split)) return "";
+    return split.bill_id == null ? "none" : split.bill_id;
+  };
+
+  if (template.splits.length === 1) {
+    return {
+      ok: true,
+      state: {
+        ...base,
+        description: first.description,
+        amount: toDraft(String(first.amount)),
+        foreignAmount: needsForeign && first.foreign_amount != null ? toDraft(String(first.foreign_amount)) : "",
+        categoryId: first.category_id ?? "",
+        budgetId: first.budget_id ?? "",
+        billId: billOf(first),
+        tagIds: first.tag_ids ?? [],
+        notes: first.notes ?? "",
+        splits: null,
+      },
+    };
+  }
+
+  const places = placesOf(first.currency_code, ctx.places);
+  return {
+    ok: true,
+    state: {
+      ...base,
+      description: template.title ?? "",
+      amount: toDraft(
+        sumMoney(
+          template.splits.map((split) => String(split.amount)),
+          places,
+        ),
+      ),
+      splits: template.splits.map((split) =>
+        emptySplit({
+          description: split.description,
+          amount: toDraft(String(split.amount)),
+          categoryId: split.category_id ?? "",
+          budgetId: split.budget_id ?? "",
+          billId: billOf(split),
+          tagIds: split.tag_ids ?? [],
+          notes: split.notes ?? "",
+        }),
+      ),
+    },
+  };
+}

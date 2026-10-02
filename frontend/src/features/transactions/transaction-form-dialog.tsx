@@ -3,6 +3,12 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import { useAccounts, useCurrencies } from "@/api/accounts";
 import { useBills, type Bill } from "@/api/bills";
+import {
+  useCreateRecurrence,
+  useUpdateRecurrence,
+  type Recurrence,
+  type RecurrenceFrequency,
+} from "@/api/recurrences";
 import { useBudgets, type Budget } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -27,6 +33,7 @@ import {
   emptyForm,
   emptySplit,
   foreignAccount,
+  formFromTemplate,
   formFromTransaction,
   formatRemainder,
   hasErrors,
@@ -42,6 +49,9 @@ import {
   type SplitDraft,
 } from "./form-model";
 
+import { FREQUENCIES, FREQUENCY_LABELS } from "@/features/recurrences/presentation";
+import { todayLocal } from "@/lib/dates";
+
 const KIND_LABELS: Record<Kind, string> = {
   withdrawal: "Saída",
   deposit: "Entrada",
@@ -51,8 +61,14 @@ const KIND_LABELS: Record<Kind, string> = {
 type Props = {
   // Sem `transaction` o dialogo cria; com `transaction` edita
   transaction?: Transaction;
+  // Modo recorrente: o mesmo formulario, mais nome, frequencia e fim. Com `recurrence` edita.
+  repeating?: boolean;
+  recurrence?: Recurrence;
   onClose: () => void;
 };
+
+type EndMode = "never" | "date" | "count";
+type RepeatErrors = { name?: string; endDate?: string; endCount?: string };
 
 // Escolha de tags: botoes que ligam e desligam, com aria-pressed
 function TagPicker({
@@ -90,8 +106,9 @@ function TagPicker({
   );
 }
 
-export function TransactionFormDialog({ transaction, onClose }: Props) {
-  const editing = transaction !== undefined;
+export function TransactionFormDialog({ transaction, repeating = false, recurrence, onClose }: Props) {
+  const recurring = repeating || recurrence !== undefined;
+  const editing = transaction !== undefined || recurrence !== undefined;
   const accountsQuery = useAccounts({ includeArchived: true });
   const currencies = useCurrencies();
   const categories = useCategories({ search: "" });
@@ -101,6 +118,9 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
   const bills = useBills({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
+  const createRecurrence = useCreateRecurrence();
+  const updateRecurrence = useUpdateRecurrence();
+  const busy = create.isPending || update.isPending || createRecurrence.isPending || updateRecurrence.isPending;
 
   const ready = accountsQuery.data !== undefined && currencies.data !== undefined;
   const ctx: FormContext = useMemo(
@@ -115,12 +135,18 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
   const loadError = accountsQuery.isError || currencies.isError ? getErrorMessage(accountsQuery.error ?? currencies.error) : null;
 
   return (
-    <Dialog open onOpenChange={(open) => !open && !create.isPending && !update.isPending && onClose()}>
+    <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar lançamento" : "Novo lançamento"}</DialogTitle>
+          <DialogTitle>
+            {recurring ? (editing ? "Editar recorrente" : "Nova recorrente") : editing ? "Editar lançamento" : "Novo lançamento"}
+          </DialogTitle>
           <DialogDescription>
-            {editing ? "Altere os dados do lançamento." : "Registre uma saída, uma entrada ou uma transferência."}
+            {recurring
+              ? "Um lançamento que se repete sozinho. O app cria também os que já deveriam ter acontecido desde a primeira data."
+              : editing
+                ? "Altere os dados do lançamento."
+                : "Registre uma saída, uma entrada ou uma transferência."}
           </DialogDescription>
         </DialogHeader>
 
@@ -134,12 +160,16 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
           <FormBody
             ctx={ctx}
             transaction={transaction}
+            recurrence={recurrence}
+            recurring={recurring}
             categories={categories.data?.items ?? []}
             tags={tags.data?.items ?? []}
             budgets={budgets.data ?? []}
             bills={bills.data ?? []}
             create={create}
             update={update}
+            createRecurrence={createRecurrence}
+            updateRecurrence={updateRecurrence}
             onClose={onClose}
           />
         )}
@@ -151,27 +181,59 @@ export function TransactionFormDialog({ transaction, onClose }: Props) {
 type BodyProps = {
   ctx: FormContext;
   transaction?: Transaction;
+  recurrence?: Recurrence;
+  recurring: boolean;
   categories: { id: string; name: string }[];
   tags: Tag[];
   budgets: Budget[];
   bills: Bill[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
+  createRecurrence: ReturnType<typeof useCreateRecurrence>;
+  updateRecurrence: ReturnType<typeof useUpdateRecurrence>;
   onClose: () => void;
 };
 
-function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, update, onClose }: BodyProps) {
-  const editing = transaction !== undefined;
+function FormBody({
+  ctx,
+  transaction,
+  recurrence,
+  recurring,
+  categories,
+  tags,
+  budgets,
+  bills,
+  create,
+  update,
+  createRecurrence,
+  updateRecurrence,
+  onClose,
+}: BodyProps) {
+  const editing = transaction !== undefined || recurrence !== undefined;
 
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
-  const [initial] = useState(() => (transaction ? formFromTransaction(transaction, ctx) : null));
+  const [initial] = useState(() => {
+    if (recurrence) return formFromTemplate(recurrence.template, ctx, recurrence.first_date);
+    return transaction ? formFromTransaction(transaction, ctx) : null;
+  });
   const [state, setState] = useState<FormState>(() =>
     initial?.ok ? initial.state : emptyForm(ctx),
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
-  const submitting = create.isPending || update.isPending;
+  // So no modo recorrente
+  const [name, setName] = useState(recurrence?.name ?? "");
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>(recurrence?.frequency ?? "monthly");
+  const [endMode, setEndMode] = useState<EndMode>(
+    recurrence?.end_date ? "date" : recurrence?.max_occurrences ? "count" : "never",
+  );
+  const [endDate, setEndDate] = useState(recurrence?.end_date ?? "");
+  const [endCount, setEndCount] = useState(recurrence?.max_occurrences ? String(recurrence.max_occurrences) : "");
+  const [repeatErrors, setRepeatErrors] = useState<RepeatErrors>({});
+
+  const submitting =
+    create.isPending || update.isPending || createRecurrence.isPending || updateRecurrence.isPending;
   const account = accountOf(ctx, state.accountId);
   const currency = account?.currency_code ?? "BRL";
   const other = foreignAccount(state, ctx);
@@ -289,6 +351,19 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
     setFormError(message);
   }
 
+  function validateRepeat(): RepeatErrors {
+    const found: RepeatErrors = {};
+    if (name.trim() === "") found.name = "Informe o nome da recorrente.";
+    if (endMode === "date") {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) found.endDate = "Informe uma data válida.";
+      else if (state.date && endDate < state.date) found.endDate = "A data final não pode ser antes da primeira.";
+    }
+    if (endMode === "count" && !/^[1-9]\d{0,4}$/.test(endCount.trim())) {
+      found.endCount = "Informe quantas vezes, de 1 a 99999.";
+    }
+    return found;
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (submitting) return;
@@ -296,6 +371,12 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
 
     const found = validateForm(state, ctx);
     setErrors(found);
+    const repeatFound: RepeatErrors = recurring ? validateRepeat() : {};
+    setRepeatErrors(repeatFound);
+    if (repeatFound.name) {
+      document.getElementById("rec-name")?.focus();
+      return;
+    }
     if (hasErrors(found)) {
       const order: [keyof FormErrors, string][] = [
         ["date", "tx-date"],
@@ -309,10 +390,24 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
       if (first) document.getElementById(first[1])?.focus();
       return;
     }
+    if (repeatFound.endDate || repeatFound.endCount) {
+      document.getElementById(repeatFound.endDate ? "rec-end-date" : "rec-end-count")?.focus();
+      return;
+    }
 
     try {
       const body = buildPayload(state, ctx);
-      if (transaction) await update.mutateAsync({ id: transaction.id, body });
+      if (recurring) {
+        const end = {
+          end_date: endMode === "date" ? endDate : null,
+          max_occurrences: endMode === "count" ? Number(endCount) : null,
+        };
+        if (recurrence) {
+          await updateRecurrence.mutateAsync({ id: recurrence.id, body: { name: name.trim(), template: body, ...end } });
+        } else {
+          await createRecurrence.mutateAsync({ name: name.trim(), frequency, first_date: state.date, template: body, ...end });
+        }
+      } else if (transaction) await update.mutateAsync({ id: transaction.id, body });
       else await create.mutateAsync(body);
       onClose();
     } catch (error) {
@@ -332,6 +427,85 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       {formError && <Alert variant="destructive">{formError}</Alert>}
+
+      {recurring && (
+        <div className="flex flex-col gap-4 rounded-md border p-3">
+          <FormField id="rec-name" label="Nome da recorrente" error={repeatErrors.name}>
+            {(props) => (
+              <Input
+                {...props}
+                autoComplete="off"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setRepeatErrors((current) => ({ ...current, name: undefined }));
+                }}
+              />
+            )}
+          </FormField>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="rec-frequency" label="Frequência">
+              {(props) => (
+                <Select
+                  {...props}
+                  value={frequency}
+                  disabled={editing}
+                  onChange={(e) => setFrequency(e.target.value as RecurrenceFrequency)}
+                >
+                  {FREQUENCIES.map((option) => (
+                    <option key={option} value={option}>
+                      {FREQUENCY_LABELS[option]}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
+
+            <FormField id="rec-end" label="Termina">
+              {(props) => (
+                <Select {...props} value={endMode} onChange={(e) => setEndMode(e.target.value as EndMode)}>
+                  <option value="never">Nunca</option>
+                  <option value="date">Numa data</option>
+                  <option value="count">Depois de N vezes</option>
+                </Select>
+              )}
+            </FormField>
+          </div>
+
+          {endMode === "date" && (
+            <FormField id="rec-end-date" label="Data final" error={repeatErrors.endDate}>
+              {(props) => (
+                <Input
+                  {...props}
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setRepeatErrors((current) => ({ ...current, endDate: undefined }));
+                  }}
+                />
+              )}
+            </FormField>
+          )}
+          {endMode === "count" && (
+            <FormField id="rec-end-count" label="Quantas vezes" error={repeatErrors.endCount}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={endCount}
+                  onChange={(e) => {
+                    setEndCount(e.target.value);
+                    setRepeatErrors((current) => ({ ...current, endCount: undefined }));
+                  }}
+                />
+              )}
+            </FormField>
+          )}
+        </div>
+      )}
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-medium">Tipo</legend>
@@ -356,9 +530,26 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
       </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField id="tx-date" label="Data" error={errors.date}>
+        <FormField
+          id="tx-date"
+          label={recurring ? "Primeira data" : "Data"}
+          error={errors.date}
+          hint={
+            recurring && !editing && state.date && state.date <= todayLocal()
+              ? "Os lançamentos desde esta data até hoje serão criados agora."
+              : recurring && editing
+                ? "A primeira data e a frequência não mudam depois de criada."
+                : undefined
+          }
+        >
           {(props) => (
-            <Input {...props} type="date" value={state.date} onChange={(e) => patch({ date: e.target.value }, "date")} />
+            <Input
+              {...props}
+              type="date"
+              value={state.date}
+              disabled={recurring && editing}
+              onChange={(e) => patch({ date: e.target.value }, "date")}
+            />
           )}
         </FormField>
 
@@ -752,7 +943,7 @@ function FormBody({ ctx, transaction, categories, tags, budgets, bills, create, 
           Cancelar
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Salvando..." : editing ? "Salvar" : "Criar lançamento"}
+          {submitting ? "Salvando..." : editing ? "Salvar" : recurring ? "Criar recorrente" : "Criar lançamento"}
         </Button>
       </DialogFooter>
     </form>
