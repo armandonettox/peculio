@@ -1,3 +1,5 @@
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,6 +34,19 @@ class Settings(BaseSettings):
     # Ligado por padrao. So desligar em teste automatizado (E2E), que entra varias vezes por
     # minuto a partir do mesmo IP. Em uso real o limite protege o login de forca bruta.
     rate_limit_enabled: bool = True
+    # Laco que cria os lancamentos das recorrentes. Desligado nos testes; em uso real fica ligado.
+    recurrence_scheduler_enabled: bool = True
+    recurrence_interval_seconds: int = 300
+    # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
+    app_timezone: str = "America/Sao_Paulo"
+
+    @model_validator(mode="after")
+    def check_timezone(self):
+        try:
+            ZoneInfo(self.app_timezone)
+        except (ZoneInfoNotFoundError, ValueError) as error:
+            raise ValueError(f"APP_TIMEZONE invalido: {self.app_timezone}") from error
+        return self
 
     @model_validator(mode="after")
     def reject_default_secrets_in_production(self):

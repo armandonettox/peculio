@@ -48,6 +48,9 @@ class ErrorCode(StrEnum):
     BILL_NOT_FOUND = "bill_not_found"
     BILL_NAME_TAKEN = "bill_name_taken"
     BILL_NOT_ALLOWED = "bill_not_allowed"
+    # Recorrentes
+    RECURRENCE_NOT_FOUND = "recurrence_not_found"
+    RECURRENCE_INVALID = "recurrence_invalid"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

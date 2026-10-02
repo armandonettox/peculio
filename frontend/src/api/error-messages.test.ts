@@ -9,7 +9,7 @@ import { ApiError } from "./errors";
 // portugues, o usuario veria o texto cru do servidor; este teste acusa na hora.
 function readBackendErrorCodes(): string[] {
   const source = readFileSync(path.resolve(__dirname, "../../../backend/app/core/errors.py"), "utf-8");
-  const enumBlock = source.match(/class ErrorCode\(StrEnum\):([\s\S]*?)\n\nclass /);
+  const enumBlock = source.match(/class ErrorCode\(StrEnum\):([\s\S]*?)\r?\n\r?\nclass /);
   if (!enumBlock) throw new Error("ErrorCode nao encontrado em backend/app/core/errors.py");
   return [...enumBlock[1].matchAll(/^\s+[A-Z_]+ = "([a-z_]+)"/gm)].map((match) => match[1]);
 }

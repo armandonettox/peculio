@@ -470,6 +470,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recurrences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Recurrences */
+        get: operations["list_recurrences_api_v1_recurrences_get"];
+        put?: never;
+        /** Create Recurrence */
+        post: operations["create_recurrence_api_v1_recurrences_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recurrences/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Now
+         * @description Cria agora os lancamentos que faltam das recorrentes do usuario (o laco de fundo faz o mesmo
+         *     sozinho a cada poucos minutos).
+         */
+        post: operations["run_now_api_v1_recurrences_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recurrences/{recurrence_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Recurrence */
+        get: operations["get_recurrence_api_v1_recurrences__recurrence_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Recurrence */
+        delete: operations["delete_recurrence_api_v1_recurrences__recurrence_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Recurrence */
+        patch: operations["update_recurrence_api_v1_recurrences__recurrence_id__patch"];
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -1065,6 +1123,17 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[RecurrenceOut] */
+        Page_RecurrenceOut_: {
+            /** Items */
+            items: components["schemas"]["RecurrenceOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** Page[TagOut] */
         Page_TagOut_: {
             /** Items */
@@ -1091,6 +1160,88 @@ export interface components {
         RecoveryCodesOut: {
             /** Recovery Codes */
             recovery_codes: string[];
+        };
+        /**
+         * RecurrenceCreate
+         * @description `template` e um lancamento comum. A data de cada linha dele e trocada pela data de cada
+         *     ocorrencia, entao quem escreve so precisa de um valor valido.
+         */
+        RecurrenceCreate: {
+            /** End Date */
+            end_date?: string | null;
+            /**
+             * First Date
+             * Format: date
+             */
+            first_date: string;
+            frequency: components["schemas"]["RecurrenceFrequency"];
+            /** Max Occurrences */
+            max_occurrences?: number | null;
+            /** Name */
+            name: string;
+            template: components["schemas"]["TransactionCreate-Input"];
+        };
+        /**
+         * RecurrenceFrequency
+         * @enum {string}
+         */
+        RecurrenceFrequency: "daily" | "weekly" | "monthly" | "quarterly" | "half_yearly" | "yearly";
+        /** RecurrenceOut */
+        RecurrenceOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created Count */
+            created_count: number;
+            /** End Date */
+            end_date: string | null;
+            /** Ended */
+            ended: boolean;
+            /**
+             * First Date
+             * Format: date
+             */
+            first_date: string;
+            frequency: components["schemas"]["RecurrenceFrequency"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Error */
+            last_error: string | null;
+            /** Max Occurrences */
+            max_occurrences: number | null;
+            /** Name */
+            name: string;
+            /** Next Date */
+            next_date: string | null;
+            template: components["schemas"]["TransactionCreate-Output"];
+        };
+        /**
+         * RecurrenceUpdate
+         * @description A frequencia e a primeira data nao mudam: elas definem todas as datas que ja foram criadas.
+         *     `end_date` e `max_occurrences` enviados como null tiram o fim.
+         */
+        RecurrenceUpdate: {
+            /** Active */
+            active?: boolean | null;
+            /** End Date */
+            end_date?: string | null;
+            /** Max Occurrences */
+            max_occurrences?: number | null;
+            /** Name */
+            name?: string | null;
+            template?: components["schemas"]["TransactionCreate-Input"] | null;
+        };
+        /** RunResult */
+        RunResult: {
+            /** Created */
+            created: number;
         };
         /** TagCreate */
         TagCreate: {
@@ -1128,9 +1279,16 @@ export interface components {
             token_type: string;
         };
         /** TransactionCreate */
-        TransactionCreate: {
+        "TransactionCreate-Input": {
             /** Splits */
-            splits: components["schemas"]["TransactionSplitCreate"][];
+            splits: components["schemas"]["TransactionSplitCreate-Input"][];
+            /** Title */
+            title?: string | null;
+        };
+        /** TransactionCreate */
+        "TransactionCreate-Output": {
+            /** Splits */
+            splits: components["schemas"]["TransactionSplitCreate-Output"][];
             /** Title */
             title?: string | null;
         };
@@ -1146,13 +1304,15 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Recurrence Id */
+            recurrence_id: string | null;
             /** Splits */
             splits: components["schemas"]["TransactionSplitOut"][];
             /** Title */
             title: string | null;
         };
         /** TransactionSplitCreate */
-        TransactionSplitCreate: {
+        "TransactionSplitCreate-Input": {
             /**
              * Account Id
              * Format: uuid
@@ -1181,6 +1341,48 @@ export interface components {
             description: string;
             /** Foreign Amount */
             foreign_amount?: number | string | null;
+            /** Foreign Currency Code */
+            foreign_currency_code?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Tag Ids */
+            tag_ids?: string[];
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "withdrawal" | "deposit" | "transfer";
+        };
+        /** TransactionSplitCreate */
+        "TransactionSplitCreate-Output": {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Amount */
+            amount: string;
+            /** Bill Id */
+            bill_id?: string | null;
+            /** Budget Id */
+            budget_id?: string | null;
+            /** Category Id */
+            category_id?: string | null;
+            /** Counterparty Account Id */
+            counterparty_account_id?: string | null;
+            /** Counterparty Name */
+            counterparty_name?: string | null;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /** Foreign Amount */
+            foreign_amount?: string | null;
             /** Foreign Currency Code */
             foreign_currency_code?: string | null;
             /** Notes */
@@ -1254,7 +1456,7 @@ export interface components {
          */
         TransactionUpdate: {
             /** Splits */
-            splits: components["schemas"]["TransactionSplitCreate"][];
+            splits: components["schemas"]["TransactionSplitCreate-Input"][];
             /** Title */
             title?: string | null;
         };
@@ -2502,6 +2704,188 @@ export interface operations {
             };
         };
     };
+    list_recurrences_api_v1_recurrences_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                active?: boolean | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RecurrenceOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_recurrence_api_v1_recurrences_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurrenceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurrenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_now_api_v1_recurrences_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunResult"];
+                };
+            };
+        };
+    };
+    get_recurrence_api_v1_recurrences__recurrence_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurrence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurrenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_recurrence_api_v1_recurrences__recurrence_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurrence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_recurrence_api_v1_recurrences__recurrence_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recurrence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurrenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurrenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tags_api_v1_tags_get: {
         parameters: {
             query?: {
@@ -2714,7 +3098,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TransactionCreate"];
+                "application/json": components["schemas"]["TransactionCreate-Input"];
             };
         };
         responses: {

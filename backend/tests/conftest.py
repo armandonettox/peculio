@@ -8,6 +8,8 @@ TEST_DATABASE_URL = os.environ.get(
 )
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["ENVIRONMENT"] = "development"
+# O laco das recorrentes so roda nos testes que o chamam de proposito
+os.environ["RECURRENCE_SCHEDULER_ENABLED"] = "false"
 # Chave de teste com tamanho adequado para HMAC-SHA256 (evita aviso do PyJWT)
 os.environ["JWT_SECRET"] = "chave-de-teste-com-mais-de-32-caracteres-ok"
 

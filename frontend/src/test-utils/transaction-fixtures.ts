@@ -32,6 +32,7 @@ export function makeTransaction(overrides: Partial<Transaction> = {}, splits?: P
   return {
     id: uuid("40000000"),
     title: null,
+    recurrence_id: null,
     created_at: "2026-03-10T12:00:00Z",
     splits: (splits ?? [{}]).map((split) => makeSplit(split)),
     ...overrides,

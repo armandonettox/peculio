@@ -3,6 +3,7 @@ from datetime import date
 
 import pytest
 
+from app.core import clock
 from app.models.budget import BudgetPeriod
 from app.models.transaction import TransactionSplit
 from app.services.budgets import period_bounds
@@ -449,10 +450,10 @@ def test_progress_hides_archived_unless_asked(client, headers):
 def test_progress_defaults_to_today(client, headers):
     account_id = make_account(client, headers)
     budget_id = make_budget(client, headers).json()["id"]
-    spend(client, headers, account_id, budget_id, amount="10.00", on=date.today().isoformat())
+    spend(client, headers, account_id, budget_id, amount="10.00", on=clock.today().isoformat())
     [item] = progress(client, headers).json()
     assert item["spent"] == "10.00"
-    assert item["period_start"] <= date.today().isoformat() <= item["period_end"]
+    assert item["period_start"] <= clock.today().isoformat() <= item["period_end"]
 
 
 def test_progress_is_empty_without_budgets(client, headers):

@@ -2,3 +2,4 @@
 // nada, para dois arquivos nao se importarem de volta (ex: transacoes e orcamentos).
 export const budgetsKey = ["budgets"] as const;
 export const billsKey = ["bills"] as const;
+export const recurrencesKey = ["recurrences"] as const;

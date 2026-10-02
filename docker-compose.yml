@@ -24,6 +24,8 @@ services:
       # mundo chega com o IP do Nginx e a instancia inteira divide o mesmo limite de login.
       TRUST_PROXY_HEADERS: "true"
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      # Define "hoje" para recorrentes, orcamentos e contas a pagar
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
     depends_on:
       db:
         condition: service_healthy

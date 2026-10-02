@@ -4,6 +4,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
@@ -46,7 +47,7 @@ def budgets_progress(
     db: Session = Depends(get_db),
 ):
     """Gasto de cada orcamento no periodo que contem a data `on` (hoje, se omitida)."""
-    return service.progress(db, user.id, on or date.today(), include_archived)
+    return service.progress(db, user.id, on or clock.today(), include_archived)
 
 
 @router.get("/{budget_id}", response_model=BudgetOut)

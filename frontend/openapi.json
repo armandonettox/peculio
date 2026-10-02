@@ -1401,6 +1401,37 @@
         "title": "Page[InviteOut]",
         "type": "object"
       },
+      "Page_RecurrenceOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RecurrenceOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[RecurrenceOut]",
+        "type": "object"
+      },
       "Page_TagOut_": {
         "properties": {
           "items": {
@@ -1477,6 +1508,258 @@
           "recovery_codes"
         ],
         "title": "RecoveryCodesOut",
+        "type": "object"
+      },
+      "RecurrenceCreate": {
+        "additionalProperties": false,
+        "description": "`template` e um lancamento comum. A data de cada linha dele e trocada pela data de cada\nocorrencia, entao quem escreve so precisa de um valor valido.",
+        "properties": {
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "first_date": {
+            "format": "date",
+            "title": "First Date",
+            "type": "string"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/RecurrenceFrequency"
+          },
+          "max_occurrences": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Occurrences"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "template": {
+            "$ref": "#/components/schemas/TransactionCreate-Input"
+          }
+        },
+        "required": [
+          "name",
+          "frequency",
+          "first_date",
+          "template"
+        ],
+        "title": "RecurrenceCreate",
+        "type": "object"
+      },
+      "RecurrenceFrequency": {
+        "enum": [
+          "daily",
+          "weekly",
+          "monthly",
+          "quarterly",
+          "half_yearly",
+          "yearly"
+        ],
+        "title": "RecurrenceFrequency",
+        "type": "string"
+      },
+      "RecurrenceOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_count": {
+            "title": "Created Count",
+            "type": "integer"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "ended": {
+            "title": "Ended",
+            "type": "boolean"
+          },
+          "first_date": {
+            "format": "date",
+            "title": "First Date",
+            "type": "string"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/RecurrenceFrequency"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "max_occurrences": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Occurrences"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Date"
+          },
+          "template": {
+            "$ref": "#/components/schemas/TransactionCreate-Output"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "frequency",
+          "first_date",
+          "end_date",
+          "max_occurrences",
+          "active",
+          "template",
+          "created_count",
+          "next_date",
+          "ended",
+          "last_error",
+          "created_at"
+        ],
+        "title": "RecurrenceOut",
+        "type": "object"
+      },
+      "RecurrenceUpdate": {
+        "additionalProperties": false,
+        "description": "A frequencia e a primeira data nao mudam: elas definem todas as datas que ja foram criadas.\n`end_date` e `max_occurrences` enviados como null tiram o fim.",
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "max_occurrences": {
+            "anyOf": [
+              {
+                "maximum": 100000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Occurrences"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionCreate-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "RecurrenceUpdate",
+        "type": "object"
+      },
+      "RunResult": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created"
+        ],
+        "title": "RunResult",
         "type": "object"
       },
       "TagCreate": {
@@ -1558,12 +1841,42 @@
         "title": "Token",
         "type": "object"
       },
-      "TransactionCreate": {
+      "TransactionCreate-Input": {
         "additionalProperties": false,
         "properties": {
           "splits": {
             "items": {
-              "$ref": "#/components/schemas/TransactionSplitCreate"
+              "$ref": "#/components/schemas/TransactionSplitCreate-Input"
+            },
+            "minItems": 1,
+            "title": "Splits",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "splits"
+        ],
+        "title": "TransactionCreate",
+        "type": "object"
+      },
+      "TransactionCreate-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "splits": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionSplitCreate-Output"
             },
             "minItems": 1,
             "title": "Splits",
@@ -1600,6 +1913,18 @@
             "title": "Id",
             "type": "string"
           },
+          "recurrence_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence Id"
+          },
           "splits": {
             "items": {
               "$ref": "#/components/schemas/TransactionSplitOut"
@@ -1622,13 +1947,14 @@
         "required": [
           "id",
           "title",
+          "recurrence_id",
           "created_at",
           "splits"
         ],
         "title": "TransactionOut",
         "type": "object"
       },
-      "TransactionSplitCreate": {
+      "TransactionSplitCreate-Input": {
         "additionalProperties": false,
         "properties": {
           "account_id": {
@@ -1733,6 +2059,163 @@
                 "exclusiveMinimum": 0.0,
                 "type": "number"
               },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Foreign Amount"
+          },
+          "foreign_currency_code": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Foreign Currency Code"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "tag_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Tag Ids",
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "withdrawal",
+              "deposit",
+              "transfer"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "date",
+          "description",
+          "amount",
+          "currency_code",
+          "account_id"
+        ],
+        "title": "TransactionSplitCreate",
+        "type": "object"
+      },
+      "TransactionSplitCreate-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "bill_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bill Id"
+          },
+          "budget_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "counterparty_account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Account Id"
+          },
+          "counterparty_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counterparty Name"
+          },
+          "currency_code": {
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "foreign_amount": {
+            "anyOf": [
               {
                 "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
                 "type": "string"
@@ -1969,7 +2452,7 @@
         "properties": {
           "splits": {
             "items": {
-              "$ref": "#/components/schemas/TransactionSplitCreate"
+              "$ref": "#/components/schemas/TransactionSplitCreate-Input"
             },
             "minItems": 1,
             "title": "Splits",
@@ -4065,6 +4548,313 @@
         ]
       }
     },
+    "/api/v1/recurrences": {
+      "get": {
+        "operationId": "list_recurrences_api_v1_recurrences_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "active",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Active"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_RecurrenceOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Recurrences",
+        "tags": [
+          "recurrences"
+        ]
+      },
+      "post": {
+        "operationId": "create_recurrence_api_v1_recurrences_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurrenceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurrenceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Recurrence",
+        "tags": [
+          "recurrences"
+        ]
+      }
+    },
+    "/api/v1/recurrences/run": {
+      "post": {
+        "description": "Cria agora os lancamentos que faltam das recorrentes do usuario (o laco de fundo faz o mesmo\nsozinho a cada poucos minutos).",
+        "operationId": "run_now_api_v1_recurrences_run_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Run Now",
+        "tags": [
+          "recurrences"
+        ]
+      }
+    },
+    "/api/v1/recurrences/{recurrence_id}": {
+      "delete": {
+        "operationId": "delete_recurrence_api_v1_recurrences__recurrence_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recurrence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recurrence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Recurrence",
+        "tags": [
+          "recurrences"
+        ]
+      },
+      "get": {
+        "operationId": "get_recurrence_api_v1_recurrences__recurrence_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recurrence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recurrence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurrenceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Recurrence",
+        "tags": [
+          "recurrences"
+        ]
+      },
+      "patch": {
+        "operationId": "update_recurrence_api_v1_recurrences__recurrence_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recurrence_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recurrence Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurrenceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurrenceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Recurrence",
+        "tags": [
+          "recurrences"
+        ]
+      }
+    },
     "/api/v1/tags": {
       "get": {
         "operationId": "list_tags_api_v1_tags_get",
@@ -4570,7 +5360,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TransactionCreate"
+                "$ref": "#/components/schemas/TransactionCreate-Input"
               }
             }
           },

@@ -133,6 +133,8 @@ class TransactionOut(BaseModel):
 
     id: uuid.UUID
     title: str | None
+    # Recorrente que criou este lancamento, se foi ela
+    recurrence_id: uuid.UUID | None
     created_at: datetime
     splits: list[TransactionSplitOut]
 

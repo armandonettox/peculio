@@ -6,6 +6,7 @@ from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.errors import AppError, ErrorCode
 from app.models.account import USER_ACCOUNT_TYPES, Account, AccountRole, AccountType
 from app.models.currency import Currency
@@ -229,7 +230,7 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         raise AppError(409, ErrorCode.ACCOUNT_NAME_TAKEN, "Ja existe uma conta com esse nome")
 
     set_opening_balance(
-        db, account, _to_signed(data.type, data.opening_balance), data.opening_balance_date or date.today()
+        db, account, _to_signed(data.type, data.opening_balance), data.opening_balance_date or clock.today()
     )
     return account
 
@@ -253,7 +254,7 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
     if ("opening_balance" in provided and data.opening_balance is not None) or "opening_balance_date" in provided:
         current = _openings(db, [account]).get(account.id)
         value = data.opening_balance if data.opening_balance is not None else (current[0] if current else Decimal(0))
-        on_date = data.opening_balance_date or (current[1] if current else date.today())
+        on_date = data.opening_balance_date or (current[1] if current else clock.today())
         if account.type == AccountType.liability and value < 0:
             raise AppError(400, ErrorCode.INVALID_AMOUNT, "O valor devido nao pode ser negativo")
         check_amount(get_currency(db, account.currency_code), value)

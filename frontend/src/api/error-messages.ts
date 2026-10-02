@@ -28,6 +28,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   bill_not_found: "Conta a pagar não encontrada.",
   bill_name_taken: "Já existe uma conta a pagar com esse nome.",
   bill_not_allowed: "Conta a pagar só vale para saídas para uma despesa, não para entradas, transferências ou pagamento de dívida.",
+  recurrence_not_found: "Recorrente não encontrada.",
+  recurrence_invalid: "Confira o fim da recorrência: informe só a data final ou só o número de repetições, e a data final não pode ser antes da primeira.",
   budget_not_found: "Orçamento não encontrado.",
   budget_name_taken: "Já existe um orçamento com esse nome.",
   budget_not_allowed: "Orçamento só vale para saídas para uma despesa, não para entradas, transferências ou pagamento de dívida.",

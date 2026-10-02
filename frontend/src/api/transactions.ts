@@ -7,8 +7,8 @@ import type { components } from "./schema";
 
 export type Transaction = components["schemas"]["TransactionOut"];
 export type TransactionSplit = components["schemas"]["TransactionSplitOut"];
-export type TransactionCreate = components["schemas"]["TransactionCreate"];
-export type TransactionSplitCreate = components["schemas"]["TransactionSplitCreate"];
+export type TransactionCreate = components["schemas"]["TransactionCreate-Input"];
+export type TransactionSplitCreate = components["schemas"]["TransactionSplitCreate-Input"];
 export type Counterparty = components["schemas"]["CounterpartyOut"];
 
 export const transactionsKey = ["transactions"] as const;

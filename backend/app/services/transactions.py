@@ -341,6 +341,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
         {
             "id": transaction.id,
             "title": transaction.title,
+            "recurrence_id": transaction.recurrence_id,
             "created_at": transaction.created_at,
             "splits": [
                 {

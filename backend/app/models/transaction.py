@@ -41,7 +41,19 @@ class Transaction(Base):
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     title: Mapped[str | None] = mapped_column(String(255))
+    # Recorrente que criou este lancamento e a data da ocorrencia. O par e unico no banco.
+    recurrence_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recurrences.id", ondelete="SET NULL"))
+    recurrence_date: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+# Uma recorrente cria cada data uma unica vez, mesmo se a tarefa rodar duas vezes ao mesmo tempo
+Index(
+    "uq_transactions_recurrence_id_recurrence_date",
+    Transaction.recurrence_id,
+    Transaction.recurrence_date,
+    unique=True,
+)
 
 
 class TransactionSplit(Base):

@@ -4,6 +4,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
@@ -47,7 +48,7 @@ def bills_status(
 ):
     """Ultimo e proximo vencimento de cada conta a pagar na data `on` (hoje, se omitida), e se o
     ultimo foi pago. Ordenadas pelo proximo vencimento."""
-    return service.status(db, user.id, on or date.today(), include_archived)
+    return service.status(db, user.id, on or clock.today(), include_archived)
 
 
 @router.get("/{bill_id}", response_model=BillOut)
