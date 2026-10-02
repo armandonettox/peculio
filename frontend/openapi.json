@@ -1401,6 +1401,68 @@
         "title": "Page[InviteOut]",
         "type": "object"
       },
+      "Page_PiggyBankEventOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PiggyBankEventOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[PiggyBankEventOut]",
+        "type": "object"
+      },
+      "Page_PiggyBankOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PiggyBankOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[PiggyBankOut]",
+        "type": "object"
+      },
       "Page_RecurrenceOut_": {
         "properties": {
           "items": {
@@ -1492,6 +1554,308 @@
           "offset"
         ],
         "title": "Page[TransactionOut]",
+        "type": "object"
+      },
+      "PiggyBankCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "target_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Target Amount"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          }
+        },
+        "required": [
+          "name",
+          "account_id",
+          "target_amount"
+        ],
+        "title": "PiggyBankCreate",
+        "type": "object"
+      },
+      "PiggyBankEventCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "kind": {
+            "enum": [
+              "add",
+              "remove"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "kind",
+          "amount"
+        ],
+        "title": "PiggyBankEventCreate",
+        "type": "object"
+      },
+      "PiggyBankEventOut": {
+        "properties": {
+          "amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "add",
+              "remove"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "amount",
+          "date",
+          "note",
+          "created_at"
+        ],
+        "title": "PiggyBankEventOut",
+        "type": "object"
+      },
+      "PiggyBankOut": {
+        "properties": {
+          "account_available": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Account Available",
+            "type": "string"
+          },
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "account_name": {
+            "title": "Account Name",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "integer"
+          },
+          "remaining": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Remaining",
+            "type": "string"
+          },
+          "saved": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Saved",
+            "type": "string"
+          },
+          "suggested_per_month": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Per Month"
+          },
+          "target_amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Target Amount",
+            "type": "string"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "account_id",
+          "account_name",
+          "currency_code",
+          "target_amount",
+          "target_date",
+          "saved",
+          "remaining",
+          "percent",
+          "suggested_per_month",
+          "account_available",
+          "created_at"
+        ],
+        "title": "PiggyBankOut",
+        "type": "object"
+      },
+      "PiggyBankUpdate": {
+        "additionalProperties": false,
+        "description": "A conta nao muda: o guardado so faz sentido nela. `target_date` enviado como null tira a data.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "target_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Amount"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          }
+        },
+        "title": "PiggyBankUpdate",
         "type": "object"
       },
       "RecoveryCodesOut": {
@@ -4545,6 +4909,398 @@
         "summary": "Revoke Invite",
         "tags": [
           "invites"
+        ]
+      }
+    },
+    "/api/v1/piggy-banks": {
+      "get": {
+        "operationId": "list_piggy_banks_api_v1_piggy_banks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PiggyBankOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Piggy Banks",
+        "tags": [
+          "piggy-banks"
+        ]
+      },
+      "post": {
+        "operationId": "create_piggy_bank_api_v1_piggy_banks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PiggyBankCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PiggyBankOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Piggy Bank",
+        "tags": [
+          "piggy-banks"
+        ]
+      }
+    },
+    "/api/v1/piggy-banks/{piggy_bank_id}": {
+      "delete": {
+        "operationId": "delete_piggy_bank_api_v1_piggy_banks__piggy_bank_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "piggy_bank_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Piggy Bank Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Piggy Bank",
+        "tags": [
+          "piggy-banks"
+        ]
+      },
+      "get": {
+        "operationId": "get_piggy_bank_api_v1_piggy_banks__piggy_bank_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "piggy_bank_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Piggy Bank Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PiggyBankOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Piggy Bank",
+        "tags": [
+          "piggy-banks"
+        ]
+      },
+      "patch": {
+        "operationId": "update_piggy_bank_api_v1_piggy_banks__piggy_bank_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "piggy_bank_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Piggy Bank Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PiggyBankUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PiggyBankOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Piggy Bank",
+        "tags": [
+          "piggy-banks"
+        ]
+      }
+    },
+    "/api/v1/piggy-banks/{piggy_bank_id}/events": {
+      "get": {
+        "operationId": "list_events_api_v1_piggy_banks__piggy_bank_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "piggy_bank_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Piggy Bank Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_PiggyBankEventOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Events",
+        "tags": [
+          "piggy-banks"
+        ]
+      },
+      "post": {
+        "description": "Guarda ou retira dinheiro. Devolve o cofrinho ja com o novo guardado.",
+        "operationId": "add_event_api_v1_piggy_banks__piggy_bank_id__events_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "piggy_bank_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Piggy Bank Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PiggyBankEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PiggyBankOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Add Event",
+        "tags": [
+          "piggy-banks"
         ]
       }
     },

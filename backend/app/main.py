@@ -17,6 +17,7 @@ from app.routers import (
     categories,
     currencies,
     invites,
+    piggy_banks,
     recurrences,
     tags,
     transactions,
@@ -60,6 +61,7 @@ api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
 api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)
+api_v1.include_router(piggy_banks.router)
 api_v1.include_router(transactions.router)
 app.include_router(api_v1)
 

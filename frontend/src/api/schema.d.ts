@@ -470,6 +470,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/piggy-banks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Piggy Banks */
+        get: operations["list_piggy_banks_api_v1_piggy_banks_get"];
+        put?: never;
+        /** Create Piggy Bank */
+        post: operations["create_piggy_bank_api_v1_piggy_banks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/piggy-banks/{piggy_bank_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Piggy Bank */
+        get: operations["get_piggy_bank_api_v1_piggy_banks__piggy_bank_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Piggy Bank */
+        delete: operations["delete_piggy_bank_api_v1_piggy_banks__piggy_bank_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Piggy Bank */
+        patch: operations["update_piggy_bank_api_v1_piggy_banks__piggy_bank_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/piggy-banks/{piggy_bank_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Events */
+        get: operations["list_events_api_v1_piggy_banks__piggy_bank_id__events_get"];
+        put?: never;
+        /**
+         * Add Event
+         * @description Guarda ou retira dinheiro. Devolve o cofrinho ja com o novo guardado.
+         */
+        post: operations["add_event_api_v1_piggy_banks__piggy_bank_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recurrences": {
         parameters: {
             query?: never;
@@ -1123,6 +1181,28 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** Page[PiggyBankEventOut] */
+        Page_PiggyBankEventOut_: {
+            /** Items */
+            items: components["schemas"]["PiggyBankEventOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[PiggyBankOut] */
+        Page_PiggyBankOut_: {
+            /** Items */
+            items: components["schemas"]["PiggyBankOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
         /** Page[RecurrenceOut] */
         Page_RecurrenceOut_: {
             /** Items */
@@ -1155,6 +1235,111 @@ export interface components {
             offset: number;
             /** Total */
             total: number;
+        };
+        /** PiggyBankCreate */
+        PiggyBankCreate: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Name */
+            name: string;
+            /** Target Amount */
+            target_amount: number | string;
+            /** Target Date */
+            target_date?: string | null;
+        };
+        /** PiggyBankEventCreate */
+        PiggyBankEventCreate: {
+            /** Amount */
+            amount: number | string;
+            /** Date */
+            date?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "add" | "remove";
+            /** Note */
+            note?: string | null;
+        };
+        /** PiggyBankEventOut */
+        PiggyBankEventOut: {
+            /** Amount */
+            amount: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "add" | "remove";
+            /** Note */
+            note: string | null;
+        };
+        /** PiggyBankOut */
+        PiggyBankOut: {
+            /** Account Available */
+            account_available: string;
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Account Name */
+            account_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Percent */
+            percent: number;
+            /** Remaining */
+            remaining: string;
+            /** Saved */
+            saved: string;
+            /** Suggested Per Month */
+            suggested_per_month: string | null;
+            /** Target Amount */
+            target_amount: string;
+            /** Target Date */
+            target_date: string | null;
+        };
+        /**
+         * PiggyBankUpdate
+         * @description A conta nao muda: o guardado so faz sentido nela. `target_date` enviado como null tira a data.
+         */
+        PiggyBankUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Target Amount */
+            target_amount?: number | string | null;
+            /** Target Date */
+            target_date?: string | null;
         };
         /** RecoveryCodesOut */
         RecoveryCodesOut: {
@@ -2692,6 +2877,236 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_piggy_banks_api_v1_piggy_banks_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PiggyBankOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_piggy_bank_api_v1_piggy_banks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiggyBankCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiggyBankOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_piggy_bank_api_v1_piggy_banks__piggy_bank_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                piggy_bank_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiggyBankOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_piggy_bank_api_v1_piggy_banks__piggy_bank_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                piggy_bank_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_piggy_bank_api_v1_piggy_banks__piggy_bank_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                piggy_bank_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiggyBankUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiggyBankOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_events_api_v1_piggy_banks__piggy_bank_id__events_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                piggy_bank_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PiggyBankEventOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_event_api_v1_piggy_banks__piggy_bank_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                piggy_bank_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiggyBankEventCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiggyBankOut"];
+                };
             };
             /** @description Validation Error */
             422: {

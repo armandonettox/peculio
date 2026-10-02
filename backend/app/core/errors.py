@@ -51,6 +51,12 @@ class ErrorCode(StrEnum):
     # Recorrentes
     RECURRENCE_NOT_FOUND = "recurrence_not_found"
     RECURRENCE_INVALID = "recurrence_invalid"
+    # Cofrinhos
+    PIGGY_BANK_NOT_FOUND = "piggy_bank_not_found"
+    PIGGY_BANK_NAME_TAKEN = "piggy_bank_name_taken"
+    PIGGY_BANK_ACCOUNT_INVALID = "piggy_bank_account_invalid"
+    PIGGY_BANK_NOT_ENOUGH_AVAILABLE = "piggy_bank_not_enough_available"
+    PIGGY_BANK_NOT_ENOUGH_SAVED = "piggy_bank_not_enough_saved"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"
