@@ -62,6 +62,12 @@ class ErrorCode(StrEnum):
     WEBHOOK_NAME_TAKEN = "webhook_name_taken"
     WEBHOOK_LIMIT_REACHED = "webhook_limit_reached"
     WEBHOOK_URL_INVALID = "webhook_url_invalid"
+    # Anexos
+    ATTACHMENT_NOT_FOUND = "attachment_not_found"
+    ATTACHMENT_TYPE_NOT_ALLOWED = "attachment_type_not_allowed"
+    ATTACHMENT_TOO_LARGE = "attachment_too_large"
+    ATTACHMENT_EMPTY = "attachment_empty"
+    ATTACHMENT_LIMIT_REACHED = "attachment_limit_reached"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

@@ -1,4 +1,4 @@
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
 
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
@@ -49,9 +49,10 @@ type RowProps = {
   transaction: Transaction;
   onEdit: (transaction: Transaction) => void;
   onRemove: (transaction: Transaction) => void;
+  onAttachments: (transaction: Transaction) => void;
 } & Lookups;
 
-export function TransactionRow({ transaction, categories, tags, onEdit, onRemove }: RowProps) {
+export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments }: RowProps) {
   const splits = transaction.splits;
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
@@ -81,6 +82,17 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
           )}
         </div>
         <div className="flex shrink-0 items-start gap-1">
+          {transaction.attachment_count > 0 && (
+            <button
+              type="button"
+              onClick={() => onAttachments(transaction)}
+              aria-label={`${transaction.attachment_count} ${transaction.attachment_count === 1 ? "anexo" : "anexos"}, abrir anexos de ${transactionTitle(transaction)}`}
+              className="flex h-6 items-center gap-1 rounded-md px-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Paperclip className="size-3.5" aria-hidden="true" />
+              {transaction.attachment_count}
+            </button>
+          )}
           {total && (
             <p className={cn("text-base font-semibold tabular-nums", first && amountClass(first))}>{total}</p>
           )}
@@ -98,6 +110,10 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
               <DropdownMenuItem onSelect={() => onEdit(transaction)}>
                 <Pencil />
                 Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onAttachments(transaction)}>
+                <Paperclip />
+                Anexos
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => onRemove(transaction)} className="text-destructive">

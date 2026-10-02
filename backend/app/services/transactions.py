@@ -4,6 +4,7 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -12,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams
 from app.models.account import Account, AccountType
+from app.models.attachment import Attachment
 from app.models.category import Category
 from app.models.currency import Currency
 from app.models.tag import Tag
@@ -20,6 +22,7 @@ from app.models.user import User
 from app.models.webhook import WebhookEvent
 from app.schemas.transaction import TransactionCreate, TransactionOut, TransactionSplitCreate
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
+from app.services.attachment_storage import storage_path
 from app.services.bills import find_matching_bill, get_owned_bill
 from app.services.budgets import get_owned_budget
 from app.services.webhooks import enqueue_event
@@ -306,11 +309,16 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     return transaction
 
 
-def delete_transaction(db: Session, transaction: Transaction) -> None:
+def delete_transaction(db: Session, transaction: Transaction) -> list[Path]:
+    """Apaga o lancamento (os anexos saem do banco em cascata) e devolve os arquivos deles, para
+    quem chama apagar do disco depois de gravar."""
     # O evento leva o retrato do lancamento de antes de excluir, por isso vem primeiro
     _enqueue(db, transaction.user_id, WebhookEvent.transaction_deleted, transaction)
+    attachments = db.execute(select(Attachment).where(Attachment.transaction_id == transaction.id)).scalars().all()
+    paths = [storage_path(attachment.user_id, attachment.storage_name) for attachment in attachments]
     db.delete(transaction)
     db.flush()
+    return paths
 
 
 # ---------- Leitura ----------
@@ -350,6 +358,15 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
     for split in splits:
         splits_by_transaction[split.transaction_id].append(split)
 
+    # Uma consulta agrupada para todos os lancamentos da pagina
+    attachment_counts = dict(
+        db.execute(
+            select(Attachment.transaction_id, func.count())
+            .where(Attachment.transaction_id.in_(ids))
+            .group_by(Attachment.transaction_id)
+        ).all()
+    )
+
     tag_map = tag_ids_by_split(db, [split.id for split in splits])
     account_ids = {split.source_account_id for split in splits} | {split.destination_account_id for split in splits}
     accounts = {
@@ -371,6 +388,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
             "title": transaction.title,
             "recurrence_id": transaction.recurrence_id,
             "created_at": transaction.created_at,
+            "attachment_count": attachment_counts.get(transaction.id, 0),
             "splits": [
                 {
                     "id": split.id,

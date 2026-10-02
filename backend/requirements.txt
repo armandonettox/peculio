@@ -13,3 +13,4 @@ httpx
 pyotp
 cryptography
 tzdata
+python-multipart

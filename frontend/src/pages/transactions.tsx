@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { AttachmentsDialog } from "@/features/attachments/attachments-dialog";
 import { FilterBar } from "@/features/transactions/filter-bar";
 import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "@/features/transactions/filters";
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
@@ -45,6 +46,7 @@ export default function TransactionsPage() {
   // "new": dialogo de criar; um lancamento: dialogo de editar
   const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
   const [removing, setRemoving] = useState<Transaction | null>(null);
+  const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
@@ -169,6 +171,7 @@ export default function TransactionsPage() {
                     tags={lookups.tags}
                     onEdit={setDialog}
                     onRemove={setRemoving}
+                    onAttachments={setAttaching}
                   />
                 ))}
               </ul>
@@ -239,6 +242,8 @@ export default function TransactionsPage() {
           onClose={() => setRemoving(null)}
         />
       )}
+
+      {attaching && <AttachmentsDialog transaction={attaching} onClose={() => setAttaching(null)} />}
 
       {dialog && (
         <TransactionFormDialog

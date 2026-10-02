@@ -6,3 +6,4 @@ export const recurrencesKey = ["recurrences"] as const;
 export const piggyBanksKey = ["piggy-banks"] as const;
 export const webhooksKey = ["webhooks"] as const;
 export const reportsKey = ["reports"] as const;
+export const attachmentsKey = ["attachments"] as const;

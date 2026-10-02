@@ -11,6 +11,7 @@ from app.core.rate_limit import limiter
 from app.core.scheduler import start_scheduler
 from app.routers import (
     accounts,
+    attachments,
     auth,
     bills,
     budgets,
@@ -67,6 +68,7 @@ api_v1.include_router(piggy_banks.router)
 api_v1.include_router(transactions.router)
 api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
+api_v1.include_router(attachments.router)
 app.include_router(api_v1)
 
 

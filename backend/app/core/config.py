@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     # Libera webhooks para IP privado, loopback e http. Por padrao so https para enderecos publicos,
     # para um webhook nao servir de ponte para a rede interna (SSRF). Ligar so em rede de confianca.
     webhook_allow_private: bool = False
+    # Pasta dos anexos dos lancamentos (um volume em producao) e tamanho maximo de cada arquivo
+    attachments_dir: str = "/data/attachments"
+    attachment_max_bytes: int = 10 * 1024 * 1024
     # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
     app_timezone: str = "America/Sao_Paulo"
 

@@ -136,6 +136,8 @@ class TransactionOut(BaseModel):
     # Recorrente que criou este lancamento, se foi ela
     recurrence_id: uuid.UUID | None
     created_at: datetime
+    # Quantos arquivos estao anexados ao lancamento
+    attachment_count: int
     splits: list[TransactionSplitOut]
 
 
