@@ -1,11 +1,13 @@
 import hashlib
 import hmac
+import ipaddress
 import json
 import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urlsplit
 
 import httpx
 from sqlalchemy import delete, select
@@ -54,9 +56,41 @@ def sign(secret: str, timestamp: int, body: bytes) -> str:
     return "sha256=" + hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
 
 
-def make_client() -> httpx.Client:
-    # Sem seguir redirecionamentos: um 302 para um endereco interno furaria a checagem de SSRF
-    return httpx.Client(timeout=httpx.Timeout(TIMEOUT_SECONDS), follow_redirects=False)
+# Nome da extensao de requisicao que leva o IP validado ate o PinnedTransport
+PIN_EXTENSION = "finance_pinned_ip"
+# Quantos IPs validados tentamos, no maximo, quando a conexao falha (o pior caso soma 10 s cada)
+MAX_PINNED_ADDRESSES = 3
+
+
+class PinnedTransport(httpx.BaseTransport):
+    """Conecta no IP validado em vez de deixar o httpx resolver o DNS de novo (DNS rebinding).
+
+    A URL da requisicao passa a apontar para o IP, mas o cabecalho Host continua o do nome original
+    (o httpx o monta antes, a partir da URL) e a extensao sni_hostname manda o nome original para o
+    TLS: o SNI e a verificacao do certificado seguem sendo contra o nome, nunca contra o IP.
+    Requisicao sem a extensao do pino passa direto, sem mudanca."""
+
+    def __init__(self, inner: httpx.BaseTransport | None = None) -> None:
+        self._inner = inner if inner is not None else httpx.HTTPTransport()
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        pinned_ip = request.extensions.pop(PIN_EXTENSION, None)
+        if pinned_ip:
+            request.extensions["sni_hostname"] = request.url.raw_host.decode("ascii")
+            request.url = request.url.copy_with(host=pinned_ip)
+        return self._inner.handle_request(request)
+
+    def close(self) -> None:
+        self._inner.close()
+
+
+def make_client(inner: httpx.BaseTransport | None = None) -> httpx.Client:
+    # Sem seguir redirecionamentos: um 302 para um endereco interno furaria a checagem de SSRF.
+    # Obs: proxies do ambiente (HTTP_PROXY) continuam valendo e quem resolve o nome e o proxy;
+    # nesse caso o pino nao se aplica (o httpx manda a extensao do pino adiante e o proxy a ignora).
+    return httpx.Client(
+        transport=PinnedTransport(inner), timeout=httpx.Timeout(TIMEOUT_SECONDS), follow_redirects=False
+    )
 
 
 # Os testes trocam isto por um cliente com httpx.MockTransport (nada de rede real)
@@ -93,8 +127,9 @@ def post_webhook(
     if secret is None:
         return Outcome(False, error="Nao foi possivel ler o segredo do webhook")
     try:
-        # De novo antes de entregar: o DNS pode ter mudado desde o cadastro
-        validate_webhook_url(url, resolver=resolver)
+        # De novo antes de entregar: o DNS pode ter mudado desde o cadastro. O DNS e consultado
+        # so aqui; a conexao vai para um dos IPs validados (anti DNS rebinding).
+        addresses = validate_webhook_url(url, resolver=resolver)
     except WebhookUrlError as error:
         return Outcome(False, error=str(error))
 
@@ -108,29 +143,61 @@ def post_webhook(
         "X-Finance-Timestamp": str(timestamp),
         "X-Finance-Signature": sign(secret, timestamp, body),
     }
-    try:
-        with client_factory() as client:
-            with client.stream("POST", url, content=body, headers=headers) as response:
-                chunks: list[bytes] = []
-                size = 0
-                for chunk in response.iter_bytes():
-                    chunks.append(chunk)
-                    size += len(chunk)
-                    if size >= MAX_RESPONSE_BYTES:
-                        break
-                status_code = response.status_code
-        excerpt = _clean(b"".join(chunks).decode("utf-8", errors="replace"), EXCERPT_CHARS)
-    except httpx.TimeoutException:
-        return Outcome(False, error=f"Tempo esgotado ({TIMEOUT_SECONDS} s) esperando a resposta")
-    except httpx.HTTPError as error:
-        return Outcome(False, error=f"Falha de conexao ({type(error).__name__})")
-    except Exception as error:  # noqa: BLE001 - uma entrega com erro estranho nao pode derrubar o laco
-        logger.warning("Erro inesperado ao entregar webhook: %s", type(error).__name__)
-        return Outcome(False, error=f"Erro inesperado ({type(error).__name__})")
+    outcome = Outcome(False, error="Nenhum endereco para entregar")
+    for pinned_ip in pin_targets(url, addresses):
+        try:
+            with client_factory() as client:
+                status_code, excerpt = _stream_post(client, url, body, headers, pinned_ip)
+        except httpx.TimeoutException as error:
+            outcome = Outcome(False, error=f"Tempo esgotado ({TIMEOUT_SECONDS} s) esperando a resposta")
+            # So a falha ao conectar passa para o proximo IP; esperar a resposta ja e tarde
+            # (o servidor pode ter recebido o POST) e nao reenviamos a outro IP.
+            try_next = isinstance(error, httpx.ConnectTimeout)
+        except httpx.HTTPError as error:
+            outcome = Outcome(False, error=f"Falha de conexao ({type(error).__name__})")
+            try_next = isinstance(error, httpx.ConnectError)
+        except Exception as error:  # noqa: BLE001 - uma entrega com erro estranho nao pode derrubar o laco
+            logger.warning("Erro inesperado ao entregar webhook: %s", type(error).__name__)
+            return Outcome(False, error=f"Erro inesperado ({type(error).__name__})")
+        else:
+            if 200 <= status_code < 300:
+                return Outcome(True, status_code=status_code, excerpt=excerpt)
+            return Outcome(False, status_code=status_code, error=f"Resposta HTTP {status_code}", excerpt=excerpt)
+        if not try_next:
+            break
+    return outcome
 
-    if 200 <= status_code < 300:
-        return Outcome(True, status_code=status_code, excerpt=excerpt)
-    return Outcome(False, status_code=status_code, error=f"Resposta HTTP {status_code}", excerpt=excerpt)
+
+def _stream_post(
+    client: httpx.Client, url: str, body: bytes, headers: dict[str, str], pinned_ip: str | None
+) -> tuple[int, str]:
+    # A extensao so e lida pelo PinnedTransport; outros transportes (testes, proxy) a ignoram
+    extensions = {PIN_EXTENSION: pinned_ip} if pinned_ip else None
+    with client.stream("POST", url, content=body, headers=headers, extensions=extensions) as response:
+        chunks: list[bytes] = []
+        size = 0
+        for chunk in response.iter_bytes():
+            chunks.append(chunk)
+            size += len(chunk)
+            if size >= MAX_RESPONSE_BYTES:
+                break
+        status_code = response.status_code
+    return status_code, _clean(b"".join(chunks).decode("utf-8", errors="replace"), EXCERPT_CHARS)
+
+
+def pin_targets(url: str, addresses: list[str]) -> list[str | None]:
+    """IPs validados aos quais a conexao pode ir, na ordem. [None] quando nao ha o que fixar: URL
+    com IP no lugar do nome (ja e o proprio IP) ou sem validacao de DNS (WEBHOOK_ALLOW_PRIVATE)."""
+    host = urlsplit(url).hostname
+    try:
+        ipaddress.ip_address(host or "")
+    except ValueError:
+        pass
+    else:
+        return [None]
+    if not addresses:
+        return [None]
+    return list(addresses[:MAX_PINNED_ADDRESSES])
 
 
 def apply_outcome(delivery: WebhookDelivery, outcome: Outcome, now: datetime) -> None:
