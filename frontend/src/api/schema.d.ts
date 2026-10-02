@@ -1504,7 +1504,7 @@ export interface components {
          * DeliveryStatus
          * @enum {string}
          */
-        DeliveryStatus: "pending" | "delivered" | "failed";
+        DeliveryStatus: "pending" | "delivered" | "failed" | "expired";
         /** GroupedReportOut */
         GroupedReportOut: {
             /** Currencies */

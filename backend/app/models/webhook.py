@@ -37,6 +37,8 @@ class DeliveryStatus(enum.StrEnum):
     pending = "pending"
     delivered = "delivered"
     failed = "failed"
+    # Saiu da fila sem ser enviada (ex: o webhook foi pausado). Estado final, nunca reenviado.
+    expired = "expired"
 
 
 class Webhook(Base):

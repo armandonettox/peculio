@@ -13,6 +13,7 @@ export const STATUS_LABELS: Record<DeliveryStatus, string> = {
   delivered: "Entregue",
   pending: "Pendente",
   failed: "Falhou",
+  expired: "Expirada",
 };
 
 /** "02/10/2026 14:30" no fuso de quem esta olhando. */

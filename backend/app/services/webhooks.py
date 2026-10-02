@@ -3,7 +3,7 @@ import uuid
 from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from app.core.webhook_url import WebhookUrlError, validate_webhook_url
 from app.models.user import User
 from app.models.webhook import DeliveryStatus, Webhook, WebhookDelivery
 from app.schemas.webhook import WebhookCreate, WebhookUpdate
+from app.services.webhook_delivery import PAUSED_REASON
 
 MAX_WEBHOOKS_PER_USER = 20
 
@@ -78,10 +79,25 @@ def update_webhook(db: Session, webhook: Webhook, data: WebhookUpdate) -> Webhoo
     changes = {k: v for k, v in data.model_dump(exclude_unset=True).items() if v is not None}
     if "url" in changes:
         check_url(changes["url"])
+    # Pausar de novo um webhook ja pausado tambem esvazia a fila (idempotente)
+    pausing = changes.get("active") is False
     for field, value in changes.items():
         setattr(webhook, field, value)
     _save(db, webhook)
+    if pausing:
+        expire_pending(db, webhook.id)
     return webhook
+
+
+def expire_pending(db: Session, webhook_id: uuid.UUID) -> int:
+    """Ao pausar, o que estava na fila expira na hora (estado final, com motivo). Reativar nao
+    reenvia essas entregas: a reativacao vale so para eventos novos. Devolve quantas expiraram."""
+    result = db.execute(
+        update(WebhookDelivery)
+        .where(WebhookDelivery.webhook_id == webhook_id, WebhookDelivery.status == DeliveryStatus.pending)
+        .values(status=DeliveryStatus.expired, next_attempt_at=None, last_error=PAUSED_REASON)
+    )
+    return result.rowcount
 
 
 def rotate_secret(db: Session, webhook: Webhook) -> str:

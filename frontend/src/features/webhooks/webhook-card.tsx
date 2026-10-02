@@ -25,6 +25,7 @@ const LAST_STATUS_STYLE = {
   delivered: "text-positive",
   pending: "text-muted-foreground",
   failed: "text-destructive",
+  expired: "text-muted-foreground",
 } as const;
 
 export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory, onTogglePause, onDelete }: Props) {

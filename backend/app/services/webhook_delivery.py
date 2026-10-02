@@ -24,6 +24,8 @@ RETRY_DELAYS = (timedelta(minutes=1), timedelta(minutes=5), timedelta(minutes=30
 EXCERPT_CHARS = 500
 # Quanto da resposta lemos antes de parar (bem acima do trecho guardado)
 MAX_RESPONSE_BYTES = 4000
+# Motivo gravado (e mostrado no historico) quando uma entrega expira por causa da pausa
+PAUSED_REASON = "Webhook pausado: entrega expirada sem ser enviada"
 
 
 def retry_delay(failed_attempts: int) -> timedelta | None:
@@ -144,28 +146,42 @@ def apply_outcome(delivery: WebhookDelivery, outcome: Outcome, now: datetime) ->
         delivery.next_attempt_at = now + delay
 
 
+def expire_delivery(delivery: WebhookDelivery, reason: str) -> None:
+    """Tira a entrega da fila com um estado final proprio. Nao conta como tentativa: nada foi enviado."""
+    delivery.status = DeliveryStatus.expired
+    delivery.next_attempt_at = None
+    delivery.last_error = reason
+
+
 def deliver_next(db: Session, now: datetime | None = None, resolver: Resolver | None = None) -> bool:
-    """Entrega UMA pendente vencida e confirma. False se nao havia nenhuma.
+    """Trata UMA pendente vencida e confirma. False se nao havia nenhuma.
+
+    Se o webhook esta pausado, a entrega expira (estado final, motivo no historico) em vez de ser
+    enviada. Reativar o webhook depois NAO reenvia o que expirou: um aviso de lancamento que chega
+    dias depois, fora de ordem, faz mais mal do que bem. A reativacao vale so para eventos novos.
 
     O SELECT ... FOR UPDATE SKIP LOCKED faz dois processos (ou duas rodadas) nunca pegarem a mesma
     entrega: quem chega depois pula a linha travada. O lock fica ate o commit, durante o POST."""
     now = now or datetime.now(timezone.utc)
-    delivery = db.execute(
-        select(WebhookDelivery)
+    row = db.execute(
+        select(WebhookDelivery, Webhook.active)
         .join(Webhook, Webhook.id == WebhookDelivery.webhook_id)
         .where(
             WebhookDelivery.status == DeliveryStatus.pending,
             WebhookDelivery.next_attempt_at <= now,
-            # Webhook pausado nao recebe; as entregas dele ficam pendentes ate ser retomado
-            Webhook.active.is_(True),
         )
         .order_by(WebhookDelivery.next_attempt_at, WebhookDelivery.id)
         .limit(1)
         .with_for_update(of=WebhookDelivery, skip_locked=True)
-    ).scalar_one_or_none()
-    if delivery is None:
+    ).first()
+    if row is None:
         db.rollback()
         return False
+    delivery, webhook_active = row
+    if not webhook_active:
+        expire_delivery(delivery, PAUSED_REASON)
+        db.commit()
+        return True
     webhook = db.get(Webhook, delivery.webhook_id)
     outcome = post_webhook(webhook, delivery.id, delivery.event, delivery.payload, now, resolver)
     apply_outcome(delivery, outcome, now)

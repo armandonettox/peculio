@@ -573,6 +573,31 @@ it("historico mostra status, tentativas, codigo HTTP e trecho da resposta", asyn
   expect(within(items[1]).getByText(/1 tentativa ·/)).toBeInTheDocument();
 });
 
+it("historico mostra a entrega expirada com o motivo e permite filtrar por ela", async () => {
+  const webhook = makeWebhook({ name: "Planilha" });
+  const api = renderPage([webhook], {
+    [webhook.id]: [
+      makeDelivery({
+        status: "expired",
+        attempts: 0,
+        last_status_code: null,
+        last_error: "Webhook pausado: entrega expirada sem ser enviada",
+        delivered_at: null,
+      }),
+      makeDelivery({ status: "delivered" }),
+    ],
+  });
+  await screen.findByText("Planilha");
+  await choose("Planilha", "Histórico de entregas");
+  const items = await inDialog().findAllByRole("listitem");
+  expect(within(items[0]).getByText("Expirada")).toBeInTheDocument();
+  expect(within(items[0]).getByText("Webhook pausado: entrega expirada sem ser enviada")).toBeInTheDocument();
+
+  await userEvent.selectOptions(inDialog().getByLabelText("Situação"), "expired");
+  await waitFor(() => expect(api.deliveryRequests().at(-1)?.query?.get("status")).toBe("expired"));
+  await waitFor(() => expect(inDialog().getAllByRole("listitem")).toHaveLength(1));
+});
+
 it("historico vazio diz que nao ha entregas", async () => {
   renderPage();
   await screen.findByText("Planilha");

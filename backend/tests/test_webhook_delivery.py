@@ -488,14 +488,116 @@ def test_run_due_delivers_everything_due_and_respects_the_limit(client, headers,
 # ---------- Pausa e exclusao ----------
 
 
-def test_pausing_stops_delivery_of_what_is_already_queued(client, headers, account_id, db_session, server):
+def test_pausing_expires_what_is_already_queued_and_reactivating_does_not_resend(
+    client, headers, account_id, db_session, server
+):
     made = pending_one(client, headers, account_id)
+    create_tx(client, headers, account_id, description="Segunda")
     client.patch(f"{URL}/{made['id']}", json={"active": False}, headers=headers)
+    rows = deliveries(db_session)
+    assert [row.status for row in rows] == [DeliveryStatus.expired, DeliveryStatus.expired]
+    for row in rows:
+        assert row.next_attempt_at is None
+        assert row.last_error == delivery_service.PAUSED_REASON
+        assert row.attempts == 0
+        assert row.delivered_at is None
+    # Pausado: nada sai
     assert run_now(db_session) is False
     assert server.requests == []
+    # Reativar nao reenvia o que expirou; so eventos novos entram na fila
     client.patch(f"{URL}/{made['id']}", json={"active": True}, headers=headers)
+    assert run_now(db_session) is False
+    assert server.requests == []
+    assert all(row.status == DeliveryStatus.expired for row in deliveries(db_session))
+    create_tx(client, headers, account_id, description="Nova")
     assert run_now(db_session) is True
     assert len(server.requests) == 1
+
+
+def test_pausing_only_touches_pending_deliveries_of_that_webhook(client, headers, account_id, db_session, server):
+    other = make_webhook(client, headers, name="Outro", events=["transaction.created"])
+    made = pending_one(client, headers, account_id)
+    # Uma entrega ja entregue do webhook pausado nao muda de estado
+    assert run_now(db_session) is True
+    assert run_now(db_session) is True
+    create_tx(client, headers, account_id, description="Segunda")
+    client.patch(f"{URL}/{made['id']}", json={"active": False}, headers=headers)
+    by_webhook = {}
+    for row in deliveries(db_session):
+        by_webhook.setdefault(str(row.webhook_id), []).append(row.status)
+    assert by_webhook[made["id"]].count(DeliveryStatus.delivered) == 1
+    assert by_webhook[made["id"]].count(DeliveryStatus.expired) == 1
+    assert by_webhook[other["id"]] == [DeliveryStatus.delivered, DeliveryStatus.pending]
+
+
+def test_editing_a_paused_webhook_without_activating_keeps_the_queue_empty(client, headers, account_id, db_session):
+    made = pending_one(client, headers, account_id)
+    client.patch(f"{URL}/{made['id']}", json={"active": False}, headers=headers)
+    # Editar outro campo, ainda pausado, nao mexe em nada
+    assert client.patch(f"{URL}/{made['id']}", json={"name": "Novo nome"}, headers=headers).status_code == 200
+    assert [row.status for row in deliveries(db_session)] == [DeliveryStatus.expired]
+
+
+def test_pausing_again_clears_stragglers_left_in_a_paused_webhook(client, headers, account_id, db_session):
+    made = pending_one(client, headers, account_id)
+    webhook = db_session.get(Webhook, uuid.UUID(made["id"]))
+    webhook.active = False
+    db_session.commit()
+    assert [row.status for row in deliveries(db_session)] == [DeliveryStatus.pending]
+    client.patch(f"{URL}/{made['id']}", json={"active": False}, headers=headers)
+    assert [row.status for row in deliveries(db_session)] == [DeliveryStatus.expired]
+
+
+def test_renaming_an_active_webhook_does_not_expire_the_queue(client, headers, account_id, db_session):
+    made = pending_one(client, headers, account_id)
+    client.patch(f"{URL}/{made['id']}", json={"name": "Novo nome", "active": True}, headers=headers)
+    assert [row.status for row in deliveries(db_session)] == [DeliveryStatus.pending]
+
+
+def test_a_delivery_due_for_a_paused_webhook_expires_instead_of_staying_pending(
+    client, headers, account_id, db_session, server
+):
+    """Rede de seguranca: pausa feita direto no banco (sem passar pela API) tambem esvazia a fila."""
+    made = pending_one(client, headers, account_id)
+    webhook = db_session.get(Webhook, uuid.UUID(made["id"]))
+    webhook.active = False
+    db_session.commit()
+    assert run_now(db_session) is True
+    delivery = only_delivery(db_session)
+    assert delivery.status == DeliveryStatus.expired
+    assert delivery.last_error == delivery_service.PAUSED_REASON
+    assert delivery.next_attempt_at is None
+    assert delivery.attempts == 0
+    assert server.requests == []
+    # Final: nunca mais vira candidata, nem depois de reativar
+    assert run_now(db_session, NOW + timedelta(days=30)) is False
+    webhook.active = True
+    db_session.commit()
+    assert run_now(db_session, NOW + timedelta(days=30)) is False
+    assert server.requests == []
+
+
+def test_run_due_drains_expired_deliveries_and_keeps_going(client, headers, account_id, db_session, server):
+    made = make_webhook(client, headers, name="Pausado")
+    for _ in range(3):
+        create_tx(client, headers, account_id)
+    webhook = db_session.get(Webhook, uuid.UUID(made["id"]))
+    webhook.active = False
+    db_session.commit()
+    assert delivery_service.run_due(db_session) == 3
+    assert delivery_service.run_due(db_session) == 0
+    assert {row.status for row in deliveries(db_session)} == {DeliveryStatus.expired}
+    assert server.requests == []
+
+
+def test_expired_is_a_valid_status_in_the_history_filter(client, headers, account_id):
+    made = pending_one(client, headers, account_id)
+    client.patch(f"{URL}/{made['id']}", json={"active": False}, headers=headers)
+    page = client.get(f"{URL}/{made['id']}/deliveries?status=expired", headers=headers).json()
+    assert [item["status"] for item in page["items"]] == ["expired"]
+    assert page["items"][0]["last_error"] == delivery_service.PAUSED_REASON
+    listed = client.get(URL, headers=headers).json()["items"][0]
+    assert listed["last_delivery_status"] == "expired"
 
 
 def test_deleting_the_webhook_drops_its_queue(client, headers, account_id, db_session, server):
