@@ -129,7 +129,9 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
       state.writes.push({ method: "PUT", id: String(params.id), body });
       const error = failWrite();
       if (error) return error;
-      const saved = toTransaction(body, String(params.id));
+      const previous = state.items.find((item) => item.id === params.id);
+      // A edicao recria os splits mas mantem os anexos do grupo, como o backend
+      const saved = { ...toTransaction(body, String(params.id)), attachment_count: previous?.attachment_count ?? 0 };
       state.items = state.items.map((item) => (item.id === params.id ? saved : item));
       return HttpResponse.json(saved);
     }),
