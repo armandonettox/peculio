@@ -586,6 +586,108 @@ export interface paths {
         patch: operations["update_recurrence_api_v1_recurrences__recurrence_id__patch"];
         trace?: never;
     };
+    "/api/v1/reports/by-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get By Account */
+        get: operations["get_by_account_api_v1_reports_by_account_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/by-budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get By Budget */
+        get: operations["get_by_budget_api_v1_reports_by_budget_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/by-category": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get By Category */
+        get: operations["get_by_category_api_v1_reports_by_category_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/by-tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get By Tag */
+        get: operations["get_by_tag_api_v1_reports_by_tag_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/monthly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Monthly */
+        get: operations["get_monthly_api_v1_reports_monthly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Summary */
+        get: operations["get_summary_api_v1_reports_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -650,6 +752,23 @@ export interface paths {
         };
         /** List Counterparties */
         get: operations["list_counterparties_api_v1_transactions_counterparties_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/export.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Transactions Csv */
+        get: operations["export_transactions_csv_api_v1_transactions_export_csv_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1041,6 +1160,21 @@ export interface components {
             /** Symbol */
             symbol: string;
         };
+        /** GroupedReportOut */
+        GroupedReportOut: {
+            /** Currencies */
+            currencies: components["schemas"]["ReportGroupBlock"][];
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1125,6 +1259,41 @@ export interface components {
              * @default false
              */
             two_factor_required: boolean;
+        };
+        /** MonthlyBlock */
+        MonthlyBlock: {
+            /** Currency Code */
+            currency_code: string;
+            /** Months */
+            months: components["schemas"]["MonthlyPoint"][];
+        };
+        /** MonthlyPoint */
+        MonthlyPoint: {
+            /** Count */
+            count: number;
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Month */
+            month: string;
+            /** Net */
+            net: string;
+        };
+        /** MonthlyReportOut */
+        MonthlyReportOut: {
+            /** Currencies */
+            currencies: components["schemas"]["MonthlyBlock"][];
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
         };
         /** Page[AccountOut] */
         Page_AccountOut_: {
@@ -1423,10 +1592,71 @@ export interface components {
             name?: string | null;
             template?: components["schemas"]["TransactionCreate-Input"] | null;
         };
+        /** ReportGroupBlock */
+        ReportGroupBlock: {
+            /** Count */
+            count: number;
+            /** Currency Code */
+            currency_code: string;
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Net */
+            net: string;
+            /** Rows */
+            rows: components["schemas"]["ReportRow"][];
+        };
+        /** ReportRow */
+        ReportRow: {
+            /** Count */
+            count: number;
+            /** Expense */
+            expense: string;
+            /** Id */
+            id: string | null;
+            /** Income */
+            income: string;
+            /** Name */
+            name: string;
+            /** Net */
+            net: string;
+        };
+        /**
+         * ReportTotals
+         * @description Receita, despesa e resultado de uma moeda. Moedas diferentes nunca se somam.
+         */
+        ReportTotals: {
+            /** Count */
+            count: number;
+            /** Currency Code */
+            currency_code: string;
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Net */
+            net: string;
+        };
         /** RunResult */
         RunResult: {
             /** Created */
             created: number;
+        };
+        /** SummaryOut */
+        SummaryOut: {
+            /** Currencies */
+            currencies: components["schemas"]["ReportTotals"][];
+            /**
+             * Date From
+             * Format: date
+             */
+            date_from: string;
+            /**
+             * Date To
+             * Format: date
+             */
+            date_to: string;
         };
         /** TagCreate */
         TagCreate: {
@@ -3301,6 +3531,222 @@ export interface operations {
             };
         };
     };
+    get_by_account_api_v1_reports_by_account_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_by_budget_api_v1_reports_by_budget_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_by_category_api_v1_reports_by_category_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_by_tag_api_v1_reports_by_tag_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_monthly_api_v1_reports_monthly_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_summary_api_v1_reports_summary_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_tags_api_v1_tags_get: {
         parameters: {
             query?: {
@@ -3557,6 +4003,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CounterpartyOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_transactions_csv_api_v1_transactions_export_csv_get: {
+        parameters: {
+            query?: {
+                account_id?: string | null;
+                category_id?: string | null;
+                budget_id?: string | null;
+                bill_id?: string | null;
+                tag_id?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                q?: string | null;
+                min_amount?: number | string | null;
+                max_amount?: number | string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
