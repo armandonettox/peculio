@@ -722,6 +722,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rule-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Groups */
+        get: operations["list_groups_api_v1_rule_groups_get"];
+        put?: never;
+        /** Create Group */
+        post: operations["create_group_api_v1_rule_groups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rule-groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Group */
+        delete: operations["delete_group_api_v1_rule_groups__group_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Group */
+        patch: operations["update_group_api_v1_rule_groups__group_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Rules */
+        get: operations["list_rules_api_v1_rules_get"];
+        put?: never;
+        /** Create Rule */
+        post: operations["create_rule_api_v1_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rule */
+        get: operations["get_rule_api_v1_rules__rule_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Rule */
+        delete: operations["delete_rule_api_v1_rules__rule_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Rule */
+        patch: operations["update_rule_api_v1_rules__rule_id__patch"];
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -1033,6 +1106,20 @@ export interface components {
             opening_balance_date?: string | null;
             role?: components["schemas"]["AccountRole"] | null;
         };
+        /** ActionIn */
+        ActionIn: {
+            kind: components["schemas"]["ActionKind"];
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /**
+         * ActionKind
+         * @enum {string}
+         */
+        ActionKind: "set_category" | "add_tag" | "set_budget" | "set_bill";
         /** AttachmentOut */
         AttachmentOut: {
             /** Content Type */
@@ -1478,6 +1565,11 @@ export interface components {
              */
             two_factor_required: boolean;
         };
+        /**
+         * MatchMode
+         * @enum {string}
+         */
+        MatchMode: "all" | "any";
         /** MonthlyBlock */
         MonthlyBlock: {
             /** Currency Code */
@@ -1605,6 +1697,17 @@ export interface components {
         Page_RecurrenceOut_: {
             /** Items */
             items: components["schemas"]["RecurrenceOut"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
+        };
+        /** Page[RuleOut] */
+        Page_RuleOut_: {
+            /** Items */
+            items: components["schemas"]["RuleOut"][];
             /** Limit */
             limit: number;
             /** Offset */
@@ -1878,6 +1981,117 @@ export interface components {
             /** Net */
             net: string;
         };
+        /** RuleCreate */
+        RuleCreate: {
+            /** Actions */
+            actions: components["schemas"]["ActionIn"][];
+            /**
+             * Active
+             * @default true
+             */
+            active: boolean;
+            /** Group Id */
+            group_id?: string | null;
+            /** @default all */
+            match_mode: components["schemas"]["MatchMode"];
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+            /**
+             * Stop Processing
+             * @default false
+             */
+            stop_processing: boolean;
+            /** Triggers */
+            triggers: components["schemas"]["TriggerIn"][];
+        };
+        /** RuleGroupCreate */
+        RuleGroupCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position: number;
+        };
+        /** RuleGroupOut */
+        RuleGroupOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+        };
+        /** RuleGroupUpdate */
+        RuleGroupUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Position */
+            position?: number | null;
+        };
+        /** RuleOut */
+        RuleOut: {
+            /** Actions */
+            actions: components["schemas"]["ActionIn"][];
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Group Id */
+            group_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            match_mode: components["schemas"]["MatchMode"];
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+            /** Stop Processing */
+            stop_processing: boolean;
+            /** Triggers */
+            triggers: components["schemas"]["TriggerIn"][];
+        };
+        /**
+         * RuleUpdate
+         * @description group_id enviado como null tira a regra do grupo; os demais campos nao aceitam null.
+         */
+        RuleUpdate: {
+            /** Actions */
+            actions?: components["schemas"]["ActionIn"][] | null;
+            /** Active */
+            active?: boolean | null;
+            /** Group Id */
+            group_id?: string | null;
+            match_mode?: components["schemas"]["MatchMode"] | null;
+            /** Name */
+            name?: string | null;
+            /** Position */
+            position?: number | null;
+            /** Stop Processing */
+            stop_processing?: boolean | null;
+            /** Triggers */
+            triggers?: components["schemas"]["TriggerIn"][] | null;
+        };
         /** RunResult */
         RunResult: {
             /** Created */
@@ -2117,6 +2331,23 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /**
+         * TriggerField
+         * @enum {string}
+         */
+        TriggerField: "description" | "counterparty" | "amount" | "account" | "type";
+        /** TriggerIn */
+        TriggerIn: {
+            field: components["schemas"]["TriggerField"];
+            op: components["schemas"]["TriggerOp"];
+            /** Value */
+            value: string;
+        };
+        /**
+         * TriggerOp
+         * @enum {string}
+         */
+        TriggerOp: "contains" | "starts_with" | "equals" | "greater_than" | "less_than" | "is";
         /** TwoFactorCode */
         TwoFactorCode: {
             /** Code */
@@ -4114,6 +4345,285 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_groups_api_v1_rule_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleGroupOut"][];
+                };
+            };
+        };
+    };
+    create_group_api_v1_rule_groups_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleGroupCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_group_api_v1_rule_groups__group_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_group_api_v1_rule_groups__group_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleGroupUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rules_api_v1_rules_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                active?: boolean | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_RuleOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_rule_api_v1_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rule_api_v1_rules__rule_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_rule_api_v1_rules__rule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_rule_api_v1_rules__rule_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
                 };
             };
             /** @description Validation Error */

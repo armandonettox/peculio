@@ -57,6 +57,12 @@ class ErrorCode(StrEnum):
     PIGGY_BANK_ACCOUNT_INVALID = "piggy_bank_account_invalid"
     PIGGY_BANK_NOT_ENOUGH_AVAILABLE = "piggy_bank_not_enough_available"
     PIGGY_BANK_NOT_ENOUGH_SAVED = "piggy_bank_not_enough_saved"
+    # Regras
+    RULE_NOT_FOUND = "rule_not_found"
+    RULE_NAME_TAKEN = "rule_name_taken"
+    RULE_INVALID = "rule_invalid"
+    RULE_GROUP_NOT_FOUND = "rule_group_not_found"
+    RULE_GROUP_NAME_TAKEN = "rule_group_name_taken"
     # Webhooks
     WEBHOOK_NOT_FOUND = "webhook_not_found"
     WEBHOOK_NAME_TAKEN = "webhook_name_taken"

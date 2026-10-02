@@ -15,6 +15,7 @@ from app.routers import (
     auth,
     bills,
     budgets,
+    rules,
     categories,
     currencies,
     invites,
@@ -62,6 +63,7 @@ api_v1.include_router(accounts.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
+api_v1.include_router(rules.router)
 api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)
 api_v1.include_router(piggy_banks.router)

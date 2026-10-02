@@ -9,7 +9,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0013"
+    assert version == "0014"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
