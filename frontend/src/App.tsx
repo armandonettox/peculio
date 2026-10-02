@@ -5,6 +5,7 @@ import { AuthLayout } from "@/components/layout/auth-layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
 import AccountsPage from "@/pages/accounts";
 import BudgetsPage from "@/pages/budgets";
+import RulesPage from "@/pages/rules";
 import BillsPage from "@/pages/bills";
 import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="recorrentes" element={<RecurrencesPage />} />
           <Route path="contas-a-pagar" element={<BillsPage />} />
           <Route path="orcamentos" element={<BudgetsPage />} />
+          <Route path="regras" element={<RulesPage />} />
           <Route path="contas" element={<AccountsPage />} />
           <Route path="transacoes" element={<TransactionsPage />} />
           <Route path="categorias" element={<CategoriesPage />} />

@@ -70,3 +70,10 @@ it("clicar num item desabilitado nao faz nada", async () => {
   await userEvent.click(screen.getByText("Configurações"));
   expect(onNavigate).not.toHaveBeenCalled();
 });
+
+it("o item Regras e um link para /regras", () => {
+  renderNav("/regras");
+  const link = screen.getByRole("link", { name: "Regras" });
+  expect(link).toHaveAttribute("href", "/regras");
+  expect(link).toHaveAttribute("aria-current", "page");
+});
