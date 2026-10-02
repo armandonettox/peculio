@@ -7147,6 +7147,27 @@
         "parameters": [
           {
             "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
+          {
+            "in": "query",
             "name": "date_from",
             "required": false,
             "schema": {
@@ -7285,6 +7306,27 @@
       "get": {
         "operationId": "get_by_budget_api_v1_reports_by_budget_get",
         "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
           {
             "in": "query",
             "name": "date_from",
@@ -7427,6 +7469,27 @@
         "parameters": [
           {
             "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
+          {
+            "in": "query",
             "name": "date_from",
             "required": false,
             "schema": {
@@ -7565,6 +7628,27 @@
       "get": {
         "operationId": "get_by_tag_api_v1_reports_by_tag_get",
         "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
           {
             "in": "query",
             "name": "date_from",
@@ -7707,6 +7791,27 @@
         "parameters": [
           {
             "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
+          {
+            "in": "query",
             "name": "date_from",
             "required": false,
             "schema": {
@@ -7845,6 +7950,27 @@
       "get": {
         "operationId": "get_summary_api_v1_reports_summary_get",
         "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
           {
             "in": "query",
             "name": "date_from",

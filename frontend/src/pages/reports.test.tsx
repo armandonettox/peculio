@@ -209,35 +209,38 @@ it("moeda sem casas decimais aparece sem centavos", async () => {
 
 // ---------- Periodo e filtros ----------
 
-it("o periodo padrao e este mes, pelo relogio do dia", async () => {
+it("o periodo padrao e este mes, resolvido pelo servidor", async () => {
   const api = renderPage();
   await screen.findByRole("region", { name: "Relatório em BRL" });
   const query = lastQuery(api);
-  expect(query.get("date_from")).toBe("2026-03-01");
-  expect(query.get("date_to")).toBe("2026-03-31");
+  expect(query.get("period")).toBe("this-month");
+  expect(query.has("date_from")).toBe(false);
+  expect(query.has("date_to")).toBe(false);
   expect(screen.getByLabelText("Período")).toHaveValue("this-month");
   expect(location()).toBe("/relatorios");
 });
 
 it.each([
-  ["Mês passado", "mes-passado", "2026-02-01", "2026-02-28"],
-  ["Este ano", "ano", "2026-01-01", "2026-12-31"],
-])("periodo %s pede as datas certas e vai para a URL", async (label, param, from, to) => {
+  ["Mês passado", "mes-passado", "last-month"],
+  ["Este ano", "ano", "this-year"],
+])("periodo %s pede o periodo pronto, sem datas, e vai para a URL", async (label, param, period) => {
   const api = renderPage();
   await screen.findByRole("region", { name: "Relatório em BRL" });
   await userEvent.selectOptions(screen.getByLabelText("Período"), label);
-  await waitFor(() => expect(lastQuery(api, "monthly").get("date_from")).toBe(from));
-  expect(lastQuery(api, "monthly").get("date_to")).toBe(to);
-  expect(lastQuery(api, "by-tag").get("date_from")).toBe(from);
+  await waitFor(() => expect(lastQuery(api, "monthly").get("period")).toBe(period));
+  expect(lastQuery(api, "monthly").has("date_from")).toBe(false);
+  expect(lastQuery(api, "by-tag").get("period")).toBe(period);
+  expect(lastQuery(api, "by-tag").has("date_to")).toBe(false);
   expect(location()).toBe(`/relatorios?periodo=${param}`);
 });
 
-it("mes passado em janeiro usa dezembro do ano anterior", async () => {
-  vi.setSystemTime(new Date(2026, 0, 10, 12));
+it("o relogio do navegador nao entra na conta: o pedido e o mesmo em qualquer dia", async () => {
+  vi.setSystemTime(new Date(2030, 5, 20, 12));
   const api = renderPage({}, "/relatorios?periodo=mes-passado");
   await screen.findByText("Nada neste período");
-  expect(lastQuery(api).get("date_from")).toBe("2025-12-01");
-  expect(lastQuery(api).get("date_to")).toBe("2025-12-31");
+  expect(lastQuery(api).get("period")).toBe("last-month");
+  expect(lastQuery(api).has("date_from")).toBe(false);
+  expect(lastQuery(api).has("date_to")).toBe(false);
 });
 
 it("periodo personalizado mostra as datas e usa o que foi digitado", async () => {
@@ -251,6 +254,7 @@ it("periodo personalizado mostra as datas e usa o que foi digitado", async () =>
   await userEvent.type(to, "2026-02-20");
   await waitFor(() => expect(lastQuery(api).get("date_to")).toBe("2026-02-20"));
   expect(lastQuery(api).get("date_from")).toBe("2026-01-10");
+  expect(lastQuery(api).has("period")).toBe(false);
   expect(location()).toBe("/relatorios?periodo=personalizado&de=2026-01-10&ate=2026-02-20");
 });
 
@@ -327,6 +331,7 @@ it("exporta o CSV com o token no cabecalho, os mesmos filtros e sem token na URL
   expect(request.headers.get("Authorization")).toBe("Bearer token-secreto");
   expect(request.query.get("date_from")).toBe("2026-01-01");
   expect(request.query.get("date_to")).toBe("2026-12-31");
+  expect(request.query.has("period")).toBe(false);
   expect(request.query.get("account_id")).toBe(nubank.id);
   expect(request.query.get("tag_id")).toBe(viagem.id);
   expect(JSON.stringify([...request.query.entries()])).not.toContain("token-secreto");
@@ -372,4 +377,37 @@ it("sem sessao no CSV (401) mostra a mensagem de sessao", async () => {
   api.state.csvError = { status: 401, code: "token_missing" };
   await userEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Sua sessão expirou");
+});
+
+it("o CSV leva as datas que o servidor devolveu no relatorio, nao as do relogio do navegador", async () => {
+  const stub = stubDownload();
+  // Navegador em 2030; o dia do app (servidor) continua 15/03/2026
+  vi.setSystemTime(new Date(2030, 5, 20, 12));
+  const api = renderPage(fullData(), "/relatorios?periodo=mes-passado");
+  await screen.findByRole("region", { name: "Relatório em BRL" });
+  await userEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
+  await waitFor(() => expect(stub.downloads).toHaveLength(1));
+  const [request] = api.requestsTo("export.csv");
+  expect(request.query.get("date_from")).toBe("2026-02-01");
+  expect(request.query.get("date_to")).toBe("2026-02-28");
+  expect(request.query.has("period")).toBe(false);
+});
+
+it("o CSV so pode ser pedido depois que o relatorio chegou, para ter as datas certas", async () => {
+  const api = renderPage(fullData());
+  expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeDisabled();
+  await screen.findByRole("region", { name: "Relatório em BRL" });
+  expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
+  expect(api.requestsTo("export.csv")).toHaveLength(0);
+});
+
+it("periodo personalizado exporta as datas digitadas", async () => {
+  const stub = stubDownload();
+  const api = renderPage(fullData(), "/relatorios?periodo=personalizado&de=2026-01-10&ate=2026-02-20");
+  await screen.findByRole("region", { name: "Relatório em BRL" });
+  await userEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
+  await waitFor(() => expect(stub.downloads).toHaveLength(1));
+  const [request] = api.requestsTo("export.csv");
+  expect(request.query.get("date_from")).toBe("2026-01-10");
+  expect(request.query.get("date_to")).toBe("2026-02-20");
 });

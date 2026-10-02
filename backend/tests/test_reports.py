@@ -541,3 +541,71 @@ def test_number_of_queries_does_not_grow_with_the_data(client, headers, path):
     assert count_statements(client, headers, path, **filters) == small
     # Autenticacao, quatro conferencias de dono, o agrupamento (ate dois) e as casas decimais
     assert small <= 9
+
+
+# ---------- Periodos prontos, resolvidos pelo relogio do app ----------
+
+
+@pytest.mark.parametrize(
+    ("today", "preset", "expected"),
+    [
+        (date(2026, 2, 15), "this-month", ("2026-02-01", "2026-02-28")),
+        (date(2028, 2, 29), "this-month", ("2028-02-01", "2028-02-29")),
+        (date(2026, 3, 1), "last-month", ("2026-02-01", "2026-02-28")),
+        (date(2026, 3, 31), "last-month", ("2026-02-01", "2026-02-28")),
+        (date(2028, 3, 10), "last-month", ("2028-02-01", "2028-02-29")),
+        (date(2026, 1, 1), "last-month", ("2025-12-01", "2025-12-31")),
+        (date(2026, 12, 31), "last-month", ("2026-11-01", "2026-11-30")),
+        (date(2026, 1, 1), "this-year", ("2026-01-01", "2026-12-31")),
+        (date(2026, 12, 31), "this-year", ("2026-01-01", "2026-12-31")),
+        (date(2028, 6, 15), "this-year", ("2028-01-01", "2028-12-31")),
+    ],
+)
+def test_presets_are_resolved_by_the_app_clock(client, headers, monkeypatch, today, preset, expected):
+    monkeypatch.setattr(clock, "today", lambda now=None: today)
+    for endpoint in ("summary", "by-category", "by-tag", "by-budget", "by-account"):
+        body = get(client, headers, endpoint, period=preset).json()
+        assert (body["date_from"], body["date_to"]) == expected, endpoint
+
+
+def test_preset_on_the_monthly_chart(client, headers, monkeypatch):
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 5, 20))
+    body = get(client, headers, "monthly", period="this-year").json()
+    assert (body["date_from"], body["date_to"]) == ("2026-01-01", "2026-12-31")
+    for block in body["currencies"]:
+        assert [row["month"] for row in block["months"]] == [f"2026-{m:02d}" for m in range(1, 13)]
+
+
+def test_preset_follows_the_clock_across_the_midnight(client, headers, monkeypatch):
+    """O que o navegador achar do dia nao importa: so o relogio do app."""
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 2, 28))
+    assert get(client, headers, "summary", period="this-month").json()["date_to"] == "2026-02-28"
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 3, 1))
+    assert get(client, headers, "summary", period="this-month").json()["date_to"] == "2026-03-31"
+
+
+def test_preset_numbers_match_the_same_period_asked_with_dates(client, headers, monkeypatch):
+    w = seed(client, headers)
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 3, 10))
+    by_preset = get(client, headers, "summary", period="last-month").json()
+    by_dates = get(client, headers, "summary", date_from="2026-02-01", date_to="2026-02-28").json()
+    assert by_preset == by_dates
+    assert by_preset["currencies"] == expected_summary(w, date_from="2026-02-01", date_to="2026-02-28")
+
+
+@pytest.mark.parametrize("extra", [{"date_from": "2026-02-01"}, {"date_to": "2026-02-28"}, {"date_from": "2026-02-01", "date_to": "2026-02-28"}])
+def test_preset_cannot_be_mixed_with_dates(client, headers, extra):
+    response = get(client, headers, "summary", period="this-month", **extra)
+    assert response.status_code == 422
+    assert "Use o periodo pronto ou as datas" in response.text
+
+
+def test_unknown_preset_is_refused(client, headers):
+    assert get(client, headers, "summary", period="ontem").status_code == 422
+
+
+def test_preset_works_with_the_other_filters(client, headers, monkeypatch):
+    w = seed(client, headers)
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 3, 10))
+    body = get(client, headers, "summary", period="last-month", account_id=w.accounts["Nubank"]).json()
+    assert body["currencies"] == expected_summary(w, date_from="2026-02-01", date_to="2026-02-28", account="Nubank")

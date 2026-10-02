@@ -1,5 +1,4 @@
 import type { ReportFilters } from "@/api/reports";
-import { shiftDay, shiftMonth, firstOfMonth } from "@/lib/dates";
 
 // Os filtros ficam na URL (/relatorios?periodo=ano&conta=...), como na tela de transacoes:
 // o link copiado e o botao Voltar abrem o mesmo relatorio.
@@ -21,6 +20,9 @@ const PERIOD_PARAM: Record<PeriodKind, string | null> = {
   custom: "personalizado",
 };
 
+// O periodo tem parametro proprio (`periodo`); as demais chaves do filtro vao uma a uma para a URL
+type FilterKey = Exclude<keyof ReportFilters, "period">;
+
 const PARAM = {
   dateFrom: "de",
   dateTo: "ate",
@@ -28,17 +30,17 @@ const PARAM = {
   categoryId: "categoria",
   tagId: "tag",
   budgetId: "orcamento",
-} as const satisfies Record<keyof ReportFilters, string>;
+} as const satisfies Record<FilterKey, string>;
 
 const FILTER_FIELDS = ["accountId", "categoryId", "tagId", "budgetId"] as const;
 
-export type ReportState = ReportFilters & { period: PeriodKind };
+export type ReportState = Omit<ReportFilters, "period"> & { period: PeriodKind };
 
 export function readState(params: URLSearchParams): ReportState {
   const raw = params.get("periodo");
   const period = PERIOD_KINDS.find((kind) => PERIOD_PARAM[kind] === raw) ?? "this-month";
   const state: ReportState = { period };
-  for (const field of Object.keys(PARAM) as (keyof ReportFilters)[]) {
+  for (const field of Object.keys(PARAM) as FilterKey[]) {
     const value = params.get(PARAM[field]);
     if (value) state[field] = value;
   }
@@ -57,7 +59,7 @@ export function writeState(params: URLSearchParams, patch: Partial<ReportState>)
       next.delete(PARAM.dateTo);
     }
   }
-  for (const field of Object.keys(PARAM) as (keyof ReportFilters)[]) {
+  for (const field of Object.keys(PARAM) as FilterKey[]) {
     if (!(field in patch)) continue;
     const value = patch[field];
     if (value) next.set(PARAM[field], value);
@@ -71,34 +73,18 @@ export function countActiveFilters(state: ReportState): number {
   return FILTER_FIELDS.filter((field) => Boolean(state[field])).length;
 }
 
-function lastOfMonth(date: string): string {
-  return shiftDay(shiftMonth(date, 1), -1);
-}
-
-/** Datas do periodo escolhido, calculadas a partir de `today` (AAAA-MM-DD). */
-export function resolvePeriod(state: ReportState, today: string): { dateFrom?: string; dateTo?: string } {
-  const thisMonth = firstOfMonth(today);
-  switch (state.period) {
-    case "this-month":
-      return { dateFrom: thisMonth, dateTo: lastOfMonth(thisMonth) };
-    case "last-month": {
-      const first = shiftMonth(thisMonth, -1);
-      return { dateFrom: first, dateTo: lastOfMonth(first) };
-    }
-    case "this-year": {
-      const year = today.slice(0, 4);
-      return { dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` };
-    }
-    case "custom":
-      return { dateFrom: state.dateFrom, dateTo: state.dateTo };
-  }
-}
-
-export function toReportFilters(state: ReportState, today: string): ReportFilters {
-  const { dateFrom, dateTo } = resolvePeriod(state, today);
+/**
+ * Filtros enviados a API. Periodo pronto vai como `period` e o servidor resolve as datas pelo
+ * relogio do app; so o personalizado manda datas.
+ */
+export function toReportFilters(state: ReportState): ReportFilters {
   const filters: ReportFilters = {};
-  if (dateFrom) filters.dateFrom = dateFrom;
-  if (dateTo) filters.dateTo = dateTo;
+  if (state.period === "custom") {
+    if (state.dateFrom) filters.dateFrom = state.dateFrom;
+    if (state.dateTo) filters.dateTo = state.dateTo;
+  } else {
+    filters.period = state.period;
+  }
   for (const field of FILTER_FIELDS) {
     const value = state[field];
     if (value) filters[field] = value;

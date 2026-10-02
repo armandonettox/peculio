@@ -4251,6 +4251,7 @@ export interface operations {
     get_by_account_api_v1_reports_by_account_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -4287,6 +4288,7 @@ export interface operations {
     get_by_budget_api_v1_reports_by_budget_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -4323,6 +4325,7 @@ export interface operations {
     get_by_category_api_v1_reports_by_category_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -4359,6 +4362,7 @@ export interface operations {
     get_by_tag_api_v1_reports_by_tag_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -4395,6 +4399,7 @@ export interface operations {
     get_monthly_api_v1_reports_monthly_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -4431,6 +4436,7 @@ export interface operations {
     get_summary_api_v1_reports_summary_get: {
         parameters: {
             query?: {
+                period?: ("this-month" | "last-month" | "this-year") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;

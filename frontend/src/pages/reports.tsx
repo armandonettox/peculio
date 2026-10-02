@@ -26,14 +26,12 @@ import {
 } from "@/features/reports/period";
 import { DIMENSIONS } from "@/features/reports/presentation";
 import { ReportFilterBar } from "@/features/reports/report-filter-bar";
-import { todayLocal } from "@/lib/dates";
 import { saveBlob } from "@/lib/download";
 
 export default function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const today = todayLocal();
   const state = useMemo(() => readState(searchParams), [searchParams]);
-  const filters = useMemo(() => toReportFilters(state, today), [state, today]);
+  const filters = useMemo(() => toReportFilters(state), [state]);
   const activeCount = countActiveFilters(state);
   const rangeError = dateRangeError(filters);
   const enabled = !rangeError;
@@ -68,7 +66,13 @@ export default function ReportsPage() {
     setExporting(true);
     setExportError(null);
     try {
-      const file = await downloadTransactionsCsv(filters);
+      // Datas que o proprio relatorio devolveu: o arquivo bate com o que esta na tela
+      const { period: _period, ...rest } = filters;
+      const file = await downloadTransactionsCsv({
+        ...rest,
+        dateFrom: summary.data?.date_from ?? rest.dateFrom,
+        dateTo: summary.data?.date_to ?? rest.dateTo,
+      });
       saveBlob(file.blob, file.filename);
     } catch (error) {
       setExportError(getErrorMessage(error));
@@ -160,7 +164,7 @@ export default function ReportsPage() {
         title="Relatórios"
         description="De onde veio e para onde foi o dinheiro"
         actions={
-          <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || Boolean(rangeError)}>
+          <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || Boolean(rangeError) || !summary.data}>
             <Download />
             {exporting ? "Exportando..." : "Exportar CSV"}
           </Button>

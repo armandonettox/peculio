@@ -4,10 +4,8 @@ import {
   countActiveFilters,
   dateRangeError,
   readState,
-  resolvePeriod,
   toReportFilters,
   writeState,
-  type ReportState,
 } from "./period";
 
 const params = (text: string) => new URLSearchParams(text);
@@ -53,44 +51,35 @@ describe("writeState", () => {
   });
 });
 
-describe("resolvePeriod", () => {
-  const state = (period: ReportState["period"], extra: Partial<ReportState> = {}): ReportState => ({ period, ...extra });
-
-  it("este mes vai do dia 1 ao ultimo dia", () => {
-    expect(resolvePeriod(state("this-month"), "2026-03-15")).toEqual({ dateFrom: "2026-03-01", dateTo: "2026-03-31" });
-    expect(resolvePeriod(state("this-month"), "2026-04-30")).toEqual({ dateFrom: "2026-04-01", dateTo: "2026-04-30" });
+describe("toReportFilters", () => {
+  it.each(["this-month", "last-month", "this-year"] as const)("%s vai como period, sem datas", (period) => {
+    expect(toReportFilters({ period })).toEqual({ period });
   });
 
-  it("fevereiro em ano bissexto e em ano comum", () => {
-    expect(resolvePeriod(state("this-month"), "2028-02-10").dateTo).toBe("2028-02-29");
-    expect(resolvePeriod(state("this-month"), "2026-02-10").dateTo).toBe("2026-02-28");
-  });
-
-  it("mes passado em janeiro e dezembro do ano anterior", () => {
-    expect(resolvePeriod(state("last-month"), "2026-01-05")).toEqual({ dateFrom: "2025-12-01", dateTo: "2025-12-31" });
-    expect(resolvePeriod(state("last-month"), "2026-03-31")).toEqual({ dateFrom: "2026-02-01", dateTo: "2026-02-28" });
-  });
-
-  it("este ano vai de 1 de janeiro a 31 de dezembro", () => {
-    expect(resolvePeriod(state("this-year"), "2026-07-04")).toEqual({ dateFrom: "2026-01-01", dateTo: "2026-12-31" });
-  });
-
-  it("personalizado usa as datas digitadas, mesmo incompletas", () => {
-    expect(resolvePeriod(state("custom", { dateFrom: "2026-01-02" }), "2026-07-04")).toEqual({
-      dateFrom: "2026-01-02",
-      dateTo: undefined,
+  it("periodo pronto ignora datas soltas que sobraram no estado", () => {
+    expect(toReportFilters({ period: "this-year", dateFrom: "2026-01-02", dateTo: "2026-02-03" })).toEqual({
+      period: "this-year",
     });
   });
-});
 
-it("toReportFilters junta o periodo e os filtros e ignora campos vazios", () => {
-  expect(toReportFilters({ period: "this-year", accountId: "a", tagId: "t" }, "2026-03-15")).toEqual({
-    dateFrom: "2026-01-01",
-    dateTo: "2026-12-31",
-    accountId: "a",
-    tagId: "t",
+  it("personalizado manda so as datas digitadas, mesmo incompletas, e nunca period", () => {
+    expect(toReportFilters({ period: "custom", dateFrom: "2026-01-02" })).toStrictEqual({ dateFrom: "2026-01-02" });
+    expect(toReportFilters({ period: "custom", dateTo: "2026-02-03" })).toStrictEqual({ dateTo: "2026-02-03" });
+    expect(toReportFilters({ period: "custom", dateFrom: "2026-01-02", dateTo: "2026-02-03" })).toEqual({
+      dateFrom: "2026-01-02",
+      dateTo: "2026-02-03",
+    });
+    expect(toReportFilters({ period: "custom" })).toStrictEqual({});
   });
-  expect(toReportFilters({ period: "custom" }, "2026-03-15")).toEqual({});
+
+  it("junta o periodo e os filtros e ignora campos vazios", () => {
+    expect(toReportFilters({ period: "this-year", accountId: "a", tagId: "t", categoryId: "", budgetId: "o" })).toEqual({
+      period: "this-year",
+      accountId: "a",
+      tagId: "t",
+      budgetId: "o",
+    });
+  });
 });
 
 it("countActiveFilters conta so conta, categoria, tag e orcamento", () => {

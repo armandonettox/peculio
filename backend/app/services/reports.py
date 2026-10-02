@@ -2,7 +2,7 @@ import calendar
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from sqlalchemy import and_, case, exists, func, literal, or_, select
@@ -53,6 +53,20 @@ def resolve_period(date_from: date | None, date_to: date | None) -> tuple[date, 
     if date_to is None:
         return date_from, month_bounds(date_from)[1]
     return date_from, date_to
+
+
+PRESETS = ("this-month", "last-month", "this-year")
+
+
+def preset_period(preset: str, today: date) -> tuple[date, date]:
+    """Periodos prontos, contados a partir de `today` (o dia do relogio do app, nao do navegador)."""
+    if preset == "this-month":
+        return month_bounds(today)
+    if preset == "last-month":
+        return month_bounds(today.replace(day=1) - timedelta(days=1))
+    if preset == "this-year":
+        return date(today.year, 1, 1), date(today.year, 12, 31)
+    raise ValueError(f"Periodo desconhecido: {preset}")
 
 
 def months_between(date_from: date, date_to: date) -> list[str]:

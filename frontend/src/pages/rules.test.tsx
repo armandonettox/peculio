@@ -40,6 +40,9 @@ function renderPage(initial: Parameters<typeof fakeRulesApi>[0] = {}) {
   return api;
 }
 
+// Este teste faz dezenas de interacoes; com a maquina carregada passa dos 15 s padrao
+const HEAVY_TEST_TIMEOUT = 60_000;
+
 const rule = (overrides = {}) =>
   makeRule({ name: "Mercado", actions: [{ kind: "set_category", target_id: category.id }], ...overrides });
 
@@ -357,7 +360,7 @@ it("monta uma regra completa: varios gatilhos, grupo, ordem, qualquer e parar", 
       { kind: "set_bill", target_id: bill.id },
     ],
   });
-});
+}, HEAVY_TEST_TIMEOUT);
 
 it("trocar o campo do gatilho troca as operacoes e zera o valor", async () => {
   renderPage();

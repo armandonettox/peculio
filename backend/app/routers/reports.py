@@ -1,10 +1,12 @@
 import uuid
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
@@ -20,6 +22,7 @@ def _invalid(field: str, message: str) -> RequestValidationError:
 
 
 def report_filters(
+    period: Literal["this-month", "last-month", "this-year"] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     account_id: uuid.UUID | None = None,
@@ -27,8 +30,14 @@ def report_filters(
     tag_id: uuid.UUID | None = None,
     budget_id: uuid.UUID | None = None,
 ) -> service.ReportFilters:
-    """Filtros iguais em todos os relatorios. Sem datas, vale o mes atual."""
-    period_from, period_to = service.resolve_period(date_from, date_to)
+    """Filtros iguais em todos os relatorios. Sem datas, vale o mes atual. `period` escolhe um periodo
+    pronto pelo relogio do app e nao se mistura com datas."""
+    if period is not None:
+        if date_from is not None or date_to is not None:
+            raise _invalid("period", "Use o periodo pronto ou as datas, nao os dois")
+        period_from, period_to = service.preset_period(period, clock.today())
+    else:
+        period_from, period_to = service.resolve_period(date_from, date_to)
     if period_from > period_to:
         raise _invalid("date_from", "A data inicial nao pode ser depois da data final")
     return service.ReportFilters(

@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { tokenStore } from "@/auth/token-store";
@@ -14,6 +14,10 @@ if (!Element.prototype.hasPointerCapture) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => undefined;
 }
+
+// findBy e waitFor desistem em 1 s por padrao. Com a suite inteira disputando CPU, as respostas
+// simuladas passam disso de vez em quando e o teste falha sem ter nada errado. So atrasa quem ja falharia.
+configure({ asyncUtilTimeout: 5000 });
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterAll(() => server.close());

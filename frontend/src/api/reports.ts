@@ -14,8 +14,12 @@ export type MonthlyPoint = components["schemas"]["MonthlyPoint"];
 
 export { reportsKey };
 
+// Periodos prontos: o servidor resolve pelo relogio do app, nunca pelo do navegador
+export type ReportPeriod = "this-month" | "last-month" | "this-year";
+
 export type ReportFilters = {
-  // AAAA-MM-DD
+  period?: ReportPeriod;
+  // AAAA-MM-DD, so no periodo personalizado
   dateFrom?: string;
   dateTo?: string;
   accountId?: string;
@@ -28,6 +32,7 @@ export type GroupedDimension = "category" | "tag" | "budget" | "account";
 
 function toQuery(filters: ReportFilters) {
   return {
+    ...(filters.period ? { period: filters.period } : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo ? { date_to: filters.dateTo } : {}),
     ...(filters.accountId ? { account_id: filters.accountId } : {}),
@@ -83,7 +88,10 @@ export function useReportGrouped(
 
 export type CsvFile = { blob: Blob; filename: string };
 
-function csvQuery(filters: ReportFilters): string {
+// O CSV pede datas explicitas (a exportacao e de lancamentos, nao conhece periodos prontos)
+export type CsvFilters = Omit<ReportFilters, "period">;
+
+function csvQuery(filters: CsvFilters): string {
   const params = new URLSearchParams(toQuery(filters));
   const text = params.toString();
   return text ? `?${text}` : "";
@@ -100,7 +108,7 @@ function filenameFrom(response: Response): string {
  * Baixa o CSV de lancamentos com os mesmos filtros do relatorio. O token vai no cabecalho
  * Authorization, nunca na URL (URL aparece em historico e logs). Num 401, renova a sessao uma vez.
  */
-export async function downloadTransactionsCsv(filters: ReportFilters): Promise<CsvFile> {
+export async function downloadTransactionsCsv(filters: CsvFilters): Promise<CsvFile> {
   const url = `${window.location.origin}/api/v1/transactions/export.csv${csvQuery(filters)}`;
 
   async function attempt(): Promise<Response> {
