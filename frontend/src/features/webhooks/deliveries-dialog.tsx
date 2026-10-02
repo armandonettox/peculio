@@ -18,6 +18,7 @@ const STATUS_STYLE: Record<DeliveryStatus, string> = {
   delivered: "text-positive",
   pending: "text-muted-foreground",
   failed: "text-destructive",
+  expired: "text-muted-foreground",
 };
 
 export function DeliveriesDialog({ webhook, onClose }: Props) {
@@ -103,6 +104,7 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
             <option value="delivered">Entregues</option>
             <option value="pending">Pendentes</option>
             <option value="failed">Com falha</option>
+            <option value="expired">Expiradas</option>
           </Select>
         </div>
 

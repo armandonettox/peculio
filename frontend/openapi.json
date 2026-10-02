@@ -1294,7 +1294,8 @@
         "enum": [
           "pending",
           "delivered",
-          "failed"
+          "failed",
+          "expired"
         ],
         "title": "DeliveryStatus",
         "type": "string"

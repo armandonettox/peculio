@@ -321,6 +321,44 @@ it("editar reabre os campos", async () => {
   expect(inDialog().getByLabelText("Ativo")).not.toBeChecked();
 });
 
+const SECRET_URL = "https://maria:s3nh4@hooks.example.com:8443/finance?token=t0k3n-secreto";
+
+it("a lista esconde o token da query e as credenciais do endereco", async () => {
+  renderPage([makeWebhook({ name: "Planilha", url: SECRET_URL })]);
+  await screen.findByText("Planilha");
+  const item = card("Planilha");
+
+  const shown = within(item).getByText("https://***@hooks.example.com:8443/finance?***");
+  expect(shown).toHaveAttribute("title", "https://***@hooks.example.com:8443/finance?***");
+  // Nem no texto nem em atributo (dica ao passar o mouse) o segredo pode aparecer
+  expect(item.innerHTML).not.toMatch(/t0k3n|s3nh4|maria/);
+  expect(document.body.innerHTML).not.toMatch(/t0k3n|s3nh4/);
+});
+
+it("endereco sem query e sem credenciais aparece como esta", async () => {
+  renderPage([makeWebhook({ name: "Planilha", url: "https://hooks.example.com/finance" })]);
+  await screen.findByText("Planilha");
+  expect(within(card("Planilha")).getByText("https://hooks.example.com/finance")).toBeInTheDocument();
+});
+
+it("na edicao o campo mostra o endereco real, com o token", async () => {
+  renderPage([makeWebhook({ name: "Planilha", url: SECRET_URL })]);
+  await screen.findByText("Planilha");
+  await openEdit("Planilha");
+  expect(inDialog().getByLabelText("Endereço")).toHaveValue(SECRET_URL);
+});
+
+it("editar o nome nao reenvia nem altera o endereco mascarado", async () => {
+  const api = renderPage([makeWebhook({ name: "Planilha", url: SECRET_URL })]);
+  await screen.findByText("Planilha");
+  await openEdit("Planilha");
+  await userEvent.clear(inDialog().getByLabelText("Nome"));
+  await userEvent.type(inDialog().getByLabelText("Nome"), "Planilha 2");
+  await userEvent.click(inDialog().getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ name: "Planilha 2" });
+});
+
 it("editar manda so o que mudou", async () => {
   const api = renderPage([makeWebhook({ name: "Planilha", events: ["transaction.created"] })]);
   await screen.findByText("Planilha");
@@ -571,6 +609,31 @@ it("historico mostra status, tentativas, codigo HTTP e trecho da resposta", asyn
   expect(within(items[0]).getByText("fora do ar")).toBeInTheDocument();
   expect(within(items[1]).getByText("Entregue")).toBeInTheDocument();
   expect(within(items[1]).getByText(/1 tentativa ·/)).toBeInTheDocument();
+});
+
+it("historico mostra a entrega expirada com o motivo e permite filtrar por ela", async () => {
+  const webhook = makeWebhook({ name: "Planilha" });
+  const api = renderPage([webhook], {
+    [webhook.id]: [
+      makeDelivery({
+        status: "expired",
+        attempts: 0,
+        last_status_code: null,
+        last_error: "Webhook pausado: entrega expirada sem ser enviada",
+        delivered_at: null,
+      }),
+      makeDelivery({ status: "delivered" }),
+    ],
+  });
+  await screen.findByText("Planilha");
+  await choose("Planilha", "Histórico de entregas");
+  const items = await inDialog().findAllByRole("listitem");
+  expect(within(items[0]).getByText("Expirada")).toBeInTheDocument();
+  expect(within(items[0]).getByText("Webhook pausado: entrega expirada sem ser enviada")).toBeInTheDocument();
+
+  await userEvent.selectOptions(inDialog().getByLabelText("Situação"), "expired");
+  await waitFor(() => expect(api.deliveryRequests().at(-1)?.query?.get("status")).toBe("expired"));
+  await waitFor(() => expect(inDialog().getAllByRole("listitem")).toHaveLength(1));
 });
 
 it("historico vazio diz que nao ha entregas", async () => {

@@ -46,18 +46,20 @@ def is_blocked_ip(value: str) -> bool:
     )
 
 
-def validate_webhook_url(url: str, resolver: Resolver | None = None, allow_private: bool | None = None) -> None:
-    """Levanta WebhookUrlError se a URL nao pode receber webhooks.
+def validate_webhook_url(
+    url: str, resolver: Resolver | None = None, allow_private: bool | None = None
+) -> list[str]:
+    """Levanta WebhookUrlError se a URL nao pode receber webhooks. Se pode, devolve os IPs validados.
 
     Regras: so http/https, sem usuario e senha na URL, e (a menos que WEBHOOK_ALLOW_PRIVATE esteja
-    ligado) so https e so para host cujos IPs sejam todos publicos. O DNS e resolvido aqui e todos
-    os IPs sao conferidos.
+    ligado) so https e so para host cujos IPs sejam todos publicos. O DNS e resolvido aqui, uma
+    unica vez, e todos os IPs sao conferidos.
 
-    Limite conhecido (TOCTOU): entre esta checagem e a conexao do httpx o DNS e consultado de novo,
-    e um dominio controlado por quem cadastrou poderia passar a apontar para um IP interno nessa
-    janela (DNS rebinding). Por isso a checagem roda de novo logo antes de cada entrega, o que
-    reduz a janela a milissegundos, e o httpx nao segue redirecionamentos. Fechar de vez exigiria
-    conectar direto no IP validado.
+    DNS rebinding: a entrega NAO deixa o httpx resolver o nome de novo. Ela se conecta a um dos IPs
+    devolvidos aqui (ver PinnedTransport em services/webhook_delivery.py), mantendo o nome original
+    no Host, no SNI e na verificacao do certificado. Assim o IP validado e o IP usado, e nao ha
+    janela entre a checagem e a conexao. A lista e vazia quando nao ha o que fixar: com
+    WEBHOOK_ALLOW_PRIVATE ligado nao se consulta o DNS. O httpx tambem nao segue redirecionamentos.
     """
     if allow_private is None:
         allow_private = settings.webhook_allow_private
@@ -78,7 +80,7 @@ def validate_webhook_url(url: str, resolver: Resolver | None = None, allow_priva
     if parts.scheme == "http" and not allow_private:
         raise WebhookUrlError("Use https:// (http so e aceito com WEBHOOK_ALLOW_PRIVATE ligado)")
     if allow_private:
-        return
+        return []
 
     try:
         ipaddress.ip_address(host)
@@ -90,3 +92,4 @@ def validate_webhook_url(url: str, resolver: Resolver | None = None, allow_priva
         raise WebhookUrlError("Nao foi possivel resolver o endereco do host")
     if any(is_blocked_ip(address) for address in addresses):
         raise WebhookUrlError("O endereco aponta para uma rede interna ou reservada")
+    return list(addresses)

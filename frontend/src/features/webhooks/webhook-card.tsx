@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { maskWebhookUrl } from "./mask-url";
 import { EVENT_LABELS, lastDeliveryText } from "./presentation";
 
 type Props = {
@@ -25,9 +26,12 @@ const LAST_STATUS_STYLE = {
   delivered: "text-positive",
   pending: "text-muted-foreground",
   failed: "text-destructive",
+  expired: "text-muted-foreground",
 } as const;
 
 export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory, onTogglePause, onDelete }: Props) {
+  // O token costuma ir na query: na lista ele fica escondido. O valor real so aparece ao editar.
+  const maskedUrl = maskWebhookUrl(webhook.url);
   return (
     <li className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", !webhook.active && "opacity-70")}>
       <div className="flex items-start justify-between gap-3">
@@ -38,8 +42,8 @@ export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Pausado</span>
             )}
           </div>
-          <p className="truncate text-sm text-muted-foreground" title={webhook.url}>
-            {webhook.url}
+          <p className="truncate text-sm text-muted-foreground" title={maskedUrl}>
+            {maskedUrl}
           </p>
         </div>
 

@@ -37,6 +37,8 @@ class DeliveryStatus(enum.StrEnum):
     pending = "pending"
     delivered = "delivered"
     failed = "failed"
+    # Saiu da fila sem ser enviada (ex: o webhook foi pausado). Estado final, nunca reenviado.
+    expired = "expired"
 
 
 class Webhook(Base):
@@ -67,6 +69,8 @@ class WebhookDelivery(Base):
         CheckConstraint("attempts >= 0", name="attempts_not_negative"),
         Index("ix_webhook_deliveries_status_next_attempt_at", "status", "next_attempt_at"),
         Index("ix_webhook_deliveries_webhook_id_created_at", "webhook_id", "created_at"),
+        # Atende a limpeza por retencao (status finalizado e finished_at velho)
+        Index("ix_webhook_deliveries_status_finished_at", "status", "finished_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -85,3 +89,6 @@ class WebhookDelivery(Base):
     response_excerpt: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Quando virou estado final (entregue, falhou de vez ou expirada). Vazio enquanto pendente.
+    # A retencao conta a idade a partir daqui, nao de created_at.
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
