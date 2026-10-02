@@ -776,6 +776,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rules/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Rules To Old
+         * @description Aplica as regras nos lancamentos antigos. So preenche o que esta vazio.
+         */
+        post: operations["apply_rules_to_old_api_v1_rules_apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rules/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Rules
+         * @description Mostra o que as regras preencheriam nos lancamentos antigos, sem gravar nada.
+         */
+        post: operations["preview_rules_api_v1_rules_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/rules/{rule_id}": {
         parameters: {
             query?: never;
@@ -1981,6 +2021,13 @@ export interface components {
             /** Net */
             net: string;
         };
+        /** RuleApplyOut */
+        RuleApplyOut: {
+            /** Changed */
+            changed: number;
+            /** Scanned */
+            scanned: number;
+        };
         /** RuleCreate */
         RuleCreate: {
             /** Actions */
@@ -2070,6 +2117,65 @@ export interface components {
             stop_processing: boolean;
             /** Triggers */
             triggers: components["schemas"]["TriggerIn"][];
+        };
+        /** RulePreviewOut */
+        RulePreviewOut: {
+            /** Changed */
+            changed: number;
+            /** Items */
+            items: components["schemas"]["RuleRunItem"][];
+            /** Scanned */
+            scanned: number;
+            /** Truncated */
+            truncated: boolean;
+        };
+        /**
+         * RuleRunIn
+         * @description Quais lancamentos antigos olhar. Sem filtro, todos; sem `rule_ids`, todas as regras ativas.
+         */
+        RuleRunIn: {
+            /** Account Id */
+            account_id?: string | null;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /** Rule Ids */
+            rule_ids?: string[] | null;
+        };
+        /** RuleRunItem */
+        RuleRunItem: {
+            /** Add Tag Ids */
+            add_tag_ids: string[];
+            /** Amount */
+            amount: string;
+            /** Bill Id */
+            bill_id: string | null;
+            /** Budget Id */
+            budget_id: string | null;
+            /** Category Id */
+            category_id: string | null;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /** Rule Ids */
+            rule_ids: string[];
+            /**
+             * Split Id
+             * Format: uuid
+             */
+            split_id: string;
+            /**
+             * Transaction Id
+             * Format: uuid
+             */
+            transaction_id: string;
         };
         /**
          * RuleUpdate
@@ -4529,6 +4635,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_rules_to_old_api_v1_rules_apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleRunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleApplyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_rules_api_v1_rules_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleRunIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RulePreviewOut"];
                 };
             };
             /** @description Validation Error */

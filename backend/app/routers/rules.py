@@ -8,14 +8,18 @@ from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.user import User
 from app.schemas.rule import (
+    RuleApplyOut,
     RuleCreate,
     RuleGroupCreate,
     RuleGroupOut,
     RuleGroupUpdate,
     RuleOut,
+    RulePreviewOut,
+    RuleRunIn,
     RuleUpdate,
 )
 from app.services import rules as service
+from app.services import rules_backfill
 
 router = APIRouter(tags=["rules"])
 
@@ -78,6 +82,21 @@ def list_rules(
     db: Session = Depends(get_db),
 ):
     return service.list_rules(db, user.id, params, q, active)
+
+
+# Precisam vir antes de /rules/{rule_id}
+@router.post("/rules/preview", response_model=RulePreviewOut)
+def preview_rules(data: RuleRunIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Mostra o que as regras preencheriam nos lancamentos antigos, sem gravar nada."""
+    return rules_backfill.run_rules(db, user, apply=False, **data.model_dump())
+
+
+@router.post("/rules/apply", response_model=RuleApplyOut)
+def apply_rules_to_old(data: RuleRunIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Aplica as regras nos lancamentos antigos. So preenche o que esta vazio."""
+    result = rules_backfill.run_rules(db, user, apply=True, **data.model_dump())
+    db.commit()
+    return result
 
 
 @router.get("/rules/{rule_id}", response_model=RuleOut)

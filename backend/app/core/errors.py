@@ -62,6 +62,7 @@ class ErrorCode(StrEnum):
     RULE_NAME_TAKEN = "rule_name_taken"
     RULE_INVALID = "rule_invalid"
     RULE_GROUP_NOT_FOUND = "rule_group_not_found"
+    RULE_RUN_TOO_LARGE = "rule_run_too_large"
     RULE_GROUP_NAME_TAKEN = "rule_group_name_taken"
     # Webhooks
     WEBHOOK_NOT_FOUND = "webhook_not_found"

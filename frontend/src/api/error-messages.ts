@@ -51,6 +51,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   rule_name_taken: "Já existe uma regra com esse nome.",
   rule_invalid: "A regra cita algo que não existe mais. Confira as contas, categorias, etiquetas, orçamentos e contas a pagar escolhidos.",
   rule_group_not_found: "Grupo de regras não encontrado.",
+  rule_run_too_large: "Lançamentos demais de uma vez. Escolha um período ou uma conta menor.",
   rule_group_name_taken: "Já existe um grupo de regras com esse nome.",
   transaction_not_found: "Transação não encontrada.",
   invalid_split_accounts: "Estas contas não podem ser usadas juntas neste lançamento.",

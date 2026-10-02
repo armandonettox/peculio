@@ -1,9 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.schemas.transaction import Money
 from app.services.rules_engine import VALID_OPS, ActionKind, MatchMode, TriggerField, TriggerOp
 
 MAX_ITEMS = 10
@@ -162,3 +163,48 @@ class RuleGroupOut(BaseModel):
     name: str
     position: int
     created_at: datetime
+
+
+class RuleRunIn(BaseModel):
+    """Quais lancamentos antigos olhar. Sem filtro, todos; sem `rule_ids`, todas as regras ativas."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    date_from: date | None = None
+    date_to: date | None = None
+    account_id: uuid.UUID | None = None
+    rule_ids: list[uuid.UUID] | None = Field(default=None, min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def check_range(self):
+        if self.date_from and self.date_to and self.date_from > self.date_to:
+            raise ValueError("A data inicial nao pode ser depois da final")
+        return self
+
+
+class RuleRunItem(BaseModel):
+    transaction_id: uuid.UUID
+    split_id: uuid.UUID
+    date: date
+    description: str
+    amount: Money
+    currency_code: str
+    # So o que a regra preencheria; None quando aquele campo nao muda
+    category_id: uuid.UUID | None
+    budget_id: uuid.UUID | None
+    bill_id: uuid.UUID | None
+    add_tag_ids: list[uuid.UUID]
+    rule_ids: list[uuid.UUID]
+
+
+class RulePreviewOut(BaseModel):
+    scanned: int
+    changed: int
+    # A lista traz so os primeiros; `changed` e sempre o total
+    truncated: bool
+    items: list[RuleRunItem]
+
+
+class RuleApplyOut(BaseModel):
+    scanned: int
+    changed: int

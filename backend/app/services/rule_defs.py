@@ -34,14 +34,16 @@ def _to_trigger(raw: dict) -> Trigger:
     return Trigger(trigger.field, trigger.op, value)
 
 
-def load_rule_defs(db: Session, user_id: uuid.UUID) -> list[RuleDef]:
-    """Regras ativas do usuario, ja na ordem de execucao."""
+def load_rule_defs(db: Session, user_id: uuid.UUID, only_ids: list[uuid.UUID] | None = None) -> list[RuleDef]:
+    """Regras ativas do usuario, ja na ordem de execucao. Com `only_ids`, so essas."""
     statement = (
         select(Rule)
         .outerjoin(RuleGroup, Rule.group_id == RuleGroup.id)
         .where(Rule.user_id == user_id, Rule.active.is_(True))
         .order_by(*rule_order())
     )
+    if only_ids is not None:
+        statement = statement.where(Rule.id.in_(only_ids))
     return [
         RuleDef(
             id=rule.id,

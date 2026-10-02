@@ -2671,6 +2671,24 @@
         "title": "ReportTotals",
         "type": "object"
       },
+      "RuleApplyOut": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "integer"
+          },
+          "scanned": {
+            "title": "Scanned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scanned",
+          "changed"
+        ],
+        "title": "RuleApplyOut",
+        "type": "object"
+      },
       "RuleCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2897,6 +2915,197 @@
           "created_at"
         ],
         "title": "RuleOut",
+        "type": "object"
+      },
+      "RulePreviewOut": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RuleRunItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "scanned": {
+            "title": "Scanned",
+            "type": "integer"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "scanned",
+          "changed",
+          "truncated",
+          "items"
+        ],
+        "title": "RulePreviewOut",
+        "type": "object"
+      },
+      "RuleRunIn": {
+        "additionalProperties": false,
+        "description": "Quais lancamentos antigos olhar. Sem filtro, todos; sem `rule_ids`, todas as regras ativas.",
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date To"
+          },
+          "rule_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Ids"
+          }
+        },
+        "title": "RuleRunIn",
+        "type": "object"
+      },
+      "RuleRunItem": {
+        "properties": {
+          "add_tag_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Add Tag Ids",
+            "type": "array"
+          },
+          "amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "bill_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bill Id"
+          },
+          "budget_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "rule_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Rule Ids",
+            "type": "array"
+          },
+          "split_id": {
+            "format": "uuid",
+            "title": "Split Id",
+            "type": "string"
+          },
+          "transaction_id": {
+            "format": "uuid",
+            "title": "Transaction Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transaction_id",
+          "split_id",
+          "date",
+          "description",
+          "amount",
+          "currency_code",
+          "category_id",
+          "budget_id",
+          "bill_id",
+          "add_tag_ids",
+          "rule_ids"
+        ],
+        "title": "RuleRunItem",
         "type": "object"
       },
       "RuleUpdate": {
@@ -8075,6 +8284,100 @@
           }
         ],
         "summary": "Create Rule",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/apply": {
+      "post": {
+        "description": "Aplica as regras nos lancamentos antigos. So preenche o que esta vazio.",
+        "operationId": "apply_rules_to_old_api_v1_rules_apply_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleApplyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Apply Rules To Old",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/preview": {
+      "post": {
+        "description": "Mostra o que as regras preencheriam nos lancamentos antigos, sem gravar nada.",
+        "operationId": "preview_rules_api_v1_rules_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleRunIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RulePreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Preview Rules",
         "tags": [
           "rules"
         ]

@@ -26,7 +26,7 @@ from app.services.attachment_storage import storage_path
 from app.services.bills import find_matching_bill, get_owned_bill
 from app.services.budgets import get_owned_budget
 from app.services.rule_defs import load_rule_defs
-from app.services.rules_engine import RuleDef, SplitFacts, apply_rules
+from app.services.rules_engine import Fill, RuleDef, SplitFacts, apply_rules
 from app.services.webhooks import enqueue_event
 
 # Conta de contraparte criada automaticamente com esse tipo, conforme o sentido da transacao
@@ -217,6 +217,38 @@ def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destina
     )
 
 
+def vet_rule_fill(db: Session, user: User, data: TransactionSplitCreate, destination_id: uuid.UUID, fill: Fill) -> dict:
+    """Do que as regras querem preencher, devolve so o que serve a este lancamento. Serve tanto
+    para o lancamento novo quanto para a aplicacao sobre os antigos. Em `tag_ids` volta a lista
+    completa (as que ja tinha mais as novas)."""
+    changes: dict = {}
+    if fill.category_id is not None:
+        owned = db.scalar(select(Category.id).where(Category.id == fill.category_id, Category.user_id == user.id))
+        if owned is not None:
+            changes["category_id"] = fill.category_id
+    if fill.budget_id is not None:
+        try:
+            _check_budget(db, user, data.model_copy(update={"budget_id": fill.budget_id}), destination_id)
+            changes["budget_id"] = fill.budget_id
+        except AppError:
+            pass
+    if fill.bill_id is not None and not ("bill_id" in data.model_fields_set and data.bill_id is None):
+        try:
+            candidate = data.model_copy(update={"bill_id": fill.bill_id})
+            if _resolve_bill(db, user, candidate, destination_id) is not None:
+                changes["bill_id"] = fill.bill_id
+        except AppError:
+            pass
+    if fill.add_tag_ids:
+        owned_tags = set(
+            db.scalars(select(Tag.id).where(Tag.id.in_(fill.add_tag_ids), Tag.user_id == user.id))
+        )
+        new_tags = [tag_id for tag_id in fill.add_tag_ids if tag_id in owned_tags]
+        if new_tags:
+            changes["tag_ids"] = [*data.tag_ids, *new_tags]
+    return changes
+
+
 def _apply_rules(
     db: Session,
     user: User,
@@ -247,31 +279,7 @@ def _apply_rules(
             tag_ids=tuple(data.tag_ids),
         ),
     )
-    changes: dict = {}
-    if fill.category_id is not None:
-        owned = db.scalar(select(Category.id).where(Category.id == fill.category_id, Category.user_id == user.id))
-        if owned is not None:
-            changes["category_id"] = fill.category_id
-    if fill.budget_id is not None:
-        try:
-            _check_budget(db, user, data.model_copy(update={"budget_id": fill.budget_id}), destination_id)
-            changes["budget_id"] = fill.budget_id
-        except AppError:
-            pass
-    if fill.bill_id is not None and not ("bill_id" in data.model_fields_set and data.bill_id is None):
-        try:
-            candidate = data.model_copy(update={"bill_id": fill.bill_id})
-            if _resolve_bill(db, user, candidate, destination_id) is not None:
-                changes["bill_id"] = fill.bill_id
-        except AppError:
-            pass
-    if fill.add_tag_ids:
-        owned_tags = set(
-            db.scalars(select(Tag.id).where(Tag.id.in_(fill.add_tag_ids), Tag.user_id == user.id))
-        )
-        new_tags = [tag_id for tag_id in fill.add_tag_ids if tag_id in owned_tags]
-        if new_tags:
-            changes["tag_ids"] = [*data.tag_ids, *new_tags]
+    changes = vet_rule_fill(db, user, data, destination_id, fill)
     return data.model_copy(update=changes) if changes else data
 
 
@@ -336,6 +344,11 @@ def _enqueue(db: Session, user_id: uuid.UUID, event: WebhookEvent, transaction: 
         event.value,
         lambda: TransactionOut.model_validate(build_output(db, transaction)).model_dump(mode="json"),
     )
+
+
+def notify_transaction_updated(db: Session, user_id: uuid.UUID, transaction: Transaction) -> None:
+    """Para quem altera lancamentos fora da edicao comum (aplicar regras sobre os antigos)."""
+    _enqueue(db, user_id, WebhookEvent.transaction_updated, transaction)
 
 
 def create_transaction(
