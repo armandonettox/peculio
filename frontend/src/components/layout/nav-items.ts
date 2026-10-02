@@ -10,6 +10,7 @@ import {
   Settings,
   Tag,
   Tags,
+  Webhook,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ export const navItems: NavItem[] = [
   { label: "Contas a pagar", icon: Receipt, to: "/contas-a-pagar" },
   { label: "Recorrentes", icon: Repeat, to: "/recorrentes" },
   { label: "Cofrinhos", icon: Coins, to: "/cofrinhos" },
+  { label: "Webhooks", icon: Webhook, to: "/webhooks" },
   { label: "Relatórios", icon: BarChart3 },
   { label: "Configurações", icon: Settings },
 ];
