@@ -1038,3 +1038,255 @@ it("desfazer a divisao volta com a conta a pagar da primeira linha", async () =>
 
   expect(d().getByLabelText("Conta a pagar")).toHaveValue(aluguelBill.id);
 });
+
+// ---------- Valor original em outra moeda (so informativo) ----------
+
+const ORIGINAL_CURRENCY = "Moeda original (opcional)";
+
+it("compra em outra moeda: escolhe a moeda, informa o valor original e o corpo leva os dois", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  // O valor so aparece depois de escolher a moeda; a moeda da conta (BRL) nao e oferecida
+  expect(d().queryByLabelText(/^Valor original/)).not.toBeInTheDocument();
+  const options = within(d().getByLabelText(ORIGINAL_CURRENCY)).getAllByRole("option").map((o) => o.textContent);
+  expect(options[0]).toBe("Nenhuma");
+  expect(options.some((text) => text?.startsWith("USD"))).toBe(true);
+  expect(options.some((text) => text?.startsWith("BRL"))).toBe(false);
+
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "29,90");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({
+    amount: "1234.50",
+    currency_code: "BRL",
+    foreign_amount: "29.90",
+    foreign_currency_code: "USD",
+  });
+});
+
+it("moeda sem centavos (JPY) usa as casas dela", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "JPY - Iene japones");
+  await type("Valor original (JPY)", "4.500");
+  await submit();
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ foreign_amount: "4500", foreign_currency_code: "JPY" });
+});
+
+it("sem escolher moeda original, nenhum campo de moeda estrangeira vai", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await submit();
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("foreign_amount");
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("foreign_currency_code");
+});
+
+it("voltar a Nenhuma depois de escolher a moeda esconde o valor e nao envia nada", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "10");
+  await pick(ORIGINAL_CURRENCY, "Nenhuma");
+  expect(d().queryByLabelText(/^Valor original/)).not.toBeInTheDocument();
+  await submit();
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("foreign_amount");
+});
+
+it("moeda escolhida sem valor: erro no campo, que recebe o foco, e nada e enviado", async () => {
+  const { tx } = renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await submit();
+  expect(d().getByText("Informe o valor.")).toBeInTheDocument();
+  expect(d().getByLabelText("Valor original (USD)")).toHaveFocus();
+  expect(tx.state.writes).toHaveLength(0);
+  await userEvent.type(d().getByLabelText("Valor original (USD)"), "0");
+  await submit();
+  expect(d().getByText("Informe o valor maior que zero.")).toBeInTheDocument();
+});
+
+it("o erro do valor original some quando o campo e corrigido", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await submit();
+  expect(d().getByText("Informe o valor.")).toBeInTheDocument();
+  await userEvent.type(d().getByLabelText("Valor original (USD)"), "5");
+  expect(d().queryByText("Informe o valor.")).not.toBeInTheDocument();
+});
+
+it("trocar para uma conta na moeda original limpa o valor original", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "10");
+  await pick("Conta", "Wise - USD");
+  // A conta agora e em USD: nao ha mais outra moeda para informar
+  expect(d().queryByLabelText(/^Valor original/)).not.toBeInTheDocument();
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("");
+  const options = within(d().getByLabelText(ORIGINAL_CURRENCY)).getAllByRole("option").map((o) => o.textContent);
+  expect(options.some((text) => text?.startsWith("USD"))).toBe(false);
+  expect(options.some((text) => text?.startsWith("BRL"))).toBe(true);
+});
+
+it("o valor original limpo ao trocar de conta nao volta quando a pessoa volta para a conta anterior", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "10");
+  await pick("Conta", "Wise - USD");
+  await pick("Conta", "Nubank");
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("");
+  expect(d().queryByLabelText(/^Valor original/)).not.toBeInTheDocument();
+});
+
+it("trocar para uma conta em outra moeda mantem a moeda original quando ela ainda e diferente da conta", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "JPY - Iene japones");
+  await type("Valor original (JPY)", "900");
+  await pick("Conta", "Wise - USD");
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("JPY");
+  expect(d().getByLabelText("Valor original (JPY)")).toHaveValue("900");
+});
+
+it("entrada tambem aceita a moeda original", async () => {
+  const { tx } = renderPage();
+  await openNew();
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  await pick("Conta que recebe", "Nubank");
+  await type("Descrição", "Freela");
+  await type("De quem", "Cliente");
+  await type(/^Valor/, "500");
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "100");
+  await submit();
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ type: "deposit", foreign_amount: "100.00", foreign_currency_code: "USD" });
+});
+
+it("transferencia e divida nao mostram a moeda original", async () => {
+  renderPage();
+  await openNew();
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toBeInTheDocument();
+  await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
+  expect(d().queryByLabelText(ORIGINAL_CURRENCY)).not.toBeInTheDocument();
+  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toBeInTheDocument();
+  await userEvent.click(d().getByRole("button", { name: "Pagar uma dívida" }));
+  expect(d().queryByLabelText(ORIGINAL_CURRENCY)).not.toBeInTheDocument();
+});
+
+it("dividir esconde a moeda original do total e desfazer a divisao a devolve com o que estava digitado", async () => {
+  renderPage();
+  await fillBasicExpense();
+  await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
+  await type("Valor original (USD)", "10");
+  await userEvent.click(d().getByRole("button", { name: /Dividir/ }));
+  expect(d().queryByLabelText(ORIGINAL_CURRENCY)).not.toBeInTheDocument();
+  await userEvent.click(d().getByRole("button", { name: "Desfazer divisão" }));
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("USD");
+  expect(d().getByLabelText("Valor original (USD)")).toHaveValue("10");
+});
+
+// O caso que antes era recusado: o lancamento com valor original criado pela API agora abre e salva
+
+const withOriginal = (extra: Record<string, unknown> = {}) =>
+  makeTransaction({}, [
+    {
+      description: "Hotel em Nova York",
+      amount: "950.00",
+      source_account_id: nubank.id,
+      source_account_name: "Nubank",
+      destination_account_name: "Hotel",
+      foreign_amount: "180.00",
+      foreign_currency_code: "USD",
+      ...extra,
+    },
+  ]);
+
+it("editar um lancamento com valor original abre sem aviso, com a moeda e o valor preenchidos", async () => {
+  renderPage({ transactions: [withOriginal()] });
+  await screen.findByText("Hotel em Nova York", { selector: "p" });
+  await openEdit("Hotel em Nova York");
+  expect(screen.queryByText(/o formulário não edita|ainda não edita/)).not.toBeInTheDocument();
+  expect(d().getByLabelText("Descrição")).toHaveValue("Hotel em Nova York");
+  expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("USD");
+  expect(d().getByLabelText("Valor original (USD)")).toHaveValue("180,00");
+  expect(d().getByRole("button", { name: "Salvar" })).toBeEnabled();
+});
+
+it("editar so a descricao mantem o valor original no PUT", async () => {
+  const transaction = withOriginal();
+  const { tx } = renderPage({ transactions: [transaction] });
+  await screen.findByText("Hotel em Nova York", { selector: "p" });
+  await openEdit("Hotel em Nova York");
+  const description = d().getByLabelText("Descrição");
+  await userEvent.clear(description);
+  await userEvent.type(description, "Hotel NY");
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0]).toMatchObject({ method: "PUT", id: transaction.id });
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({
+    description: "Hotel NY",
+    amount: "950.00",
+    foreign_amount: "180.00",
+    foreign_currency_code: "USD",
+  });
+});
+
+it("editar o valor original e a moeda salva os novos", async () => {
+  const { tx } = renderPage({ transactions: [withOriginal()] });
+  await screen.findByText("Hotel em Nova York", { selector: "p" });
+  await openEdit("Hotel em Nova York");
+  const amount = d().getByLabelText("Valor original (USD)");
+  await userEvent.clear(amount);
+  await userEvent.type(amount, "175,50");
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ foreign_amount: "175.50", foreign_currency_code: "USD" });
+});
+
+it("editar e escolher Nenhuma remove o valor original do lancamento", async () => {
+  const { tx } = renderPage({ transactions: [withOriginal()] });
+  await screen.findByText("Hotel em Nova York", { selector: "p" });
+  await openEdit("Hotel em Nova York");
+  await pick(ORIGINAL_CURRENCY, "Nenhuma");
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("foreign_amount");
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("foreign_currency_code");
+});
+
+it("editar um dividido com valor original numa linha preserva esse valor ao salvar", async () => {
+  const row = (description: string, amount: string, extra = {}) => ({
+    description,
+    amount,
+    source_account_id: nubank.id,
+    destination_account_id: "e0000000-0000-4000-8000-000000000001",
+    ...extra,
+  });
+  const { tx } = renderPage({
+    transactions: [
+      makeTransaction({ title: "Viagem" }, [
+        row("Passagem", "600.00", { foreign_amount: "110.00", foreign_currency_code: "USD" }),
+        row("Seguro", "100.00"),
+      ]),
+    ],
+  });
+  await screen.findByText("Viagem", { selector: "p" });
+  await openEdit("Viagem");
+  // O valor original de cada linha nao aparece na tela, mas nao se perde
+  expect(d().queryByLabelText(ORIGINAL_CURRENCY)).not.toBeInTheDocument();
+  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  const [first, second] = tx.state.writes[0].body.splits;
+  expect(first).toMatchObject({ foreign_amount: "110.00", foreign_currency_code: "USD" });
+  expect(second).not.toHaveProperty("foreign_amount");
+});
+

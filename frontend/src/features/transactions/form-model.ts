@@ -21,6 +21,10 @@ export type SplitDraft = {
   tagIds: string[];
   // Nao aparece na tela; guarda a nota de um lancamento criado pela API para nao perde-la ao salvar
   notes: string;
+  // Valor original em outra moeda (so informativo). Tambem nao aparece nas linhas da divisao: guarda o que a
+  // API ja salvou, para nao perder ao salvar. "" = nenhum.
+  originalCurrency: string;
+  originalAmount: string;
 };
 
 export type FormState = {
@@ -37,6 +41,10 @@ export type FormState = {
   amount: string;
   // Valor que chega na outra conta quando as moedas sao diferentes
   foreignAmount: string;
+  // Compra ou recebimento feito em outra moeda e lancado na moeda da conta: o valor original so informa, o saldo
+  // usa o valor principal. "" = nenhum.
+  originalCurrency: string;
+  originalAmount: string;
   categoryId: string;
   // Orcamento do lancamento ("" = nenhum); no modo dividido cada linha tem o seu
   budgetId: string;
@@ -61,6 +69,7 @@ export type FormErrors = {
   counterparty?: string;
   amount?: string;
   foreignAmount?: string;
+  originalAmount?: string;
   splitTotal?: string;
   splits?: Record<string, { description?: string; amount?: string }>;
 };
@@ -78,6 +87,8 @@ export function emptySplit(overrides: Partial<SplitDraft> = {}): SplitDraft {
     billId: "",
     tagIds: [],
     notes: "",
+    originalCurrency: "",
+    originalAmount: "",
     ...overrides,
   };
 }
@@ -103,6 +114,8 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     counterpartyAccountId: "",
     amount: "",
     foreignAmount: "",
+    originalCurrency: "",
+    originalAmount: "",
     categoryId: "",
     budgetId: "",
     billId: "",
@@ -126,6 +139,20 @@ export function foreignAccount(state: FormState, ctx: FormContext): Account | nu
   const other = accountOf(ctx, state.counterpartyAccountId);
   if (!source || !other || source.currency_code === other.currency_code) return null;
   return other;
+}
+
+/**
+ * O valor original (informativo) so existe num lancamento de um valor so, de saida ou entrada para um nome
+ * (despesa ou receita). Transferencia e divida usam o valor que chega; no dividido, cada linha guarda o seu.
+ */
+export function originalAllowed(state: FormState): boolean {
+  return !state.splits && state.kind !== "transfer" && !state.ownCounterparty;
+}
+
+/** A moeda original a enviar, ou null quando nao vale: nao permitida, vazia ou igual a moeda da conta. */
+function activeOriginalCurrency(state: FormState, ctx: FormContext): string | null {
+  if (!originalAllowed(state) || state.originalCurrency === "") return null;
+  return state.originalCurrency === currencyOf(state, ctx) ? null : state.originalCurrency;
 }
 
 /** Orcamento so vale para gasto: saida para um nome (despesa), nunca entrada, transferencia ou divida. */
@@ -222,6 +249,12 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
     if ("error" in foreign) errors.foreignAmount = foreign.error;
   }
 
+  const originalCurrency = activeOriginalCurrency(state, ctx);
+  if (originalCurrency) {
+    const original = parsePositive(state.originalAmount, placesOf(originalCurrency, ctx.places), "o valor");
+    if ("error" in original) errors.originalAmount = original.error;
+  }
+
   // Divisao: cada linha precisa de descricao e valor, e a soma precisa fechar o total
   if (state.splits) {
     const rowErrors: NonNullable<FormErrors["splits"]> = {};
@@ -255,6 +288,7 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
   if (!account) throw new Error("Conta nao encontrada no formulario");
   const places = placesOf(account.currency_code, ctx.places);
   const other = foreignAccount(state, ctx);
+  const original = activeOriginalCurrency(state, ctx);
 
   const money = (text: string, decimals = places): string => {
     const parsed = parseMoneyInput(text, decimals);
@@ -288,7 +322,12 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
             foreign_amount: money(state.foreignAmount, placesOf(other.currency_code, ctx.places)),
             foreign_currency_code: other.currency_code,
           }
-        : {}),
+        : original
+          ? {
+              foreign_amount: money(state.originalAmount, placesOf(original, ctx.places)),
+              foreign_currency_code: original,
+            }
+          : {}),
     };
     return { splits: [split] };
   }
@@ -304,6 +343,13 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       ...billField(state, row.billId),
       tag_ids: row.tagIds,
       notes: row.notes.trim() || null,
+      // O que a API ja tinha salvo na linha, se ainda vale para a conta escolhida
+      ...(row.originalCurrency && row.originalCurrency !== account.currency_code
+        ? {
+            foreign_amount: money(row.originalAmount, placesOf(row.originalCurrency, ctx.places)),
+            foreign_currency_code: row.originalCurrency,
+          }
+        : {}),
     })),
   };
 }
@@ -366,15 +412,20 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;
-  // Valor em outra moeda so informativo (compra em dolar paga em real): o formulario ainda nao o edita
-  const hasInformativeForeign = transaction.splits.some((split) => split.foreign_amount && !needsForeign);
-  if (hasInformativeForeign) {
+  // Valor original so informativo (compra em dolar paga em real): vale numa saida ou entrada para um nome. Em
+  // transferencia ou divida o valor estrangeiro e o que chega, e sobra so uma forma que o formulario nao representa.
+  const informativeOk = kind !== "transfer" && !ownCounterparty;
+  if (!informativeOk && !needsForeign && transaction.splits.some((split) => split.foreign_amount)) {
     return {
       ok: false,
-      reason: "Este lançamento guarda o valor original em outra moeda, que o formulário ainda não edita.",
+      reason: "Este lançamento guarda o valor original em outra moeda de um jeito que o formulário não edita.",
     };
   }
   const foreignAmount = needsForeign && first.foreign_amount ? toDraft(first.foreign_amount) : "";
+  const originalOf = (split: Transaction["splits"][number]) =>
+    informativeOk && !needsForeign && split.foreign_amount && split.foreign_currency_code
+      ? { originalCurrency: split.foreign_currency_code, originalAmount: toDraft(split.foreign_amount) }
+      : { originalCurrency: "", originalAmount: "" };
 
   if (transaction.splits.length === 1) {
     return {
@@ -384,6 +435,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
         description: first.description,
         amount: toDraft(first.amount),
         foreignAmount,
+        ...originalOf(first),
         categoryId: first.category_id ?? "",
         budgetId: first.budget_id ?? "",
         billId: billOf(first.bill_id, kind, ownCounterparty),
@@ -415,6 +467,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
           billId: billOf(split.bill_id, kind, ownCounterparty),
           tagIds: split.tag_ids,
           notes: split.notes ?? "",
+          ...originalOf(split),
         }),
       ),
     },
@@ -455,12 +508,17 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;
-  if (template.splits.some((split) => split.foreign_amount != null && !needsForeign)) {
+  const informativeOk = kind !== "transfer" && !ownCounterparty;
+  if (!informativeOk && !needsForeign && template.splits.some((split) => split.foreign_amount != null)) {
     return {
       ok: false,
-      reason: "Este modelo guarda o valor original em outra moeda, que o formulário ainda não edita.",
+      reason: "Este modelo guarda o valor original em outra moeda de um jeito que o formulário não edita.",
     };
   }
+  const originalOf = (split: TransactionSplitCreate) =>
+    informativeOk && !needsForeign && split.foreign_amount != null && split.foreign_currency_code
+      ? { originalCurrency: split.foreign_currency_code, originalAmount: toDraft(String(split.foreign_amount)) }
+      : { originalCurrency: "", originalAmount: "" };
 
   const billOf = (split: TransactionSplitCreate): string => {
     if (!("bill_id" in split)) return "";
@@ -475,6 +533,7 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
         description: first.description,
         amount: toDraft(String(first.amount)),
         foreignAmount: needsForeign && first.foreign_amount != null ? toDraft(String(first.foreign_amount)) : "",
+        ...originalOf(first),
         categoryId: first.category_id ?? "",
         budgetId: first.budget_id ?? "",
         billId: billOf(first),
@@ -506,6 +565,7 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
           billId: billOf(split),
           tagIds: split.tag_ids ?? [],
           notes: split.notes ?? "",
+          ...originalOf(split),
         }),
       ),
     },

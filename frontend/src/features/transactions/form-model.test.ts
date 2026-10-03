@@ -15,6 +15,7 @@ import {
   formFromTransaction,
   formatRemainder,
   hasErrors,
+  originalAllowed,
   remainder,
   validateForm,
   type FormContext,
@@ -498,9 +499,15 @@ describe("formFromTransaction", () => {
     expect(!loaded.ok && loaded.reason).toContain("só pode ser editado pela API");
   });
 
-  it("recusa editar quando ha valor original em outra moeda (informativo)", () => {
+  it("recusa editar um valor original que nao cabe no formulario (divida na mesma moeda nao tem valor original)", () => {
     const t = makeTransaction({}, [
-      { source_account_id: nubank.id, destination_account_id: "e1", foreign_amount: "10.00", foreign_currency_code: "USD" },
+      {
+        source_account_id: nubank.id,
+        destination_account_id: divida.id,
+        destination_account_type: "liability",
+        foreign_amount: "10.00",
+        foreign_currency_code: "USD",
+      },
     ]);
     const loaded = formFromTransaction(t, ctx);
     expect(loaded.ok).toBe(false);
@@ -790,8 +797,17 @@ describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
     expect(open({ splits: [split(), split({ type: "deposit" })] }).ok).toBe(false);
   });
 
-  it("recusa valor original em outra moeda que e so informativo", () => {
-    const loaded = open({ splits: [split({ foreign_amount: "10.00", foreign_currency_code: "USD" })] });
+  it("recusa valor original em modelo de divida na mesma moeda (nao cabe no formulario)", () => {
+    const loaded = open({
+      splits: [
+        split({
+          counterparty_name: undefined,
+          counterparty_account_id: divida.id,
+          foreign_amount: "10.00",
+          foreign_currency_code: "USD",
+        }),
+      ],
+    });
     expect(loaded.ok).toBe(false);
   });
 
@@ -810,5 +826,290 @@ describe("emptyForm e o relogio do app", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// ---------- Valor original em outra moeda (so informativo) ----------
+
+describe("valor original em outra moeda", () => {
+  describe("originalAllowed", () => {
+    it.each([
+      ["saida para um nome", { kind: "withdrawal" as const }, true],
+      ["entrada de um nome", { kind: "deposit" as const }, true],
+      ["transferencia", { kind: "transfer" as const }, false],
+      ["saida para uma divida (conta propria)", { ownCounterparty: true }, false],
+      ["lancamento dividido", { splits: [emptySplit({ description: "A", amount: "10" })] }, false],
+    ])("%s -> %s", (_name, overrides, expected) => {
+      expect(originalAllowed(form(overrides))).toBe(expected);
+    });
+  });
+
+  describe("validateForm", () => {
+    it("moeda e valor preenchidos: sem erro", () => {
+      valid(form({ originalCurrency: "USD", originalAmount: "29,90" }));
+    });
+
+    it("sem nenhuma moeda original o valor digitado e ignorado", () => {
+      valid(form({ originalCurrency: "", originalAmount: "abc" }));
+    });
+
+    it.each([
+      ["vazio", "", "Informe o valor."],
+      ["texto", "abc", "Valor inválido."],
+      ["zero", "0", "Informe o valor maior que zero."],
+      ["zero com casas", "0,00", "Informe o valor maior que zero."],
+      ["negativo", "-5", "Informe o valor maior que zero."],
+    ])("moeda escolhida e valor %s e recusado", (_name, amount, message) => {
+      expect(validateForm(form({ originalCurrency: "USD", originalAmount: amount }), ctx).originalAmount).toBe(message);
+    });
+
+    it("usa as casas decimais da moeda original: JPY nao aceita centavos, USD aceita duas", () => {
+      expect(validateForm(form({ originalCurrency: "JPY", originalAmount: "1500,5" }), ctx).originalAmount).toBeTruthy();
+      valid(form({ originalCurrency: "JPY", originalAmount: "1.500" }));
+      expect(validateForm(form({ originalCurrency: "USD", originalAmount: "1,234" }), ctx).originalAmount).toBeTruthy();
+    });
+
+    it("a moeda original igual a da conta e ignorada (nao ha o que informar)", () => {
+      valid(form({ originalCurrency: "BRL", originalAmount: "" }));
+    });
+
+    it.each([
+      ["transferencia", { kind: "transfer" as const, counterpartyAccountId: poupanca.id, counterpartyName: "" }],
+      ["divida", { ownCounterparty: true, counterpartyAccountId: divida.id, counterpartyName: "" }],
+    ])("em %s o valor original nem e olhado", (_name, overrides) => {
+      const errors = validateForm(form({ ...overrides, originalCurrency: "USD", originalAmount: "abc" }), ctx);
+      expect(errors.originalAmount).toBeUndefined();
+    });
+
+    it("dividido: o valor original do lancamento inteiro nao e olhado", () => {
+      const state = form({
+        originalCurrency: "USD",
+        originalAmount: "abc",
+        splits: [emptySplit({ description: "A", amount: "50,00" })],
+      });
+      expect(validateForm(state, ctx).originalAmount).toBeUndefined();
+    });
+  });
+
+  describe("buildPayload", () => {
+    const single = (state: FormState) => buildPayload(state, ctx).splits[0];
+
+    it("envia o valor e a moeda originais no formato da API", () => {
+      const split = single(form({ originalCurrency: "USD", originalAmount: "29,90" }));
+      expect(split).toMatchObject({ foreign_amount: "29.90", foreign_currency_code: "USD" });
+    });
+
+    it("respeita as casas da moeda original (JPY sem centavos, com milhar)", () => {
+      const split = single(form({ originalCurrency: "JPY", originalAmount: "1.500" }));
+      expect(split).toMatchObject({ foreign_amount: "1500", foreign_currency_code: "JPY" });
+    });
+
+    it("sem moeda original, nenhum campo de moeda estrangeira vai", () => {
+      const split = single(form());
+      expect(split).not.toHaveProperty("foreign_amount");
+      expect(split).not.toHaveProperty("foreign_currency_code");
+    });
+
+    it("moeda original igual a da conta nao vai", () => {
+      const split = single(form({ originalCurrency: "BRL", originalAmount: "10" }));
+      expect(split).not.toHaveProperty("foreign_amount");
+    });
+
+    it("entrada tambem leva o valor original", () => {
+      const split = single(form({ kind: "deposit", originalCurrency: "USD", originalAmount: "100" }));
+      expect(split).toMatchObject({ foreign_amount: "100.00", foreign_currency_code: "USD" });
+    });
+
+    it("transferencia usa so o valor que chega, nunca o original", () => {
+      const state = form({
+        kind: "transfer",
+        accountId: nubank.id,
+        counterpartyAccountId: wise.id,
+        counterpartyName: "",
+        foreignAmount: "20,00",
+        originalCurrency: "JPY",
+        originalAmount: "999",
+      });
+      expect(single(state)).toMatchObject({ foreign_amount: "20.00", foreign_currency_code: "USD" });
+    });
+
+    it("transferencia na mesma moeda nao leva valor original de um rascunho antigo", () => {
+      const state = form({
+        kind: "transfer",
+        counterpartyAccountId: poupanca.id,
+        counterpartyName: "",
+        originalCurrency: "USD",
+        originalAmount: "10",
+      });
+      expect(single(state)).not.toHaveProperty("foreign_amount");
+    });
+
+    it("dividido: o valor original do lancamento inteiro nao vai, so o preservado em cada linha", () => {
+      const state = form({
+        originalCurrency: "USD",
+        originalAmount: "100",
+        description: "Compras",
+        amount: "60,00",
+        splits: [
+          emptySplit({ description: "A", amount: "40,00", originalCurrency: "USD", originalAmount: "8,00" }),
+          emptySplit({ description: "B", amount: "20,00" }),
+        ],
+      });
+      const [a, b] = buildPayload(state, ctx).splits;
+      expect(a).toMatchObject({ foreign_amount: "8.00", foreign_currency_code: "USD" });
+      expect(b).not.toHaveProperty("foreign_amount");
+    });
+
+    it("linha preservada em moeda sem centavos (JPY) volta sem inventar casas decimais", () => {
+      const state = form({
+        description: "Compras",
+        amount: "40,00",
+        splits: [emptySplit({ description: "A", amount: "40,00", originalCurrency: "JPY", originalAmount: "1500" })],
+      });
+      expect(buildPayload(state, ctx).splits[0]).toMatchObject({ foreign_amount: "1500", foreign_currency_code: "JPY" });
+    });
+
+    it("linha preservada com a moeda igual a da conta (conta trocada) nao vai", () => {
+      const state = form({
+        accountId: wise.id,
+        description: "Compras",
+        amount: "40,00",
+        splits: [emptySplit({ description: "A", amount: "40,00", originalCurrency: "USD", originalAmount: "8,00" })],
+      });
+      expect(buildPayload(state, ctx).splits[0]).not.toHaveProperty("foreign_amount");
+    });
+
+    it("a conta trocada para outra moeda mantem um valor original que agora e diferente da conta", () => {
+      const split = single(form({ accountId: wise.id, originalCurrency: "BRL", originalAmount: "150,00" }));
+      expect(split).toMatchObject({ foreign_amount: "150.00", foreign_currency_code: "BRL" });
+    });
+  });
+
+  describe("formFromTransaction", () => {
+    const informative = (overrides = {}) =>
+      makeTransaction({}, [
+        {
+          source_account_id: nubank.id,
+          destination_account_id: "e1",
+          destination_account_name: "Loja",
+          amount: "150.00",
+          foreign_amount: "29.90",
+          foreign_currency_code: "USD",
+          ...overrides,
+        },
+      ]);
+
+    it("reabre um lancamento com valor original informativo, com o valor no formato da tela", () => {
+      const loaded = formFromTransaction(informative(), ctx);
+      expect(loaded.ok).toBe(true);
+      expect(loaded.ok && loaded.state).toMatchObject({
+        originalCurrency: "USD",
+        originalAmount: "29,90",
+        foreignAmount: "",
+        amount: "150,00",
+      });
+    });
+
+    it("ida e volta: o corpo remontado leva o mesmo valor e a mesma moeda originais", () => {
+      const loaded = formFromTransaction(informative(), ctx);
+      if (!loaded.ok) throw new Error(loaded.reason);
+      expect(validateForm(loaded.state, ctx)).toEqual({});
+      expect(buildPayload(loaded.state, ctx).splits[0]).toMatchObject({ foreign_amount: "29.90", foreign_currency_code: "USD" });
+    });
+
+    it("editar so a descricao nao perde o valor original", () => {
+      const loaded = formFromTransaction(informative(), ctx);
+      if (!loaded.ok) throw new Error(loaded.reason);
+      const edited = buildPayload({ ...loaded.state, description: "Outro nome" }, ctx).splits[0];
+      expect(edited).toMatchObject({ description: "Outro nome", foreign_amount: "29.90", foreign_currency_code: "USD" });
+    });
+
+    it("sem valor original, os campos abrem vazios", () => {
+      const loaded = formFromTransaction(makeTransaction({}, [{ source_account_id: nubank.id, destination_account_id: "e1" }]), ctx);
+      expect(loaded.ok && loaded.state).toMatchObject({ originalCurrency: "", originalAmount: "" });
+    });
+
+    it("entrada com valor original tambem abre", () => {
+      const t = makeTransaction({}, [
+        {
+          type: "deposit",
+          source_account_id: "r1",
+          source_account_type: "revenue",
+          source_account_name: "Cliente",
+          destination_account_id: nubank.id,
+          destination_account_type: "asset",
+          foreign_amount: "100.00",
+          foreign_currency_code: "USD",
+        },
+      ]);
+      const loaded = formFromTransaction(t, ctx);
+      expect(loaded.ok && loaded.state).toMatchObject({ kind: "deposit", originalCurrency: "USD", originalAmount: "100,00" });
+    });
+
+    it("dividido: cada linha guarda o valor original que a API salvou (nao aparece na tela, mas nao se perde)", () => {
+      const t = makeTransaction({ title: "Compras" }, [
+        { source_account_id: nubank.id, destination_account_id: "e1", amount: "40.00", foreign_amount: "8.00", foreign_currency_code: "USD" },
+        { source_account_id: nubank.id, destination_account_id: "e1", amount: "20.00" },
+      ]);
+      const loaded = formFromTransaction(t, ctx);
+      if (!loaded.ok) throw new Error(loaded.reason);
+      expect(loaded.state.splits?.map((row) => [row.originalCurrency, row.originalAmount])).toEqual([
+        ["USD", "8,00"],
+        ["", ""],
+      ]);
+      const [a, b] = buildPayload(loaded.state, ctx).splits;
+      expect(a).toMatchObject({ foreign_amount: "8.00", foreign_currency_code: "USD" });
+      expect(b).not.toHaveProperty("foreign_amount");
+    });
+
+    it("transferencia entre moedas continua usando so o valor que chega", () => {
+      const t = makeTransaction({}, [
+        transfer({ source_account_id: nubank.id, destination_account_id: wise.id, amount: "100.00", foreign_amount: "20.00", foreign_currency_code: "USD" }),
+      ]);
+      const loaded = formFromTransaction(t, ctx);
+      expect(loaded.ok && loaded.state).toMatchObject({ foreignAmount: "20,00", originalCurrency: "", originalAmount: "" });
+    });
+  });
+
+  describe("formFromTemplate", () => {
+    const base = {
+      type: "withdrawal" as const,
+      date: "2026-01-01",
+      description: "Assinatura",
+      amount: "150.00",
+      currency_code: "BRL",
+      account_id: nubank.id,
+      counterparty_name: "Software",
+      tag_ids: [],
+    };
+
+    it("reabre o modelo com valor original informativo (numero ou texto vindo da API)", () => {
+      const loaded = formFromTemplate({ splits: [{ ...base, foreign_amount: "29.90", foreign_currency_code: "USD" }] }, ctx, "2026-03-05");
+      expect(loaded.ok && loaded.state).toMatchObject({ originalCurrency: "USD", originalAmount: "29,90" });
+    });
+
+    it("ida e volta do modelo mantem o valor original", () => {
+      const loaded = formFromTemplate({ splits: [{ ...base, foreign_amount: "29.90", foreign_currency_code: "USD" }] }, ctx, "2026-03-05");
+      if (!loaded.ok) throw new Error(loaded.reason);
+      expect(buildPayload(loaded.state, ctx).splits[0]).toMatchObject({ foreign_amount: "29.90", foreign_currency_code: "USD" });
+    });
+
+    it("modelo dividido preserva o valor original de cada linha", () => {
+      const loaded = formFromTemplate(
+        {
+          title: "Compras",
+          splits: [
+            { ...base, amount: "40.00", foreign_amount: "8.00", foreign_currency_code: "USD" },
+            { ...base, description: "B", amount: "20.00" },
+          ],
+        },
+        ctx,
+        "2026-03-05",
+      );
+      if (!loaded.ok) throw new Error(loaded.reason);
+      const [a, b] = buildPayload(loaded.state, ctx).splits;
+      expect(a).toMatchObject({ foreign_amount: "8.00", foreign_currency_code: "USD" });
+      expect(b).not.toHaveProperty("foreign_amount");
+    });
   });
 });

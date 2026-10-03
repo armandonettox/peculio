@@ -200,3 +200,42 @@ test("a conta Poupanca continua zerada: nada vazou para outra conta", async ({ p
   const card = main(page).getByRole("heading", { level: 3, name: SAVINGS }).locator("xpath=ancestor::li[1]");
   await expect(card).toContainText("R$ 0,00");
 });
+
+test("criar com valor original em outra moeda, editar pela tela e o valor original continua salvo", async ({ page, request }) => {
+  await loginAndWaitForDashboard(page);
+  await goTo(page, "Transações");
+  await openNewTransaction(page);
+  await input(page, "Conta").selectOption({ label: WALLET });
+  await input(page, "Descrição").fill("Hotel em Nova York F5");
+  await input(page, "Para quem").fill("Hotel Exemplo");
+  await dialog(page).getByLabel(/^Valor \(BRL\)/).fill("950,00");
+  await input(page, "Moeda original (opcional)").selectOption({ label: "USD - Dolar americano" });
+  await input(page, "Valor original (USD)").fill("180,00");
+  await dialog(page).getByRole("button", { name: "Criar lançamento" }).click();
+  await expect(dialog(page)).toBeHidden();
+  const row = page.getByRole("button", { name: "Ações do lançamento Hotel em Nova York F5" });
+  await expect(row).toBeVisible();
+  await expect(main(page)).toContainText("Valor original: US$");
+
+  // Reabre: antes isso era recusado com um aviso
+  await row.click();
+  await page.getByRole("menuitem", { name: "Editar" }).click();
+  await expect(input(page, "Moeda original (opcional)")).toHaveValue("USD");
+  await expect(input(page, "Valor original (USD)")).toHaveValue("180,00");
+  await input(page, "Descrição").fill("Hotel NY editado F5");
+  await dialog(page).getByRole("button", { name: "Salvar" }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  // O que ficou no servidor: o valor e a moeda originais seguem la
+  const headers = await apiHeaders(request);
+  const list = await (await request.get("/api/v1/transactions", { headers, params: { q: "Hotel NY editado F5" } })).json();
+  expect(list.items).toHaveLength(1);
+  const [saved] = list.items[0].splits;
+  expect(saved.description).toBe("Hotel NY editado F5");
+  expect(saved.amount).toBe("950.00");
+  expect(saved.foreign_amount).toBe("180.00");
+  expect(saved.foreign_currency_code).toBe("USD");
+  // O valor original e so informativo: o saldo usou o valor principal
+  await expectBalance(page, WALLET, "-R$ 250,00");
+});
+

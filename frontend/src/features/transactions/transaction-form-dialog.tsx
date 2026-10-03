@@ -33,6 +33,7 @@ import {
   emptyForm,
   emptySplit,
   foreignAccount,
+  originalAllowed,
   formFromTemplate,
   formFromTransaction,
   formatRemainder,
@@ -159,6 +160,7 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
         {ready && (
           <FormBody
             ctx={ctx}
+            currencies={currencies.data ?? []}
             transaction={transaction}
             recurrence={recurrence}
             recurring={recurring}
@@ -180,6 +182,8 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
 
 type BodyProps = {
   ctx: FormContext;
+  // Moedas conhecidas, para escolher a moeda do valor original
+  currencies: { code: string; name: string }[];
   transaction?: Transaction;
   recurrence?: Recurrence;
   recurring: boolean;
@@ -196,6 +200,7 @@ type BodyProps = {
 
 function FormBody({
   ctx,
+  currencies,
   transaction,
   recurrence,
   recurring,
@@ -237,6 +242,9 @@ function FormBody({
   const account = accountOf(ctx, state.accountId);
   const currency = account?.currency_code ?? "BRL";
   const other = foreignAccount(state, ctx);
+  // Valor original (informativo): outra moeda que nao a da conta. A escolhida aparece mesmo que a lista nao a traga.
+  const originalCurrencies = currencies.filter((item) => item.code !== currency);
+  const originalChosen = state.originalCurrency !== "" && state.originalCurrency !== currency;
   const splittable = canSplit(state, ctx);
   const left = remainder(state, ctx);
 
@@ -385,6 +393,7 @@ function FormBody({
         ["counterparty", "tx-counterparty"],
         ["amount", "tx-amount"],
         ["foreignAmount", "tx-foreign-amount"],
+        ["originalAmount", "tx-original-amount"],
       ];
       const first = order.find(([field]) => found[field]);
       if (first) document.getElementById(first[1])?.focus();
@@ -566,10 +575,15 @@ function FormBody({
                   {
                     accountId: e.target.value,
                     foreignAmount: "",
+                    // A moeda original nao pode ser a da conta: se passou a ser, nao ha mais o que informar
+                    ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
+                      ? { originalCurrency: "", originalAmount: "" }
+                      : {}),
                     ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
                   },
                   "accountId",
                   "foreignAmount",
+                  "originalAmount",
                 );
               }}
             >
@@ -731,6 +745,49 @@ function FormBody({
           </FormField>
         )}
       </div>
+
+      {originalAllowed(state) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            id="tx-original-currency"
+            label="Moeda original (opcional)"
+            hint="Se a compra foi em outra moeda, diga qual. É só um registro: o saldo usa o valor acima."
+          >
+            {(props) => (
+              <Select
+                {...props}
+                value={originalChosen ? state.originalCurrency : ""}
+                onChange={(e) => patch({ originalCurrency: e.target.value, originalAmount: "" }, "originalAmount")}
+              >
+                <option value="">Nenhuma</option>
+                {originalChosen && !originalCurrencies.some((item) => item.code === state.originalCurrency) && (
+                  <option value={state.originalCurrency}>{state.originalCurrency}</option>
+                )}
+                {originalCurrencies.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.code} - {item.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </FormField>
+
+          {originalChosen && (
+            <FormField id="tx-original-amount" label={`Valor original (${state.originalCurrency})`} error={errors.originalAmount}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0,00"
+                  value={state.originalAmount}
+                  onChange={(e) => patch({ originalAmount: e.target.value }, "originalAmount")}
+                />
+              )}
+            </FormField>
+          )}
+        </div>
+      )}
 
       {/* Linhas da divisao, ou categoria e tags de um lancamento so */}
       {state.splits ? (
