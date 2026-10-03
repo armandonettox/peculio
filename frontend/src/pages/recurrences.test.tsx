@@ -115,6 +115,21 @@ it("recorrente terminada mostra Terminou e nao oferece pausar", async () => {
   expect(screen.getByRole("menuitem", { name: "Editar" })).toBeInTheDocument();
 });
 
+it("recorrente pausada avisa que o periodo parado nao e recriado ao retomar", async () => {
+  renderPage([
+    makeRecurrence({ name: "Parada", active: false }),
+    makeRecurrence({ name: "Ativa" }),
+    makeRecurrence({ name: "Acabou", active: false, ended: true, next_date: null, max_occurrences: 3, created_count: 3 }),
+  ]);
+  await screen.findByText("Ativa");
+  await userEvent.click(screen.getByLabelText("Mostrar pausadas"));
+  await screen.findByText("Parada");
+  const hint = "Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.";
+  expect(within(card("Parada")).getByText(hint)).toBeInTheDocument();
+  expect(within(card("Ativa")).queryByText(hint)).not.toBeInTheDocument();
+  expect(within(card("Acabou")).queryByText(hint)).not.toBeInTheDocument();
+});
+
 it("falha da ultima tentativa aparece no cartao", async () => {
   renderPage([makeRecurrence({ name: "Quebrada", last_error: "Categoria nao encontrada" })]);
   await screen.findByText("Quebrada");

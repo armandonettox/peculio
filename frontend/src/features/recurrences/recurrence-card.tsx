@@ -78,6 +78,12 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
         </p>
       </div>
 
+      {paused && !recurrence.ended && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.
+        </p>
+      )}
+
       {recurrence.last_error && (
         <p className="mt-3 flex items-start gap-1.5 text-sm text-destructive" role="alert">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
