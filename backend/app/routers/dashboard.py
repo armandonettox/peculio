@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.dashboard import NetWorthOut, UpcomingOut
+from app.services import dashboard as service
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -16,8 +18,7 @@ def get_net_worth(
     db: Session = Depends(get_db),
 ):
     """Patrimonio de hoje e sua evolucao mes a mes, por moeda."""
-    # Provisorio: o contrato esta fechado, a implementacao vem no trilho do backend
-    raise HTTPException(status_code=501, detail="Ainda nao implementado")
+    return service.net_worth(db, user.id, months, clock.today())
 
 
 @router.get("/upcoming", response_model=UpcomingOut)
@@ -27,4 +28,4 @@ def get_upcoming(
     db: Session = Depends(get_db),
 ):
     """Contas a pagar e recorrentes dos proximos `days` dias, mais as contas atrasadas."""
-    raise HTTPException(status_code=501, detail="Ainda nao implementado")
+    return service.upcoming(db, user.id, days, clock.today())

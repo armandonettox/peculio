@@ -51,6 +51,13 @@ def _next_after(recurrence: Recurrence, index: int) -> date | None:
     return day
 
 
+def upcoming_date(recurrence: Recurrence) -> date | None:
+    """Data da proxima ocorrencia que ainda vai ser criada, ou None se esta pausada ou ja terminou."""
+    if not recurrence.active:
+        return None
+    return _next_after(recurrence, recurrence.next_index)
+
+
 # ---------- Acesso e CRUD ----------
 
 
