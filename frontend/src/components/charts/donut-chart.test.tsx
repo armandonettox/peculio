@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -240,30 +240,94 @@ describe("DonutChart: bordas", () => {
 });
 
 describe("DonutChart: teclado e tooltip", () => {
-  it("cada fatia e focavel e tem aria-label 'nome: valor (percentual)'", () => {
+  it("cada fatia e focavel e tem aria-label 'nome: valor (percentual)'; so uma e parada de Tab", () => {
     const { container } = renderDonut(base);
     const hits = container.querySelectorAll("[data-hit]");
     expect(hits).toHaveLength(3);
-    hits.forEach((hit) => expect(hit).toHaveAttribute("tabindex", "0"));
+    expect([...hits].map((hit) => hit.getAttribute("tabindex"))).toEqual(["0", "-1", "-1"]);
     expect(screen.getByLabelText("Mercado: R$ 600,00 (60%)")).toBeInTheDocument();
     expect(screen.getByLabelText("Lazer: R$ 100,00 (10%)")).toBeInTheDocument();
   });
 
-  it("o foco por teclado mostra o tooltip; sair ou Escape esconde", async () => {
+  it("o foco por teclado mostra o tooltip; Escape esconde e uma seta mostra de novo", async () => {
     const user = userEvent.setup();
     renderDonut(base);
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
     await user.tab();
     expect(screen.getByRole("tooltip")).toHaveTextContent("Mercado");
     expect(screen.getByRole("tooltip")).toHaveTextContent("R$ 600,00 (60%)");
-    await user.tab();
+    await user.keyboard("{ArrowRight}");
     expect(screen.getByRole("tooltip")).toHaveTextContent("Moradia");
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
-    await user.tab();
+    await user.keyboard("{ArrowRight}");
     expect(screen.getByRole("tooltip")).toHaveTextContent("Lazer");
+  });
+
+  it("as setas que navegam nao rolam a pagina (preventDefault); o fim da lista e outras teclas deixam passar", () => {
+    renderDonut(base);
+    const first = screen.getByLabelText("Mercado: R$ 600,00 (60%)");
+    const last = screen.getByLabelText("Lazer: R$ 100,00 (10%)");
+    expect(fireEvent.keyDown(first, { key: "ArrowDown" })).toBe(false);
+    expect(fireEvent.keyDown(last, { key: "ArrowDown" })).toBe(true);
+    expect(fireEvent.keyDown(first, { key: "ArrowUp" })).toBe(true);
+    expect(fireEvent.keyDown(first, { key: "Enter" })).toBe(true);
+  });
+
+  it("as setas, Home e End percorrem as fatias e param nas pontas", async () => {
+    const user = userEvent.setup();
+    renderDonut(base);
     await user.tab();
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByLabelText("Moradia: R$ 300,00 (30%)")).toHaveFocus();
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    expect(screen.getByLabelText("Lazer: R$ 100,00 (10%)")).toHaveFocus();
+    await user.keyboard("{ArrowUp}");
+    expect(screen.getByLabelText("Moradia: R$ 300,00 (30%)")).toHaveFocus();
+    await user.keyboard("{End}");
+    expect(screen.getByLabelText("Lazer: R$ 100,00 (10%)")).toHaveFocus();
+    await user.keyboard("{Home}");
+    expect(screen.getByLabelText("Mercado: R$ 600,00 (60%)")).toHaveFocus();
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByLabelText("Mercado: R$ 600,00 (60%)")).toHaveFocus();
+  });
+
+  it("um Tab so atravessa a rosca e o foco lembrado e onde a pessoa volta", async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <DonutChart title="Gastos por categoria" slices={base} formatValue={formatMoneyTest} />
+        <button>depois</button>
+      </div>,
+    );
+    await user.tab();
+    await user.keyboard("{End}");
+    await user.tab();
+    expect(screen.getByRole("button", { name: "depois" })).toHaveFocus();
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await user.tab({ shift: true });
+    expect(screen.getByLabelText("Lazer: R$ 100,00 (10%)")).toHaveFocus();
+  });
+
+  it("avisa para leitor de tela que as setas percorrem as fatias, so quando ha mais de uma", () => {
+    const { container, unmount } = renderDonut(base);
+    const hintId = (container.querySelector("[role='group']") as HTMLElement).getAttribute("aria-describedby");
+    expect(hintId).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(hintId as string)}`)).toHaveTextContent(/setas do teclado/);
+    unmount();
+    const single = renderDonut([{ key: "a", label: "A", value: "10.00" }]);
+    expect((single.container.querySelector("[role='group']") as HTMLElement).getAttribute("aria-describedby")).toBeNull();
+    // Nem o texto do aviso e escrito na pagina
+    expect(screen.queryByText(/setas do teclado/)).not.toBeInTheDocument();
+  });
+
+  it("se as fatias diminuem e a lembrada some, a parada de Tab volta a primeira", async () => {
+    const user = userEvent.setup();
+    const { container, rerender } = render(<DonutChart title="G" slices={base} formatValue={formatMoneyTest} />);
+    await user.tab();
+    await user.keyboard("{End}");
+    rerender(<DonutChart title="G" slices={base.slice(0, 2)} formatValue={formatMoneyTest} />);
+    expect([...container.querySelectorAll("[data-hit]")].map((hit) => hit.getAttribute("tabindex"))).toEqual(["0", "-1"]);
   });
 
   it("o mouse mostra e esconde o tooltip", async () => {

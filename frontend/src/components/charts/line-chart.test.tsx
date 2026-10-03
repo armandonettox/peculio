@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -230,11 +230,12 @@ describe("LineChart: casos de borda", () => {
 });
 
 describe("LineChart: pontos, teclado e tooltip", () => {
-  it("cada ponto e focavel e tem aria-label 'rotulo: valor'", () => {
+  it("cada ponto e focavel e tem aria-label 'rotulo: valor'; so um e parada de Tab", () => {
     const { container } = renderChart([sample]);
     const points = pointsOf(container);
     expect(points).toHaveLength(3);
-    points.forEach((point) => expect(point).toHaveAttribute("tabindex", "0"));
+    // Parada de Tab unica (roving tabindex): o primeiro ponto; os demais so por programa/setas
+    expect([...points].map((point) => point.getAttribute("tabindex"))).toEqual(["0", "-1", "-1"]);
     expect([...points].map((p) => p.getAttribute("aria-label"))).toEqual([
       "jan/26: R$ 1.000,00",
       "fev/26: R$ 1.500,50",
@@ -250,9 +251,78 @@ describe("LineChart: pontos, teclado e tooltip", () => {
     const tooltip = screen.getByRole("tooltip");
     expect(tooltip).toHaveTextContent("jan/26");
     expect(tooltip).toHaveTextContent("R$ 1.000,00");
+  });
+
+  it("as setas percorrem os pontos e o tooltip acompanha o foco", async () => {
+    const user = userEvent.setup();
+    renderChart([sample]);
     await user.tab();
-    expect(screen.getByRole("tooltip")).toHaveTextContent("fev/26");
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByLabelText("fev/26: R$ 1.500,50")).toHaveFocus();
     expect(screen.getByRole("tooltip")).toHaveTextContent("R$ 1.500,50");
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    // No fim, a seta nao faz nada e o foco fica
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByLabelText("fev/26: R$ 1.500,50")).toHaveFocus();
+  });
+
+  it("as setas que navegam nao rolam a pagina (preventDefault); as demais teclas e o fim da linha deixam passar", () => {
+    renderChart([sample]);
+    const first = screen.getByLabelText("jan/26: R$ 1.000,00");
+    const last = screen.getByLabelText("mar/26: R$ 1.200,00");
+    // fireEvent devolve false quando alguem chamou preventDefault
+    expect(fireEvent.keyDown(first, { key: "ArrowRight" })).toBe(false);
+    expect(fireEvent.keyDown(last, { key: "ArrowRight" })).toBe(true);
+    expect(fireEvent.keyDown(first, { key: "ArrowLeft" })).toBe(true);
+    expect(fireEvent.keyDown(first, { key: "a" })).toBe(true);
+    expect(fireEvent.keyDown(first, { key: "Tab" })).toBe(true);
+  });
+
+  it("Home e End vao ao primeiro e ao ultimo ponto", async () => {
+    const user = userEvent.setup();
+    renderChart([sample]);
+    await user.tab();
+    await user.keyboard("{End}");
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    await user.keyboard("{Home}");
+    expect(screen.getByLabelText("jan/26: R$ 1.000,00")).toHaveFocus();
+  });
+
+  it("o ponto focado vira a parada de Tab: voltar ao grafico cai onde a pessoa parou", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <div>
+        <button>antes</button>
+        <LineChart title="Patrimônio" series={[sample]} formatValue={formatMoneyTest} formatX={formatMonthTest} />
+        <button>depois</button>
+      </div>,
+    );
+    await user.tab();
+    await user.tab();
+    await user.keyboard("{ArrowRight}{ArrowRight}");
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "depois" })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    expect([...pointsOf(container)].map((point) => point.getAttribute("tabindex"))).toEqual(["-1", "-1", "0"]);
+  });
+
+  it("um unico Tab atravessa o grafico: o proximo Tab sai dele", async () => {
+    const user = userEvent.setup();
+    render(
+      <div>
+        <LineChart title="Patrimônio" series={[sample]} formatValue={formatMoneyTest} formatX={formatMonthTest} />
+        <button>depois</button>
+      </div>,
+    );
+    await user.tab();
+    expect(screen.getByLabelText("jan/26: R$ 1.000,00")).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "depois" })).toHaveFocus();
   });
 
   it("sair do foco esconde o tooltip e Escape tambem", async () => {
@@ -262,10 +332,82 @@ describe("LineChart: pontos, teclado e tooltip", () => {
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    // O foco continua no ponto: uma seta mostra o tooltip de novo
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("fev/26");
+  });
+
+  it("com varias series, cima e baixo trocam de serie no mesmo periodo", async () => {
+    const user = userEvent.setup();
+    renderChart([
+      sample,
+      {
+        key: "b",
+        label: "Reserva",
+        points: [
+          { x: "2026-01", value: "50" },
+          { x: "2026-02", value: "80" },
+        ],
+      },
+    ]);
     await user.tab();
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
-    await user.tab({ shift: true });
-    expect(screen.getByRole("tooltip")).toHaveTextContent("jan/26");
+    await user.keyboard("{ArrowRight}{ArrowDown}");
+    expect(screen.getByLabelText("Reserva, fev/26: R$ 80,00")).toHaveFocus();
+    await user.keyboard("{ArrowUp}");
+    expect(screen.getByLabelText("Total, fev/26: R$ 1.500,50")).toHaveFocus();
+    // Em mar/26 a segunda serie nao tem ponto: baixo nao inventa um
+    await user.keyboard("{ArrowRight}{ArrowDown}");
+    expect(screen.getByLabelText("Total, mar/26: R$ 1.200,00")).toHaveFocus();
+  });
+
+  it("a serie com buraco e percorrida pulando o periodo sem ponto", async () => {
+    const user = userEvent.setup();
+    renderChart([
+      {
+        key: "a",
+        label: "A",
+        points: [
+          { x: "2026-01", value: "10" },
+          { x: "2026-03", value: "30" },
+        ],
+      },
+      { key: "b", label: "B", points: [{ x: "2026-02", value: "20" }] },
+    ]);
+    await user.tab();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByLabelText("A, mar/26: R$ 30,00")).toHaveFocus();
+  });
+
+  it("o grafico avisa, para leitor de tela, que as setas percorrem os pontos", () => {
+    const { container } = renderChart([sample]);
+    const group = container.querySelector("[role='group']") as HTMLElement;
+    const hintId = group.getAttribute("aria-describedby");
+    expect(hintId).toBeTruthy();
+    expect(container.querySelector(`#${CSS.escape(hintId as string)}`)).toHaveTextContent(/setas do teclado/);
+  });
+
+  it("com um ponto so nao ha aviso de setas", () => {
+    const { container } = renderChart([{ key: "a", label: "A", points: [{ x: "2026-01", value: "10" }] }]);
+    expect((container.querySelector("[role='group']") as HTMLElement).getAttribute("aria-describedby")).toBeNull();
+  });
+
+  it("se o ponto lembrado deixa de existir, a parada de Tab volta ao primeiro", async () => {
+    const user = userEvent.setup();
+    const { container, rerender } = render(
+      <LineChart title="Patrimônio" series={[sample]} formatValue={formatMoneyTest} formatX={formatMonthTest} />,
+    );
+    await user.tab();
+    await user.keyboard("{End}");
+    expect(screen.getByLabelText("mar/26: R$ 1.200,00")).toHaveFocus();
+    rerender(
+      <LineChart
+        title="Patrimônio"
+        series={[{ ...sample, points: sample.points.slice(0, 2) }]}
+        formatValue={formatMoneyTest}
+        formatX={formatMonthTest}
+      />,
+    );
+    expect([...pointsOf(container)].map((point) => point.getAttribute("tabindex"))).toEqual(["0", "-1"]);
   });
 
   it("passar o mouse mostra o tooltip e tirar esconde", async () => {
@@ -421,13 +563,11 @@ describe("LineChart: medidas e camadas", () => {
 });
 
 describe("LineChart: foco fora dos pontos", () => {
-  it("depois do ultimo ponto o tooltip some", async () => {
+  it("Tab sai do grafico e o tooltip some", async () => {
     const user = userEvent.setup();
     renderChart([sample]);
     await user.tab();
-    await user.tab();
-    await user.tab();
-    expect(screen.getByRole("tooltip")).toHaveTextContent("mar/26");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("jan/26");
     await user.tab();
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });

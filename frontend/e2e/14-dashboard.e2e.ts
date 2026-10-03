@@ -183,11 +183,31 @@ test("no celular a pagina nao ganha rolagem horizontal e os blocos empilham", as
   for (const count of lines) expect(count).toBe(1);
 });
 
-test("teclado: da pra chegar aos pontos do grafico de patrimonio e ver o valor sem mouse", async ({ page }) => {
+test("teclado: o grafico de patrimonio tem uma parada de Tab e as setas percorrem os pontos", async ({ page }) => {
   await openDashboard(page);
   const section = page.getByRole("region", { name: "Patrimônio em BRL" });
-  const point = section.locator("[role='group'] [tabindex='0']").first();
-  await point.focus();
-  await expect(point).toBeFocused();
-  await expect(section.getByRole("tooltip")).toBeVisible();
+  const points = section.locator("[data-point]");
+  await expect(points).toHaveCount(12);
+  // Uma parada de Tab so, nao uma por ponto
+  await expect(section.locator("[data-point][tabindex='0']")).toHaveCount(1);
+
+  await section.locator("[data-point][tabindex='0']").focus();
+  const tooltip = section.getByRole("tooltip");
+  await expect(tooltip).toBeVisible();
+  const firstText = (await tooltip.textContent()) ?? "";
+
+  await page.keyboard.press("ArrowRight");
+  await expect(points.nth(1)).toBeFocused();
+  await expect(tooltip).toBeVisible();
+  expect((await tooltip.textContent()) ?? "").not.toBe(firstText);
+
+  await page.keyboard.press("End");
+  await expect(points.last()).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(points.first()).toBeFocused();
+
+  // Escape esconde o tooltip e o foco continua no ponto
+  await page.keyboard.press("Escape");
+  await expect(tooltip).toHaveCount(0);
+  await expect(points.first()).toBeFocused();
 });

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { chartColorVar, pickColor } from "./chart-colors";
+import { nextListIndex } from "./chart-keyboard";
 import { round2, sumDecimals } from "./chart-numbers";
 import { ChartTable, ChartTooltip, EmptyChart } from "./chart-parts";
 import { arcMidpoint, DEFAULT_MAX_SLICES, groupSlices, ringSlicePath, roundedPercents, sliceAngles } from "./donut-geometry";
@@ -34,6 +35,10 @@ export function DonutChart({
   className,
 }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  // Uma parada de Tab so: a ultima fatia focada (ou a primeira). As setas percorrem as demais.
+  const [tabStopIndex, setTabStopIndex] = useState(0);
+  const sliceRefs = useRef(new Map<number, SVGPathElement>());
+  const keysHintId = useId();
 
   const items = groupSlices(slices, maxSlices, otherLabel);
   if (items.length === 0) return <EmptyChart label={title} kind="donut" className={className} />;
@@ -52,10 +57,17 @@ export function DonutChart({
 
   const sliceText = (index: number) => `${formatValue(items[index].value)} (${percentText(percents[index])})`;
   const active = activeIndex !== null && activeIndex < items.length ? activeIndex : null;
+  // Se as fatias diminuirem e a lembrada sumir, volta a primeira
+  const stopIndex = tabStopIndex < items.length ? tabStopIndex : 0;
   const anchor = active !== null ? arcMidpoint(CENTER, CENTER, OUTER, arcs[active]) : null;
 
   return (
     <div data-chart="donut" className={cn("flex flex-col items-center gap-4 sm:flex-row", className)}>
+      {items.length > 1 ? (
+        <span id={keysHintId} className="sr-only">
+          Use as setas do teclado para percorrer as fatias, Home e End para ir à primeira e à última.
+        </span>
+      ) : null}
       <div className="relative w-full max-w-56 shrink-0">
         <svg role="img" aria-label={summary} width="100%" viewBox={`0 0 ${SIZE} ${SIZE}`} className="block">
           {items.map((item, index) => (
@@ -74,11 +86,21 @@ export function DonutChart({
         <svg
           role="group"
           aria-label={`Fatias de ${title}`}
+          aria-describedby={items.length > 1 ? keysHintId : undefined}
           width="100%"
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           className="pointer-events-none absolute inset-0 block"
           onKeyDown={(event) => {
-            if (event.key === "Escape") setActiveIndex(null);
+            if (event.key === "Escape") {
+              setActiveIndex(null);
+              return;
+            }
+            const current = Number(event.target instanceof Element ? event.target.getAttribute("data-index") : NaN);
+            if (Number.isNaN(current)) return;
+            const next = nextListIndex(items.length, current, event.key);
+            if (next === null) return;
+            event.preventDefault();
+            sliceRefs.current.get(next)?.focus();
           }}
         >
           {items.map((item, index) => (
@@ -87,11 +109,19 @@ export function DonutChart({
               d={ringSlicePath(CENTER, CENTER, OUTER, INNER, arcs[index].start, arcs[index].end)}
               data-hit={item.key}
               fillRule="evenodd"
-              tabIndex={0}
+              ref={(element) => {
+                if (element) sliceRefs.current.set(index, element);
+                else sliceRefs.current.delete(index);
+              }}
+              tabIndex={index === stopIndex ? 0 : -1}
+              data-index={index}
               aria-label={`${item.label}: ${sliceText(index)}`}
               className="pointer-events-auto cursor-pointer outline-none"
               fill="transparent"
-              onFocus={() => setActiveIndex(index)}
+              onFocus={() => {
+                setActiveIndex(index);
+                setTabStopIndex(index);
+              }}
               onBlur={() => setActiveIndex(null)}
               onMouseEnter={() => setActiveIndex(index)}
               onMouseLeave={() => setActiveIndex(null)}

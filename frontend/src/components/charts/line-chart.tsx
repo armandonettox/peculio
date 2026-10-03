@@ -1,7 +1,8 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { chartColorVar, pickColor } from "./chart-colors";
+import { firstGridPoint, nextGridPoint, type GridPoint } from "./chart-keyboard";
 import { parseDecimal, round2, toDecimalText } from "./chart-numbers";
 import { ChartTable, ChartTooltip, EmptyChart } from "./chart-parts";
 import { linearScale, niceTicks } from "./chart-scale";
@@ -33,8 +34,12 @@ const MARKER_RADIUS = 3.5;
  */
 export function LineChart({ title, description, series, formatValue, formatX, height = 220, area = false, className }: LineChartProps) {
   const descriptionId = useId();
+  const keysHintId = useId();
   const { ref, width } = useContainerWidth<HTMLDivElement>();
   const [active, setActive] = useState<{ seriesIndex: number; xIndex: number } | null>(null);
+  // Uma parada de Tab so: o ultimo ponto focado (ou o primeiro). As setas percorrem os demais.
+  const [tabStop, setTabStop] = useState<GridPoint | null>(null);
+  const pointRefs = useRef(new Map<string, SVGPathElement>());
 
   const xs = buildXValues(series);
   if (xs.length === 0) return <EmptyChart label={title} kind="line" className={className} />;
@@ -80,6 +85,10 @@ export function LineChart({ title, description, series, formatValue, formatX, he
   const pointValue = (seriesIndex: number, xIndex: number) => formatValue(lookups[seriesIndex][xIndex] ?? "0");
 
   const activePoint = active ? seriesPoints[active.seriesIndex]?.[active.xIndex] : null;
+  const presence = seriesPoints.map((points) => points.map((point) => point !== null));
+  // Se os dados mudaram e o ponto lembrado deixou de existir, volta ao primeiro
+  const stop = tabStop && presence[tabStop.seriesIndex]?.[tabStop.xIndex] ? tabStop : firstGridPoint(presence);
+  const manyPoints = presence.flat().filter(Boolean).length > 1;
   const zeroY = yScale(Math.min(Math.max(0, ticks.min), ticks.max));
 
   return (
@@ -87,6 +96,12 @@ export function LineChart({ title, description, series, formatValue, formatX, he
       {description ? (
         <span id={descriptionId} className="sr-only">
           {description}
+        </span>
+      ) : null}
+
+      {manyPoints ? (
+        <span id={keysHintId} className="sr-only">
+          Use as setas do teclado para percorrer os pontos, Home e End para ir ao primeiro e ao último.
         </span>
       ) : null}
 
@@ -164,12 +179,23 @@ export function LineChart({ title, description, series, formatValue, formatX, he
         <svg
           role="group"
           aria-label={`Pontos de ${title}`}
+          aria-describedby={manyPoints ? keysHintId : undefined}
           width="100%"
           height={height}
           viewBox={`0 0 ${width} ${height}`}
           className="pointer-events-none absolute inset-0 block"
           onKeyDown={(event) => {
-            if (event.key === "Escape") setActive(null);
+            if (event.key === "Escape") {
+              setActive(null);
+              return;
+            }
+            const seriesIndex = Number(event.target instanceof Element ? event.target.getAttribute("data-si") : NaN);
+            const xIndex = Number(event.target instanceof Element ? event.target.getAttribute("data-xi") : NaN);
+            if (Number.isNaN(seriesIndex) || Number.isNaN(xIndex)) return;
+            const next = nextGridPoint(presence, { seriesIndex, xIndex }, event.key);
+            if (!next) return;
+            event.preventDefault();
+            pointRefs.current.get(`${next.seriesIndex}:${next.xIndex}`)?.focus();
           }}
         >
           {series.map((item, seriesIndex) =>
@@ -181,14 +207,23 @@ export function LineChart({ title, description, series, formatValue, formatX, he
                 <path
                   key={`${item.key}:${xs[xIndex]}`}
                   d={markerPath(shape, point.x, point.y, MARKER_RADIUS)}
-                  tabIndex={0}
+                  ref={(element) => {
+                    if (element) pointRefs.current.set(`${seriesIndex}:${xIndex}`, element);
+                    else pointRefs.current.delete(`${seriesIndex}:${xIndex}`);
+                  }}
+                  tabIndex={stop && stop.seriesIndex === seriesIndex && stop.xIndex === xIndex ? 0 : -1}
                   aria-label={`${pointLabel(seriesIndex, xIndex)}: ${pointValue(seriesIndex, xIndex)}`}
                   data-point={`${item.key}:${xs[xIndex]}`}
+                  data-si={seriesIndex}
+                  data-xi={xIndex}
                   className="pointer-events-auto cursor-pointer outline-none"
                   style={{ fill: color }}
                   stroke="transparent"
                   strokeWidth={12}
-                  onFocus={() => setActive({ seriesIndex, xIndex })}
+                  onFocus={() => {
+                    setActive({ seriesIndex, xIndex });
+                    setTabStop({ seriesIndex, xIndex });
+                  }}
                   onBlur={() => setActive(null)}
                   onMouseEnter={() => setActive({ seriesIndex, xIndex })}
                   onMouseLeave={() => setActive(null)}
