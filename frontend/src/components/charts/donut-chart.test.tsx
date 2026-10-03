@@ -34,6 +34,19 @@ describe("DonutChart: conteudo", () => {
     expect(screen.getByRole("img", { name: /Total: R\$ 1\.000,00/ })).toBeInTheDocument();
   });
 
+  it("so o valor do centro (sem rotulo) tambem entra no resumo, porque o centro visual e aria-hidden", () => {
+    // Valor diferente do total das fatias: senao o resumo ja o cita por outro caminho
+    renderDonut(base, { centerValue: "R$ 9.999,00" });
+    const label = screen.getByRole("img", { name: /Gastos por categoria/ }).getAttribute("aria-label");
+    expect(label).toContain(" R$ 9.999,00.");
+    expect(label).not.toContain(": R$ 9.999,00.");
+  });
+
+  it("so o rotulo do centro, sem valor, nao entra no resumo", () => {
+    renderDonut(base, { centerLabel: "Total" });
+    expect(screen.getByRole("img", { name: /Gastos por categoria/ }).getAttribute("aria-label")).not.toContain("Total");
+  });
+
   it("a tabela equivalente tem legenda, cabecalhos, valores e percentuais", () => {
     renderDonut(base);
     const table = screen.getByRole("table", { name: "Gastos por categoria" });

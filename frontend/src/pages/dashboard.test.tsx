@@ -530,3 +530,71 @@ it("enquanto um bloco carrega, nao mostra ao mesmo tempo o esqueleto e o estado 
   expect(within(section).queryByText(/Nenhuma receita/)).not.toBeInTheDocument();
   await within(section).findByText(/Nenhuma receita/);
 });
+
+// ---------- Integracao dos trilhos: o que a pagina passa aos graficos e a acessibilidade ----------
+
+function renderWithDashboard(
+  dashboard: Parameters<typeof fakeDashboardApi>[0],
+  { budgets = [], first = [] }: { budgets?: ReturnType<typeof makeBudget>[]; first?: Parameters<typeof server.use> } = {},
+) {
+  server.use(
+    ...first,
+    ...fakeAccountsApi([makeAccount()]).handlers,
+    ...fakeDashboardApi(dashboard).handlers,
+    ...fakeReportsApi({}).handlers,
+    ...fakeBudgetsApi(budgets).handlers,
+    ...fakeTransactionsApi([], []).handlers,
+    ...fakePiggyBanksApi([]).handlers,
+    ...fakeLabelsApi("categories", []).handlers,
+    ...fakeLabelsApi("tags", []).handlers,
+  );
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+}
+
+it("o grafico de patrimonio pede a area sob a linha e o minigrafico formata os valores como dinheiro", async () => {
+  renderWithDashboard({
+    netWorth: makeNetWorth({ currencies: [makeNetWorthCurrency("BRL", ["1000.00", "1200.00", "900.50"])] }),
+    upcoming: makeUpcoming(),
+  });
+  await region("Patrimônio em BRL");
+  const line = chartCalls.line.at(-1)!;
+  expect(line.area).toBe(true);
+  expect(line.series[0].points.map((point) => point.value)).toEqual(["1000.00", "1200.00", "900.50"]);
+  const sparkline = chartCalls.sparkline.at(-1)!;
+  expect(sparkline.formatValue?.("1234.50")).toBe(formatMoney("1234.50", "BRL"));
+  expect(sparkline.values).toEqual(["1000.00", "1200.00", "900.50"]);
+});
+
+it("a faixa de alertas e uma regiao nomeada para leitor de tela", async () => {
+  renderWithDashboard({ upcoming: makeUpcoming({ items: [makeUpcomingItem({ overdue: true })] }), netWorth: makeNetWorth() });
+  const alerts = await screen.findByRole("region", { name: "Alertas" });
+  expect(within(alerts).getByText("1 conta atrasada")).toBeInTheDocument();
+});
+
+it("este mes: a diferenca respeita as casas decimais da moeda (3 casas nao sao truncadas em 2)", async () => {
+  const thisMonth = [makeTotals({ currency_code: "KWD", income: "10.505", expense: "0.000", net: "10.505" })];
+  const lastMonth = [makeTotals({ currency_code: "KWD", income: "10.500", expense: "0.000", net: "10.500" })];
+  const kuwait = http.get("*/api/v1/currencies", () =>
+    HttpResponse.json([{ code: "KWD", name: "Dinar kuwaitiano", symbol: "KWD", decimal_places: 3 }]),
+  );
+  renderWithDashboard({ netWorth: makeNetWorth(), upcoming: makeUpcoming() }, { first: [kuwait, summaryByPeriod(thisMonth, lastMonth)] });
+  const table = await screen.findByRole("table", { name: /mês em KWD/ });
+  const rows = within(table).getAllByRole("row");
+  expect(within(rows[1]).getByText(/0,005 a mais/)).toBeInTheDocument();
+});
+
+it("este mes: moeda sem casas decimais (JPY) compara em unidades inteiras", async () => {
+  const thisMonth = [makeTotals({ currency_code: "JPY", income: "1500", expense: "200", net: "1300" })];
+  const lastMonth = [makeTotals({ currency_code: "JPY", income: "1200", expense: "250", net: "950" })];
+  renderWithDashboard({ netWorth: makeNetWorth(), upcoming: makeUpcoming() }, { first: [summaryByPeriod(thisMonth, lastMonth)] });
+  const table = await screen.findByRole("table", { name: /mês em JPY/ });
+  const rows = within(table).getAllByRole("row");
+  expect(within(rows[1]).getByText(/300 a mais/)).toBeInTheDocument();
+  expect(within(rows[2]).getByText(/50 a menos/)).toBeInTheDocument();
+});

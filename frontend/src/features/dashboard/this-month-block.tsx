@@ -1,5 +1,6 @@
+import { useCurrencies } from "@/api/accounts";
 import { useReportSummary } from "@/api/reports";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, placesOf } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
 import { compareToLastMonth, findByCurrency, formatDiff, formatPercent, trendFor, type MonthMetric } from "./presentation";
 
@@ -15,6 +16,9 @@ const TREND_CLASS = { good: "text-positive", bad: "text-destructive", neutral: "
 export function ThisMonthBlock() {
   const thisMonth = useReportSummary({ period: "this-month" });
   const lastMonth = useReportSummary({ period: "last-month" });
+  // Casas decimais de cada moeda (JPY tem 0, algumas tem 3): a diferenca nao pode truncar nem inventar casas
+  const currencyList = useCurrencies();
+  const placesByCurrency = Object.fromEntries((currencyList.data ?? []).map((item) => [item.code, item.decimal_places]));
 
   const isLoading = thisMonth.isPending || lastMonth.isPending;
   const isError = thisMonth.isError || lastMonth.isError;
@@ -59,7 +63,7 @@ export function ThisMonthBlock() {
                 <tbody>
                   {METRICS.map(({ key, label }) => {
                     const current = totals[key];
-                    const comparison = compareToLastMonth(current, previous?.[key], 2);
+                    const comparison = compareToLastMonth(current, previous?.[key], placesOf(totals.currency_code, placesByCurrency));
                     const trend = trendFor(key, comparison.diff);
                     return (
                       <tr key={key} className="border-t">

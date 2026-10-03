@@ -48,6 +48,7 @@ export function NetWorthBlock() {
                   label={`Patrimônio em ${currency.currency_code} nos últimos ${currency.series.length} meses`}
                   values={currency.series.map((point) => point.net)}
                   tone={isNegativeMoney(currency.net) ? "negative" : "positive"}
+                  formatValue={(value) => formatMoney(value, currency.currency_code)}
                 />
               </div>
             )}
@@ -59,6 +60,7 @@ export function NetWorthBlock() {
                 formatValue={(value) => formatMoney(value, currency.currency_code)}
                 formatX={shortMonthLabel}
                 height={220}
+                area
               />
             </div>
           </section>

@@ -44,7 +44,8 @@ export function DonutChart({
   const colors = items.map((item, index) => chartColorVar(pickColor(item.color, index)));
 
   const biggest = items[0];
-  const centerSummary = centerLabel && centerValue ? ` ${centerLabel}: ${centerValue}.` : "";
+  // Com so o valor (o total, por exemplo) ele tambem entra no resumo: o texto do centro e aria-hidden
+  const centerSummary = centerValue ? (centerLabel ? ` ${centerLabel}: ${centerValue}.` : ` ${centerValue}.`) : "";
   const summary =
     `${title}. ${items.length} ${items.length === 1 ? "fatia" : "fatias"}, total ${formatValue(total)}.` +
     ` Maior: ${biggest.label}, ${percentText(percents[0])}.${centerSummary}`;

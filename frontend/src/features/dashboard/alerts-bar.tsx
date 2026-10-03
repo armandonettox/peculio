@@ -27,7 +27,7 @@ export function AlertsBar() {
   if (alerts.length === 0) return null;
 
   return (
-    <div aria-label="Alertas" className="mb-6 flex flex-col gap-2">
+    <section aria-label="Alertas" className="mb-6 flex flex-col gap-2">
       {alerts.map((alert) => (
         <Link
           key={alert.key}
@@ -38,6 +38,6 @@ export function AlertsBar() {
           {alert.text}
         </Link>
       ))}
-    </div>
+    </section>
   );
 }
