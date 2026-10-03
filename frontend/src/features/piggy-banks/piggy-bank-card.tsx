@@ -1,4 +1,4 @@
-import { AlertTriangle, History, MinusCircle, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
+import { AlertTriangle, Archive, ArchiveRestore, History, MinusCircle, MoreVertical, Pencil, PlusCircle, Trash2 } from "lucide-react";
 
 import type { PiggyBank } from "@/api/piggy-banks";
 import {
@@ -12,7 +12,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { availableText, isReached, remainingText, targetText } from "./presentation";
 
-export type PiggyAction = "add" | "remove" | "history" | "edit" | "delete";
+export type PiggyAction = "add" | "remove" | "history" | "edit" | "archive" | "delete";
 
 type Props = {
   piggy: PiggyBank;
@@ -26,12 +26,18 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
   const filled = Math.min(piggy.percent, 100);
   const target = targetText(piggy, today);
   const available = availableText(piggy);
+  const archived = !piggy.active;
 
   return (
-    <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+    <li className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", archived && "opacity-70")}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <h3 className="truncate text-base font-semibold">{piggy.name}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-base font-semibold">{piggy.name}</h3>
+            {archived && (
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivado</span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             {piggy.account_name}
             {piggy.currency_code !== "BRL" ? ` · ${piggy.currency_code}` : ""}
@@ -49,10 +55,12 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-44">
-            <DropdownMenuItem onSelect={() => onAction("add", piggy)}>
-              <PlusCircle />
-              Guardar
-            </DropdownMenuItem>
+            {!archived && (
+              <DropdownMenuItem onSelect={() => onAction("add", piggy)}>
+                <PlusCircle />
+                Guardar
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onSelect={() => onAction("remove", piggy)}>
               <MinusCircle />
               Retirar
@@ -65,6 +73,10 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
             <DropdownMenuItem onSelect={() => onAction("edit", piggy)}>
               <Pencil />
               Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onAction("archive", piggy)}>
+              {archived ? <ArchiveRestore /> : <Archive />}
+              {archived ? "Desarquivar" : "Arquivar"}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onAction("delete", piggy)} className="text-destructive">
               <Trash2 />
@@ -100,6 +112,12 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
       </div>
 
       {target && <p className="mt-1 text-sm text-muted-foreground">{target}</p>}
+
+      {archived && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Arquivado: o valor guardado continua reservado na conta. Retire para liberar.
+        </p>
+      )}
 
       <p
         className={cn("mt-1 flex items-start gap-1.5 text-xs", available.warning ? "text-destructive" : "text-muted-foreground")}

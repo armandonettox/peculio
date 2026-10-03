@@ -17,11 +17,13 @@ const PAGE_LIMIT = 200;
 // Quantos movimentos o historico mostra (os mais recentes)
 export const HISTORY_LIMIT = 50;
 
-export function usePiggyBanks() {
+// Arquivados ficam fora da lista, a menos que a tela peca; o guardado deles continua reservado na conta
+export function usePiggyBanks({ includeArchived = false }: { includeArchived?: boolean } = {}) {
   return useQuery({
-    queryKey: [...piggyBanksKey, "list"],
+    queryKey: [...piggyBanksKey, "list", { includeArchived }],
     queryFn: async () => {
-      const page = await unwrap(api.client.GET("/api/v1/piggy-banks", { params: { query: { limit: PAGE_LIMIT } } }));
+      const query = includeArchived ? { limit: PAGE_LIMIT } : { limit: PAGE_LIMIT, active: true };
+      const page = await unwrap(api.client.GET("/api/v1/piggy-banks", { params: { query } }));
       return page.items;
     },
   });

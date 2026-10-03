@@ -15,6 +15,7 @@ export function makePiggyBank(overrides: Partial<PiggyBank> = {}): PiggyBank {
     currency_code: "BRL",
     target_amount: "600.00",
     target_date: null,
+    active: true,
     saved: "0.00",
     remaining: "600.00",
     percent: 0,
@@ -82,7 +83,8 @@ export function fakePiggyBanksApi(initial: PiggyBank[] = [], events: Record<stri
       const query = new URL(request.url).searchParams;
       state.requests.push({ method: "GET", path: "/piggy-banks", query });
       if (state.listError) return fail({ status: 500, code: "internal_error" });
-      const items = sorted();
+      // Sem o filtro vem tudo; com active=true, so os que nao estao arquivados, como o backend
+      const items = sorted().filter((item) => query.get("active") !== "true" || item.active);
       return HttpResponse.json({ items, total: items.length, limit: 200, offset: 0 });
     }),
 

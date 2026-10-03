@@ -40,6 +40,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   piggy_bank_account_invalid: "Um cofrinho fica em uma conta, não em uma dívida.",
   piggy_bank_not_enough_available: "A conta não tem esse valor disponível. O que já está guardado em cofrinhos não conta.",
   piggy_bank_not_enough_saved: "O cofrinho não tem esse valor guardado.",
+  piggy_bank_archived: "O cofrinho está arquivado: desarquive para guardar mais.",
   attachment_not_found: "Anexo não encontrado.",
   attachment_type_not_allowed: "Tipo de arquivo não permitido. Envie PDF, JPEG, PNG, WEBP, TXT ou CSV.",
   attachment_too_large: "O arquivo passa do limite de 10 MB.",

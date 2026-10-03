@@ -57,6 +57,7 @@ class ErrorCode(StrEnum):
     PIGGY_BANK_ACCOUNT_INVALID = "piggy_bank_account_invalid"
     PIGGY_BANK_NOT_ENOUGH_AVAILABLE = "piggy_bank_not_enough_available"
     PIGGY_BANK_NOT_ENOUGH_SAVED = "piggy_bank_not_enough_saved"
+    PIGGY_BANK_ARCHIVED = "piggy_bank_archived"
     # Regras
     RULE_NOT_FOUND = "rule_not_found"
     RULE_NAME_TAKEN = "rule_name_taken"

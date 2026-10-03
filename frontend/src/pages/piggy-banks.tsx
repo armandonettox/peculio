@@ -2,7 +2,7 @@ import { Coins, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { getErrorMessage } from "@/api/error-messages";
-import { useDeletePiggyBank, usePiggyBanks, type PiggyBank } from "@/api/piggy-banks";
+import { useDeletePiggyBank, usePiggyBanks, useUpdatePiggyBank, type PiggyBank } from "@/api/piggy-banks";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -14,14 +14,30 @@ import { PiggyBankHistoryDialog } from "@/features/piggy-banks/piggy-bank-histor
 import { PiggyBankMoneyDialog } from "@/features/piggy-banks/piggy-bank-money-dialog";
 import { appToday } from "@/lib/dates";
 
-type DialogState = { kind: "create" } | { kind: PiggyAction; piggy: PiggyBank } | null;
+type DialogState = { kind: "create" } | { kind: Exclude<PiggyAction, "archive">; piggy: PiggyBank } | null;
 
 export default function PiggyBanksPage() {
   const today = appToday();
   const [dialog, setDialog] = useState<DialogState>(null);
-  const query = usePiggyBanks();
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const query = usePiggyBanks({ includeArchived });
   const remove = useDeletePiggyBank();
+  const archive = useUpdatePiggyBank();
   const items = query.data ?? [];
+
+  async function handleAction(action: PiggyAction, piggy: PiggyBank) {
+    if (action !== "archive") {
+      setDialog({ kind: action, piggy });
+      return;
+    }
+    setActionError(null);
+    try {
+      await archive.mutateAsync({ id: piggy.id, body: { active: !piggy.active } });
+    } catch (error) {
+      setActionError(getErrorMessage(error));
+    }
+  }
 
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
@@ -70,7 +86,7 @@ export default function PiggyBanksPage() {
             key={piggy.id}
             piggy={piggy}
             today={today}
-            onAction={(action, item) => setDialog({ kind: action, piggy: item })}
+            onAction={(action, item) => void handleAction(action, item)}
           />
         ))}
       </ul>
@@ -80,6 +96,24 @@ export default function PiggyBanksPage() {
   return (
     <>
       <PageHeader title="Cofrinhos" description="Metas guardadas dentro das suas contas" actions={newButton} />
+
+      <div className="mb-4 flex justify-end">
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(event) => setIncludeArchived(event.target.checked)}
+            className="accent-[var(--primary)]"
+          />
+          Mostrar arquivados
+        </label>
+      </div>
+
+      {actionError && (
+        <Alert variant="destructive" className="mb-4">
+          {actionError}
+        </Alert>
+      )}
 
       {content}
 

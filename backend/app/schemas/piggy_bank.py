@@ -38,6 +38,8 @@ class PiggyBankUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     target_amount: PositiveMoney | None = None
     target_date: date | None = None
+    # false arquiva (o guardado continua reservado); true desarquiva
+    active: bool | None = None
 
     _strip_name = field_validator("name")(_strip_name)
 
@@ -52,6 +54,7 @@ class PiggyBankOut(BaseModel):
     currency_code: str
     target_amount: Money
     target_date: date | None
+    active: bool
     # Soma dos movimentos
     saved: Money
     # Quanto falta para a meta; zero quando ja chegou (nunca negativo)

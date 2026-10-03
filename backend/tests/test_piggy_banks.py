@@ -178,6 +178,63 @@ def test_patch_cannot_change_the_account_and_validates(client, headers, account_
     assert clash.status_code == 409 and clash.json()["code"] == "piggy_bank_name_taken"
 
 
+def test_a_new_piggy_bank_is_active(client, headers, account_id):
+    assert make_piggy(client, headers, account_id).json()["active"] is True
+
+
+def test_archiving_hides_it_from_the_active_list_but_keeps_it_with_no_filter(client, headers, account_id):
+    first = make_piggy(client, headers, account_id, name="Viagem").json()["id"]
+    make_piggy(client, headers, account_id, name="Carro")
+    archived = client.patch(f"{URL}/{first}", json={"active": False}, headers=headers).json()
+    assert archived["active"] is False
+
+    def names(**params):
+        return [i["name"] for i in client.get(URL, params=params, headers=headers).json()["items"]]
+
+    assert names(active="true") == ["Carro"]
+    assert names(active="false") == ["Viagem"]
+    assert names() == ["Carro", "Viagem"]
+
+
+def test_an_archived_piggy_bank_keeps_the_money_reserved(client, headers, account_id):
+    piggy_id = make_piggy(client, headers, account_id).json()["id"]
+    event(client, headers, piggy_id, amount="300.00")
+    other = make_piggy(client, headers, account_id, name="Carro").json()["id"]
+    assert get_piggy(client, headers, other)["account_available"] == "700.00"
+
+    archived = client.patch(f"{URL}/{piggy_id}", json={"active": False}, headers=headers).json()
+    assert archived["saved"] == "300.00"
+    assert get_piggy(client, headers, other)["account_available"] == "700.00"
+    # E nao da para reservar o que ja esta guardado no arquivado
+    assert event(client, headers, other, amount="800.00").status_code == 400
+
+
+def test_adding_to_an_archived_piggy_bank_is_refused_until_it_is_unarchived(client, headers, account_id):
+    piggy_id = make_piggy(client, headers, account_id).json()["id"]
+    client.patch(f"{URL}/{piggy_id}", json={"active": False}, headers=headers)
+    refused = event(client, headers, piggy_id, amount="50.00")
+    assert refused.status_code == 409
+    assert refused.json()["code"] == "piggy_bank_archived"
+    assert get_piggy(client, headers, piggy_id)["saved"] == "0.00"
+
+    client.patch(f"{URL}/{piggy_id}", json={"active": True}, headers=headers)
+    assert event(client, headers, piggy_id, amount="50.00").status_code == 201
+
+
+def test_removing_from_an_archived_piggy_bank_releases_the_money(client, headers, account_id):
+    piggy_id = make_piggy(client, headers, account_id).json()["id"]
+    event(client, headers, piggy_id, amount="300.00")
+    client.patch(f"{URL}/{piggy_id}", json={"active": False}, headers=headers)
+    body = event(client, headers, piggy_id, kind="remove", amount="300.00").json()
+    assert (body["saved"], body["account_available"], body["active"]) == ("0.00", "1000.00", False)
+
+
+def test_patch_active_null_changes_nothing(client, headers, account_id):
+    piggy_id = make_piggy(client, headers, account_id).json()["id"]
+    client.patch(f"{URL}/{piggy_id}", json={"active": False}, headers=headers)
+    assert client.patch(f"{URL}/{piggy_id}", json={"active": None}, headers=headers).json()["active"] is False
+
+
 def test_delete_frees_the_reserve_and_removes_the_history(client, headers, account_id, db_session):
     piggy_id = make_piggy(client, headers, account_id).json()["id"]
     event(client, headers, piggy_id, amount="400.00")

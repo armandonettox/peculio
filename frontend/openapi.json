@@ -2301,6 +2301,10 @@
             "title": "Account Name",
             "type": "string"
           },
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -2371,6 +2375,7 @@
           "currency_code",
           "target_amount",
           "target_date",
+          "active",
           "saved",
           "remaining",
           "percent",
@@ -2385,6 +2390,17 @@
         "additionalProperties": false,
         "description": "A conta nao muda: o guardado so faz sentido nela. `target_date` enviado como null tira a data.",
         "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
           "name": {
             "anyOf": [
               {
@@ -6831,6 +6847,22 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "active",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Active"
             }
           },
           {

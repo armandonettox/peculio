@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Numeric, String, Text, Uuid, func
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Numeric, String, Text, Uuid, func, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -22,6 +22,8 @@ class PiggyBank(Base):
     name: Mapped[str] = mapped_column(String(100))
     target_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2))
     target_date: Mapped[date | None] = mapped_column(Date)
+    # Arquivado some da lista, mas o guardado continua reservado na conta ate ser retirado
+    active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

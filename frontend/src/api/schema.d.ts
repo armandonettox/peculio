@@ -1979,6 +1979,8 @@ export interface components {
             account_id: string;
             /** Account Name */
             account_name: string;
+            /** Active */
+            active: boolean;
             /**
              * Created At
              * Format: date-time
@@ -2011,6 +2013,8 @@ export interface components {
          * @description A conta nao muda: o guardado so faz sentido nela. `target_date` enviado como null tira a data.
          */
         PiggyBankUpdate: {
+            /** Active */
+            active?: boolean | null;
             /** Name */
             name?: string | null;
             /** Target Amount */
@@ -4094,6 +4098,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                active?: boolean | null;
                 limit?: number;
                 offset?: number;
             };

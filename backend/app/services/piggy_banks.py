@@ -76,6 +76,8 @@ def update_piggy_bank(db: Session, piggy: PiggyBank, data: PiggyBankUpdate) -> P
         piggy.target_amount = data.target_amount
     if "target_date" in sent:
         piggy.target_date = data.target_date
+    if data.active is not None:
+        piggy.active = data.active
     _save(db, piggy)
     return piggy
 
@@ -159,6 +161,7 @@ def build_outputs(db: Session, piggies: Sequence[PiggyBank], today: date) -> lis
                 "currency_code": account.currency_code,
                 "target_amount": quantize_money(piggy.target_amount, decimals),
                 "target_date": piggy.target_date,
+                "active": piggy.active,
                 "saved": quantize_money(total, decimals),
                 "remaining": quantize_money(remaining, decimals),
                 # Divisao inteira de Decimals: nunca arredonda para cima
@@ -171,8 +174,10 @@ def build_outputs(db: Session, piggies: Sequence[PiggyBank], today: date) -> lis
     return items
 
 
-def list_piggy_banks(db: Session, user_id: uuid.UUID, params: PageParams, q: str | None) -> dict:
+def list_piggy_banks(db: Session, user_id: uuid.UUID, params: PageParams, q: str | None, active: bool | None) -> dict:
     statement = select(PiggyBank).where(PiggyBank.user_id == user_id)
+    if active is not None:
+        statement = statement.where(PiggyBank.active == active)
     if q and q.strip():
         # autoescape: um "%" ou "_" digitado na busca e texto comum, nao curinga
         statement = statement.where(func.lower(PiggyBank.name).contains(q.strip().lower(), autoescape=True))
@@ -195,6 +200,8 @@ def add_event(db: Session, piggy: PiggyBank, data: PiggyBankEventCreate) -> Pigg
     check_amount(db.get(Currency, account.currency_code), data.amount)
 
     if data.kind == "add":
+        if not piggy.active:
+            raise AppError(409, ErrorCode.PIGGY_BANK_ARCHIVED, "O cofrinho esta arquivado: desarquive para guardar mais")
         balance = balances_by_account(db, [account.id]).get(account.id, ZERO)
         available = balance - reserved_by_account(db, [account.id]).get(account.id, ZERO)
         if data.amount > available:

@@ -544,3 +544,66 @@ it("cancelar a exclusao nao apaga nada", async () => {
   expect(api.mutations()).toHaveLength(0);
   expect(screen.getByText("Viagem")).toBeInTheDocument();
 });
+
+// ---------- Arquivar ----------
+
+it("arquivados ficam escondidos e aparecem com o aviso ao marcar Mostrar arquivados", async () => {
+  const api = renderPage([
+    makePiggyBank({ name: "Viagem" }),
+    makePiggyBank({ name: "Antigo", saved: "300.00", active: false }),
+  ]);
+  await screen.findByText("Viagem");
+  expect(screen.queryByText("Antigo")).not.toBeInTheDocument();
+  expect(api.state.requests.at(-1)?.query?.get("active")).toBe("true");
+
+  await userEvent.click(screen.getByLabelText("Mostrar arquivados"));
+  expect(await screen.findByText("Antigo")).toBeInTheDocument();
+  expect(within(card("Antigo")).getByText("Arquivado", { selector: "span" })).toBeInTheDocument();
+  expect(
+    within(card("Antigo")).getByText("Arquivado: o valor guardado continua reservado na conta. Retire para liberar."),
+  ).toBeInTheDocument();
+  expect(within(card("Viagem")).queryByText("Arquivado", { selector: "span" })).not.toBeInTheDocument();
+  expect(api.state.requests.at(-1)?.query?.has("active")).toBe(false);
+});
+
+it("arquivar manda active falso e o cofrinho some da lista", async () => {
+  const api = renderPage([makePiggyBank({ name: "Viagem" }), makePiggyBank({ name: "Carro" })]);
+  await screen.findByText("Viagem");
+  await openMenu("Viagem", "Arquivar");
+  await waitFor(() => expect(screen.queryByText("Viagem")).not.toBeInTheDocument());
+  expect(api.mutations()).toHaveLength(1);
+  expect(api.mutations()[0].method).toBe("PATCH");
+  expect(api.mutations()[0].body).toEqual({ active: false });
+  expect(screen.getByText("Carro")).toBeInTheDocument();
+});
+
+it("desarquivar manda active verdadeiro e tira o selo", async () => {
+  const api = renderPage([makePiggyBank({ name: "Antigo", active: false })]);
+  await userEvent.click(await screen.findByLabelText("Mostrar arquivados"));
+  await screen.findByText("Antigo");
+  await openMenu("Antigo", "Desarquivar");
+  await waitFor(() =>
+    expect(within(card("Antigo")).queryByText("Arquivado", { selector: "span" })).not.toBeInTheDocument(),
+  );
+  expect(api.mutations()[0].body).toEqual({ active: true });
+});
+
+it("cofrinho arquivado nao oferece Guardar, mas deixa retirar para liberar o valor", async () => {
+  renderPage([makePiggyBank({ name: "Antigo", saved: "300.00", active: false })]);
+  await userEvent.click(await screen.findByLabelText("Mostrar arquivados"));
+  await screen.findByText("Antigo");
+  await userEvent.click(screen.getByRole("button", { name: "Ações do cofrinho Antigo" }));
+  expect(screen.queryByRole("menuitem", { name: "Guardar" })).not.toBeInTheDocument();
+  expect(screen.getByRole("menuitem", { name: "Retirar" })).toBeInTheDocument();
+  expect(screen.getByRole("menuitem", { name: "Desarquivar" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "Arquivar" })).not.toBeInTheDocument();
+});
+
+it("falha ao arquivar aparece no aviso do topo e o cofrinho continua na lista", async () => {
+  const api = renderPage([makePiggyBank({ name: "Viagem" })]);
+  await screen.findByText("Viagem");
+  api.state.nextMutationError = { status: 404, code: "piggy_bank_not_found" };
+  await openMenu("Viagem", "Arquivar");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Cofrinho não encontrado.");
+  expect(screen.getByText("Viagem")).toBeInTheDocument();
+});

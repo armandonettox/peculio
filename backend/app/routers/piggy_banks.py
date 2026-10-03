@@ -36,10 +36,11 @@ def create_piggy_bank(data: PiggyBankCreate, user: User = Depends(get_current_us
 def list_piggy_banks(
     params: PageParams = Depends(),
     q: str | None = None,
+    active: bool | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return service.list_piggy_banks(db, user.id, params, q)
+    return service.list_piggy_banks(db, user.id, params, q, active)
 
 
 @router.get("/{piggy_bank_id}", response_model=PiggyBankOut)
