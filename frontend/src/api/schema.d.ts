@@ -1346,6 +1346,10 @@ export interface components {
             next_due_date: string;
             /** Next Due Paid */
             next_due_paid: boolean;
+            /** Oldest Overdue Date */
+            oldest_overdue_date: string | null;
+            /** Overdue Count */
+            overdue_count: number;
             /**
              * Status
              * @enum {string}

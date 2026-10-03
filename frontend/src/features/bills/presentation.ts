@@ -37,9 +37,17 @@ export function amountRangeText(item: Pick<BillStatus, "amount_min" | "amount_ma
 }
 
 /** Texto do selo de situacao. Nunca depende so da cor. */
-export function statusText(item: Pick<BillStatus, "status" | "last_due_date">): string {
+export function statusText(
+  item: Pick<BillStatus, "status" | "last_due_date" | "overdue_count" | "oldest_overdue_date">,
+): string {
   if (item.status === "paid") return "Pago";
-  if (item.status === "overdue" && item.last_due_date) return `Atrasada · venceu em ${formatDate(item.last_due_date)}`;
+  if (item.status === "overdue" && item.last_due_date) {
+    // Varios vencimentos seguidos sem pagar: mostra quantos e desde quando, nao so o ultimo
+    if (item.overdue_count > 1 && item.oldest_overdue_date) {
+      return `Atrasada · ${item.overdue_count} vencimentos atrasados, o mais antigo em ${formatDate(item.oldest_overdue_date)}`;
+    }
+    return `Atrasada · venceu em ${formatDate(item.last_due_date)}`;
+  }
   return "A vencer";
 }
 

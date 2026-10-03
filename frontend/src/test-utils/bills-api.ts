@@ -21,6 +21,8 @@ export function makeBill(overrides: Partial<BillStatus> = {}): BillStatus {
     last_due_date: "2026-03-05",
     next_due_date: "2026-04-05",
     status: "overdue",
+    overdue_count: 1,
+    oldest_overdue_date: "2026-03-05",
     next_due_paid: false,
     ...overrides,
   };

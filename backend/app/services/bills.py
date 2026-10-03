@@ -70,6 +70,19 @@ def _paid(payments: Sequence[date], low: date | None, high: date) -> bool:
     return any((low is None or day > low) and day <= high for day in payments)
 
 
+def _overdue_run(first: date, frequency: BillFrequency, payments: Sequence[date], last_index: int) -> tuple[int, date]:
+    """Quantos vencimentos seguidos, ate o de numero `last_index` (que esta sem pagamento), ficaram sem pagar,
+    e a data do mais antigo deles. Para no primeiro pago ou no primeiro vencimento da conta."""
+    count, index = 0, last_index
+    while index >= 0:
+        low, high = window(first, frequency, index)
+        if _paid(payments, low, high):
+            break
+        count += 1
+        index -= 1
+    return count, occurrence(first, frequency, last_index - count + 1)
+
+
 # ---------- Acesso e CRUD ----------
 
 
@@ -205,18 +218,25 @@ def status(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) ->
         next_index = 0 if index is None else index + 1
         next_due = occurrence(bill.first_due_date, bill.frequency, next_index)
         low_next, high_next = window(bill.first_due_date, bill.frequency, next_index)
+        overdue_count, oldest_overdue = 0, None
         if index is None:
             last_due, state = None, "upcoming"
         else:
             last_due = occurrence(bill.first_due_date, bill.frequency, index)
             low, high = window(bill.first_due_date, bill.frequency, index)
-            state = "paid" if _paid(payments[bill.id], low, high) else "overdue"
+            if _paid(payments[bill.id], low, high):
+                state = "paid"
+            else:
+                state = "overdue"
+                overdue_count, oldest_overdue = _overdue_run(bill.first_due_date, bill.frequency, payments[bill.id], index)
         items.append(
             {
                 **bill_output(bill, places[bill.currency_code]),
                 "last_due_date": last_due,
                 "next_due_date": next_due,
                 "status": state,
+                "overdue_count": overdue_count,
+                "oldest_overdue_date": oldest_overdue,
                 "next_due_paid": _paid(payments[bill.id], low_next, high_next),
             }
         )

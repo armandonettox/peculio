@@ -469,6 +469,54 @@ def test_unlinked_transactions_do_not_pay_anything(client, headers):
     assert status(client, headers, on="2026-03-10").json()[0]["status"] == "overdue"
 
 
+def test_one_missed_due_date_is_one_overdue(client, headers):
+    make_bill(client, headers)
+    [item] = status(client, headers, on="2026-03-10").json()
+    assert item["overdue_count"] == 1
+    assert item["oldest_overdue_date"] == "2026-03-05"
+
+
+def test_several_missed_due_dates_in_a_row_are_counted_with_the_oldest_date(client, headers):
+    make_bill(client, headers)
+    [item] = status(client, headers, on="2026-05-10").json()
+    assert item["last_due_date"] == "2026-05-05"
+    assert item["overdue_count"] == 3
+    assert item["oldest_overdue_date"] == "2026-03-05"
+
+
+def test_the_count_stops_at_the_last_paid_due_date(client, headers):
+    account_id = make_account(client, headers)
+    make_bill(client, headers)
+    spend(client, headers, account_id, on="2026-03-06")
+    [item] = status(client, headers, on="2026-05-10").json()
+    assert item["overdue_count"] == 2
+    assert item["oldest_overdue_date"] == "2026-04-05"
+
+
+def test_an_older_unpaid_due_date_before_a_paid_one_is_not_counted(client, headers):
+    account_id = make_account(client, headers)
+    make_bill(client, headers)
+    spend(client, headers, account_id, on="2026-04-06")
+    [item] = status(client, headers, on="2026-05-10").json()
+    assert item["overdue_count"] == 1
+    assert item["oldest_overdue_date"] == "2026-05-05"
+
+
+def test_a_paid_bill_has_no_overdue_run(client, headers):
+    account_id = make_account(client, headers)
+    make_bill(client, headers)
+    spend(client, headers, account_id, on="2026-03-06")
+    [item] = status(client, headers, on="2026-03-10").json()
+    assert item["status"] == "paid"
+    assert item["overdue_count"] == 0 and item["oldest_overdue_date"] is None
+
+
+def test_an_upcoming_bill_has_no_overdue_run(client, headers):
+    make_bill(client, headers, first_due_date="2026-09-05")
+    [item] = status(client, headers, on="2026-03-10").json()
+    assert item["overdue_count"] == 0 and item["oldest_overdue_date"] is None
+
+
 def test_status_is_sorted_by_next_due_date(client, headers):
     # Nomes em ordem alfabetica contraria a dos vencimentos: so a ordenacao por data acerta
     make_bill(client, headers, name="A tarde", first_due_date="2026-03-25")

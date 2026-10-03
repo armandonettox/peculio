@@ -60,6 +60,22 @@ it("conta paga mostra Pago", async () => {
   expect(within(card("Paga")).getByText("Pago")).toBeInTheDocument();
 });
 
+it("conta com varios vencimentos atrasados mostra quantos e o mais antigo", async () => {
+  renderPage([
+    makeBill({
+      name: "Atrasada",
+      status: "overdue",
+      last_due_date: "2026-05-05",
+      overdue_count: 3,
+      oldest_overdue_date: "2026-03-05",
+    }),
+  ]);
+  await screen.findByText("Atrasada");
+  expect(
+    within(card("Atrasada")).getByText("Atrasada · 3 vencimentos atrasados, o mais antigo em 05/03/2026"),
+  ).toBeInTheDocument();
+});
+
 it("conta atrasada mostra Atrasada e a data em que venceu", async () => {
   renderPage([makeBill({ name: "Atrasada", status: "overdue", last_due_date: "2026-03-05" })]);
   await screen.findByText("Atrasada");

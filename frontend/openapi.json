@@ -655,6 +655,22 @@
             "title": "Next Due Paid",
             "type": "boolean"
           },
+          "oldest_overdue_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Overdue Date"
+          },
+          "overdue_count": {
+            "title": "Overdue Count",
+            "type": "integer"
+          },
           "status": {
             "enum": [
               "upcoming",
@@ -679,6 +695,8 @@
           "last_due_date",
           "next_due_date",
           "status",
+          "overdue_count",
+          "oldest_overdue_date",
           "next_due_paid"
         ],
         "title": "BillStatusOut",

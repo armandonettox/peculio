@@ -97,5 +97,8 @@ class BillStatusOut(BillOut):
     next_due_date: date
     # upcoming: o primeiro vencimento ainda nao chegou; paid: o ultimo foi pago; overdue: nao foi
     status: BillStatus
+    # Vencimentos seguidos sem pagar ate o ultimo (0 se nao esta atrasada) e a data do mais antigo deles
+    overdue_count: int
+    oldest_overdue_date: date | None
     # O proximo vencimento ja foi pago adiantado
     next_due_paid: bool
