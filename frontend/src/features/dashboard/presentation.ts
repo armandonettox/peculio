@@ -3,7 +3,16 @@ import type { NetWorthCurrency } from "@/api/dashboard";
 import type { ReportRow, ReportTotals } from "@/api/reports";
 import type { UpcomingItem } from "@/api/dashboard";
 import type { DonutSlice, LineSeries } from "@/components/charts";
+import type { Transaction } from "@/api/transactions";
 import { progressState, WARNING_AT_PERCENT } from "@/features/budgets/presentation";
+import {
+  directionOf,
+  formatTransactionAmount,
+  transactionDate,
+  transactionTitle,
+  type Direction,
+} from "@/features/transactions/presentation";
+import { shiftDay } from "@/lib/dates";
 import { formatMoney, isNegativeMoney, negateMoney, sumMoney } from "@/lib/money";
 
 // Regras de calculo e formatacao do painel. Sem JSX aqui: so o que da para testar sem renderizar nada.
@@ -151,4 +160,45 @@ export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[])
     });
   }
   return alerts;
+}
+
+// ---------- Ultimas transacoes (linha compacta) ----------
+
+/** "Hoje", "Ontem", "13/03" (mesmo ano) ou "31/12/25" (outro ano): cabe numa coluna estreita. */
+export function shortDayLabel(date: string, today: string): string {
+  if (date === today) return "Hoje";
+  if (date === shiftDay(today, -1)) return "Ontem";
+  const [year, month, day] = date.split("-");
+  return year === today.slice(0, 4) ? `${day}/${month}` : `${day}/${month}/${year.slice(2)}`;
+}
+
+export type RecentLine = {
+  id: string;
+  date: string;
+  title: string;
+  // Categoria, ou "Dividida em N"; vazio quando nao ha o que dizer
+  detail: string | null;
+  // Com sinal; null quando os splits nao somam de forma honesta (moedas ou sentidos diferentes)
+  amount: string | null;
+  direction: Direction;
+};
+
+/** Os dados de uma linha da lista "Ultimas transacoes" do painel. */
+export function recentLine(
+  transaction: Transaction,
+  categories: Map<string, { name: string }>,
+  today: string,
+): RecentLine {
+  const [first] = transaction.splits;
+  const divided = transaction.splits.length > 1;
+  // Na dividida cada parte pode ter a sua categoria, entao o detalhe diz so quantas partes sao
+  const category = first?.category_id ? categories.get(first.category_id) : undefined;
+  return {
+    id: transaction.id,
+    date: shortDayLabel(transactionDate(transaction), today),
+    title: transactionTitle(transaction),
+    detail: divided ? `Dividida em ${transaction.splits.length}` : (category?.name ?? null),
+    amount: formatTransactionAmount(transaction),
+    direction: first ? directionOf(first) : "neutral",
+  };
 }

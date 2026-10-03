@@ -6,11 +6,12 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import type { Account } from "@/api/accounts";
 import type { ReportTotals } from "@/api/reports";
+import { syncAppClock } from "@/lib/app-clock";
 import { formatMoney } from "@/lib/money";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeDashboardApi, makeNetWorth, makeNetWorthCurrency, makeUpcoming, makeUpcomingItem } from "@/test-utils/dashboard-api";
-import { fakeLabelsApi } from "@/test-utils/labels-api";
+import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { fakePiggyBanksApi, makePiggyBank } from "@/test-utils/piggy-banks-api";
 import { fakeReportsApi, makeGroup, makeRow, makeTotals } from "@/test-utils/reports-api";
@@ -596,4 +597,103 @@ it("este mes: moeda sem casas decimais (JPY) compara em unidades inteiras", asyn
   const rows = within(table).getAllByRole("row");
   expect(within(rows[1]).getByText(/300 a mais/)).toBeInTheDocument();
   expect(within(rows[2]).getByText(/50 a menos/)).toBeInTheDocument();
+});
+
+// ---------- Ultimas transacoes: linhas compactas ----------
+
+// O Testing Library troca o espaco sem quebra do Intl por espaco comum; o texto esperado precisa fazer o mesmo
+const money = (value: string) => formatMoney(value, "BRL").replace(/\s/g, " ");
+
+function renderWithTransactions(transactions: ReturnType<typeof makeTransaction>[], categories = [makeLabel({ name: "Mercado" })]) {
+  const accounts = [makeAccount({ name: "Nubank" })];
+  renderWithDashboard(
+    { netWorth: makeNetWorth(), upcoming: makeUpcoming() },
+    { first: [...fakeTransactionsApi(transactions, accounts).handlers, ...fakeLabelsApi("categories", categories).handlers] },
+  );
+}
+
+it("transacoes: cada lancamento e uma linha so, com data, titulo, categoria e valor", async () => {
+  const mercado = makeLabel({ name: "Mercado" });
+  renderWithTransactions(
+    [makeTransaction({}, [{ description: "Compra do mes", date: "2026-03-14", amount: "132.40", category_id: mercado.id }])],
+    [mercado],
+  );
+  const section = await region("Últimas transações");
+  const row = (await within(section).findByText("Compra do mes")).closest("li") as HTMLElement;
+  expect(within(row).getByText("Ontem")).toBeInTheDocument();
+  expect(within(row).getByText(/Mercado/)).toBeInTheDocument();
+  expect(within(row).getByText(money("-132.40"))).toBeInTheDocument();
+  // Sem cartao: nao ha menu de acoes dentro do bloco
+  expect(within(section).queryByRole("button")).not.toBeInTheDocument();
+});
+
+it("transacoes: entrada em verde, saida na cor normal", async () => {
+  renderWithTransactions([
+    makeTransaction({}, [{ type: "deposit", description: "Salario do mes", date: "2026-03-15", amount: "7200.00" }]),
+    makeTransaction({}, [{ description: "Padaria", date: "2026-03-15", amount: "12.00" }]),
+  ]);
+  const section = await region("Últimas transações");
+  const income = await within(section).findByText("+" + money("7200.00"));
+  expect(income).toHaveClass("text-positive");
+  expect(within(section).getByText(money("-12.00"))).not.toHaveClass("text-positive");
+});
+
+it("transacoes: titulo longo e cortado com reticencias e guarda o texto inteiro no title", async () => {
+  const long = "Compra muito longa no supermercado do bairro com varias coisas que nao cabem na linha do painel";
+  renderWithTransactions([makeTransaction({}, [{ description: long, date: "2026-03-15" }])]);
+  const section = await region("Últimas transações");
+  const title = await within(section).findByText(long);
+  const paragraph = title.closest("p") as HTMLElement;
+  expect(paragraph).toHaveClass("truncate");
+  expect(paragraph).toHaveAttribute("title", long);
+});
+
+it("transacoes: o title da linha traz titulo e categoria, para ler o que o corte esconde", async () => {
+  const mercado = makeLabel({ name: "Mercado" });
+  renderWithTransactions([makeTransaction({}, [{ description: "Compra do mes", date: "2026-03-15", category_id: mercado.id }])], [mercado]);
+  const section = await region("Últimas transações");
+  const title = await within(section).findByText("Compra do mes");
+  expect(title.closest("p")).toHaveAttribute("title", "Compra do mes · Mercado");
+});
+
+it("transacoes: dividido com categoria no primeiro split mostra so as partes, nao a categoria", async () => {
+  const mercado = makeLabel({ name: "Mercado" });
+  renderWithTransactions(
+    [makeTransaction({ title: "Compras" }, [
+      { description: "A", date: "2026-03-15", amount: "10.00", category_id: mercado.id },
+      { description: "B", date: "2026-03-15", amount: "10.00" },
+    ])],
+    [mercado],
+  );
+  const section = await region("Últimas transações");
+  const row = (await within(section).findByText("Compras")).closest("li") as HTMLElement;
+  expect(within(row).getByText(/Dividida em 2/)).toBeInTheDocument();
+  expect(within(row).queryByText(/Mercado/)).not.toBeInTheDocument();
+});
+
+it("transacoes: lancamento dividido diz em quantas partes e soma o valor", async () => {
+  renderWithTransactions([
+    makeTransaction({ title: "Churrasco" }, [
+      { description: "Carne", date: "2026-03-15", amount: "30.00" },
+      { description: "Bebida", date: "2026-03-15", amount: "20.00" },
+    ]),
+  ]);
+  const section = await region("Últimas transações");
+  const row = (await within(section).findByText("Churrasco")).closest("li") as HTMLElement;
+  expect(within(row).getByText(/Dividida em 2/)).toBeInTheDocument();
+  expect(within(row).getByText(money("-50.00"))).toBeInTheDocument();
+});
+
+it("transacoes: o dia vem do relogio do app (aparelho atrasado ainda mostra Hoje e Ontem certos)", async () => {
+  vi.setSystemTime(new Date("2020-01-15T12:00:00Z"));
+  syncAppClock({ now: "2026-03-15T15:00:00Z", timezone: "America/Sao_Paulo" });
+  renderWithTransactions([
+    makeTransaction({}, [{ description: "De hoje", date: "2026-03-15" }]),
+    makeTransaction({}, [{ description: "De ontem", date: "2026-03-14" }]),
+  ]);
+  const section = await region("Últimas transações");
+  const today = (await within(section).findByText("De hoje")).closest("li") as HTMLElement;
+  const yesterday = within(section).getByText("De ontem").closest("li") as HTMLElement;
+  expect(within(today).getByText("Hoje")).toBeInTheDocument();
+  expect(within(yesterday).getByText("Ontem")).toBeInTheDocument();
 });

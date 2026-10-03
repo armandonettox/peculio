@@ -1,9 +1,10 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { BudgetProgress } from "@/api/budgets";
 import type { ReportRow } from "@/api/reports";
 import type { UpcomingItem } from "@/api/dashboard";
 import { formatMoney } from "@/lib/money";
+import { makeTransaction } from "@/test-utils/transaction-fixtures";
 import {
   buildAlerts,
   categorySlices,
@@ -14,6 +15,8 @@ import {
   formatDiff,
   formatPercent,
   pickCurrency,
+  recentLine,
+  shortDayLabel,
   trendFor,
   upcomingAmountText,
 } from "./presentation";
@@ -194,4 +197,108 @@ it("uma conta atrasada e um orcamento no limite usam o singular", () => {
   const alerts = buildAlerts([upcomingItem({ overdue: true })], [budget({ percent: 100 })]);
   expect(alerts[0].text).toBe("1 conta atrasada");
   expect(alerts[1].text).toBe("1 orçamento no limite");
+});
+
+// ---------- Ultimas transacoes (linha compacta) ----------
+
+describe("shortDayLabel", () => {
+  it.each([
+    ["2026-03-15", "2026-03-15", "Hoje"],
+    ["2026-03-14", "2026-03-15", "Ontem"],
+    ["2026-03-13", "2026-03-15", "13/03"],
+    ["2026-01-02", "2026-03-15", "02/01"],
+    ["2025-12-31", "2026-03-15", "31/12/25"],
+    ["2026-03-16", "2026-03-15", "16/03"],
+    // Virada de ano: ontem e 31/12 do ano anterior, e continua sendo "Ontem"
+    ["2025-12-31", "2026-01-01", "Ontem"],
+    ["2025-12-30", "2026-01-01", "30/12/25"],
+    ["2024-02-29", "2024-03-01", "Ontem"],
+  ])("%s com hoje em %s -> %s", (date, today, expected) => {
+    expect(shortDayLabel(date, today)).toBe(expected);
+  });
+});
+
+describe("recentLine", () => {
+  const categories = new Map([["cat-1", { id: "cat-1", name: "Mercado" }]]);
+  const today = "2026-03-15";
+
+  it("uma saida com categoria: data, titulo, categoria e valor com sinal", () => {
+    const line = recentLine(
+      makeTransaction({}, [{ description: "Compra do mes", date: "2026-03-14", amount: "132.40", category_id: "cat-1" }]),
+      categories,
+      today,
+    );
+    expect(line).toMatchObject({
+      date: "Ontem",
+      title: "Compra do mes",
+      detail: "Mercado",
+      amount: formatMoney("-132.40", "BRL"),
+      direction: "out",
+    });
+  });
+
+  it("uma entrada tem direcao in e valor com mais", () => {
+    const line = recentLine(
+      makeTransaction({}, [{ type: "deposit", description: "Salario", date: "2026-03-15", amount: "7200.00" }]),
+      categories,
+      today,
+    );
+    expect(line.direction).toBe("in");
+    expect(line.amount).toBe("+" + formatMoney("7200.00", "BRL"));
+    expect(line.date).toBe("Hoje");
+  });
+
+  it("transferencia e neutra e nao leva sinal", () => {
+    const line = recentLine(makeTransaction({}, [{ type: "transfer", description: "Reserva", amount: "1000.00" }]), categories, today);
+    expect(line.direction).toBe("neutral");
+    expect(line.amount).toBe(formatMoney("1000.00", "BRL"));
+  });
+
+  it("sem categoria ou com categoria que nao existe mais, nao ha detalhe", () => {
+    expect(recentLine(makeTransaction({}, [{ category_id: null }]), categories, today).detail).toBeNull();
+    expect(recentLine(makeTransaction({}, [{ category_id: "sumiu" }]), categories, today).detail).toBeNull();
+  });
+
+  it("o titulo do grupo vence a descricao do primeiro split", () => {
+    const line = recentLine(makeTransaction({ title: "Churrasco" }, [{ description: "Carne" }]), categories, today);
+    expect(line.title).toBe("Churrasco");
+  });
+
+  it("lancamento dividido mostra quantas partes e a data mais recente dos splits", () => {
+    const line = recentLine(
+      makeTransaction({}, [
+        { description: "Carne", date: "2026-03-10", amount: "30.00", category_id: "cat-1" },
+        { description: "Bebida", date: "2026-03-12", amount: "20.00", category_id: null },
+        { description: "Carvao", date: "2026-03-11", amount: "10.00" },
+      ]),
+      categories,
+      today,
+    );
+    expect(line.detail).toBe("Dividida em 3");
+    expect(line.date).toBe("12/03");
+    expect(line.amount).toBe(formatMoney("-60.00", "BRL"));
+  });
+
+  it("splits que nao somam (moedas diferentes) ficam sem valor, em vez de um total errado", () => {
+    const line = recentLine(
+      makeTransaction({}, [
+        { description: "A", amount: "10.00", currency_code: "BRL" },
+        { description: "B", amount: "5.00", currency_code: "USD" },
+      ]),
+      categories,
+      today,
+    );
+    expect(line.amount).toBeNull();
+    expect(line.detail).toBe("Dividida em 2");
+  });
+
+  it("guarda o id para a chave da lista", () => {
+    const transaction = makeTransaction();
+    expect(recentLine(transaction, categories, today).id).toBe(transaction.id);
+  });
+
+  it("sem descricao nem titulo usa o texto padrao da lista de transacoes", () => {
+    const line = recentLine(makeTransaction({}, [{ description: "" }]), categories, today);
+    expect(line.title).toBe("Sem descrição");
+  });
 });
