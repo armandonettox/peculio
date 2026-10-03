@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { accountsKey } from "./accounts";
 import { api, unwrap } from "./client";
-import { billsKey, budgetsKey, recurrencesKey } from "./query-keys";
+import { billsKey, budgetsKey, dashboardKey, recurrencesKey } from "./query-keys";
 import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
@@ -32,7 +32,7 @@ function useRefresh() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all(
-      [recurrencesKey, transactionsKey, accountsKey, budgetsKey, billsKey].map((queryKey) =>
+      [recurrencesKey, transactionsKey, accountsKey, budgetsKey, billsKey, dashboardKey].map((queryKey) =>
         queryClient.invalidateQueries({ queryKey }),
       ),
     );
