@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     # Pasta dos anexos dos lancamentos (um volume em producao) e tamanho maximo de cada arquivo
     attachments_dir: str = "/data/attachments"
     attachment_max_bytes: int = 10 * 1024 * 1024
+    # Extrato de banco (CSV ou OFX): tamanho do arquivo e quantas linhas uma importacao aceita
+    import_max_bytes: int = 5 * 1024 * 1024
+    import_max_rows: int = 5000
     # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
     app_timezone: str = "America/Sao_Paulo"
 

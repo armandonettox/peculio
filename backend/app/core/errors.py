@@ -76,6 +76,11 @@ class ErrorCode(StrEnum):
     ATTACHMENT_TOO_LARGE = "attachment_too_large"
     ATTACHMENT_EMPTY = "attachment_empty"
     ATTACHMENT_LIMIT_REACHED = "attachment_limit_reached"
+    # Importacao de extrato
+    IMPORT_FILE_INVALID = "import_file_invalid"
+    IMPORT_FILE_TOO_LARGE = "import_file_too_large"
+    IMPORT_TOO_MANY_ROWS = "import_too_many_rows"
+    IMPORT_ACCOUNT_INVALID = "import_account_invalid"
     # Contas e moedas
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"

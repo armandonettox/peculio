@@ -529,6 +529,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Import
+         * @description Cria os lancamentos das linhas enviadas. Tudo ou nada: se uma linha for recusada, nenhuma entra.
+         */
+        post: operations["confirm_import_api_v1_imports_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Import
+         * @description Le o extrato (CSV ou OFX) e mostra o que entraria na conta, sem gravar nada. No CSV, `mapping` e um JSON
+         *     com as colunas; sem ele o servidor tenta adivinhar pelo cabecalho.
+         */
+        post: operations["preview_import_api_v1_imports_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites": {
         parameters: {
             query?: never;
@@ -1375,6 +1416,18 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** Body_preview_import_api_v1_imports_preview_post */
+        Body_preview_import_api_v1_imports_preview_post: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** File */
+            file: string;
+            /** Mapping */
+            mapping?: string | null;
+        };
         /** Body_upload_attachment_api_v1_transactions__transaction_id__attachments_post */
         Body_upload_attachment_api_v1_transactions__transaction_id__attachments_post: {
             /** File */
@@ -1607,6 +1660,113 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImportConfirm */
+        ImportConfirm: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Rows */
+            rows: components["schemas"]["ImportRowIn"][];
+        };
+        /** ImportCountsOut */
+        ImportCountsOut: {
+            /** Duplicate */
+            duplicate: number;
+            /** Error */
+            error: number;
+            /** New */
+            new: number;
+        };
+        /**
+         * ImportMapping
+         * @description Qual coluna do CSV e cada informacao. As colunas contam a partir de 0. O valor vem de uma coluna
+         *     com sinal, ou de duas colunas (debito e credito).
+         */
+        ImportMapping: {
+            /** Amount Column */
+            amount_column?: number | null;
+            /** Credit Column */
+            credit_column?: number | null;
+            /** Date Column */
+            date_column: number;
+            /** Debit Column */
+            debit_column?: number | null;
+            /** Description Column */
+            description_column: number;
+            /**
+             * Has Header
+             * @default true
+             */
+            has_header: boolean;
+        };
+        /** ImportPreviewOut */
+        ImportPreviewOut: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Columns */
+            columns: string[] | null;
+            counts: components["schemas"]["ImportCountsOut"];
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "csv" | "ofx";
+            mapping: components["schemas"]["ImportMapping"] | null;
+            /** Needs Mapping */
+            needs_mapping: boolean;
+            /** Rows */
+            rows: components["schemas"]["ImportRowOut"][];
+            /** Sample */
+            sample: string[][] | null;
+        };
+        /** ImportResultOut */
+        ImportResultOut: {
+            /** Created */
+            created: number;
+            /** Skipped */
+            skipped: number;
+        };
+        /** ImportRowIn */
+        ImportRowIn: {
+            /** Amount */
+            amount: number | string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /** External Id */
+            external_id?: string | null;
+        };
+        /** ImportRowOut */
+        ImportRowOut: {
+            /** Amount */
+            amount: string | null;
+            /** Date */
+            date: string | null;
+            /** Description */
+            description: string;
+            /** Duplicate Kind */
+            duplicate_kind: ("same_id" | "similar") | null;
+            /** External Id */
+            external_id: string | null;
+            /** Index */
+            index: number;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "duplicate" | "error";
         };
         /** InviteCreate */
         InviteCreate: {
@@ -3987,6 +4147,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpcomingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_import_api_v1_imports_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportConfirm"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_import_api_v1_imports_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_import_api_v1_imports_preview_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreviewOut"];
                 };
             };
             /** @description Validation Error */

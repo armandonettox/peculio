@@ -18,6 +18,7 @@ from sqlalchemy import (
     Text,
     Uuid,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -73,6 +74,15 @@ class TransactionSplit(Base):
         Index("ix_transaction_splits_source_account_id_date", "source_account_id", "date"),
         Index("ix_transaction_splits_destination_account_id_date", "destination_account_id", "date"),
         Index("ix_transaction_splits_user_id_date", "user_id", "date"),
+        # O mesmo identificador do banco numa conta so entra uma vez (importacao de OFX)
+        Index(
+            "uq_transaction_splits_external_id",
+            "user_id",
+            "external_account_id",
+            "external_id",
+            unique=True,
+            postgresql_where=text("external_id IS NOT NULL"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -97,6 +107,10 @@ class TransactionSplit(Base):
     # Conta a pagar que esta saida quitou. Excluir a conta a pagar solta o lancamento.
     bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bills.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
+    # De onde veio um lancamento importado: o identificador que o banco deu (FITID do OFX) e a conta em que
+    # ele vale. Serve para nao importar o mesmo lancamento duas vezes. Lancamento comum fica sem os dois.
+    external_id: Mapped[str | None] = mapped_column(String(255))
+    external_account_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("accounts.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

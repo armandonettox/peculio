@@ -380,11 +380,23 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     commit e os splits antigos continuam como estavam.
     """
     transaction.title = data.title
+    # O identificador que o banco deu a um lancamento importado nao some na edicao: senao reimportar o mesmo
+    # extrato criaria o lancamento de novo. Vale por posicao da linha.
+    external = {
+        position: (external_id, account_id)
+        for position, external_id, account_id in db.execute(
+            select(
+                TransactionSplit.position, TransactionSplit.external_id, TransactionSplit.external_account_id
+            ).where(TransactionSplit.transaction_id == transaction.id, TransactionSplit.external_id.is_not(None))
+        )
+    }
     db.execute(delete(TransactionSplit).where(TransactionSplit.transaction_id == transaction.id))
     db.flush()
     rules = load_rule_defs(db, user.id)
     for position, split_data in enumerate(data.splits):
-        _build_split(db, user, transaction.id, split_data, position, rules)
+        created = _build_split(db, user, transaction.id, split_data, position, rules)
+        if position in external:
+            created.external_id, created.external_account_id = external[position]
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
     return transaction

@@ -800,6 +800,37 @@
         "title": "BillUpdate",
         "type": "object"
       },
+      "Body_preview_import_api_v1_imports_preview_post": {
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mapping"
+          }
+        },
+        "required": [
+          "account_id",
+          "file"
+        ],
+        "title": "Body_preview_import_api_v1_imports_preview_post",
+        "type": "object"
+      },
       "Body_upload_attachment_api_v1_transactions__transaction_id__attachments_post": {
         "properties": {
           "file": {
@@ -1383,6 +1414,365 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ImportConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRowIn"
+            },
+            "minItems": 1,
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "account_id",
+          "rows"
+        ],
+        "title": "ImportConfirm",
+        "type": "object"
+      },
+      "ImportCountsOut": {
+        "properties": {
+          "duplicate": {
+            "title": "Duplicate",
+            "type": "integer"
+          },
+          "error": {
+            "title": "Error",
+            "type": "integer"
+          },
+          "new": {
+            "title": "New",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "new",
+          "duplicate",
+          "error"
+        ],
+        "title": "ImportCountsOut",
+        "type": "object"
+      },
+      "ImportMapping": {
+        "additionalProperties": false,
+        "description": "Qual coluna do CSV e cada informacao. As colunas contam a partir de 0. O valor vem de uma coluna\ncom sinal, ou de duas colunas (debito e credito).",
+        "properties": {
+          "amount_column": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Column"
+          },
+          "credit_column": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Column"
+          },
+          "date_column": {
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Date Column",
+            "type": "integer"
+          },
+          "debit_column": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debit Column"
+          },
+          "description_column": {
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Description Column",
+            "type": "integer"
+          },
+          "has_header": {
+            "default": true,
+            "title": "Has Header",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "date_column",
+          "description_column"
+        ],
+        "title": "ImportMapping",
+        "type": "object"
+      },
+      "ImportPreviewOut": {
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "columns": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Columns"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/ImportCountsOut"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "ofx"
+            ],
+            "title": "Format",
+            "type": "string"
+          },
+          "mapping": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportMapping"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "needs_mapping": {
+            "title": "Needs Mapping",
+            "type": "boolean"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample"
+          }
+        },
+        "required": [
+          "format",
+          "account_id",
+          "columns",
+          "sample",
+          "mapping",
+          "needs_mapping",
+          "rows",
+          "counts"
+        ],
+        "title": "ImportPreviewOut",
+        "type": "object"
+      },
+      "ImportResultOut": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "created",
+          "skipped"
+        ],
+        "title": "ImportResultOut",
+        "type": "object"
+      },
+      "ImportRowIn": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          }
+        },
+        "required": [
+          "date",
+          "description",
+          "amount"
+        ],
+        "title": "ImportRowIn",
+        "type": "object"
+      },
+      "ImportRowOut": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "duplicate_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "same_id",
+                  "similar"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Kind"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "duplicate",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "date",
+          "description",
+          "amount",
+          "external_id",
+          "status",
+          "duplicate_kind",
+          "reason"
+        ],
+        "title": "ImportRowOut",
         "type": "object"
       },
       "InviteCreate": {
@@ -6680,6 +7070,100 @@
         "summary": "Get Upcoming",
         "tags": [
           "dashboard"
+        ]
+      }
+    },
+    "/api/v1/imports/confirm": {
+      "post": {
+        "description": "Cria os lancamentos das linhas enviadas. Tudo ou nada: se uma linha for recusada, nenhuma entra.",
+        "operationId": "confirm_import_api_v1_imports_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Confirm Import",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/imports/preview": {
+      "post": {
+        "description": "Le o extrato (CSV ou OFX) e mostra o que entraria na conta, sem gravar nada. No CSV, `mapping` e um JSON\ncom as colunas; sem ele o servidor tenta adivinhar pelo cabecalho.",
+        "operationId": "preview_import_api_v1_imports_preview_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_import_api_v1_imports_preview_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Preview Import",
+        "tags": [
+          "imports"
         ]
       }
     },

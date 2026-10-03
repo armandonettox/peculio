@@ -21,6 +21,7 @@ from app.routers import (
     clock,
     currencies,
     dashboard,
+    imports,
     invites,
     piggy_banks,
     recurrences,
@@ -76,6 +77,7 @@ api_v1.include_router(transactions.router)
 api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
 api_v1.include_router(attachments.router)
+api_v1.include_router(imports.router)
 api_v1.include_router(dashboard.router)
 api_v1.include_router(clock.router)
 app.include_router(api_v1)
