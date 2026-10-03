@@ -387,7 +387,7 @@ def test_connection_error_is_a_failure(client, headers, account_id, db_session, 
     run_now(db_session)
     delivery = only_delivery(db_session)
     assert delivery.status == DeliveryStatus.pending
-    assert "Falha de conexao" in delivery.last_error
+    assert delivery.last_error.startswith("Nao foi possivel conectar ao endereco")
 
 
 def test_redirects_are_not_followed(client, headers, account_id, db_session, server):

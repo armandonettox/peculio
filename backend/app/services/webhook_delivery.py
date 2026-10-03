@@ -3,6 +3,7 @@ import hmac
 import ipaddress
 import json
 import logging
+import ssl
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -117,6 +118,31 @@ def _clean(text: str, limit: int | None = None) -> str:
     return text if limit is None else text[:limit]
 
 
+def _ssl_cause(error: BaseException) -> ssl.SSLError | None:
+    """O erro de TLS por tras de uma falha de conexao, se houver (o httpx o guarda como causa)."""
+    seen: set[int] = set()
+    current: BaseException | None = error
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, ssl.SSLError):
+            return current
+        current = current.__cause__ or current.__context__
+    return None
+
+
+def explain_http_error(error: httpx.HTTPError) -> str:
+    """Texto para a pessoa, sem nome de excecao: o historico de entregas e para quem cuida do receptor,
+    nao para quem le o codigo. O nome tecnico continua no log do servidor."""
+    tls = _ssl_cause(error)
+    if isinstance(tls, ssl.SSLCertVerificationError):
+        return "O certificado HTTPS do endereco nao e valido ou nao confere com o nome do site"
+    if tls is not None:
+        return "Nao foi possivel abrir a conexao segura (HTTPS) com o endereco"
+    if isinstance(error, httpx.ConnectError):
+        return "Nao foi possivel conectar ao endereco: o servidor esta fora do ar ou recusou a conexao"
+    return "A conexao com o endereco foi interrompida antes de terminar a resposta"
+
+
 def post_webhook(
     url: str,
     secret_encrypted: str,
@@ -160,11 +186,12 @@ def post_webhook(
             # (o servidor pode ter recebido o POST) e nao reenviamos a outro IP.
             try_next = isinstance(error, httpx.ConnectTimeout)
         except httpx.HTTPError as error:
-            outcome = Outcome(False, error=f"Falha de conexao ({type(error).__name__})")
+            logger.info("Falha de conexao ao entregar webhook: %s", type(error).__name__)
+            outcome = Outcome(False, error=explain_http_error(error))
             try_next = isinstance(error, httpx.ConnectError)
         except Exception as error:  # noqa: BLE001 - uma entrega com erro estranho nao pode derrubar o laco
             logger.warning("Erro inesperado ao entregar webhook: %s", type(error).__name__)
-            return Outcome(False, error=f"Erro inesperado ({type(error).__name__})")
+            return Outcome(False, error="Erro inesperado ao entregar o aviso; os detalhes estao no registro do servidor")
         else:
             if 200 <= status_code < 300:
                 return Outcome(True, status_code=status_code, excerpt=excerpt)

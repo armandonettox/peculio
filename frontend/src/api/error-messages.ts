@@ -33,7 +33,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   webhook_not_found: "Webhook não encontrado.",
   webhook_name_taken: "Já existe um webhook com esse nome.",
   webhook_limit_reached: "Você chegou ao limite de 20 webhooks. Exclua algum para criar outro.",
-  webhook_url_invalid: "Esse endereço não pode receber webhooks. Use um endereço https:// público.",
+  webhook_url_invalid:
+    "Esse endereço não pode receber webhooks: use um endereço https:// público que responda pela internet, sem usuário e senha na URL.",
   piggy_bank_not_found:"Cofrinho não encontrado.",
   piggy_bank_name_taken: "Já existe um cofrinho com esse nome.",
   piggy_bank_account_invalid: "Um cofrinho fica em uma conta, não em uma dívida.",

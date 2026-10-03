@@ -32,6 +32,17 @@ type Props = {
   onCreated?: (created: WebhookWithSecret) => void;
 };
 
+// O formulario aceita http:// porque o servidor o libera para destinos locais (WEBHOOK_ALLOW_PRIVATE); quem
+// decide e o servidor, que o recusa por padrao. Por isso as mensagens falam dos dois casos.
+const URL_SCHEME_MESSAGE =
+  "O endereço precisa começar com https:// (ou http://, só aceito em destinos locais liberados pelo servidor).";
+const DEFAULT_URL_HINT = "Use um endereço https:// público. Endereços da rede interna são recusados.";
+const PLAIN_HTTP_HINT =
+  "Endereços http:// só funcionam se o servidor liberar destinos locais. Em uso normal, use https://.";
+
+// O campo e type=url: o navegador ja tira os espacos do comeco, entao nao ha o que aparar aqui
+const isPlainHttp = (value: string) => /^http:\/\//i.test(value);
+
 export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
   const editing = webhook !== undefined;
   const create = useCreateWebhook();
@@ -86,7 +97,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
     const found: Errors = { name: requiredError(name, "Informe o nome do webhook.") };
     const trimmedUrl = url.trim();
     if (trimmedUrl === "") found.url = "Informe o endereço que vai receber os avisos.";
-    else if (!/^https?:\/\/\S+$/i.test(trimmedUrl)) found.url = "O endereço precisa começar com https://";
+    else if (!/^https?:\/\/\S+$/i.test(trimmedUrl)) found.url = URL_SCHEME_MESSAGE;
     if (events.length === 0) found.events = "Escolha pelo menos um evento.";
 
     setErrors(found);
@@ -148,7 +159,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
             id="webhook-url"
             label="Endereço"
             error={errors.url}
-            hint="Use um endereço https:// público. Endereços da rede interna são recusados."
+            hint={isPlainHttp(url) ? PLAIN_HTTP_HINT : DEFAULT_URL_HINT}
           >
             {(props) => (
               <Input

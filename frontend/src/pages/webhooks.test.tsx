@@ -182,6 +182,14 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
   expect(api.mutations()).toHaveLength(0);
 });
 
+// A mensagem nao pode dizer que so https vale: o formulario aceita http, e o servidor so o libera para
+// destinos locais. Fica claro nos dois casos.
+const URL_SCHEME_MESSAGE = "O endereço precisa começar com https:// (ou http://, só aceito em destinos locais liberados pelo servidor).";
+const DEFAULT_HINT = "Use um endereço https:// público. Endereços da rede interna são recusados.";
+const SERVER_URL_MESSAGE =
+  "Esse endereço não pode receber webhooks: use um endereço https:// público que responda pela internet, sem usuário e senha na URL.";
+const PLAIN_HTTP_HINT = "Endereços http:// só funcionam se o servidor liberar destinos locais. Em uso normal, use https://.";
+
 it("endereco sem http ou https e recusado no campo, que recebe o foco", async () => {
   const api = renderPage();
   await openCreate();
@@ -189,7 +197,7 @@ it("endereco sem http ou https e recusado no campo, que recebe o foco", async ()
   await userEvent.type(inDialog().getByLabelText("Endereço"), "ftp://exemplo.com/x");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar webhook" }));
 
-  expect(inDialog().getByText("O endereço precisa começar com https://")).toBeInTheDocument();
+  expect(inDialog().getByText(URL_SCHEME_MESSAGE)).toBeInTheDocument();
   expect(inDialog().getByLabelText("Endereço")).toHaveFocus();
   expect(api.mutations()).toHaveLength(0);
 });
@@ -232,7 +240,7 @@ it("endereco recusado pelo servidor aparece no campo do endereco", async () => {
   await userEvent.type(inDialog().getByLabelText("Endereço"), "https://10.0.0.1/x");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar webhook" }));
 
-  const message = "Esse endereço não pode receber webhooks. Use um endereço https:// público.";
+  const message = SERVER_URL_MESSAGE;
   expect(await inDialog().findByText(message)).toBeInTheDocument();
   expect(inDialog().getByLabelText("Endereço")).toHaveFocus();
   expect(inDialog().getByLabelText("Nome")).toHaveValue("X");
@@ -685,4 +693,59 @@ it("historico longo e paginado", async () => {
   await waitFor(() => expect(inDialog().getAllByRole("listitem")).toHaveLength(2));
   expect(api.deliveryRequests().at(-1)?.query?.get("offset")).toBe("10");
   expect(inDialog().getByRole("button", { name: "Mais antigas" })).toBeDisabled();
+});
+
+// ---------- Aviso ao digitar http:// ----------
+
+it("o aviso padrao fala de https e rede interna", async () => {
+  renderPage();
+  await openCreate();
+  expect(inDialog().getByText(DEFAULT_HINT)).toBeInTheDocument();
+  expect(inDialog().queryByText(PLAIN_HTTP_HINT)).not.toBeInTheDocument();
+});
+
+it.each(["http://hooks.example.com/x", "HTTP://hooks.example.com/x"])(
+  "digitar %j troca o aviso para o de http, sem bloquear",
+  async (typed) => {
+    renderPage();
+    await openCreate();
+    await userEvent.type(inDialog().getByLabelText("Endereço"), typed);
+    expect(inDialog().getByText(PLAIN_HTTP_HINT)).toBeInTheDocument();
+    expect(inDialog().queryByText(DEFAULT_HINT)).not.toBeInTheDocument();
+    expect(inDialog().queryByText(URL_SCHEME_MESSAGE)).not.toBeInTheDocument();
+  },
+);
+
+it.each(["https://hooks.example.com/x", "httpx://hooks.example.com/x", "ftp://hooks.example.com/x", "hooks.example.com"])(
+  "digitar %j mantem o aviso padrao",
+  async (typed) => {
+    renderPage();
+    await openCreate();
+    await userEvent.type(inDialog().getByLabelText("Endereço"), typed);
+    expect(inDialog().getByText(DEFAULT_HINT)).toBeInTheDocument();
+    expect(inDialog().queryByText(PLAIN_HTTP_HINT)).not.toBeInTheDocument();
+  },
+);
+
+it("o aviso de http volta ao padrao quando a pessoa troca para https", async () => {
+  renderPage();
+  await openCreate();
+  const field = inDialog().getByLabelText("Endereço");
+  await userEvent.type(field, "http://hooks.example.com/x");
+  expect(inDialog().getByText(PLAIN_HTTP_HINT)).toBeInTheDocument();
+  await userEvent.clear(field);
+  await userEvent.type(field, "https://hooks.example.com/x");
+  expect(inDialog().getByText(DEFAULT_HINT)).toBeInTheDocument();
+});
+
+it("um endereco http:// vai ao servidor (quem decide e ele) e a recusa aparece no campo", async () => {
+  const api = renderPage();
+  await openCreate();
+  api.state.nextMutationError = { status: 422, code: "webhook_url_invalid" };
+  await userEvent.type(inDialog().getByLabelText("Nome"), "X");
+  await userEvent.type(inDialog().getByLabelText("Endereço"), "http://hooks.example.com/x");
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar webhook" }));
+  expect(await inDialog().findByText(SERVER_URL_MESSAGE)).toBeInTheDocument();
+  expect(api.mutations()).toHaveLength(1);
+  expect(api.mutations()[0].body).toMatchObject({ url: "http://hooks.example.com/x" });
 });

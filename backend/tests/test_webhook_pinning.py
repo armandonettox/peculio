@@ -205,7 +205,7 @@ def test_all_connections_failing_is_a_connection_failure(wire):
     wire.handler = handler
     outcome = post("https://hooks.example.com/x", lambda host: [PUBLIC_IP, OTHER_PUBLIC_IP])
     assert outcome.ok is False
-    assert "Falha de conexao" in outcome.error
+    assert outcome.error.startswith("Nao foi possivel conectar ao endereco")
     assert len(wire.requests) == 2
 
 
@@ -225,7 +225,7 @@ def test_a_failure_after_connecting_does_not_resend_to_another_ip(wire):
 
     wire.handler = handler
     outcome = post("https://hooks.example.com/x", lambda host: [PUBLIC_IP, OTHER_PUBLIC_IP])
-    assert "Falha de conexao" in outcome.error
+    assert "interrompida" in outcome.error
     assert len(wire.requests) == 1
 
 
