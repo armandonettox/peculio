@@ -12,12 +12,12 @@ import { PiggyBankCard, type PiggyAction } from "@/features/piggy-banks/piggy-ba
 import { PiggyBankFormDialog } from "@/features/piggy-banks/piggy-bank-form-dialog";
 import { PiggyBankHistoryDialog } from "@/features/piggy-banks/piggy-bank-history-dialog";
 import { PiggyBankMoneyDialog } from "@/features/piggy-banks/piggy-bank-money-dialog";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 
 type DialogState = { kind: "create" } | { kind: PiggyAction; piggy: PiggyBank } | null;
 
 export default function PiggyBanksPage() {
-  const today = todayLocal();
+  const today = appToday();
   const [dialog, setDialog] = useState<DialogState>(null);
   const query = usePiggyBanks();
   const remove = useDeletePiggyBank();

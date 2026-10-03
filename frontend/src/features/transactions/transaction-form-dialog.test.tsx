@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import type { Transaction } from "@/api/transactions";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
@@ -120,7 +120,7 @@ it("cria uma saida e mostra o novo lancamento na lista", async () => {
   expect(tx.state.writes).toHaveLength(1);
   expect(tx.state.writes[0].body.splits[0]).toMatchObject({
     type: "withdrawal",
-    date: todayLocal(),
+    date: appToday(),
     description: "Compra no mercado",
     amount: "1234.50",
     currency_code: "BRL",

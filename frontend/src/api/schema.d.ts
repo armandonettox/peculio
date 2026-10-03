@@ -452,6 +452,26 @@ export interface paths {
         patch: operations["update_category_api_v1_categories__category_id__patch"];
         trace?: never;
     };
+    "/api/v1/clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Clock
+         * @description Hora do servidor, fuso do app e o dia de hoje nesse fuso.
+         */
+        get: operations["get_clock_api_v1_clock_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/currencies": {
         parameters: {
             query?: never;
@@ -1477,6 +1497,25 @@ export interface components {
             color?: string | null;
             /** Name */
             name?: string | null;
+        };
+        /**
+         * ClockOut
+         * @description O relogio do app. O frontend usa isto para calcular o "hoje" igual ao do servidor, sem depender
+         *     do fuso nem do relogio do aparelho.
+         */
+        ClockOut: {
+            /**
+             * Now
+             * Format: date-time
+             */
+            now: string;
+            /** Timezone */
+            timezone: string;
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
         };
         /**
          * CounterpartyOut
@@ -3847,6 +3886,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_clock_api_v1_clock_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClockOut"];
                 };
             };
         };

@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { syncAppClock } from "@/lib/app-clock";
 
 import { makeAccount } from "@/test-utils/accounts-api";
 import { deposit, makeSplit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
@@ -795,5 +797,18 @@ describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
 
   it("recusa um modelo sem linhas", () => {
     expect(open({ splits: [] }).ok).toBe(false);
+  });
+});
+
+describe("emptyForm e o relogio do app", () => {
+  it("a data padrao do lancamento novo e o dia do servidor, nao o do aparelho", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date("2020-01-15T15:00:00Z"));
+      syncAppClock({ now: "2026-03-12T15:00:00Z", timezone: "America/Sao_Paulo" });
+      expect(emptyForm(ctx).date).toBe("2026-03-12");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

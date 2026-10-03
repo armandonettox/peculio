@@ -10,7 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { BillCard } from "@/features/bills/bill-card";
 import { BillFormDialog } from "@/features/bills/bill-form-dialog";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 
 type DialogState =
   | { kind: "create" }
@@ -19,7 +19,7 @@ type DialogState =
   | null;
 
 export default function BillsPage() {
-  const today = todayLocal();
+  const today = appToday();
   const [includeArchived, setIncludeArchived] = useState(false);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);

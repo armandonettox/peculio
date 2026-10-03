@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import { firstOfMonth, shiftMonth, todayLocal } from "@/lib/dates";
+import { firstOfMonth, shiftMonth, appToday } from "@/lib/dates";
+import { syncAppClock } from "@/lib/app-clock";
 import { fakeAccountsApi } from "@/test-utils/accounts-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { server } from "@/test-utils/msw";
@@ -138,7 +139,7 @@ it("falha ao carregar mostra o erro e permite tentar de novo", async () => {
 it("pede o progresso de hoje e permite voltar e avancar de mes", async () => {
   const api = renderPage();
   await screen.findByText("Mercado");
-  const today = todayLocal();
+  const today = appToday();
   expect(today).toBe("2026-03-15");
   expect(api.progressRequests().at(-1)?.query?.get("on")).toBe(today);
 
@@ -159,8 +160,8 @@ it("o botao Mes atual volta para hoje depois de navegar", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Mês anterior" }));
   await userEvent.click(screen.getByRole("button", { name: "Mês atual" }));
 
-  await waitFor(() => expect(api.progressRequests().at(-1)?.query?.get("on")).toBe(todayLocal()));
-  expect(firstOfMonth(todayLocal())).toBeTruthy();
+  await waitFor(() => expect(api.progressRequests().at(-1)?.query?.get("on")).toBe(appToday()));
+  expect(firstOfMonth(appToday())).toBeTruthy();
 });
 
 // ---------- Arquivados ----------
@@ -417,4 +418,14 @@ it("cancelar a exclusao nao apaga nada", async () => {
 
   expect(api.mutations()).toHaveLength(0);
   expect(screen.getByText("Mercado")).toBeInTheDocument();
+});
+
+it("o periodo e o mes do servidor, nao o do aparelho (aparelho com o relogio atrasado)", async () => {
+  // O aparelho acha que e 29/03; o servidor sabe que e 01/04 (e ja e outro mes)
+  vi.setSystemTime(new Date("2026-03-29T15:00:00Z"));
+  syncAppClock({ now: "2026-04-01T15:00:00Z", timezone: "America/Sao_Paulo" });
+  const api = renderPage();
+  await screen.findByText("Mercado");
+  expect(api.progressRequests().at(-1)?.query?.get("on")).toBe("2026-04-01");
+  expect(screen.getByText("Abril de 2026")).toBeInTheDocument();
 });

@@ -16,12 +16,12 @@ import { PiggyBanksBlock } from "@/features/dashboard/piggy-banks-block";
 import { ThisMonthBlock } from "@/features/dashboard/this-month-block";
 import { TransactionsBlock } from "@/features/dashboard/transactions-block";
 import { UpcomingBlock } from "@/features/dashboard/upcoming-block";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.name.trim().split(/\s+/)[0];
-  const today = todayLocal();
+  const today = appToday();
 
   // Enquanto nao houver nenhuma conta, o painel nao tem o que mostrar: nem dispara os
   // pedidos dos outros blocos (todos dependem, direto ou indireto, de uma conta existir)

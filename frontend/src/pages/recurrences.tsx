@@ -15,7 +15,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RecurrenceCard } from "@/features/recurrences/recurrence-card";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 
 type DialogState =
   | { kind: "create" }
@@ -24,7 +24,7 @@ type DialogState =
   | null;
 
 export default function RecurrencesPage() {
-  const today = todayLocal();
+  const today = appToday();
   const [includePaused, setIncludePaused] = useState(false);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);

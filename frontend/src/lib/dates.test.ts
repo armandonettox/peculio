@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { daysBetween, firstOfMonth, formatDate, formatDateRange, formatDayHeading, formatMonthYear, shiftDay, shiftMonth, todayLocal } from "./dates";
+import { syncAppClock } from "./app-clock";
+
+import { daysBetween, firstOfMonth, formatDate, formatDateRange, formatDayHeading, formatMonthYear, shiftDay, shiftMonth, appToday } from "./dates";
 
 describe("shiftDay", () => {
   it("soma e subtrai dias", () => {
@@ -43,8 +45,8 @@ describe("formatDayHeading", () => {
   });
 });
 
-it("todayLocal devolve a data no formato AAAA-MM-DD", () => {
-  expect(todayLocal()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+it("appToday devolve a data no formato AAAA-MM-DD", () => {
+  expect(appToday()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 });
 
 describe("firstOfMonth", () => {
@@ -102,4 +104,15 @@ describe("daysBetween", () => {
     ["2026-12-31", "2027-01-01", 1],
     ["2026-03-28", "2026-03-30", 2],
   ])("de %s a %s: %i dias", (from, to, expected) => expect(daysBetween(from, to)).toBe(expected));
+});
+
+it("appToday de dates acompanha o relogio do app e nao o do aparelho", () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  try {
+    vi.setSystemTime(new Date("2020-01-15T15:00:00Z"));
+    syncAppClock({ now: "2026-03-12T15:00:00Z", timezone: "America/Sao_Paulo" });
+    expect(appToday()).toBe("2026-03-12");
+  } finally {
+    vi.useRealTimers();
+  }
 });

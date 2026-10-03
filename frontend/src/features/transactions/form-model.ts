@@ -1,6 +1,6 @@
 import type { Account } from "@/api/accounts";
 import type { Transaction, TransactionCreate, TransactionSplitCreate } from "@/api/transactions";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { formatMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
 
 // Regras do formulario de lancamento, sem tela: validar, montar o que vai para a API e reabrir
@@ -95,7 +95,7 @@ export function defaultAccountId(accounts: Account[]): string {
 export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}): FormState {
   return {
     kind: "withdrawal",
-    date: todayLocal(),
+    date: appToday(),
     description: "",
     accountId: defaultAccountId(ctx.accounts),
     counterpartyName: "",

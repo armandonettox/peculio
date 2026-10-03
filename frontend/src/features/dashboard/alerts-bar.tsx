@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useBudgetsProgress } from "@/api/budgets";
 import { useUpcoming } from "@/api/dashboard";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { buildAlerts } from "./presentation";
 
 const LEVEL_CLASS = {
@@ -17,7 +17,7 @@ const LEVEL_CLASS = {
  */
 export function AlertsBar() {
   const upcoming = useUpcoming({ days: 30 });
-  const budgets = useBudgetsProgress({ on: todayLocal(), includeArchived: false });
+  const budgets = useBudgetsProgress({ on: appToday(), includeArchived: false });
 
   // Enquanto carrega ou se algum dos dois falha, so nao mostra nada: a faixa e um extra, e
   // cada bloco abaixo ja avisa o proprio erro

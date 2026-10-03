@@ -1,7 +1,7 @@
 // Datas do dia a dia. Os lancamentos usam so a data ("2026-03-12"), sem hora nem fuso.
 
-// Hoje no fuso do usuario (toISOString usaria UTC e viraria o dia perto da meia-noite)
-export const todayLocal = () => new Date().toLocaleDateString("sv-SE");
+// Hoje: o dia do servidor, no fuso do app (ver app-clock.ts)
+export { appToday } from "./app-clock";
 
 function parts(date: string): [number, number, number] {
   const [year, month, day] = date.split("-").map(Number);

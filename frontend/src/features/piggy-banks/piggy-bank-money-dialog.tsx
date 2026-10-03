@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { formatMoney, parseMoneyInput, placesOf } from "@/lib/money";
 
 type Field = "amount" | "date";
@@ -29,7 +29,7 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
   const currencies = useCurrencies();
   const addEvent = useAddPiggyBankEvent();
 
-  const today = todayLocal();
+  const today = appToday();
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(today);
   const [note, setNote] = useState("");

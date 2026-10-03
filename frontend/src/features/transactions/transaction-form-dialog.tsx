@@ -50,7 +50,7 @@ import {
 } from "./form-model";
 
 import { FREQUENCIES, FREQUENCY_LABELS } from "@/features/recurrences/presentation";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 
 const KIND_LABELS: Record<Kind, string> = {
   withdrawal: "Saída",
@@ -535,7 +535,7 @@ function FormBody({
           label={recurring ? "Primeira data" : "Data"}
           error={errors.date}
           hint={
-            recurring && !editing && state.date && state.date <= todayLocal()
+            recurring && !editing && state.date && state.date <= appToday()
               ? "Os lançamentos desde esta data até hoje serão criados agora."
               : recurring && editing
                 ? "A primeira data e a frequência não mudam depois de criada."

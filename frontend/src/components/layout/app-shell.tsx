@@ -2,6 +2,7 @@ import { Menu } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
+import { AppClockGate } from "@/components/app-clock-gate";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -74,7 +75,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 export function AppLayout() {
   return (
     <AppShell>
-      <Outlet />
+      <AppClockGate>
+        <Outlet />
+      </AppClockGate>
     </AppShell>
   );
 }

@@ -3,6 +3,7 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { tokenStore } from "@/auth/token-store";
+import { resetAppClock } from "@/lib/app-clock";
 import { server } from "@/test-utils/msw";
 
 // O jsdom nao implementa estes metodos de ponteiro, que o Radix (menu, gaveta) chama
@@ -28,6 +29,8 @@ afterEach(() => {
   server.resetHandlers();
   // O token e um singleton em memoria: um teste nao pode herdar a sessao do anterior
   tokenStore.clear();
+  // O relogio do app e global: um teste nao pode herdar a sincronizacao do anterior
+  resetAppClock();
   document.documentElement.classList.remove("dark");
   localStorage.clear();
 });

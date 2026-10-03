@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import type { Transaction } from "@/api/transactions";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { LocationProbe } from "@/test-utils/location-probe";
@@ -63,7 +63,7 @@ it("agrupa os lancamentos por dia, do mais recente para o mais antigo", async ()
 });
 
 it("chama o dia de hoje de Hoje", async () => {
-  renderPage({ transactions: [tx("Cafe", todayLocal())] });
+  renderPage({ transactions: [tx("Cafe", appToday())] });
   expect(await screen.findByRole("heading", { level: 2, name: "Hoje" })).toBeInTheDocument();
 });
 

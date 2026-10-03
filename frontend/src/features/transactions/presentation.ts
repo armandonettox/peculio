@@ -1,5 +1,5 @@
 import type { Transaction, TransactionSplit } from "@/api/transactions";
-import { formatDayHeading, todayLocal } from "@/lib/dates";
+import { formatDayHeading, appToday } from "@/lib/dates";
 import { formatMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
 
 // Regras de como um lancamento aparece na lista: sentido do dinheiro, rotulos e agrupamento.
@@ -89,7 +89,7 @@ export type DayGroup = { date: string; label: string; items: Transaction[] };
  * Agrupa por dia mantendo a ordem que a API mandou (mais recente primeiro). Funciona com a
  * lista de todas as paginas juntas: um dia que continua na pagina seguinte nao se divide em dois.
  */
-export function groupByDay(transactions: Transaction[], today: string = todayLocal()): DayGroup[] {
+export function groupByDay(transactions: Transaction[], today: string = appToday()): DayGroup[] {
   const groups: DayGroup[] = [];
   for (const transaction of transactions) {
     const date = transactionDate(transaction);

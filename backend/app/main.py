@@ -18,6 +18,7 @@ from app.routers import (
     budgets,
     rules,
     categories,
+    clock,
     currencies,
     dashboard,
     invites,
@@ -76,6 +77,7 @@ api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
 api_v1.include_router(attachments.router)
 api_v1.include_router(dashboard.router)
+api_v1.include_router(clock.router)
 app.include_router(api_v1)
 
 

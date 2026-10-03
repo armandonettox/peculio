@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { syncAppClock } from "@/lib/app-clock";
 import { fakeAccountsApi } from "@/test-utils/accounts-api";
 import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
 import { server } from "@/test-utils/msw";
@@ -454,4 +455,12 @@ it("cancelar a exclusao nao apaga nada", async () => {
 
   expect(api.mutations()).toHaveLength(0);
   expect(screen.getByText("Netflix")).toBeInTheDocument();
+});
+
+it("a data de referencia e o dia do servidor, nao o do aparelho (aparelho com o relogio atrasado)", async () => {
+  vi.setSystemTime(new Date("2026-03-10T15:00:00Z"));
+  syncAppClock({ now: "2026-03-20T15:00:00Z", timezone: "America/Sao_Paulo" });
+  const api = renderPage();
+  await screen.findByText("Netflix");
+  expect(api.statusRequests().at(-1)?.query?.get("on")).toBe("2026-03-20");
 });

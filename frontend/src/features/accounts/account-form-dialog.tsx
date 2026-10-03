@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
 import { DEFAULT_ROLE, KIND_LABELS, ROLE_LABELS, ROLES_BY_KIND, type AccountKind } from "./labels";
 
@@ -59,7 +59,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
   const hadOpening = account?.opening_balance_date != null;
   const initialOpening = hadOpening ? toInputText(account.opening_balance) : "";
   const [opening, setOpening] = useState(initialOpening);
-  const [openingDate, setOpeningDate] = useState(account?.opening_balance_date ?? todayLocal());
+  const [openingDate, setOpeningDate] = useState(account?.opening_balance_date ?? appToday());
   const [notes, setNotes] = useState(account?.notes ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);

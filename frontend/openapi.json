@@ -1121,6 +1121,32 @@
         "title": "CategoryUpdate",
         "type": "object"
       },
+      "ClockOut": {
+        "description": "O relogio do app. O frontend usa isto para calcular o \"hoje\" igual ao do servidor, sem depender\ndo fuso nem do relogio do aparelho.",
+        "properties": {
+          "now": {
+            "format": "date-time",
+            "title": "Now",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "today": {
+            "format": "date",
+            "title": "Today",
+            "type": "string"
+          }
+        },
+        "required": [
+          "now",
+          "timezone",
+          "today"
+        ],
+        "title": "ClockOut",
+        "type": "object"
+      },
       "CounterpartyOut": {
         "description": "Contraparte ja usada (conta de despesa ou receita), para sugerir ao digitar.",
         "properties": {
@@ -6461,6 +6487,33 @@
         "summary": "Update Category",
         "tags": [
           "categories"
+        ]
+      }
+    },
+    "/api/v1/clock": {
+      "get": {
+        "description": "Hora do servidor, fuso do app e o dia de hoje nesse fuso.",
+        "operationId": "get_clock_api_v1_clock_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Clock",
+        "tags": [
+          "clock"
         ]
       }
     },

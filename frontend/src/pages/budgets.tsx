@@ -10,7 +10,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { BudgetCard } from "@/features/budgets/budget-card";
 import { BudgetFormDialog } from "@/features/budgets/budget-form-dialog";
-import { firstOfMonth, formatMonthYear, shiftMonth, todayLocal } from "@/lib/dates";
+import { firstOfMonth, formatMonthYear, shiftMonth, appToday } from "@/lib/dates";
 
 type DialogState =
   | { kind: "create" }
@@ -19,7 +19,7 @@ type DialogState =
   | null;
 
 export default function BudgetsPage() {
-  const today = todayLocal();
+  const today = appToday();
   const currentMonth = firstOfMonth(today);
   const [month, setMonth] = useState(currentMonth);
   const [includeArchived, setIncludeArchived] = useState(false);

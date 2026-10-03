@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { todayLocal } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { isNegativeMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
 import { FREQUENCIES, FREQUENCY_LABELS } from "./presentation";
 
@@ -58,7 +58,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
   const [min, setMin] = useState(bill ? toInputText(bill.amount_min) : "");
   const [max, setMax] = useState(bill && bill.amount_max !== bill.amount_min ? toInputText(bill.amount_max) : "");
   const [match, setMatch] = useState(bill?.match_text ?? "");
-  const [date, setDate] = useState(bill?.first_due_date ?? todayLocal());
+  const [date, setDate] = useState(bill?.first_due_date ?? appToday());
   const [frequency, setFrequency] = useState<BillFrequency>(bill?.frequency ?? "monthly");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
