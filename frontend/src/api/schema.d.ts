@@ -469,6 +469,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/net-worth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Net Worth
+         * @description Patrimonio de hoje e sua evolucao mes a mes, por moeda.
+         */
+        get: operations["get_net_worth_api_v1_dashboard_net_worth_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/upcoming": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Upcoming
+         * @description Contas a pagar e recorrentes dos proximos `days` dias, mais as contas atrasadas.
+         */
+        get: operations["get_upcoming_api_v1_dashboard_upcoming_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites": {
         parameters: {
             query?: never;
@@ -1645,6 +1685,48 @@ export interface components {
              */
             date_to: string;
         };
+        /**
+         * NetWorthCurrency
+         * @description Patrimonio de uma moeda. Moedas nunca se misturam: cada uma tem a sua serie, sem conversao.
+         */
+        NetWorthCurrency: {
+            /** Assets */
+            assets: string;
+            /** Currency Code */
+            currency_code: string;
+            /** Liabilities */
+            liabilities: string;
+            /** Net */
+            net: string;
+            /** Series */
+            series: components["schemas"]["NetWorthPoint"][];
+        };
+        /** NetWorthOut */
+        NetWorthOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Currencies */
+            currencies: components["schemas"]["NetWorthCurrency"][];
+            /** Months */
+            months: number;
+        };
+        /**
+         * NetWorthPoint
+         * @description Saldo no FIM do mes `month` (AAAA-MM). No mes atual, o saldo ate hoje (`as_of`).
+         */
+        NetWorthPoint: {
+            /** Assets */
+            assets: string;
+            /** Liabilities */
+            liabilities: string;
+            /** Month */
+            month: string;
+            /** Net */
+            net: string;
+        };
         /** Page[AccountOut] */
         Page_AccountOut_: {
             /** Items */
@@ -2489,6 +2571,53 @@ export interface components {
             challenge_token: string;
             /** Code */
             code: string;
+        };
+        /** UpcomingItem */
+        UpcomingItem: {
+            /** Amount Max */
+            amount_max: string;
+            /** Amount Min */
+            amount_min: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Days Until */
+            days_until: number;
+            /**
+             * Direction
+             * @enum {string}
+             */
+            direction: "out" | "in" | "transfer";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "bill" | "recurrence";
+            /** Name */
+            name: string;
+            /** Overdue */
+            overdue: boolean;
+        };
+        /** UpcomingOut */
+        UpcomingOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Days */
+            days: number;
+            /** Items */
+            items: components["schemas"]["UpcomingItem"][];
         };
         /** UserCreate */
         UserCreate: {
@@ -3738,6 +3867,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurrencyOut"][];
+                };
+            };
+        };
+    };
+    get_net_worth_api_v1_dashboard_net_worth_get: {
+        parameters: {
+            query?: {
+                months?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetWorthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_upcoming_api_v1_dashboard_upcoming_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpcomingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

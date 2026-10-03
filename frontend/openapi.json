@@ -1582,6 +1582,105 @@
         "title": "MonthlyReportOut",
         "type": "object"
       },
+      "NetWorthCurrency": {
+        "description": "Patrimonio de uma moeda. Moedas nunca se misturam: cada uma tem a sua serie, sem conversao.",
+        "properties": {
+          "assets": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Assets",
+            "type": "string"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "liabilities": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Liabilities",
+            "type": "string"
+          },
+          "net": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Net",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/NetWorthPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency_code",
+          "assets",
+          "liabilities",
+          "net",
+          "series"
+        ],
+        "title": "NetWorthCurrency",
+        "type": "object"
+      },
+      "NetWorthOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "currencies": {
+            "items": {
+              "$ref": "#/components/schemas/NetWorthCurrency"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "months": {
+            "title": "Months",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "as_of",
+          "months",
+          "currencies"
+        ],
+        "title": "NetWorthOut",
+        "type": "object"
+      },
+      "NetWorthPoint": {
+        "description": "Saldo no FIM do mes `month` (AAAA-MM). No mes atual, o saldo ate hoje (`as_of`).",
+        "properties": {
+          "assets": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Assets",
+            "type": "string"
+          },
+          "liabilities": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Liabilities",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "net": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Net",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "assets",
+          "liabilities",
+          "net"
+        ],
+        "title": "NetWorthPoint",
+        "type": "object"
+      },
       "Page_AccountOut_": {
         "properties": {
           "items": {
@@ -4119,6 +4218,104 @@
         "title": "TwoFactorVerify",
         "type": "object"
       },
+      "UpcomingItem": {
+        "properties": {
+          "amount_max": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount Max",
+            "type": "string"
+          },
+          "amount_min": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount Min",
+            "type": "string"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "days_until": {
+            "title": "Days Until",
+            "type": "integer"
+          },
+          "direction": {
+            "enum": [
+              "out",
+              "in",
+              "transfer"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "bill",
+              "recurrence"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "name",
+          "date",
+          "days_until",
+          "overdue",
+          "direction",
+          "currency_code",
+          "amount_min",
+          "amount_max"
+        ],
+        "title": "UpcomingItem",
+        "type": "object"
+      },
+      "UpcomingOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "days",
+          "items"
+        ],
+        "title": "UpcomingOut",
+        "type": "object"
+      },
       "UserCreate": {
         "properties": {
           "email": {
@@ -6294,6 +6491,108 @@
         "summary": "List Currencies",
         "tags": [
           "currencies"
+        ]
+      }
+    },
+    "/api/v1/dashboard/net-worth": {
+      "get": {
+        "description": "Patrimonio de hoje e sua evolucao mes a mes, por moeda.",
+        "operationId": "get_net_worth_api_v1_dashboard_net_worth_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "months",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "maximum": 36,
+              "minimum": 1,
+              "title": "Months",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetWorthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Net Worth",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/dashboard/upcoming": {
+      "get": {
+        "description": "Contas a pagar e recorrentes dos proximos `days` dias, mais as contas atrasadas.",
+        "operationId": "get_upcoming_api_v1_dashboard_upcoming_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Upcoming",
+        "tags": [
+          "dashboard"
         ]
       }
     },

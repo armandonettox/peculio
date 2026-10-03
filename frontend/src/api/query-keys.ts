@@ -8,3 +8,4 @@ export const webhooksKey = ["webhooks"] as const;
 export const reportsKey = ["reports"] as const;
 export const attachmentsKey = ["attachments"] as const;
 export const rulesKey = ["rules"] as const;
+export const dashboardKey = ["dashboard"] as const;

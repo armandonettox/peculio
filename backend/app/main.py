@@ -19,6 +19,7 @@ from app.routers import (
     rules,
     categories,
     currencies,
+    dashboard,
     invites,
     piggy_banks,
     recurrences,
@@ -74,6 +75,7 @@ api_v1.include_router(transactions.router)
 api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
 api_v1.include_router(attachments.router)
+api_v1.include_router(dashboard.router)
 app.include_router(api_v1)
 
 
