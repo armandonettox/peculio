@@ -122,6 +122,43 @@ it("sem nenhuma conta, mantem o estado vazio e nao pede os dados dos outros bloc
   expect(screen.queryByRole("heading", { name: "Patrimônio" })).not.toBeInTheDocument();
 });
 
+it("se a consulta de contas falha, mostra o erro com Tentar de novo (nao o vazio) e recarrega ao tentar", async () => {
+  const user = userEvent.setup();
+  let failing = true;
+  const accountsApi = fakeAccountsApi([makeAccount()]);
+  server.use(
+    http.get("*/api/v1/accounts", () => {
+      if (failing) return HttpResponse.json({ detail: "falha" }, { status: 500 });
+      // Depois do retry, devolve a lista normal da API de mentira
+      return undefined;
+    }),
+    ...accountsApi.handlers,
+    ...fakeDashboardApi({ netWorth: makeNetWorth(), upcoming: makeUpcoming() }).handlers,
+    ...fakeReportsApi({}).handlers,
+    ...fakeBudgetsApi([]).handlers,
+    ...fakeTransactionsApi([], [makeAccount()]).handlers,
+    ...fakePiggyBanksApi([]).handlers,
+    ...fakeLabelsApi("categories", []).handlers,
+    ...fakeLabelsApi("tags", []).handlers,
+  );
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  const retry = await screen.findByRole("button", { name: "Tentar de novo" });
+  expect(screen.getByRole("alert")).toBeInTheDocument();
+  expect(screen.queryByText("Nenhuma conta ainda")).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Cadastrar conta" })).not.toBeInTheDocument();
+
+  failing = false;
+  await user.click(retry);
+  expect(await region("Patrimônio")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Tentar de novo" })).not.toBeInTheDocument();
+});
+
 // ---------- Patrimonio ----------
 
 it("patrimonio com uma moeda so: liquido, ativos e dividas aparecem", async () => {

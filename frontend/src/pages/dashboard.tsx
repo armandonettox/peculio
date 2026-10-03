@@ -2,9 +2,11 @@ import { Landmark } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
+import { getErrorMessage } from "@/api/error-messages";
 import { useAuth } from "@/auth/auth-context";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
 import { BudgetsBlock } from "@/features/dashboard/budgets-block";
@@ -35,6 +37,15 @@ export default function DashboardPage() {
 
       {accounts.isPending ? (
         <div aria-busy="true" className="h-32 animate-pulse rounded-lg border bg-muted" />
+      ) : accounts.isError ? (
+        <div className="flex flex-col items-start gap-3">
+          <Alert variant="destructive" className="w-full">
+            {getErrorMessage(accounts.error)}
+          </Alert>
+          <Button variant="outline" size="sm" onClick={() => accounts.refetch()}>
+            Tentar de novo
+          </Button>
+        </div>
       ) : !hasAccounts ? (
         <EmptyState
           icon={Landmark}
