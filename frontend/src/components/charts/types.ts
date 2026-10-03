@@ -65,5 +65,7 @@ export type SparklineProps = {
   // Texto decimal, do mais antigo ao mais recente
   values: string[];
   tone?: "positive" | "negative" | "neutral";
+  // Texto de um valor na tabela para leitor de tela (padrao: o proprio texto decimal)
+  formatValue?: (value: string) => string;
   className?: string;
 };
