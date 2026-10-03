@@ -86,6 +86,8 @@ describe("roundedPercents", () => {
     [[3, 3, 3, 1], [30, 30, 30, 10]],
     [[], []],
     [[0, 0], [0, 0]],
+    [[0.5, 0.5], [50, 50]],
+    [[0.25, 0.75], [25, 75]],
   ])("%j vira %j", (amounts, expected) => {
     expect(roundedPercents(amounts as number[])).toEqual(expected);
   });
@@ -119,6 +121,13 @@ describe("sliceAngles", () => {
     const sweeps = arcs.map((arc) => arc.end - arc.start);
     expect(sweeps.reduce((a, b) => a + b, 0)).toBeCloseTo(Math.PI * 2, 10);
     expect(sweeps[3] / sweeps[0]).toBeCloseTo(4, 10);
+  });
+
+  it("valor negativo no meio nao tira arco das outras fatias", () => {
+    const arcs = sliceAngles([10, -5, 10]);
+    expect(arcs[1].end - arcs[1].start).toBe(0);
+    expect(arcs[0].end - arcs[0].start).toBeCloseTo(Math.PI, 10);
+    expect(arcs[2].end - arcs[2].start).toBeCloseTo(Math.PI, 10);
   });
 
   it("zero e negativo ficam sem arco; total zero nao gera NaN", () => {
