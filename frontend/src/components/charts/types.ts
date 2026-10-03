@@ -33,6 +33,8 @@ export type LineChartProps = {
   // Rotulo do eixo X ("mar/26"); recebe o `x` do ponto
   formatX: (x: string) => string;
   height?: number;
+  // Preenchimento suave sob a primeira serie (padrao: sem)
+  area?: boolean;
   className?: string;
 };
 
