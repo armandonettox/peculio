@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { CHART_COLOR_NAMES } from "@/components/charts/chart-colors";
+
 // Confere o contraste (WCAG) de cada par texto e fundo nos dois temas, direto do index.css.
 // Se alguem trocar uma cor e piorar a leitura, o teste acusa.
 
@@ -54,6 +56,12 @@ const pairs: [string, string, number, string][] = [
   ["ring", "card", AA_NON_TEXT, "anel de foco no card"],
 ];
 
+// Cores dos graficos: elementos graficos precisam de 3:1 (WCAG 1.4.11) contra o fundo e o card
+const chartPairs: [string, string, number, string][] = CHART_COLOR_NAMES.flatMap((name) => [
+  [`chart-${name}`, "background", AA_NON_TEXT, `cor ${name} do grafico`] as [string, string, number, string],
+  [`chart-${name}`, "card", AA_NON_TEXT, `cor ${name} do grafico no card`] as [string, string, number, string],
+]);
+
 describe.each([
   ["claro", readTokens(":root")],
   ["escuro", readTokens("\\.dark")],
@@ -64,8 +72,36 @@ describe.each([
     expect(contrast(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(minimum);
   });
 
+  it.each(chartPairs)("%s sobre %s (minimo %s): %s", (fg, bg, minimum) => {
+    expect(tokens[fg], `token ${fg} ausente`).toBeDefined();
+    expect(contrast(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(minimum);
+  });
+
   it("branco sobre o verde escuro de suporte passa", () => {
     expect(contrast("#ffffff", tokens["support"])).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+});
+
+describe("tokens dos graficos", () => {
+  it("cada ChartColor tem token nos dois temas, em hex", () => {
+    for (const tokens of [readTokens(":root"), readTokens("\\.dark")]) {
+      for (const name of CHART_COLOR_NAMES) {
+        expect(tokens[`chart-${name}`], `chart-${name}`).toMatch(/^#[0-9a-fA-F]{6}$/);
+      }
+    }
+  });
+
+  it("cada token de grafico esta exposto no tema do Tailwind", () => {
+    for (const name of CHART_COLOR_NAMES) {
+      expect(css).toContain(`--color-chart-${name}: var(--chart-${name});`);
+    }
+  });
+
+  it("as cores dos graficos sao distintas entre si em cada tema", () => {
+    for (const tokens of [readTokens(":root"), readTokens("\\.dark")]) {
+      const values = CHART_COLOR_NAMES.map((name) => tokens[`chart-${name}`].toLowerCase());
+      expect(new Set(values).size).toBe(values.length);
+    }
   });
 });
 
