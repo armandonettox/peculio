@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core import clock
@@ -28,4 +28,4 @@ def get_upcoming(
     db: Session = Depends(get_db),
 ):
     """Contas a pagar e recorrentes dos proximos `days` dias, mais as contas atrasadas."""
-    raise HTTPException(status_code=501, detail="Ainda nao implementado")
+    return service.upcoming(db, user.id, days, clock.today())
