@@ -33,6 +33,8 @@ export type LineChartProps = {
   // Rotulo do eixo X ("mar/26"); recebe o `x` do ponto
   formatX: (x: string) => string;
   height?: number;
+  // Preenchimento suave sob a primeira serie (padrao: sem)
+  area?: boolean;
   className?: string;
 };
 
@@ -63,5 +65,7 @@ export type SparklineProps = {
   // Texto decimal, do mais antigo ao mais recente
   values: string[];
   tone?: "positive" | "negative" | "neutral";
+  // Texto de um valor na tabela para leitor de tela (padrao: o proprio texto decimal)
+  formatValue?: (value: string) => string;
   className?: string;
 };
