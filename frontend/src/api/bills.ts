@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "./client";
-import { billsKey } from "./query-keys";
+import { billsKey, dashboardKey } from "./query-keys";
 import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
@@ -48,6 +48,7 @@ function useRefresh() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: billsKey }),
       queryClient.invalidateQueries({ queryKey: transactionsKey }),
+      queryClient.invalidateQueries({ queryKey: dashboardKey }),
     ]);
 }
 
