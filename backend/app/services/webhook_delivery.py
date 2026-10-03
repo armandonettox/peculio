@@ -33,6 +33,11 @@ MAX_RESPONSE_BYTES = 4000
 LEASE = timedelta(minutes=5)
 # Motivo gravado (e mostrado no historico) quando uma entrega expira por causa da pausa
 PAUSED_REASON = "Webhook pausado: entrega expirada sem ser enviada"
+# Quantas reivindicacoes seguidas podem terminar sem resultado gravado (processo morto no meio do envio)
+# antes de a entrega ser abandonada. Sem esse limite, um aviso que derruba o processo sempre no mesmo
+# ponto seria reenviado a cada LEASE para sempre.
+MAX_LOST_CLAIMS = 3
+ABANDONED_REASON = "Entrega abandonada: o processo parou no meio do envio {count} vezes seguidas"
 
 
 def retry_delay(failed_attempts: int) -> timedelta | None:
@@ -86,8 +91,9 @@ class PinnedTransport(httpx.BaseTransport):
 
 def make_client(inner: httpx.BaseTransport | None = None) -> httpx.Client:
     # Sem seguir redirecionamentos: um 302 para um endereco interno furaria a checagem de SSRF.
-    # Obs: proxies do ambiente (HTTP_PROXY) continuam valendo e quem resolve o nome e o proxy;
-    # nesse caso o pino nao se aplica (o httpx manda a extensao do pino adiante e o proxy a ignora).
+    # Proxies do ambiente (HTTP_PROXY, HTTPS_PROXY, ALL_PROXY) nao valem aqui: o httpx so os monta quando
+    # o cliente usa o transporte padrao, e este passa o PinnedTransport. Se valessem, o proxy resolveria
+    # o nome e o IP validado deixaria de ser o usado. Um teste garante isso.
     return httpx.Client(
         transport=PinnedTransport(inner), timeout=httpx.Timeout(TIMEOUT_SECONDS), follow_redirects=False
     )
@@ -223,6 +229,15 @@ def apply_outcome(delivery: WebhookDelivery, outcome: Outcome, now: datetime) ->
         delivery.next_attempt_at = now + delay
 
 
+def abandon_delivery(delivery: WebhookDelivery, now: datetime) -> None:
+    """Encerra de vez uma entrega que derrubou o processo varias vezes seguidas. Falha final, sem
+    tentativa contada (nenhum resultado chegou a existir), com o motivo no historico."""
+    delivery.status = DeliveryStatus.failed
+    delivery.next_attempt_at = None
+    delivery.last_error = ABANDONED_REASON.format(count=delivery.claims)
+    delivery.finished_at = now
+
+
 def expire_delivery(delivery: WebhookDelivery, reason: str, now: datetime) -> None:
     """Tira a entrega da fila com um estado final proprio. Nao conta como tentativa: nada foi enviado."""
     delivery.status = DeliveryStatus.expired
@@ -244,7 +259,8 @@ class Claim:
     # Valor que next_attempt_at ganhou ao reivindicar. Serve para saber, na hora de gravar o
     # resultado, se a entrega continua sendo nossa (ver finish_attempt).
     lease_until: datetime | None = None
-    # True quando nao ha nada para enviar (a entrega expirou porque o webhook esta pausado)
+    # True quando nao ha nada para enviar (a entrega expirou porque o webhook esta pausado, ou foi
+    # abandonada por ter derrubado o processo varias vezes)
     expired: bool = False
 
 
@@ -280,7 +296,11 @@ def claim_next(db: Session, now: datetime) -> Claim | None:
     if not webhook.active:
         expire_delivery(delivery, PAUSED_REASON, now)
         claim.expired = True
+    elif delivery.claims >= MAX_LOST_CLAIMS:
+        abandon_delivery(delivery, now)
+        claim.expired = True
     else:
+        delivery.claims += 1
         claim.lease_until = now + LEASE
         delivery.next_attempt_at = claim.lease_until
     db.commit()
@@ -303,6 +323,8 @@ def finish_attempt(db: Session, claim: Claim, outcome: Outcome, now: datetime) -
         db.rollback()
         return False
     apply_outcome(delivery, outcome, now)
+    # Um resultado foi gravado: o processo nao esta morrendo nesta entrega
+    delivery.claims = 0
     db.commit()
     return True
 

@@ -82,6 +82,9 @@ class WebhookDelivery(Base):
         Enum(DeliveryStatus, native_enum=False, length=16), default=DeliveryStatus.pending
     )
     attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Quantas vezes a entrega foi reivindicada sem que o resultado chegasse a ser gravado (o processo
+    # morreu no meio do envio). Zera quando um resultado e gravado; passando do limite, a entrega e abandonada.
+    claims: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_status_code: Mapped[int | None] = mapped_column(Integer)
