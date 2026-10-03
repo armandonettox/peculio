@@ -123,11 +123,16 @@ export function DonutChart({
 
       <ul aria-hidden="true" className="flex w-full min-w-0 flex-1 flex-col gap-1.5 text-sm">
         {items.map((item, index) => (
-          <li key={item.key} data-legend={item.key} className="flex items-center gap-2">
-            <span className="size-3 shrink-0 rounded-sm" style={{ backgroundColor: colors[index] }} />
-            <span className="min-w-0 flex-1 truncate">{item.label}</span>
-            <span className="whitespace-nowrap tabular-nums text-muted-foreground">{formatValue(item.value)}</span>
-            <span className="w-10 text-right tabular-nums">{percentText(percents[index])}</span>
+          <li key={item.key} data-legend={item.key} className="flex items-start gap-2">
+            <span className="mt-1 size-3 shrink-0 rounded-sm" style={{ backgroundColor: colors[index] }} />
+            {/* Nome e percentual em cima, valor embaixo: a legenda cabe em cards estreitos sem cortar o nome */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0 break-words">{item.label}</span>
+                <span className="shrink-0 tabular-nums">{percentText(percents[index])}</span>
+              </div>
+              <div className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{formatValue(item.value)}</div>
+            </div>
           </li>
         ))}
       </ul>

@@ -1,5 +1,5 @@
 import { useNetWorth } from "@/api/dashboard";
-import { LineChart, Sparkline } from "@/components/charts";
+import { LineChart } from "@/components/charts";
 import { shortMonthLabel } from "@/features/reports/presentation";
 import { formatMoney, isNegativeMoney } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
@@ -41,17 +41,6 @@ export function NetWorthBlock() {
                 <p className="text-xl font-semibold tabular-nums">{formatMoney(currency.liabilities, currency.currency_code)}</p>
               </div>
             </div>
-
-            {currency.series.length > 1 && (
-              <div className="mt-4 hidden sm:block">
-                <Sparkline
-                  label={`Patrimônio em ${currency.currency_code} nos últimos ${currency.series.length} meses`}
-                  values={currency.series.map((point) => point.net)}
-                  tone={isNegativeMoney(currency.net) ? "negative" : "positive"}
-                  formatValue={(value) => formatMoney(value, currency.currency_code)}
-                />
-              </div>
-            )}
 
             <div className="mt-4 min-w-0">
               <LineChart

@@ -557,7 +557,7 @@ function renderWithDashboard(
   );
 }
 
-it("o grafico de patrimonio pede a area sob a linha e o minigrafico formata os valores como dinheiro", async () => {
+it("o grafico de patrimonio pede a area sob a linha e nao repete um minigrafico", async () => {
   renderWithDashboard({
     netWorth: makeNetWorth({ currencies: [makeNetWorthCurrency("BRL", ["1000.00", "1200.00", "900.50"])] }),
     upcoming: makeUpcoming(),
@@ -566,9 +566,8 @@ it("o grafico de patrimonio pede a area sob a linha e o minigrafico formata os v
   const line = chartCalls.line.at(-1)!;
   expect(line.area).toBe(true);
   expect(line.series[0].points.map((point) => point.value)).toEqual(["1000.00", "1200.00", "900.50"]);
-  const sparkline = chartCalls.sparkline.at(-1)!;
-  expect(sparkline.formatValue?.("1234.50")).toBe(formatMoney("1234.50", "BRL"));
-  expect(sparkline.values).toEqual(["1000.00", "1200.00", "900.50"]);
+  // O grafico de linha ja mostra a serie: o painel nao repete um minigrafico solto sobre ele
+  expect(chartCalls.sparkline).toHaveLength(0);
 });
 
 it("a faixa de alertas e uma regiao nomeada para leitor de tela", async () => {

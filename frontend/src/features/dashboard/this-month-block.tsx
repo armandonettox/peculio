@@ -67,10 +67,10 @@ export function ThisMonthBlock() {
                     const trend = trendFor(key, comparison.diff);
                     return (
                       <tr key={key} className="border-t">
-                        <th scope="row" className="py-2 text-left font-medium">
+                        <th scope="row" className="whitespace-nowrap py-2 pr-3 text-left font-medium">
                           {label}
                         </th>
-                        <td className="py-2 tabular-nums">{formatMoney(current, totals.currency_code)}</td>
+                        <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{formatMoney(current, totals.currency_code)}</td>
                         <td className={`py-2 tabular-nums ${TREND_CLASS[trend]}`}>
                           {formatDiff(comparison.diff, totals.currency_code)} · {formatPercent(comparison.percent)}
                         </td>
