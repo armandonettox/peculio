@@ -1,9 +1,11 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { delay, http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import type { RulePreviewItem } from "@/api/rules";
+import { BackfillDialog } from "@/features/rules/backfill-dialog";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
@@ -284,4 +286,78 @@ it("cancelar fecha sem aplicar nada", async () => {
   await userEvent.click(inDialog().getByRole("button", { name: "Cancelar" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(applies(api)).toHaveLength(0);
+});
+
+// ---------- Regras que chegam depois de o dialogo abrir ----------
+
+it("o botao de aplicar nas antigas espera as regras carregarem", async () => {
+  const api = fakeRulesApi({ rules: [mercado] });
+  server.use(
+    http.get("*/api/v1/rules", async () => {
+      await delay(300);
+      return HttpResponse.json({ items: [mercado], total: 1, limit: 200, offset: 0 });
+    }),
+    ...api.handlers,
+    ...fakeAccountsApi([account]).handlers,
+    ...fakeLabelsApi("categories", [category]).handlers,
+    ...fakeLabelsApi("tags", [tag]).handlers,
+    ...fakeBudgetsApi([budget]).handlers,
+    ...fakeBillsApi([bill]).handlers,
+  );
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <RulesPage />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  expect(screen.getByRole("button", { name: "Aplicar nas antigas" })).toBeDisabled();
+  await screen.findByRole("heading", { level: 3, name: "Mercado" });
+  expect(screen.getByRole("button", { name: "Aplicar nas antigas" })).toBeEnabled();
+});
+
+it("regras que chegam depois de o dialogo abrir ja aparecem marcadas e a previa fica habilitada", () => {
+  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map(), bills: new Map() };
+  const { rerender } = render(
+    <FakeAuth>
+      <MemoryRouter>
+        <BackfillDialog rules={[]} lookups={lookups} onClose={() => undefined} />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  expect(previewButton()).toBeDisabled();
+  rerender(
+    <FakeAuth>
+      <MemoryRouter>
+        <BackfillDialog rules={[mercado, lazer, pausada]} lookups={lookups} onClose={() => undefined} />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  expect(inDialog().getByLabelText("Mercado")).toBeChecked();
+  expect(inDialog().getByLabelText("Lazer")).toBeChecked();
+  expect(previewButton()).toBeEnabled();
+});
+
+it("o que a pessoa desmarcou continua desmarcado quando a lista de regras muda", async () => {
+  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map(), bills: new Map() };
+  const { rerender } = render(
+    <FakeAuth>
+      <MemoryRouter>
+        <BackfillDialog rules={[mercado, lazer]} lookups={lookups} onClose={() => undefined} />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  await userEvent.click(inDialog().getByLabelText("Lazer"));
+  expect(inDialog().getByLabelText("Lazer")).not.toBeChecked();
+  const nova = makeRule({ name: "Nova regra" });
+  rerender(
+    <FakeAuth>
+      <MemoryRouter>
+        <BackfillDialog rules={[mercado, lazer, nova]} lookups={lookups} onClose={() => undefined} />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  expect(inDialog().getByLabelText("Lazer")).not.toBeChecked();
+  expect(inDialog().getByLabelText("Mercado")).toBeChecked();
+  expect(inDialog().getByLabelText("Nova regra")).toBeChecked();
 });

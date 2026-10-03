@@ -51,7 +51,10 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [accountId, setAccountId] = useState("");
-  const [selected, setSelected] = useState<string[]>(() => activeRules.map((rule) => rule.id));
+  // Guarda o que foi DESMARCADO, nao o que esta marcado: regras que chegam depois de o dialogo abrir
+  // (a lista ainda carregava) ja nascem marcadas, e o que a pessoa desmarcou continua desmarcado
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const selected = activeRules.filter((rule) => !excluded.includes(rule.id)).map((rule) => rule.id);
   const [preview, setPreview] = useState<RulePreview | null>(null);
   const [run, setRun] = useState<RuleRun | null>(null);
   const [applied, setApplied] = useState<RuleApplied | null>(null);
@@ -70,7 +73,7 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
   }
 
   function toggleRule(id: string) {
-    changeFilter(() => setSelected((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id])));
+    changeFilter(() => setExcluded((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id])));
   }
 
   async function handlePreview() {

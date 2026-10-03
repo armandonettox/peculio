@@ -210,7 +210,8 @@ export default function RulesPage() {
         description="Preenchem sozinhas o que as transações deixarem em branco"
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setDialog({ kind: "backfill" })}>
+            {/* Sem as regras carregadas o dialogo abriria dizendo que nao ha regras ativas */}
+            <Button variant="outline" disabled={rules.isPending} onClick={() => setDialog({ kind: "backfill" })}>
               <History />
               Aplicar nas antigas
             </Button>
