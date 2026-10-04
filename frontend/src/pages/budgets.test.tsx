@@ -430,3 +430,69 @@ it("o periodo e o mes do servidor, nao o do aparelho (aparelho com o relogio atr
   expect(api.progressRequests().at(-1)?.query?.get("on")).toBe("2026-04-01");
   expect(screen.getByText("Abril de 2026")).toBeInTheDocument();
 });
+
+// ---------- Envelope ----------
+
+async function openCreateDialog() {
+  await userEvent.click(screen.getAllByRole("button", { name: /Novo orçamento/ })[0]);
+  await screen.findByRole("dialog");
+}
+
+it("o formulario de criar comeca em limite fixo e escolher envelope esconde o limite e o periodo", async () => {
+  renderPage([]);
+  await screen.findByText("Nenhum orçamento ainda");
+  await openCreateDialog();
+  expect(inDialog().getByRole("radio", { name: /Limite fixo/ })).toBeChecked();
+  expect(inDialog().getByLabelText("Limite por período")).toBeInTheDocument();
+  expect(inDialog().getByLabelText("Período")).toBeInTheDocument();
+
+  await userEvent.click(inDialog().getByRole("radio", { name: /Envelope/ }));
+  expect(inDialog().queryByLabelText("Limite por período")).not.toBeInTheDocument();
+  expect(inDialog().queryByLabelText("Período")).not.toBeInTheDocument();
+  expect(inDialog().getByRole("heading", { name: "Novo envelope" })).toBeInTheDocument();
+  expect(inDialog().getByRole("button", { name: "Criar orçamento" })).toBeInTheDocument();
+});
+
+it("criar um envelope manda o modo e nenhum limite ou periodo", async () => {
+  const api = renderPage([]);
+  await screen.findByText("Nenhum orçamento ainda");
+  await openCreateDialog();
+  await userEvent.type(inDialog().getByLabelText("Nome"), "Mercado");
+  await userEvent.click(inDialog().getByRole("radio", { name: /Envelope/ }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ name: "Mercado", currency_code: "BRL", mode: "envelope" });
+});
+
+it("envelope nao pede limite: so o nome e obrigatorio", async () => {
+  const api = renderPage([]);
+  await screen.findByText("Nenhum orçamento ainda");
+  await openCreateDialog();
+  await userEvent.click(inDialog().getByRole("radio", { name: /Envelope/ }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
+  expect(inDialog().getByText("Informe o nome do orçamento.")).toBeInTheDocument();
+  expect(inDialog().queryByText("Informe o valor do limite.")).not.toBeInTheDocument();
+  expect(api.mutations()).toHaveLength(0);
+});
+
+it("trocar de volta para limite fixo traz o limite de novo e o corpo leva o modo fixo", async () => {
+  const api = renderPage([]);
+  await screen.findByText("Nenhum orçamento ainda");
+  await openCreateDialog();
+  await userEvent.click(inDialog().getByRole("radio", { name: /Envelope/ }));
+  await userEvent.click(inDialog().getByRole("radio", { name: /Limite fixo/ }));
+  await userEvent.type(inDialog().getByLabelText("Nome"), "Lazer");
+  await userEvent.type(inDialog().getByLabelText("Limite por período"), "400");
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ name: "Lazer", currency_code: "BRL", mode: "fixed", amount: "400.00", period: "monthly" });
+});
+
+it("editar um orcamento de limite fixo nao mostra a escolha de tipo", async () => {
+  renderPage();
+  await screen.findByRole("heading", { level: 3, name: "Mercado" });
+  await openMenu("Mercado");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  expect(inDialog().queryByRole("radio", { name: /Envelope/ })).not.toBeInTheDocument();
+  expect(inDialog().getByLabelText("Limite por período")).toBeInTheDocument();
+});

@@ -10,6 +10,7 @@ export type BudgetProgress = components["schemas"]["BudgetProgressOut"];
 export type BudgetCreate = components["schemas"]["BudgetCreate"];
 export type BudgetUpdate = components["schemas"]["BudgetUpdate"];
 export type BudgetPeriod = components["schemas"]["BudgetPeriod"];
+export type BudgetMode = components["schemas"]["BudgetMode"];
 
 export { budgetsKey };
 

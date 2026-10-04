@@ -61,6 +61,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
   const [opening, setOpening] = useState(initialOpening);
   const [openingDate, setOpeningDate] = useState(account?.opening_balance_date ?? appToday());
   const [notes, setNotes] = useState(account?.notes ?? "");
+  const [inEnvelopes, setInEnvelopes] = useState(account?.in_envelopes ?? true);
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -126,8 +127,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
           type: kind,
           role,
           currency_code: currency,
-          // O interruptor "Entra nos envelopes" chega com a tela de envelopes; ate la vale o padrao do servidor
-          in_envelopes: true,
+          in_envelopes: inEnvelopes,
           notes: notes.trim() || null,
           // Zero nao cria transacao de saldo inicial no backend: e o mesmo que nao informar
           opening_balance: openingValue ?? "0",
@@ -139,6 +139,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
         const body: AccountUpdate = {};
         if (name.trim() !== account.name) body.name = name.trim();
         if (role !== account.role) body.role = role;
+        if (inEnvelopes !== account.in_envelopes) body.in_envelopes = inEnvelopes;
         if ((notes.trim() || null) !== account.notes) body.notes = notes.trim() || null;
         if (openingValue !== null) {
           if (opening !== initialOpening || openingDate !== account.opening_balance_date) {
@@ -287,6 +288,23 @@ export function AccountFormDialog({ account, onClose }: Props) {
           <FormField id="account-notes" label="Notas">
             {(props) => <Textarea {...props} value={notes} onChange={(event) => setNotes(event.target.value)} />}
           </FormField>
+
+          {kind === "asset" && (
+            <label className="flex cursor-pointer items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={inEnvelopes}
+                onChange={(event) => setInEnvelopes(event.target.checked)}
+                className="mt-0.5 accent-[var(--primary)]"
+              />
+              <span>
+                Entra nos envelopes
+                <span className="block text-xs text-muted-foreground">
+                  O dinheiro desta conta conta como "A orçar". Desmarque para uma reserva de longo prazo que você não quer misturar com o mês.
+                </span>
+              </span>
+            </label>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>

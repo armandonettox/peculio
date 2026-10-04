@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "./client";
-import { dashboardKey } from "./query-keys";
+import { budgetsKey, dashboardKey } from "./query-keys";
 import type { components } from "./schema";
 
 export type Account = components["schemas"]["AccountOut"];
@@ -19,6 +19,8 @@ function useRefresh() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: accountsKey }),
       queryClient.invalidateQueries({ queryKey: dashboardKey }),
+      // O dinheiro dos envelopes sai das contas marcadas "Entra nos envelopes"
+      queryClient.invalidateQueries({ queryKey: budgetsKey }),
     ]);
 }
 

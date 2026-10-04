@@ -5,6 +5,7 @@ import {
   useUpdateBudget,
   type Budget,
   type BudgetCreate,
+  type BudgetMode,
   type BudgetPeriod,
   type BudgetUpdate,
 } from "@/api/budgets";
@@ -33,10 +34,12 @@ const SERVER_FIELDS: Record<string, Field> = { name: "name", amount: "amount" };
 type Props = {
   // Sem `budget` o dialogo cria; com `budget` edita
   budget?: Budget;
+  // Modo escolhido ao abrir para criar (a tela de envelopes abre ja em envelope)
+  initialMode?: BudgetMode;
   onClose: () => void;
 };
 
-export function BudgetFormDialog({ budget, onClose }: Props) {
+export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Props) {
   const editing = budget !== undefined;
   const { user } = useAuth();
   const currencies = useCurrencies();
@@ -47,6 +50,9 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
   const [currency, setCurrency] = useState(budget?.currency_code ?? user?.default_currency ?? "BRL");
   const [amount, setAmount] = useState(budget ? toInputText(budget.amount ?? "") : "");
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
+  // O modo nao muda depois de criado
+  const [mode, setMode] = useState<BudgetMode>(budget?.mode ?? initialMode);
+  const envelope = mode === "envelope";
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -83,12 +89,15 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
 
     const found: Errors = { name: requiredError(name, "Informe o nome do orçamento.") };
     let amountValue = "";
-    const parsed = parseMoneyInput(amount, places);
-    if (amount.trim() === "") found.amount = "Informe o valor do limite.";
-    else if (!parsed.ok) found.amount = parsed.error;
-    else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-      found.amount = "Informe um valor maior que zero.";
-    } else amountValue = parsed.value;
+    // Envelope nao tem limite: o valor de cada mes e a distribuicao
+    if (!envelope) {
+      const parsed = parseMoneyInput(amount, places);
+      if (amount.trim() === "") found.amount = "Informe o valor do limite.";
+      else if (!parsed.ok) found.amount = parsed.error;
+      else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
+        found.amount = "Informe um valor maior que zero.";
+      } else amountValue = parsed.value;
+    }
 
     setErrors(found);
     const firstInvalid = (["name", "amount"] as const).find((field) => found[field]);
@@ -99,14 +108,16 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
 
     try {
       if (!editing) {
-        const body: BudgetCreate = { name: name.trim(), currency_code: currency, mode: "fixed", amount: amountValue, period };
+        const body: BudgetCreate = envelope
+          ? { name: name.trim(), currency_code: currency, mode: "envelope" }
+          : { name: name.trim(), currency_code: currency, mode: "fixed", amount: amountValue, period };
         await create.mutateAsync(body);
       } else {
         // Manda so o que mudou, para nao sobrescrever sem querer
         const body: BudgetUpdate = {};
         if (name.trim() !== budget.name) body.name = name.trim();
-        if (amountValue !== budget.amount) body.amount = amountValue;
-        if (period !== budget.period) body.period = period;
+        if (!envelope && amountValue !== budget.amount) body.amount = amountValue;
+        if (!envelope && period !== budget.period) body.period = period;
         if (Object.keys(body).length > 0) await update.mutateAsync({ id: budget.id, body });
       }
       onClose();
@@ -119,16 +130,46 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar orçamento" : "Novo orçamento"}</DialogTitle>
+          <DialogTitle>
+            {editing ? (envelope ? "Editar envelope" : "Editar orçamento") : envelope ? "Novo envelope" : "Novo orçamento"}
+          </DialogTitle>
           <DialogDescription>
-            {editing
-              ? "Mudar o valor ou o período vale também para os períodos anteriores. A moeda não pode mudar."
-              : "Um limite de gasto que se repete a cada período, por exemplo Mercado: R$ 800 por mês."}
+            {envelope
+              ? "Você distribui um valor por mês e o que sobra passa para o mês seguinte."
+              : editing
+                ? "Mudar o valor ou o período vale também para os períodos anteriores. A moeda não pode mudar."
+                : "Um limite de gasto que se repete a cada período, por exemplo Mercado: R$ 800 por mês."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
+
+          {!editing && (
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-medium">Tipo</legend>
+              {(
+                [
+                  ["fixed", "Limite fixo", "Um teto de gasto que se repete a cada período."],
+                  ["envelope", "Envelope", "Você distribui dinheiro por mês e a sobra passa para o mês seguinte."],
+                ] as [BudgetMode, string, string][]
+              ).map(([value, label, hint]) => (
+                <label key={value} className="flex cursor-pointer items-start gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="budget-mode"
+                    checked={mode === value}
+                    onChange={() => setMode(value)}
+                    className="mt-0.5 accent-[var(--primary)]"
+                  />
+                  <span>
+                    <span className="font-medium">{label}</span>
+                    <span className="block text-xs text-muted-foreground">{hint}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
 
           <FormField id="budget-name" label="Nome" error={errors.name}>
             {(props) => (
@@ -158,34 +199,38 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
               )}
             </FormField>
 
-            <FormField id="budget-period" label="Período">
-              {(props) => (
-                <Select {...props} value={period} onChange={(event) => setPeriod(event.target.value as BudgetPeriod)}>
-                  {PERIODS.map((option) => (
-                    <option key={option} value={option}>
-                      {PERIOD_LABELS[option]}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </FormField>
+            {!envelope && (
+              <FormField id="budget-period" label="Período">
+                {(props) => (
+                  <Select {...props} value={period} onChange={(event) => setPeriod(event.target.value as BudgetPeriod)}>
+                    {PERIODS.map((option) => (
+                      <option key={option} value={option}>
+                        {PERIOD_LABELS[option]}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </FormField>
+            )}
           </div>
 
-          <FormField id="budget-amount" label="Limite por período" error={errors.amount}>
-            {(props) => (
-              <Input
-                {...props}
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder="0,00"
-                value={amount}
-                onChange={(event) => {
-                  setAmount(event.target.value);
-                  clearError("amount");
-                }}
-              />
-            )}
-          </FormField>
+          {!envelope && (
+            <FormField id="budget-amount" label="Limite por período" error={errors.amount}>
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0,00"
+                  value={amount}
+                  onChange={(event) => {
+                    setAmount(event.target.value);
+                    clearError("amount");
+                  }}
+                />
+              )}
+            </FormField>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>

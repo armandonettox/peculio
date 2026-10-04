@@ -9,6 +9,7 @@ import RulesPage from "@/pages/rules";
 import BillsPage from "@/pages/bills";
 import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
+import EnvelopesPage from "@/pages/envelopes";
 import ImportPage from "@/pages/import";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="recorrentes" element={<RecurrencesPage />} />
           <Route path="contas-a-pagar" element={<BillsPage />} />
           <Route path="orcamentos" element={<BudgetsPage />} />
+          <Route path="envelopes" element={<EnvelopesPage />} />
           <Route path="regras" element={<RulesPage />} />
           <Route path="contas" element={<AccountsPage />} />
           <Route path="transacoes" element={<TransactionsPage />} />

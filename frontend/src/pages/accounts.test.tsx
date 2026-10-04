@@ -568,3 +568,45 @@ it("conta com transacoes nao exclui: explica e oferece arquivar", async () => {
   expect(api.mutations().map((m) => m.method)).toEqual(["DELETE", "PATCH"]);
   expect(api.mutations()[1].body).toEqual({ active: false });
 });
+
+// ---------- Entra nos envelopes ----------
+
+it("conta de ativo nova vem com Entra nos envelopes marcado e envia o valor escolhido", async () => {
+  const api = renderPage();
+  await openCreate();
+  const box = within(dialog()).getByLabelText(/Entra nos envelopes/);
+  expect(box).toBeChecked();
+  await userEvent.type(nameField(), "Reserva longa");
+  await userEvent.click(box);
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toMatchObject({ name: "Reserva longa", in_envelopes: false });
+});
+
+it("divida nao mostra a opcao de entrar nos envelopes", async () => {
+  renderPage();
+  await openCreate();
+  expect(within(dialog()).getByLabelText(/Entra nos envelopes/)).toBeInTheDocument();
+  await userEvent.click(within(dialog()).getByRole("radio", { name: /Dívida/ }));
+  expect(within(dialog()).queryByLabelText(/Entra nos envelopes/)).not.toBeInTheDocument();
+});
+
+it("editar mostra o valor atual e so manda in_envelopes quando muda", async () => {
+  const api = renderPage([makeAccount({ name: "Poupanca", in_envelopes: false })]);
+  await screen.findByRole("heading", { level: 3, name: "Poupanca" });
+  await openMenu("Poupanca");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  const box = within(dialog()).getByLabelText(/Entra nos envelopes/);
+  expect(box).not.toBeChecked();
+  await userEvent.type(nameField(), "2");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ name: "Poupanca2" });
+
+  await openMenu("Poupanca2");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  await userEvent.click(within(dialog()).getByLabelText(/Entra nos envelopes/));
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(2));
+  expect(api.mutations()[1].body).toEqual({ in_envelopes: true });
+});

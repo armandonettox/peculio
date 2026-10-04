@@ -220,6 +220,22 @@ def seed(api: Api, today: date) -> dict:
                         counterparty_name="Academia Exemplo", category_id=categories["Saúde"])
     api.patch(f"/recurrences/{paused}", {"active": False})
 
+    # Envelopes do mês atual: um com sobra, um estourado (para mostrar "Cobrir") e a reserva que veio do mês passado
+    this_month = today.strftime("%Y-%m")
+    last_month = month_day(today, 1, 1).strftime("%Y-%m")
+    envelopes = {}
+    for name in ("Moradia fixa", "Alimentação", "Reserva do mês"):
+        envelopes[name] = api.post("/budgets", {"name": name, "currency_code": "BRL", "mode": "envelope"})["id"]
+    for name, month, amount in [
+        ("Moradia fixa", this_month, "1900.00"),
+        ("Alimentação", this_month, "700.00"),
+        ("Reserva do mês", last_month, "300.00"),
+        ("Reserva do mês", this_month, "200.00"),
+    ]:
+        api.call("PUT", f"/envelopes/{envelopes[name]}/{month}", {"amount": amount})
+    tx(today, "Aluguel do mês", "1850.00", checking, counterparty_name="Imobiliária Central", budget_id=envelopes["Moradia fixa"])
+    tx(today, "Compras grandes do mês", "820.00", checking, counterparty_name="Atacado Central", budget_id=envelopes["Alimentação"])
+
     # Regra: preenche a categoria de lançamentos novos que citam mercado
     api.post("/rules", {"name": "Mercado na categoria", "match_mode": "all",
                         "triggers": [{"field": "description", "op": "contains", "value": "mercado"}],
