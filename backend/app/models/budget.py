@@ -85,3 +85,42 @@ class BudgetAllocation(Base):
     month: Mapped[dt.date] = mapped_column(Date)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class TemplateKind(enum.StrEnum):
+    # Um valor fixo todo mes
+    fixed = "fixed"
+    # Juntar um valor ate um mes
+    by_date = "by_date"
+    # O maximo da faixa de uma conta a pagar, nos meses em que ela vence
+    bill = "bill"
+    # O que sobrar do "A orcar", dividido igualmente entre os envelopes marcados assim
+    remainder = "remainder"
+
+
+class BudgetTemplate(Base):
+    """Regra que diz quanto distribuir a um envelope por mes. Um por envelope. Nada e distribuido sozinho: a pessoa
+    manda aplicar (com previa)."""
+
+    __tablename__ = "budget_templates"
+    __table_args__ = (
+        UniqueConstraint("budget_id", name="uq_budget_templates_budget_id"),
+        CheckConstraint("amount IS NULL OR amount > 0", name="amount_positive"),
+        CheckConstraint(
+            "(kind IN ('fixed', 'by_date')) = (amount IS NOT NULL)", name="amount_matches_kind"
+        ),
+        CheckConstraint("(kind = 'by_date') = (target_month IS NOT NULL)", name="target_month_matches_kind"),
+        CheckConstraint("(kind = 'bill') = (bill_id IS NOT NULL)", name="bill_matches_kind"),
+        CheckConstraint("target_month IS NULL OR extract(day from target_month) = 1", name="target_month_is_first_day"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    budget_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("budgets.id", ondelete="CASCADE"))
+    kind: Mapped[TemplateKind] = mapped_column(Enum(TemplateKind, native_enum=False, length=16))
+    # Valor por mes (fixed) ou meta (by_date)
+    amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
+    target_month: Mapped[dt.date | None] = mapped_column(Date)
+    # A conta some do envelope junto com a exclusao dela (uma regra sem conta nao serve)
+    bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bills.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

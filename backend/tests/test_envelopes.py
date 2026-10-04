@@ -183,6 +183,7 @@ def test_a_new_envelope_starts_at_zero_with_all_the_money_to_budget(client, head
     assert envelope(client, headers, "Mercado") == {
         "budget_id": envelope(client, headers, "Mercado")["budget_id"], "name": "Mercado",
         "carried": "0.00", "allocated": "0.00", "spent": "0.00", "available": "0.00", "overspent": "0.00",
+        "template": None, "goal": None,
     }
 
 

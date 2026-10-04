@@ -53,6 +53,7 @@ class ErrorCode(StrEnum):
     BUDGET_NOT_ALLOWED = "budget_not_allowed"
     BUDGET_NOT_ENVELOPE = "budget_not_envelope"
     ENVELOPE_NOT_ENOUGH = "envelope_not_enough"
+    TEMPLATE_NOT_FOUND = "template_not_found"
     # Contas a pagar
     BILL_NOT_FOUND = "bill_not_found"
     BILL_NAME_TAKEN = "bill_name_taken"

@@ -576,7 +576,7 @@ export interface paths {
         };
         /**
          * Get Month
-         * @description Os envelopes do mes e o "A orcar" de cada moeda.
+         * @description Os envelopes do mes, o "A orcar" de cada moeda e o template e o selo de meta de cada envelope.
          */
         get: operations["get_month_api_v1_envelopes_get"];
         put?: never;
@@ -602,6 +602,67 @@ export interface paths {
          */
         post: operations["move_money_api_v1_envelopes_move_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/envelopes/templates/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Templates
+         * @description Aplica os templates no mes. Sem `overwrite`, so os envelopes que ainda nao tem valor.
+         */
+        post: operations["apply_templates_api_v1_envelopes_templates_apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/envelopes/templates/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview Templates
+         * @description O que aplicar os templates faria neste mes, sem gravar nada.
+         */
+        get: operations["preview_templates_api_v1_envelopes_templates_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/envelopes/{budget_id}/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Template
+         * @description Define (ou troca) o template do envelope. Nada e distribuido: so quando mandar aplicar.
+         */
+        put: operations["set_template_api_v1_envelopes__budget_id__template_put"];
+        post?: never;
+        /** Remove Template */
+        delete: operations["remove_template_api_v1_envelopes__budget_id__template_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1825,12 +1886,35 @@ export interface components {
          * @enum {string}
          */
         DeliveryStatus: "pending" | "delivered" | "failed" | "expired";
-        /** EnvelopeGroupOut */
-        EnvelopeGroupOut: {
+        /** EnvelopeFullOut */
+        EnvelopeFullOut: {
+            /** Allocated */
+            allocated: string;
+            /** Available */
+            available: string;
+            /**
+             * Budget Id
+             * Format: uuid
+             */
+            budget_id: string;
+            /** Carried */
+            carried: string;
+            /** Goal */
+            goal?: ("met" | "partial" | "short") | null;
+            /** Name */
+            name: string;
+            /** Overspent */
+            overspent: string;
+            /** Spent */
+            spent: string;
+            template?: components["schemas"]["TemplateOut"] | null;
+        };
+        /** EnvelopeGroupFullOut */
+        EnvelopeGroupFullOut: {
             /** Currency Code */
             currency_code: string;
             /** Envelopes */
-            envelopes: components["schemas"]["EnvelopeOut"][];
+            envelopes: components["schemas"]["EnvelopeFullOut"][];
             /** In Envelopes */
             in_envelopes: string;
             /** Money */
@@ -1838,10 +1922,10 @@ export interface components {
             /** To Budget */
             to_budget: string;
         };
-        /** EnvelopeMonthOut */
-        EnvelopeMonthOut: {
+        /** EnvelopeMonthFullOut */
+        EnvelopeMonthFullOut: {
             /** Groups */
-            groups: components["schemas"]["EnvelopeGroupOut"][];
+            groups: components["schemas"]["EnvelopeGroupFullOut"][];
             /**
              * Month
              * Format: date
@@ -1864,26 +1948,6 @@ export interface components {
              * Format: uuid
              */
             to_budget_id: string;
-        };
-        /** EnvelopeOut */
-        EnvelopeOut: {
-            /** Allocated */
-            allocated: string;
-            /** Available */
-            available: string;
-            /**
-             * Budget Id
-             * Format: uuid
-             */
-            budget_id: string;
-            /** Carried */
-            carried: string;
-            /** Name */
-            name: string;
-            /** Overspent */
-            overspent: string;
-            /** Spent */
-            spent: string;
         };
         /** GroupedReportOut */
         GroupedReportOut: {
@@ -2437,6 +2501,38 @@ export interface components {
             /** Target Date */
             target_date?: string | null;
         };
+        /** PreviewGroupOut */
+        PreviewGroupOut: {
+            /** Currency Code */
+            currency_code: string;
+            /** Rows */
+            rows: components["schemas"]["PreviewRowOut"][];
+            /** To Budget After */
+            to_budget_after: string;
+            /** To Budget Before */
+            to_budget_before: string;
+        };
+        /** PreviewRowOut */
+        PreviewRowOut: {
+            /** Applies */
+            applies: boolean;
+            /**
+             * Budget Id
+             * Format: uuid
+             */
+            budget_id: string;
+            /** Current */
+            current: string;
+            kind: components["schemas"]["TemplateKind"];
+            /** Name */
+            name: string;
+            /** Proposed */
+            proposed: string;
+            /** Reason */
+            reason: ("already_has" | "goal_met" | "date_passed" | "no_due_date" | "no_money_left") | null;
+            /** Wanted */
+            wanted: string;
+        };
         /** RecoveryCodesOut */
         RecoveryCodesOut: {
             /** Recovery Codes */
@@ -2786,6 +2882,56 @@ export interface components {
         TagUpdate: {
             /** Name */
             name?: string | null;
+        };
+        /** TemplateApply */
+        TemplateApply: {
+            /** Month */
+            month: string;
+            /**
+             * Overwrite
+             * @default false
+             */
+            overwrite: boolean;
+        };
+        /**
+         * TemplateIn
+         * @description O template de um envelope. Cada tipo usa so os campos dele; o resto precisa ficar vazio.
+         */
+        TemplateIn: {
+            /** Amount */
+            amount?: number | string | null;
+            /** Bill Id */
+            bill_id?: string | null;
+            kind: components["schemas"]["TemplateKind"];
+            /** Target Month */
+            target_month?: string | null;
+        };
+        /**
+         * TemplateKind
+         * @enum {string}
+         */
+        TemplateKind: "fixed" | "by_date" | "bill" | "remainder";
+        /** TemplateOut */
+        TemplateOut: {
+            /** Amount */
+            amount: string | null;
+            /** Bill Id */
+            bill_id: string | null;
+            kind: components["schemas"]["TemplateKind"];
+            /** Target Month */
+            target_month: string | null;
+        };
+        /** TemplatePreviewOut */
+        TemplatePreviewOut: {
+            /** Groups */
+            groups: components["schemas"]["PreviewGroupOut"][];
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Overwrite */
+            overwrite: boolean;
         };
         /** Token */
         Token: {
@@ -4527,7 +4673,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnvelopeMonthOut"];
+                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
                 };
             };
             /** @description Validation Error */
@@ -4560,8 +4706,138 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnvelopeMonthOut"];
+                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_templates_api_v1_envelopes_templates_apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplateApply"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_templates_api_v1_envelopes_templates_preview_get: {
+        parameters: {
+            query?: {
+                /** @description AAAA-MM; sem ele, o mes de hoje */
+                month?: string | null;
+                overwrite?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplatePreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_template_api_v1_envelopes__budget_id__template_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_template_api_v1_envelopes__budget_id__template_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -4596,7 +4872,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnvelopeMonthOut"];
+                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
                 };
             };
             /** @description Validation Error */
