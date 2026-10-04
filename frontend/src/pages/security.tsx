@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ApiTokensSection } from "@/features/api-tokens/api-tokens-section";
 import { ConfirmTwoFactorDialog, type ConfirmMode } from "@/features/security/confirm-two-factor-dialog";
 import { EnableTwoFactorDialog } from "@/features/security/enable-two-factor-dialog";
 
@@ -93,6 +94,8 @@ export default function SecurityPage() {
         </CardHeader>
         <CardContent>{body}</CardContent>
       </Card>
+
+      <ApiTokensSection />
 
       {dialog === "enable" && <EnableTwoFactorDialog onClose={() => setDialog(null)} />}
       {(dialog === "disable" || dialog === "regenerate") && (

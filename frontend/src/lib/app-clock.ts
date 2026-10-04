@@ -38,3 +38,8 @@ export function appNow(): Date {
 export function appToday(): string {
   return appNow().toLocaleDateString("sv-SE", state ? { timeZone: state.timeZone } : undefined);
 }
+
+/** O dia ("AAAA-MM-DD") em que um instante (texto ISO do servidor) caiu, no fuso do app. */
+export function appDayOf(isoInstant: string): string {
+  return new Date(isoInstant).toLocaleDateString("sv-SE", state ? { timeZone: state.timeZone } : undefined);
+}

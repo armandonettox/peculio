@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { appNow, appToday, isAppClockSynced, resetAppClock, syncAppClock } from "./app-clock";
+import { appDayOf, appNow, appToday, isAppClockSynced, resetAppClock, syncAppClock } from "./app-clock";
 
 const SAO_PAULO = "America/Sao_Paulo";
 
@@ -129,5 +129,24 @@ describe("dado invalido", () => {
     resetAppClock();
     expect(isAppClockSynced()).toBe(false);
     expect(appNow().toISOString()).toBe("2020-01-15T12:00:00.000Z");
+  });
+});
+
+describe("appDayOf", () => {
+  it("o dia de um instante segue o fuso do app", () => {
+    syncAppClock({ now: "2026-03-12T15:00:00Z", timezone: SAO_PAULO }, Date.now());
+    // 02:00 UTC ainda e a noite anterior em Sao Paulo (UTC-3)
+    expect(appDayOf("2026-03-20T02:00:00Z")).toBe("2026-03-19");
+    expect(appDayOf("2026-03-20T03:00:00Z")).toBe("2026-03-20");
+  });
+
+  it("outro fuso, outro dia", () => {
+    syncAppClock({ now: "2026-03-12T15:00:00Z", timezone: "Asia/Tokyo" }, Date.now());
+    // Toquio e UTC+9: 20:00 UTC ja e o dia seguinte la
+    expect(appDayOf("2026-03-20T20:00:00Z")).toBe("2026-03-21");
+  });
+
+  it("sem sincronizar usa o fuso do aparelho e devolve AAAA-MM-DD", () => {
+    expect(appDayOf("2026-03-20T15:00:00Z")).toMatch(/^2026-03-(20|21)$/);
   });
 });

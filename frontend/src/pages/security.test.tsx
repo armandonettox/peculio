@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it, vi } from "vitest";
 
+import { fakeApiTokensApi } from "@/test-utils/api-tokens-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeTwoFactorApi, GOOD_CODE, GOOD_PASSWORD, SECRET } from "@/test-utils/two-factor-api";
@@ -11,7 +12,8 @@ import SecurityPage from "./security";
 
 function renderPage(options: Parameters<typeof fakeTwoFactorApi>[0] = {}, { strict = false } = {}) {
   const api = fakeTwoFactorApi(options);
-  server.use(...api.handlers);
+  // A pagina tambem lista os tokens de API; aqui nao ha nenhum
+  server.use(...api.handlers, ...fakeApiTokensApi().handlers);
   const page = (
     <FakeAuth>
       <MemoryRouter>
