@@ -99,3 +99,12 @@ export function groupByDay(transactions: Transaction[], today: string = appToday
   }
   return groups;
 }
+
+export type ReconciliationState = "locked" | "cleared" | null;
+
+/** Travado (conciliacao fechada) vale mais que conferido; sem nenhum dos dois, nao ha marca. */
+export function reconciliationState(transaction: Transaction): ReconciliationState {
+  if (transaction.splits.some((split) => split.locked)) return "locked";
+  if (transaction.splits.some((split) => split.cleared)) return "cleared";
+  return null;
+}

@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   BarChart3,
+  CheckCheck,
   Coins,
   Landmark,
   LayoutDashboard,
@@ -29,6 +30,7 @@ export const navItems: NavItem[] = [
   { label: "Contas", icon: Landmark, to: "/contas" },
   { label: "Transações", icon: ArrowLeftRight, to: "/transacoes" },
   { label: "Importar extrato", icon: Upload, to: "/importar" },
+  { label: "Conciliar", icon: CheckCheck, to: "/conciliar" },
   { label: "Categorias", icon: Tags, to: "/categorias" },
   { label: "Tags", icon: Tag, to: "/tags" },
   { label: "Orçamentos", icon: PiggyBank, to: "/orcamentos" },

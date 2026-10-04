@@ -11,6 +11,7 @@ import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
 import EnvelopesPage from "@/pages/envelopes";
 import ImportPage from "@/pages/import";
+import ReconciliationPage from "@/pages/reconciliation";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
 import PiggyBanksPage from "@/pages/piggy-banks";
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="contas" element={<AccountsPage />} />
           <Route path="transacoes" element={<TransactionsPage />} />
           <Route path="importar" element={<ImportPage />} />
+          <Route path="conciliar" element={<ReconciliationPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
           <Route path="webhooks" element={<WebhooksPage />} />

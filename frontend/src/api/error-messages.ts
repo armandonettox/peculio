@@ -47,7 +47,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   attachment_empty: "O arquivo está vazio.",
   budget_not_envelope: "Este orçamento não é um envelope ativo.",
   template_not_found: "Este envelope não tem template.",
-  transaction_locked: "Este lançamento foi travado por uma conciliação. Destrave antes de mudar.",
+  transaction_locked: "Este lançamento foi travado por uma conciliação. Desfaça a conciliação em Conciliar para mudar.",
   reconciliation_account_invalid: "Só uma conta de ativo ativa pode ser conciliada.",
   reconciliation_split_invalid: "Um dos lançamentos não pertence a esta conta.",
   reconciliation_no_difference: "Não há diferença para ajustar.",

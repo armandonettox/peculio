@@ -1,4 +1,4 @@
-import { MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
+import { Lock, MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
 
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
@@ -18,6 +18,7 @@ import {
   formatSplitAmount,
   formatTransactionAmount,
   ownAccountName,
+  reconciliationState,
   transactionTitle,
 } from "./presentation";
 
@@ -57,6 +58,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
   const [first] = splits;
+  const reconciliation = reconciliationState(transaction);
 
   return (
     <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
@@ -64,6 +66,12 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
         <div className="min-w-0">
           {/* Quebra de linha em vez de cortar: o valor de uma transferencia entre moedas e largo */}
           <p className="break-words font-medium">{transactionTitle(transaction)}</p>
+          {reconciliation && (
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+              {reconciliation === "locked" && <Lock className="size-3" aria-hidden="true" />}
+              {reconciliation === "locked" ? "Conciliado" : "Conferido"}
+            </p>
+          )}
           {!isSplit && first && (
             <>
               <p className="text-sm text-muted-foreground">

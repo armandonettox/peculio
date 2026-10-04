@@ -9,6 +9,7 @@ import {
   formatTransactionAmount,
   groupByDay,
   ownAccountName,
+  reconciliationState,
   transactionDate,
   transactionTitle,
 } from "./presentation";
@@ -181,5 +182,19 @@ describe("groupByDay", () => {
 
   it("lista vazia nao gera grupos", () => {
     expect(groupByDay([], today)).toEqual([]);
+  });
+});
+
+describe("reconciliationState", () => {
+  it("sem marca quando nada foi conferido", () => {
+    expect(reconciliationState(makeTransaction())).toBeNull();
+  });
+
+  it("conferido em algum lado", () => {
+    expect(reconciliationState(makeTransaction({}, [{ cleared: true }]))).toBe("cleared");
+  });
+
+  it("travado vale mais que conferido, mesmo em outra divisao", () => {
+    expect(reconciliationState(makeTransaction({}, [{ cleared: true }, { cleared: true, locked: true }]))).toBe("locked");
   });
 });
