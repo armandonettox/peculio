@@ -107,6 +107,9 @@ class TransactionSplitOut(BaseModel):
     bill_id: uuid.UUID | None
     tag_ids: list[uuid.UUID]
     notes: str | None
+    # Conferido com o extrato em algum dos lados; travado = a conciliacao foi fechada
+    cleared: bool = False
+    locked: bool = False
 
 
 class TransactionCreate(BaseModel):

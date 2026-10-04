@@ -21,6 +21,7 @@ from app.models.transaction import Transaction, TransactionSplit, TransactionTyp
 from app.models.user import User
 from app.models.webhook import WebhookEvent
 from app.schemas.transaction import TransactionCreate, TransactionOut, TransactionSplitCreate
+from app.services.clearings import assert_unlocked, capture_clearings, clearing_states, restore_clearings
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
 from app.services.attachment_storage import storage_path
 from app.services.bills import find_matching_bill, get_owned_bill
@@ -379,6 +380,8 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
     Tudo na mesma transacao do banco: se um split novo for recusado, a requisicao termina sem
     commit e os splits antigos continuam como estavam.
     """
+    # Travado pela conciliacao: nao se edita sem destravar
+    assert_unlocked(db, transaction.id)
     transaction.title = data.title
     # O identificador que o banco deu a um lancamento importado nao some na edicao: senao reimportar o mesmo
     # extrato criaria o lancamento de novo. Vale por posicao da linha.
@@ -390,6 +393,8 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
             ).where(TransactionSplit.transaction_id == transaction.id, TransactionSplit.external_id.is_not(None))
         )
     }
+    # O que ja estava conferido continua conferido (nos lados que ainda fazem parte do lancamento)
+    cleared = capture_clearings(db, transaction.id)
     db.execute(delete(TransactionSplit).where(TransactionSplit.transaction_id == transaction.id))
     db.flush()
     rules = load_rule_defs(db, user.id)
@@ -397,6 +402,7 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
         created = _build_split(db, user, transaction.id, split_data, position, rules)
         if position in external:
             created.external_id, created.external_account_id = external[position]
+        restore_clearings(db, user.id, created, cleared.get(position, []))
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
     return transaction
@@ -405,6 +411,8 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
 def delete_transaction(db: Session, transaction: Transaction) -> list[Path]:
     """Apaga o lancamento (os anexos saem do banco em cascata) e devolve os arquivos deles, para
     quem chama apagar do disco depois de gravar."""
+    # Travado pela conciliacao: nao se exclui sem destravar
+    assert_unlocked(db, transaction.id)
     # O evento leva o retrato do lancamento de antes de excluir, por isso vem primeiro
     _enqueue(db, transaction.user_id, WebhookEvent.transaction_deleted, transaction)
     attachments = db.execute(select(Attachment).where(Attachment.transaction_id == transaction.id)).scalars().all()
@@ -461,6 +469,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
     )
 
     tag_map = tag_ids_by_split(db, [split.id for split in splits])
+    clearing_map = clearing_states(db, [split.id for split in splits])
     account_ids = {split.source_account_id for split in splits} | {split.destination_account_id for split in splits}
     accounts = {
         row.id: row
@@ -503,6 +512,8 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
                     "bill_id": split.bill_id,
                     "tag_ids": tag_map.get(split.id, []),
                     "notes": split.notes,
+                    "cleared": clearing_map.get(split.id, (False, False))[0],
+                    "locked": clearing_map.get(split.id, (False, False))[1],
                 }
                 for split in splits_by_transaction[transaction.id]
             ],

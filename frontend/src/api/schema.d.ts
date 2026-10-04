@@ -822,6 +822,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reconciliation/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get View
+         * @description A conciliacao de uma conta: o conferido, o extrato, a diferenca e os lancamentos abertos ate a data.
+         */
+        get: operations["get_view_api_v1_reconciliation__account_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/adjustment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Adjustment
+         * @description Cria o lancamento de ajuste que zera a diferenca (ja conferido) e devolve a conciliacao atualizada.
+         */
+        post: operations["create_adjustment_api_v1_reconciliation__account_id__adjustment_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/cleared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Cleared
+         * @description Marca ou desmarca lancamentos como conferidos com o extrato.
+         */
+        put: operations["set_cleared_api_v1_reconciliation__account_id__cleared_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Reconciliation
+         * @description Fecha a conciliacao (so com diferenca zero) e trava os lancamentos conferidos.
+         */
+        post: operations["close_reconciliation_api_v1_reconciliation__account_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/closed/{reconciliation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Undo Reconciliation
+         * @description Desfaz uma conciliacao inteira: destrava tudo o que ela travou e a marca como desfeita no historico.
+         */
+        delete: operations["undo_reconciliation_api_v1_reconciliation__account_id__closed__reconciliation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get History */
+        get: operations["get_history_api_v1_reconciliation__account_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reconciliation/{account_id}/unlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unlock
+         * @description Destrava lancamentos (continuam conferidos). A conciliacao deles deixa de valer.
+         */
+        post: operations["unlock_api_v1_reconciliation__account_id__unlock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/recurrences": {
         parameters: {
             query?: never;
@@ -1800,6 +1937,18 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** ChangedOut */
+        ChangedOut: {
+            /** Changed */
+            changed: number;
+        };
+        /** ClearedSet */
+        ClearedSet: {
+            /** Cleared */
+            cleared: boolean;
+            /** Split Ids */
+            split_ids: string[];
+        };
         /**
          * ClockOut
          * @description O relogio do app. O frontend usa isto para calcular o "hoje" igual ao do servidor, sem depender
@@ -2533,6 +2682,92 @@ export interface components {
             /** Wanted */
             wanted: string;
         };
+        /** ReconRowOut */
+        ReconRowOut: {
+            /** Amount */
+            amount: string;
+            /** Cleared */
+            cleared: boolean;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /**
+             * Split Id
+             * Format: uuid
+             */
+            split_id: string;
+            /**
+             * Transaction Id
+             * Format: uuid
+             */
+            transaction_id: string;
+        };
+        /** ReconciliationOut */
+        ReconciliationOut: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /**
+             * Closed At
+             * Format: date-time
+             */
+            closed_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Invalidated At */
+            invalidated_at: string | null;
+            /** Locked Count */
+            locked_count: number;
+            /** Statement Balance */
+            statement_balance: string;
+            /**
+             * Statement Date
+             * Format: date
+             */
+            statement_date: string;
+        };
+        /** ReconciliationViewOut */
+        ReconciliationViewOut: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Account Name */
+            account_name: string;
+            /** Book Balance */
+            book_balance: string;
+            /** Cleared Balance */
+            cleared_balance: string;
+            /** Currency Code */
+            currency_code: string;
+            /** Difference */
+            difference: string;
+            /** Reconciled */
+            reconciled: boolean;
+            /** Rows */
+            rows: components["schemas"]["ReconRowOut"][];
+            /** Statement Balance */
+            statement_balance: string;
+            /**
+             * Statement Date
+             * Format: date
+             */
+            statement_date: string;
+            /** Total Rows */
+            total_rows: number;
+            /** Truncated */
+            truncated: boolean;
+        };
         /** RecoveryCodesOut */
         RecoveryCodesOut: {
             /** Recovery Codes */
@@ -2843,6 +3078,24 @@ export interface components {
             /** Created */
             created: number;
         };
+        /** SplitIds */
+        SplitIds: {
+            /** Split Ids */
+            split_ids: string[];
+        };
+        /**
+         * StatementIn
+         * @description O que a pessoa leu no extrato: o saldo e a data dele.
+         */
+        StatementIn: {
+            /** Statement Balance */
+            statement_balance: number | string;
+            /**
+             * Statement Date
+             * Format: date
+             */
+            statement_date: string;
+        };
         /** SummaryOut */
         SummaryOut: {
             /** Currencies */
@@ -3072,6 +3325,11 @@ export interface components {
             budget_id: string | null;
             /** Category Id */
             category_id: string | null;
+            /**
+             * Cleared
+             * @default false
+             */
+            cleared: boolean;
             /** Currency Code */
             currency_code: string;
             /**
@@ -3098,6 +3356,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Locked
+             * @default false
+             */
+            locked: boolean;
             /** Notes */
             notes: string | null;
             /**
@@ -5264,6 +5527,245 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PiggyBankOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_view_api_v1_reconciliation__account_id__get: {
+        parameters: {
+            query: {
+                /** @description O saldo que o extrato mostra */
+                statement_balance: number | string;
+                /** @description AAAA-MM-DD; sem ele, hoje */
+                statement_date?: string | null;
+            };
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_adjustment_api_v1_reconciliation__account_id__adjustment_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatementIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_cleared_api_v1_reconciliation__account_id__cleared_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClearedSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_reconciliation_api_v1_reconciliation__account_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatementIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_reconciliation_api_v1_reconciliation__account_id__closed__reconciliation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+                reconciliation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_history_api_v1_reconciliation__account_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unlock_api_v1_reconciliation__account_id__unlock_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SplitIds"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangedOut"];
                 };
             };
             /** @description Validation Error */

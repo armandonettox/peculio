@@ -33,6 +33,7 @@ from app.services.import_parsers import (
     rows_from_csv,
     suggest_mapping,
 )
+from app.services.clearings import mark_cleared
 from app.services.transactions import create_transaction
 
 COUNTERPARTY_MAX = 200
@@ -219,6 +220,9 @@ def _create_row(db: Session, user: User, account: Account, row: ImportRowIn) -> 
         created.external_id = row.external_id
         created.external_account_id = account.id
         db.flush()
+    # Veio do extrato do proprio banco: ja nasce conferido
+    created = db.execute(select(TransactionSplit.id).where(TransactionSplit.transaction_id == transaction.id)).scalar_one()
+    mark_cleared(db, user.id, created, account.id)
 
 
 def confirm(db: Session, user: User, data: ImportConfirm) -> dict:

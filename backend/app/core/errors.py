@@ -54,6 +54,14 @@ class ErrorCode(StrEnum):
     BUDGET_NOT_ENVELOPE = "budget_not_envelope"
     ENVELOPE_NOT_ENOUGH = "envelope_not_enough"
     TEMPLATE_NOT_FOUND = "template_not_found"
+    # Conciliacao
+    TRANSACTION_LOCKED = "transaction_locked"
+    RECONCILIATION_ACCOUNT_INVALID = "reconciliation_account_invalid"
+    RECONCILIATION_SPLIT_INVALID = "reconciliation_split_invalid"
+    RECONCILIATION_NO_DIFFERENCE = "reconciliation_no_difference"
+    RECONCILIATION_DIFFERENCE = "reconciliation_difference"
+    RECONCILIATION_NOTHING = "reconciliation_nothing"
+    RECONCILIATION_NOT_FOUND = "reconciliation_not_found"
     # Contas a pagar
     BILL_NOT_FOUND = "bill_not_found"
     BILL_NAME_TAKEN = "bill_name_taken"
