@@ -1,4 +1,4 @@
-import { AlertTriangle, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { AlertTriangle, MoreVertical, Pencil, Target, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useCurrencies } from "@/api/accounts";
@@ -22,8 +22,9 @@ import {
   toBudgetState,
   toInputText,
 } from "./presentation";
+import { goalLabel, templateSummary } from "./template-presentation";
 
-export type EnvelopeAction = "edit" | "delete";
+export type EnvelopeAction = "edit" | "template" | "delete";
 
 type Props = {
   month: string;
@@ -32,10 +33,12 @@ type Props = {
   onError: (message: string | null) => void;
   // Abre o "Mover" ja levando dinheiro para o envelope que estourou
   onCover: (envelope: Envelope) => void;
+  // Nome de cada conta a pagar (id -> nome), para o resumo do template "conta a pagar"
+  billNames?: Record<string, string>;
 };
 
 /** Um grupo (uma moeda): o "A orcar" no topo e a tabela dos envelopes do mes. */
-export function EnvelopeGroupTable({ month, group, onAction, onError, onCover }: Props) {
+export function EnvelopeGroupTable({ month, group, onAction, onError, onCover, billNames = {} }: Props) {
   const state = toBudgetState(group);
   const code = group.currency_code;
 
@@ -97,6 +100,7 @@ export function EnvelopeGroupTable({ month, group, onAction, onError, onCover }:
                 onAction={onAction}
                 onError={onError}
                 onCover={onCover}
+                billNames={billNames}
               />
             ))}
           </tbody>
@@ -113,6 +117,7 @@ function EnvelopeRow({
   onAction,
   onError,
   onCover,
+  billNames,
 }: {
   month: string;
   code: string;
@@ -120,6 +125,7 @@ function EnvelopeRow({
   onAction: Props["onAction"];
   onError: Props["onError"];
   onCover: Props["onCover"];
+  billNames: Record<string, string>;
 }) {
   const currencies = useCurrencies();
   const set = useSetAllocation(month);
@@ -162,6 +168,21 @@ function EnvelopeRow({
     <tr>
       <th scope="row" className="px-2 py-2 sm:px-3 font-medium">
         {envelope.name}
+        {envelope.template && (
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+            {templateSummary(envelope.template, code, envelope.template.bill_id ? billNames[envelope.template.bill_id] : undefined)}
+          </span>
+        )}
+        {envelope.goal && (
+          <span
+            className={cn(
+              "mt-1 inline-block rounded-md px-1.5 py-0.5 text-xs font-normal",
+              envelope.goal === "met" ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {goalLabel(envelope.goal)}
+          </span>
+        )}
       </th>
       <td className="hidden px-2 py-2 sm:px-3 text-right tabular-nums text-muted-foreground sm:table-cell">
         {formatMoney(envelope.carried, code)}
@@ -236,6 +257,10 @@ function EnvelopeRow({
             <DropdownMenuItem onSelect={() => onAction("edit", envelope)}>
               <Pencil />
               Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onAction("template", envelope)}>
+              <Target />
+              {envelope.template ? "Mudar template" : "Definir template"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onAction("delete", envelope)} className="text-destructive">

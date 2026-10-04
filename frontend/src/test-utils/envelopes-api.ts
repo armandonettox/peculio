@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 
-import type { Envelope, EnvelopeGroup, EnvelopeMonth } from "@/api/envelopes";
+import type { Envelope, EnvelopeGroup, EnvelopeMonth, Template, TemplatePreview } from "@/api/envelopes";
 
 let counter = 0;
 
@@ -46,6 +46,11 @@ export function fakeEnvelopesApi(initial: Envelope[] = [], { moneyAmount = 1000 
     ),
     names: new Map(initial.map((item) => [item.budget_id, item.name])),
     money: moneyAmount,
+    // Templates por envelope e o selo de meta que o teste quiser mostrar
+    templates: new Map<string, Template>(),
+    goals: new Map<string, NonNullable<Envelope["goal"]>>(),
+    // A previa que o servidor devolve (o teste monta); aplicar grava `proposed` das linhas que mudam
+    preview: { month: "2026-03-01", overwrite: false, groups: [] } as TemplatePreview,
     requests: [] as Recorded[],
     viewError: false,
     nextMutationError: null as NextError | null,
@@ -55,7 +60,11 @@ export function fakeEnvelopesApi(initial: Envelope[] = [], { moneyAmount = 1000 
     HttpResponse.json({ detail: error.detail ?? "erro", code: error.code }, { status: error.status });
 
   function view(month: string): EnvelopeMonth {
-    const envelopes = [...state.figures.entries()].map(([id, figures]) => fromFigures(id, state.names.get(id) ?? "", figures));
+    const envelopes = [...state.figures.entries()].map(([id, figures]) => ({
+      ...fromFigures(id, state.names.get(id) ?? "", figures),
+      template: state.templates.get(id) ?? null,
+      goal: state.goals.get(id) ?? null,
+    }));
     const inEnvelopes = envelopes.reduce((sum, item) => sum + Math.max(Number(item.available), 0), 0);
     const groups: EnvelopeGroup[] =
       envelopes.length === 0
@@ -84,6 +93,50 @@ export function fakeEnvelopesApi(initial: Envelope[] = [], { moneyAmount = 1000 
       state.requests.push({ method: "GET", path: "/envelopes", month });
       if (state.viewError) return fail({ status: 500, code: "internal_error" });
       return HttpResponse.json(view(month ?? "2026-03"));
+    }),
+
+    http.get("*/api/v1/envelopes/templates/preview", ({ request }) => {
+      const query = new URL(request.url).searchParams;
+      state.requests.push({ method: "GET", path: "/envelopes/templates/preview", month: query.get("month"), body: { overwrite: query.get("overwrite") } });
+      if (state.viewError) return fail({ status: 500, code: "internal_error" });
+      return HttpResponse.json({ ...state.preview, overwrite: query.get("overwrite") === "true" });
+    }),
+
+    http.post("*/api/v1/envelopes/templates/apply", async ({ request }) => {
+      const body = (await request.json()) as { month: string; overwrite: boolean };
+      state.requests.push({ method: "POST", path: "/envelopes/templates/apply", body: body as unknown as Record<string, unknown> });
+      const error = takeError();
+      if (error) return fail(error);
+      for (const group of state.preview.groups) {
+        for (const row of group.rows) {
+          const figures = state.figures.get(row.budget_id);
+          if (row.applies && figures) figures.allocated = Number(row.proposed);
+        }
+      }
+      return HttpResponse.json(view(body.month));
+    }),
+
+    http.put("*/api/v1/envelopes/:id/template", async ({ request, params }) => {
+      const body = (await request.json()) as Template;
+      state.requests.push({ method: "PUT", path: `/envelopes/${params.id}/template`, body: body as unknown as Record<string, unknown> });
+      const error = takeError();
+      if (error) return fail(error);
+      const saved: Template = {
+        kind: body.kind,
+        amount: body.amount ?? null,
+        target_month: body.target_month ? `${body.target_month}-01` : null,
+        bill_id: body.bill_id ?? null,
+      };
+      state.templates.set(String(params.id), saved);
+      return HttpResponse.json(saved);
+    }),
+
+    http.delete("*/api/v1/envelopes/:id/template", ({ params }) => {
+      state.requests.push({ method: "DELETE", path: `/envelopes/${params.id}/template` });
+      const error = takeError();
+      if (error) return fail(error);
+      state.templates.delete(String(params.id));
+      return new HttpResponse(null, { status: 204 });
     }),
 
     http.post("*/api/v1/envelopes/move", async ({ request }) => {

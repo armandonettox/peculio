@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
+import { fakeBillsApi } from "@/test-utils/bills-api";
 import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeEnvelopesApi, makeEnvelope } from "@/test-utils/envelopes-api";
 import { server } from "@/test-utils/msw";
@@ -19,7 +20,7 @@ afterEach(() => vi.useRealTimers());
 
 function renderPage(envelopes: ReturnType<typeof makeEnvelope>[] = [], options: Parameters<typeof fakeEnvelopesApi>[1] = {}) {
   const api = fakeEnvelopesApi(envelopes, options);
-  server.use(...api.handlers, ...fakeAccountsApi([makeAccount()]).handlers, ...fakeBudgetsApi().handlers);
+  server.use(...api.handlers, ...fakeAccountsApi([makeAccount()]).handlers, ...fakeBudgetsApi().handlers, ...fakeBillsApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter>

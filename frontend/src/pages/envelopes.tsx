@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Mail, Plus } from "lucide-react";
 import { useState } from "react";
 
+import { useBills } from "@/api/bills";
 import { useDeleteBudget, type Budget } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { useEnvelopes, type Envelope } from "@/api/envelopes";
@@ -11,12 +12,16 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { BudgetFormDialog } from "@/features/budgets/budget-form-dialog";
 import { EnvelopeGroupTable, type EnvelopeAction } from "@/features/envelopes/envelope-group-table";
+import { ApplyTemplatesDialog } from "@/features/envelopes/apply-templates-dialog";
 import { MoveMoneyDialog } from "@/features/envelopes/move-money-dialog";
+import { TemplateDialog } from "@/features/envelopes/template-dialog";
 import { appToday, firstOfMonth, formatMonthYear, shiftMonth } from "@/lib/dates";
 
 type DialogState =
   | { kind: "create" }
   | { kind: "edit"; envelope: Envelope }
+  | { kind: "template"; envelope: Envelope; currency: string }
+  | { kind: "apply" }
   | { kind: "delete"; envelope: Envelope }
   | { kind: "move"; currency: string; to?: string }
   | null;
@@ -30,9 +35,12 @@ export default function EnvelopesPage() {
   const query = useEnvelopes(month);
   const remove = useDeleteBudget();
   const groups = query.data?.groups ?? [];
+  const bills = useBills({ activeOnly: false });
+  const billNames = Object.fromEntries((bills.data ?? []).map((bill) => [bill.id, bill.name]));
 
-  function handleAction(action: EnvelopeAction, envelope: Envelope) {
-    setDialog({ kind: action, envelope });
+  function handleAction(action: EnvelopeAction, envelope: Envelope, currency: string) {
+    if (action === "template") setDialog({ kind: "template", envelope, currency });
+    else setDialog({ kind: action, envelope });
   }
 
   const newButton = (
@@ -81,7 +89,8 @@ export default function EnvelopesPage() {
             <EnvelopeGroupTable
               month={month}
               group={group}
-              onAction={handleAction}
+              onAction={(action, envelope) => handleAction(action, envelope, group.currency_code)}
+              billNames={billNames}
               onError={setActionError}
               onCover={(envelope) => setDialog({ kind: "move", currency: group.currency_code, to: envelope.budget_id })}
             />
@@ -104,19 +113,24 @@ export default function EnvelopesPage() {
     <>
       <PageHeader title="Envelopes" description="Distribua o dinheiro que você tem, mês a mês" actions={newButton} />
 
-      <div className="mb-4 flex items-center gap-2">
-        <Button variant="outline" size="icon" aria-label="Mês anterior" onClick={() => setMonth(shiftMonth(month, -1))}>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="icon" className="shrink-0" aria-label="Mês anterior" onClick={() => setMonth(shiftMonth(month, -1))}>
           <ChevronLeft />
         </Button>
         <p className="min-w-36 text-center text-sm font-medium first-letter:uppercase" aria-live="polite">
           {formatMonthYear(month)}
         </p>
-        <Button variant="outline" size="icon" aria-label="Próximo mês" onClick={() => setMonth(shiftMonth(month, 1))}>
+        <Button variant="outline" size="icon" className="shrink-0" aria-label="Próximo mês" onClick={() => setMonth(shiftMonth(month, 1))}>
           <ChevronRight />
         </Button>
         {month !== currentMonth && (
           <Button variant="ghost" size="sm" onClick={() => setMonth(currentMonth)}>
             Mês atual
+          </Button>
+        )}
+        {groups.length > 0 && (
+          <Button variant="outline" className="sm:ml-auto" onClick={() => setDialog({ kind: "apply" })}>
+            Aplicar templates
           </Button>
         )}
       </div>
@@ -133,6 +147,10 @@ export default function EnvelopesPage() {
       {dialog?.kind === "edit" && (
         <BudgetFormDialog budget={asBudget(dialog.envelope)} onClose={() => setDialog(null)} />
       )}
+      {dialog?.kind === "template" && (
+        <TemplateDialog envelope={dialog.envelope} currencyCode={dialog.currency} onClose={() => setDialog(null)} />
+      )}
+      {dialog?.kind === "apply" && <ApplyTemplatesDialog month={month} onClose={() => setDialog(null)} />}
       {dialog?.kind === "move" && movingGroup && (
         <MoveMoneyDialog month={month} group={movingGroup} initialTo={dialog.to} onClose={() => setDialog(null)} />
       )}
