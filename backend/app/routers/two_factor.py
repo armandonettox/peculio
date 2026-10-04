@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core import two_factor
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_session_user
 from app.core.errors import AppError, ErrorCode
 from app.core.rate_limit import limiter
 from app.core.security import (
@@ -116,7 +116,7 @@ def verify_login(request: Request, data: TwoFactorVerify, db: Session = Depends(
 
 
 @router.get("/status", response_model=TwoFactorStatus)
-def two_factor_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def two_factor_status(user: User = Depends(get_session_user), db: Session = Depends(get_db)):
     remaining = db.execute(
         select(func.count()).select_from(RecoveryCode).where(
             RecoveryCode.user_id == user.id, RecoveryCode.used_at.is_(None)
@@ -127,7 +127,7 @@ def two_factor_status(user: User = Depends(get_current_user), db: Session = Depe
 
 @router.post("/setup", response_model=TwoFactorSetupOut)
 @limiter.limit("10/minute")
-def setup(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def setup(request: Request, user: User = Depends(get_session_user), db: Session = Depends(get_db)):
     """Gera um segredo novo, ainda inativo. Chamar de novo antes de ativar troca o segredo."""
     if user.totp_enabled:
         raise AppError(409, ErrorCode.TWO_FACTOR_ALREADY_ENABLED, "O 2FA ja esta ativado")
@@ -140,7 +140,7 @@ def setup(request: Request, user: User = Depends(get_current_user), db: Session 
 
 @router.post("/enable", response_model=RecoveryCodesOut)
 @limiter.limit("10/minute")
-def enable(request: Request, data: TwoFactorCode, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def enable(request: Request, data: TwoFactorCode, user: User = Depends(get_session_user), db: Session = Depends(get_db)):
     """Confirma o segredo com um codigo do app e ativa. Devolve os codigos de recuperacao."""
     if user.totp_enabled:
         raise AppError(409, ErrorCode.TWO_FACTOR_ALREADY_ENABLED, "O 2FA ja esta ativado")
@@ -165,7 +165,7 @@ def enable(request: Request, data: TwoFactorCode, user: User = Depends(get_curre
 
 @router.post("/disable", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
-def disable(request: Request, data: TwoFactorConfirm, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def disable(request: Request, data: TwoFactorConfirm, user: User = Depends(get_session_user), db: Session = Depends(get_db)):
     _require_password_and_code(db, user, data)
     user.totp_enabled = False
     user.totp_secret_encrypted = None
@@ -180,7 +180,7 @@ def disable(request: Request, data: TwoFactorConfirm, user: User = Depends(get_c
 def regenerate_recovery_codes(
     request: Request,
     data: TwoFactorConfirm,
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_session_user),
     db: Session = Depends(get_db),
 ):
     """Troca todos os codigos de recuperacao por 10 novos; os antigos deixam de valer."""

@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     # Extrato de banco (CSV ou OFX): tamanho do arquivo e quantas linhas uma importacao aceita
     import_max_bytes: int = 5 * 1024 * 1024
     import_max_rows: int = 5000
+    # Quantas chamadas por minuto cada token de API pode fazer (conta por processo)
+    api_token_rate_per_minute: int = Field(default=120, ge=1)
     # Fuso que define "hoje" para recorrentes, orcamentos e contas a pagar (nome do banco IANA)
     app_timezone: str = "America/Sao_Paulo"
 

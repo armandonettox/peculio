@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.deps import get_current_user, oauth2_scheme
+from app.core.deps import get_current_user, get_session_user, oauth2_scheme
 from app.core.errors import AppError, ErrorCode
 from app.core.rate_limit import limiter
 from app.core.security import (
@@ -122,7 +122,7 @@ def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
 def refresh_session(
     request: Request,
     token: str = Depends(oauth2_scheme),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_session_user),
 ):
     """Sessao deslizante: troca um token ainda valido por um novo, sem novo login. Usuario
     apagado e conta bloqueada ja sao barrados no get_current_user. Aqui ficam o teto

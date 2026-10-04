@@ -17,6 +17,13 @@ class ErrorCode(StrEnum):
     # Autenticacao e sessao
     TOKEN_MISSING = "token_missing"
     TOKEN_INVALID = "token_invalid"
+    # Tokens de API
+    API_TOKEN_EXPIRED = "api_token_expired"
+    API_TOKEN_READ_ONLY = "api_token_read_only"
+    SESSION_REQUIRED = "session_required"
+    API_TOKEN_NOT_FOUND = "api_token_not_found"
+    API_TOKEN_NAME_TAKEN = "api_token_name_taken"
+    API_TOKEN_LIMIT_REACHED = "api_token_limit_reached"
     USER_NOT_FOUND = "user_not_found"
     INVALID_CREDENTIALS = "invalid_credentials"
     ACCOUNT_LOCKED = "account_locked"

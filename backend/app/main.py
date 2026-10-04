@@ -12,6 +12,7 @@ from app.core.scheduler import start_scheduler
 from app.core.upload_limit import UploadSizeLimitMiddleware
 from app.routers import (
     accounts,
+    api_tokens,
     attachments,
     auth,
     bills,
@@ -78,6 +79,7 @@ api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
 api_v1.include_router(attachments.router)
 api_v1.include_router(imports.router)
+api_v1.include_router(api_tokens.router)
 api_v1.include_router(dashboard.router)
 api_v1.include_router(clock.router)
 app.include_router(api_v1)
