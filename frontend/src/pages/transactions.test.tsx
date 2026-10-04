@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
@@ -24,6 +24,9 @@ const nubank = makeAccount({ id: "a0000000-0000-4000-8000-000000000001", name: "
 const poupanca = makeAccount({ id: "a0000000-0000-4000-8000-000000000002", name: "Poupanca" });
 const antiga = makeAccount({ id: "a0000000-0000-4000-8000-000000000003", name: "Conta velha", active: false });
 
+// A escolha lista/tabela fica no navegador: sem limpar, um teste herdaria a escolha do outro
+afterEach(() => window.localStorage.clear());
+
 type Options = { transactions?: Transaction[]; url?: string };
 
 function renderPage({ transactions = [], url = "/transacoes" }: Options = {}) {
@@ -31,7 +34,7 @@ function renderPage({ transactions = [], url = "/transacoes" }: Options = {}) {
   const accounts = fakeAccountsApi([nubank, poupanca, antiga]);
   const categories = fakeLabelsApi("categories", [mercado]);
   const tags = fakeLabelsApi("tags", [viagem]);
-  server.use(tx.handler, ...accounts.handlers, ...categories.handlers, ...tags.handlers);
+  server.use(...tx.handlers, ...accounts.handlers, ...categories.handlers, ...tags.handlers);
   render(
     <FakeAuth>
       <MemoryRouter initialEntries={[url]}>
@@ -419,4 +422,108 @@ it("o botao de filtros mostra quantos do painel estao ativos, sem contar a busca
   renderPage({ transactions: [tx("x")], url: `/transacoes?busca=x&conta=${nubank.id}&de=2026-01-01` });
   await screen.findByLabelText("Buscar lançamentos");
   expect(screen.getByRole("button", { name: "Filtros (2)" })).toBeInTheDocument();
+});
+
+// ---------- Lista ou tabela ----------
+
+const viewButton = (name: "Lista" | "Tabela") => screen.getByRole("button", { name });
+
+it("abre em lista e troca para tabela e de volta", async () => {
+  renderPage({ transactions: [tx("Padaria"), tx("Mercado")] });
+  await screen.findByText("Padaria");
+  expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  expect(viewButton("Lista")).toHaveAttribute("aria-pressed", "true");
+  expect(viewButton("Tabela")).toHaveAttribute("aria-pressed", "false");
+
+  await userEvent.click(viewButton("Tabela"));
+  const table = screen.getByRole("table");
+  expect(within(table).getAllByRole("row")).toHaveLength(3);
+  expect(screen.queryByRole("region", { name: /de março de 2026/ })).not.toBeInTheDocument();
+  expect(viewButton("Tabela")).toHaveAttribute("aria-pressed", "true");
+
+  await userEvent.click(viewButton("Lista"));
+  expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  expect(screen.getByText("Padaria")).toBeInTheDocument();
+});
+
+it("lembra a escolha da tabela ao voltar para a pagina", async () => {
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByText("Padaria");
+  await userEvent.click(viewButton("Tabela"));
+  expect(window.localStorage.getItem("finance-app:transactions-view")).toBe("table");
+});
+
+it("abre direto na tabela quando essa foi a ultima escolha", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  expect(await screen.findByRole("table")).toBeInTheDocument();
+  expect(viewButton("Tabela")).toHaveAttribute("aria-pressed", "true");
+});
+
+it("sem armazenamento no navegador, abre em lista e a troca ainda funciona", async () => {
+  const getItem = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+    throw new Error("bloqueado");
+  });
+  const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    throw new Error("bloqueado");
+  });
+  try {
+    renderPage({ transactions: [tx("Padaria")] });
+    await screen.findByText("Padaria");
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    await userEvent.click(viewButton("Tabela"));
+    expect(screen.getByRole("table")).toBeInTheDocument();
+  } finally {
+    getItem.mockRestore();
+    setItem.mockRestore();
+  }
+});
+
+it("Enter numa linha da tabela edita na propria linha, sem abrir o dialogo", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByRole("table");
+  screen.getByRole("row", { name: /^Padaria/ }).focus();
+  await userEvent.keyboard("{Enter}");
+  expect(await screen.findByRole("row", { name: "Editando Padaria" })).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("T numa linha da tabela abre uma linha de entrada, sem dialogo", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByRole("table");
+  screen.getByRole("row", { name: /^Padaria/ }).focus();
+  await userEvent.keyboard("t");
+  expect(await screen.findByRole("row", { name: "Novo lançamento" })).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("Editar completo, na tabela, abre o formulario completo", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByRole("table");
+  await userEvent.click(screen.getByRole("button", { name: "Editar completo Padaria" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).getByLabelText("Descrição")).toHaveValue("Padaria");
+});
+
+it("um lancamento criado pela linha de entrada aparece na tabela", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByRole("table");
+  await userEvent.click(screen.getByRole("button", { name: "Nova linha" }));
+  await userEvent.type(screen.getByLabelText("Descrição"), "Cafe da tarde");
+  await userEvent.type(screen.getByLabelText("Contraparte"), "Cafeteria");
+  await userEvent.type(screen.getByLabelText("Valor"), "-8,50");
+  await userEvent.keyboard("{Control>}{Enter}{/Control}");
+  expect(await screen.findByRole("row", { name: /^Cafe da tarde/ })).toBeInTheDocument();
+});
+
+it("o botao de excluir da tabela pede confirmacao", async () => {
+  window.localStorage.setItem("finance-app:transactions-view", "table");
+  renderPage({ transactions: [tx("Padaria")] });
+  await screen.findByRole("table");
+  await userEvent.click(screen.getByRole("button", { name: "Excluir Padaria" }));
+  expect(await screen.findByRole("dialog")).toHaveTextContent("Excluir lançamento");
 });

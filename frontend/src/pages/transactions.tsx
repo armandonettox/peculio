@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Plus, Search } from "lucide-react";
+import { ArrowLeftRight, LayoutList, Plus, Search, Table2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -17,7 +17,9 @@ import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "@
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
+import { TransactionsTable } from "@/features/transactions/transactions-table";
 import { useDraftFilter } from "@/features/transactions/use-draft-filter";
+import { readViewMode, saveViewMode, type ViewMode } from "@/features/transactions/view-mode";
 import { parseMoneyInput } from "@/lib/money";
 
 // Os filtros de valor valem para qualquer moeda; a API aceita ate 2 casas
@@ -48,6 +50,7 @@ export default function TransactionsPage() {
   const [removing, setRemoving] = useState<Transaction | null>(null);
   const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
+  const [view, setView] = useState<ViewMode>(readViewMode);
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
 
@@ -95,6 +98,11 @@ export default function TransactionsPage() {
   const items = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
   const total = query.data?.pages[0]?.total ?? 0;
   const groups = useMemo(() => groupByDay(items), [items]);
+
+  function chooseView(mode: ViewMode) {
+    setView(mode);
+    saveViewMode(mode);
+  }
 
   function clearFilters() {
     setSearchParams(new URLSearchParams(), { replace: true });
@@ -154,10 +162,31 @@ export default function TransactionsPage() {
   } else {
     content = (
       <>
-        <p className="mb-4 text-sm text-muted-foreground">
-          {total} {total === 1 ? "lançamento" : "lançamentos"}
-          {activeCount > 0 ? " com os filtros escolhidos" : ""}
-        </p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            {total} {total === 1 ? "lançamento" : "lançamentos"}
+            {activeCount > 0 ? " com os filtros escolhidos" : ""}
+          </p>
+          <div role="group" aria-label="Como mostrar os lançamentos" className="flex gap-1">
+            <Button size="sm" variant={view === "list" ? "default" : "outline"} aria-pressed={view === "list"} onClick={() => chooseView("list")}>
+              <LayoutList />
+              Lista
+            </Button>
+            <Button size="sm" variant={view === "table" ? "default" : "outline"} aria-pressed={view === "table"} onClick={() => chooseView("table")}>
+              <Table2 />
+              Tabela
+            </Button>
+          </div>
+        </div>
+        {view === "table" ? (
+          <TransactionsTable
+            items={items}
+            categories={lookups.categories}
+            accounts={accounts.data ?? []}
+            onOpen={setDialog}
+            onRemove={setRemoving}
+          />
+        ) : (
         <div className="flex flex-col gap-6">
           {groups.map((group) => (
             <section key={group.date} aria-label={group.label}>
@@ -178,6 +207,7 @@ export default function TransactionsPage() {
             </section>
           ))}
         </div>
+        )}
 
         {query.isError && (
           <Alert variant="destructive" className="mt-4">
