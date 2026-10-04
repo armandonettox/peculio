@@ -9,6 +9,7 @@ import RulesPage from "@/pages/rules";
 import BillsPage from "@/pages/bills";
 import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
+import ImportPage from "@/pages/import";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
 import PiggyBanksPage from "@/pages/piggy-banks";
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="regras" element={<RulesPage />} />
           <Route path="contas" element={<AccountsPage />} />
           <Route path="transacoes" element={<TransactionsPage />} />
+          <Route path="importar" element={<ImportPage />} />
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="tags" element={<TagsPage />} />
           <Route path="webhooks" element={<WebhooksPage />} />

@@ -5,6 +5,7 @@ Mensagens de erro de cada linha ficam em portugues claro, porque aparecem na pre
 """
 
 import csv
+import datetime as dt
 import io
 import re
 import unicodedata
@@ -30,7 +31,8 @@ class ImportFileError(Exception):
 class ParsedRow:
     # Numero da linha como a pessoa conta no arquivo (a primeira linha e 1)
     index: int
-    date: date | None = None
+    # dt.date e nao date: no Python 3.13 o campo `date` ja valeria None quando a anotacao fosse lida
+    date: dt.date | None = None
     description: str = ""
     # Com sinal: negativo e saida, positivo e entrada
     amount: Decimal | None = None
