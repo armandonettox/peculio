@@ -126,6 +126,8 @@ export function AccountFormDialog({ account, onClose }: Props) {
           type: kind,
           role,
           currency_code: currency,
+          // O interruptor "Entra nos envelopes" chega com a tela de envelopes; ate la vale o padrao do servidor
+          in_envelopes: true,
           notes: notes.trim() || null,
           // Zero nao cria transacao de saldo inicial no backend: e o mesmo que nao informar
           opening_balance: openingValue ?? "0",

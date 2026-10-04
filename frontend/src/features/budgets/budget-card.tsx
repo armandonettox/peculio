@@ -98,7 +98,7 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm">
           <span className="font-semibold tabular-nums">{formatMoney(budget.spent, budget.currency_code)}</span>
-          <span className="text-muted-foreground"> de {formatMoney(budget.amount, budget.currency_code)}</span>
+          <span className="text-muted-foreground"> de {formatMoney(budget.amount ?? "0", budget.currency_code)}</span>
         </p>
         <p className={cn("text-sm", TEXT_CLASS[state])}>
           {stateLabel && <span className="font-medium">{stateLabel} · </span>}

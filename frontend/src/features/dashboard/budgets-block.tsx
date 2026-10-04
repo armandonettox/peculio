@@ -51,7 +51,7 @@ export function BudgetsBlock({ today }: { today: string }) {
                 <div className={cn("h-full rounded-full", FILL_CLASS[state])} style={{ width: `${filled}%` }} />
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                {formatMoney(budget.spent, budget.currency_code)} de {formatMoney(budget.amount, budget.currency_code)}
+                {formatMoney(budget.spent, budget.currency_code)} de {formatMoney(budget.amount ?? "0", budget.currency_code)}
                 {stateLabel ? ` · ${stateLabel}` : ` · ${remainingText(budget)}`}
               </p>
             </li>

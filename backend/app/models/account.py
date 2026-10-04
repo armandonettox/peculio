@@ -52,6 +52,8 @@ class Account(Base):
     currency_code: Mapped[str] = mapped_column(ForeignKey("currencies.code"))
     # Arquivar esconde a conta das listas sem apagar o historico
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
+    # O dinheiro desta conta entra no "A orcar" dos envelopes (so conta de ativo conta)
+    in_envelopes: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     iban: Mapped[str | None] = mapped_column(String(34))
     account_number: Mapped[str | None] = mapped_column(String(64))
     notes: Mapped[str | None] = mapped_column(Text)

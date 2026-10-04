@@ -120,6 +120,7 @@ function budget(overrides: Partial<BudgetProgress>): BudgetProgress {
     id: "b1",
     name: "Orcamento",
     currency_code: "BRL",
+    mode: "fixed",
     amount: "100.00",
     period: "monthly",
     active: true,

@@ -45,7 +45,7 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
 
   const [name, setName] = useState(budget?.name ?? "");
   const [currency, setCurrency] = useState(budget?.currency_code ?? user?.default_currency ?? "BRL");
-  const [amount, setAmount] = useState(budget ? toInputText(budget.amount) : "");
+  const [amount, setAmount] = useState(budget ? toInputText(budget.amount ?? "") : "");
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
 
     try {
       if (!editing) {
-        const body: BudgetCreate = { name: name.trim(), currency_code: currency, amount: amountValue, period };
+        const body: BudgetCreate = { name: name.trim(), currency_code: currency, mode: "fixed", amount: amountValue, period };
         await create.mutateAsync(body);
       } else {
         // Manda so o que mudou, para nao sobrescrever sem querer

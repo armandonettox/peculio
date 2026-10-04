@@ -160,6 +160,7 @@ it("cria uma conta com saldo inicial no formato brasileiro", async () => {
     type: "asset",
     role: "checking",
     currency_code: "BRL",
+    in_envelopes: true,
     notes: null,
     opening_balance: "3200.50",
     opening_balance_date: new Date().toLocaleDateString("sv-SE"),

@@ -22,6 +22,7 @@ from app.routers import (
     clock,
     currencies,
     dashboard,
+    envelopes,
     imports,
     invites,
     piggy_banks,
@@ -70,6 +71,7 @@ api_v1.include_router(accounts.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
+api_v1.include_router(envelopes.router)
 api_v1.include_router(rules.router)
 api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)

@@ -231,6 +231,7 @@ it("cria um orcamento mensal com o valor no formato brasileiro", async () => {
   expect(api.mutations()[0].body).toEqual({
     name: "Mercado",
     currency_code: "BRL",
+    mode: "fixed",
     amount: "1234.50",
     period: "monthly",
   });

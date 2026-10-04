@@ -11,6 +11,7 @@ export function makeBudget(overrides: Partial<BudgetProgress> = {}): BudgetProgr
     id: `b0000000-0000-4000-8000-${String(counter).padStart(12, "0")}`,
     name: `Orcamento ${counter}`,
     currency_code: "BRL",
+    mode: "fixed",
     amount: "800.00",
     period: "monthly",
     active: true,

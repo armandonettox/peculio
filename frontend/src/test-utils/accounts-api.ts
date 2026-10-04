@@ -19,6 +19,7 @@ export function makeAccount(overrides: Partial<Account> = {}): Account {
     role: "checking",
     currency_code: "BRL",
     active: true,
+    in_envelopes: true,
     iban: null,
     account_number: null,
     notes: null,

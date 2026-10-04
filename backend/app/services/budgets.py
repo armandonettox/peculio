@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams, paginate
-from app.models.budget import Budget, BudgetPeriod
+from app.models.budget import Budget, BudgetMode, BudgetPeriod
 from app.models.currency import Currency
 from app.models.transaction import TransactionSplit, TransactionType
 from app.models.user import User
@@ -52,13 +52,16 @@ def _save(db: Session, budget: Budget) -> None:
 
 def create_budget(db: Session, user: User, data: BudgetCreate) -> Budget:
     currency = get_currency(db, data.currency_code)
-    check_amount(currency, data.amount)
+    if data.mode == BudgetMode.fixed:
+        check_amount(currency, data.amount)
     budget = Budget(
         user_id=user.id,
         name=data.name,
         currency_code=currency.code,
+        mode=data.mode,
         amount=data.amount,
-        period=data.period,
+        # Envelope e sempre mensal
+        period=data.period or BudgetPeriod.monthly,
     )
     _save(db, budget)
     return budget
@@ -68,6 +71,8 @@ def update_budget(db: Session, budget: Budget, data: BudgetUpdate) -> Budget:
     changes = data.model_dump(exclude_unset=True)
     # Campo enviado como null nao apaga nada: nenhum destes campos aceita vazio
     changes = {field: value for field, value in changes.items() if value is not None}
+    if budget.mode == BudgetMode.envelope and ("amount" in changes or "period" in changes):
+        raise AppError(422, ErrorCode.VALIDATION_ERROR, "Envelope nao tem limite nem periodo: a distribuicao e por mes")
     if "amount" in changes:
         check_amount(get_currency(db, budget.currency_code), changes["amount"])
     for field, value in changes.items():
@@ -93,7 +98,8 @@ def budget_output(budget: Budget, places: int) -> dict:
         "id": budget.id,
         "name": budget.name,
         "currency_code": budget.currency_code,
-        "amount": quantize_money(budget.amount, places),
+        "mode": budget.mode,
+        "amount": None if budget.amount is None else quantize_money(budget.amount, places),
         "period": budget.period,
         "active": budget.active,
         "created_at": budget.created_at,
@@ -145,7 +151,8 @@ def _spent_by_budget(
 
 def progress(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) -> list[dict]:
     """Orcamentos com o gasto do periodo que contem `on`, em ordem alfabetica."""
-    statement = select(Budget).where(Budget.user_id == user_id)
+    # Envelope nao tem limite: nao entra no progresso (a tela de envelopes e a dele)
+    statement = select(Budget).where(Budget.user_id == user_id, Budget.mode == BudgetMode.fixed)
     if not include_archived:
         statement = statement.where(Budget.active.is_(True))
     budgets = list(db.execute(statement.order_by(func.lower(Budget.name), Budget.id)).scalars())

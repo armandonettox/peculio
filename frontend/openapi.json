@@ -33,6 +33,11 @@
             ],
             "title": "Iban"
           },
+          "in_envelopes": {
+            "default": true,
+            "title": "In Envelopes",
+            "type": "boolean"
+          },
           "name": {
             "maxLength": 200,
             "minLength": 1,
@@ -150,6 +155,10 @@
             "title": "Id",
             "type": "string"
           },
+          "in_envelopes": {
+            "title": "In Envelopes",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -203,6 +212,7 @@
           "role",
           "currency_code",
           "active",
+          "in_envelopes",
           "iban",
           "account_number",
           "notes",
@@ -277,6 +287,17 @@
               }
             ],
             "title": "Iban"
+          },
+          "in_envelopes": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Envelopes"
           },
           "name": {
             "anyOf": [
@@ -372,6 +393,28 @@
         ],
         "title": "ActionKind",
         "type": "string"
+      },
+      "AllocationSet": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "required": [
+          "amount"
+        ],
+        "title": "AllocationSet",
+        "type": "object"
       },
       "ApiTokenCreate": {
         "additionalProperties": false,
@@ -1033,6 +1076,9 @@
               {
                 "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
                 "type": "string"
+              },
+              {
+                "type": "null"
               }
             ],
             "title": "Amount"
@@ -1043,6 +1089,10 @@
             "title": "Currency Code",
             "type": "string"
           },
+          "mode": {
+            "$ref": "#/components/schemas/BudgetMode",
+            "default": "fixed"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -1050,17 +1100,30 @@
             "type": "string"
           },
           "period": {
-            "$ref": "#/components/schemas/BudgetPeriod"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BudgetPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "name",
-          "currency_code",
-          "amount",
-          "period"
+          "currency_code"
         ],
         "title": "BudgetCreate",
         "type": "object"
+      },
+      "BudgetMode": {
+        "enum": [
+          "fixed",
+          "envelope"
+        ],
+        "title": "BudgetMode",
+        "type": "string"
       },
       "BudgetOut": {
         "properties": {
@@ -1069,9 +1132,16 @@
             "type": "boolean"
           },
           "amount": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount",
-            "type": "string"
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
           },
           "created_at": {
             "format": "date-time",
@@ -1087,6 +1157,9 @@
             "title": "Id",
             "type": "string"
           },
+          "mode": {
+            "$ref": "#/components/schemas/BudgetMode"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -1099,6 +1172,7 @@
           "id",
           "name",
           "currency_code",
+          "mode",
           "amount",
           "period",
           "active",
@@ -1124,9 +1198,16 @@
             "type": "boolean"
           },
           "amount": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount",
-            "type": "string"
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
           },
           "created_at": {
             "format": "date-time",
@@ -1141,6 +1222,9 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/BudgetMode"
           },
           "name": {
             "title": "Name",
@@ -1178,6 +1262,7 @@
           "id",
           "name",
           "currency_code",
+          "mode",
           "amount",
           "period",
           "active",
@@ -1550,6 +1635,156 @@
         ],
         "title": "DeliveryStatus",
         "type": "string"
+      },
+      "EnvelopeGroupOut": {
+        "properties": {
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "envelopes": {
+            "items": {
+              "$ref": "#/components/schemas/EnvelopeOut"
+            },
+            "title": "Envelopes",
+            "type": "array"
+          },
+          "in_envelopes": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "In Envelopes",
+            "type": "string"
+          },
+          "money": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Money",
+            "type": "string"
+          },
+          "to_budget": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "To Budget",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency_code",
+          "money",
+          "in_envelopes",
+          "to_budget",
+          "envelopes"
+        ],
+        "title": "EnvelopeGroupOut",
+        "type": "object"
+      },
+      "EnvelopeMonthOut": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/EnvelopeGroupOut"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "groups"
+        ],
+        "title": "EnvelopeMonthOut",
+        "type": "object"
+      },
+      "EnvelopeMove": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "from_budget_id": {
+            "format": "uuid",
+            "title": "From Budget Id",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "to_budget_id": {
+            "format": "uuid",
+            "title": "To Budget Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_budget_id",
+          "to_budget_id",
+          "month",
+          "amount"
+        ],
+        "title": "EnvelopeMove",
+        "type": "object"
+      },
+      "EnvelopeOut": {
+        "properties": {
+          "allocated": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Allocated",
+            "type": "string"
+          },
+          "available": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Available",
+            "type": "string"
+          },
+          "budget_id": {
+            "format": "uuid",
+            "title": "Budget Id",
+            "type": "string"
+          },
+          "carried": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Carried",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "overspent": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Overspent",
+            "type": "string"
+          },
+          "spent": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Spent",
+            "type": "string"
+          }
+        },
+        "required": [
+          "budget_id",
+          "name",
+          "carried",
+          "allocated",
+          "spent",
+          "available",
+          "overspent"
+        ],
+        "title": "EnvelopeOut",
+        "type": "object"
       },
       "GroupedReportOut": {
         "properties": {
@@ -7424,6 +7659,178 @@
         "summary": "Get Upcoming",
         "tags": [
           "dashboard"
+        ]
+      }
+    },
+    "/api/v1/envelopes": {
+      "get": {
+        "description": "Os envelopes do mes e o \"A orcar\" de cada moeda.",
+        "operationId": "get_month_api_v1_envelopes_get",
+        "parameters": [
+          {
+            "description": "AAAA-MM; sem ele, o mes de hoje",
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM; sem ele, o mes de hoje",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvelopeMonthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Month",
+        "tags": [
+          "envelopes"
+        ]
+      }
+    },
+    "/api/v1/envelopes/move": {
+      "post": {
+        "description": "Passa dinheiro de um envelope para outro no mes. Tira do disponivel do primeiro.",
+        "operationId": "move_money_api_v1_envelopes_move_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnvelopeMove"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvelopeMonthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Move Money",
+        "tags": [
+          "envelopes"
+        ]
+      }
+    },
+    "/api/v1/envelopes/{budget_id}/{month}": {
+      "put": {
+        "description": "Define quanto distribuir para o envelope no mes (zero limpa).",
+        "operationId": "set_allocation_api_v1_envelopes__budget_id___month__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Budget Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocationSet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvelopeMonthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Set Allocation",
+        "tags": [
+          "envelopes"
         ]
       }
     },

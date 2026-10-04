@@ -38,6 +38,8 @@ class AccountCreate(BaseModel):
     iban: str | None = Field(default=None, max_length=34)
     account_number: str | None = Field(default=None, max_length=64)
     notes: str | None = Field(default=None, max_length=2000)
+    # O dinheiro desta conta entra no "A orcar" dos envelopes
+    in_envelopes: bool = True
 
     @field_validator("name")
     @classmethod
@@ -68,6 +70,7 @@ class AccountUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     role: AccountRole | None = None
     active: bool | None = None
+    in_envelopes: bool | None = None
     iban: str | None = Field(default=None, max_length=34)
     account_number: str | None = Field(default=None, max_length=64)
     notes: str | None = Field(default=None, max_length=2000)
@@ -94,6 +97,7 @@ class AccountOut(BaseModel):
     role: AccountRole | None
     currency_code: str
     active: bool
+    in_envelopes: bool
     iban: str | None
     account_number: str | None
     notes: str | None

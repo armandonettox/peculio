@@ -195,6 +195,7 @@ def build_outputs(db: Session, accounts: list[Account]) -> list[AccountOut]:
                 role=account.role,
                 currency_code=account.currency_code,
                 active=account.active,
+                in_envelopes=account.in_envelopes,
                 iban=account.iban,
                 account_number=account.account_number,
                 notes=account.notes,
@@ -218,6 +219,7 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         type=data.type,
         role=data.role or DEFAULT_ROLES[data.type],
         currency_code=currency.code,
+        in_envelopes=data.in_envelopes,
         iban=data.iban,
         account_number=data.account_number,
         notes=data.notes,
@@ -247,6 +249,8 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
         account.role = data.role
     if "active" in provided and data.active is not None:
         account.active = data.active
+    if "in_envelopes" in provided and data.in_envelopes is not None:
+        account.in_envelopes = data.in_envelopes
     for field in ("iban", "account_number", "notes"):
         if field in provided:
             setattr(account, field, getattr(data, field))

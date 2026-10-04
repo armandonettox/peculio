@@ -3,9 +3,9 @@ from datetime import date, datetime
 from typing import Annotated
 
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.models.budget import BudgetPeriod
+from app.models.budget import BudgetMode, BudgetPeriod
 
 Money = Annotated[Decimal, Field(max_digits=18, decimal_places=2)]
 PositiveMoney = Annotated[Decimal, Field(max_digits=18, decimal_places=2, gt=0)]
@@ -25,8 +25,11 @@ class BudgetCreate(BaseModel):
 
     name: str = Field(min_length=1, max_length=100)
     currency_code: str = Field(min_length=3, max_length=3)
-    amount: PositiveMoney
-    period: BudgetPeriod
+    # O modo nao muda depois de criado. Limite fixo precisa de limite e periodo; envelope nao tem limite (o valor
+    # de cada mes e a distribuicao) e e sempre mensal.
+    mode: BudgetMode = BudgetMode.fixed
+    amount: PositiveMoney | None = None
+    period: BudgetPeriod | None = None
 
     _strip_name = field_validator("name")(_strip)
 
@@ -34,6 +37,18 @@ class BudgetCreate(BaseModel):
     @classmethod
     def upper_currency(cls, value: str) -> str:
         return value.strip().upper()
+
+    @model_validator(mode="after")
+    def check_mode(self):
+        if self.mode == BudgetMode.fixed:
+            if self.amount is None or self.period is None:
+                raise ValueError("Informe o limite e o periodo")
+        else:
+            if self.amount is not None:
+                raise ValueError("Envelope nao tem limite: voce distribui um valor por mes")
+            if self.period not in (None, BudgetPeriod.monthly):
+                raise ValueError("Envelope e sempre mensal")
+        return self
 
 
 class BudgetUpdate(BaseModel):
@@ -55,7 +70,9 @@ class BudgetOut(BaseModel):
     id: uuid.UUID
     name: str
     currency_code: str
-    amount: Money
+    mode: BudgetMode
+    # Vazio no envelope
+    amount: Money | None
     period: BudgetPeriod
     active: bool
     created_at: datetime

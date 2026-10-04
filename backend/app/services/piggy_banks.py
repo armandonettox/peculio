@@ -102,16 +102,21 @@ def saved_by_piggy(db: Session, piggy_ids: Sequence[uuid.UUID]) -> dict[uuid.UUI
     return {piggy_id: total for piggy_id, total in rows}
 
 
-def reserved_by_account(db: Session, account_ids: Sequence[uuid.UUID]) -> dict[uuid.UUID, Decimal]:
-    """Tudo o que esta guardado em cofrinhos de cada conta."""
+def reserved_by_account(
+    db: Session, account_ids: Sequence[uuid.UUID], as_of: date | None = None
+) -> dict[uuid.UUID, Decimal]:
+    """Tudo o que esta guardado em cofrinhos de cada conta (ate `as_of`, se informado)."""
     if not account_ids:
         return {}
-    rows = db.execute(
+    statement = (
         select(PiggyBank.account_id, func.sum(PiggyBankEvent.amount))
         .join(PiggyBankEvent, PiggyBankEvent.piggy_bank_id == PiggyBank.id)
         .where(PiggyBank.account_id.in_(account_ids))
         .group_by(PiggyBank.account_id)
-    ).all()
+    )
+    if as_of is not None:
+        statement = statement.where(PiggyBankEvent.date <= as_of)
+    rows = db.execute(statement).all()
     return {account_id: total for account_id, total in rows}
 
 

@@ -45,6 +45,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   attachment_type_not_allowed: "Tipo de arquivo não permitido. Envie PDF, JPEG, PNG, WEBP, TXT ou CSV.",
   attachment_too_large: "O arquivo passa do limite de 10 MB.",
   attachment_empty: "O arquivo está vazio.",
+  budget_not_envelope: "Este orçamento não é um envelope ativo.",
+  envelope_not_enough: "O envelope de origem não tem esse valor disponível.",
   api_token_expired: "Este token venceu. Crie outro.",
   api_token_read_only: "Este token é só de leitura: ele consulta, mas não cria, edita nem exclui.",
   session_required: "Esta ação exige entrar pela tela. Não vale com token de API.",

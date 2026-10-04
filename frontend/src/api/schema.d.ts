@@ -567,6 +567,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/envelopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Month
+         * @description Os envelopes do mes e o "A orcar" de cada moeda.
+         */
+        get: operations["get_month_api_v1_envelopes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/envelopes/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move Money
+         * @description Passa dinheiro de um envelope para outro no mes. Tira do disponivel do primeiro.
+         */
+        post: operations["move_money_api_v1_envelopes_move_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/envelopes/{budget_id}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Allocation
+         * @description Define quanto distribuir para o envelope no mes (zero limpa).
+         */
+        put: operations["set_allocation_api_v1_envelopes__budget_id___month__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/confirm": {
         parameters: {
             query?: never;
@@ -1206,6 +1266,11 @@ export interface components {
             currency_code: string;
             /** Iban */
             iban?: string | null;
+            /**
+             * In Envelopes
+             * @default true
+             */
+            in_envelopes: boolean;
             /** Name */
             name: string;
             /** Notes */
@@ -1246,6 +1311,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** In Envelopes */
+            in_envelopes: boolean;
             /** Name */
             name: string;
             /** Notes */
@@ -1275,6 +1342,8 @@ export interface components {
             active?: boolean | null;
             /** Iban */
             iban?: string | null;
+            /** In Envelopes */
+            in_envelopes?: boolean | null;
             /** Name */
             name?: string | null;
             /** Notes */
@@ -1299,6 +1368,11 @@ export interface components {
          * @enum {string}
          */
         ActionKind: "set_category" | "add_tag" | "set_budget" | "set_bill";
+        /** AllocationSet */
+        AllocationSet: {
+            /** Amount */
+            amount: number | string;
+        };
         /** ApiTokenCreate */
         ApiTokenCreate: {
             /** Expires In Days */
@@ -1537,19 +1611,26 @@ export interface components {
         /** BudgetCreate */
         BudgetCreate: {
             /** Amount */
-            amount: number | string;
+            amount?: number | string | null;
             /** Currency Code */
             currency_code: string;
+            /** @default fixed */
+            mode: components["schemas"]["BudgetMode"];
             /** Name */
             name: string;
-            period: components["schemas"]["BudgetPeriod"];
+            period?: components["schemas"]["BudgetPeriod"] | null;
         };
+        /**
+         * BudgetMode
+         * @enum {string}
+         */
+        BudgetMode: "fixed" | "envelope";
         /** BudgetOut */
         BudgetOut: {
             /** Active */
             active: boolean;
             /** Amount */
-            amount: string;
+            amount: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1562,6 +1643,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            mode: components["schemas"]["BudgetMode"];
             /** Name */
             name: string;
             period: components["schemas"]["BudgetPeriod"];
@@ -1579,7 +1661,7 @@ export interface components {
             /** Active */
             active: boolean;
             /** Amount */
-            amount: string;
+            amount: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1592,6 +1674,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            mode: components["schemas"]["BudgetMode"];
             /** Name */
             name: string;
             /** Percent */
@@ -1742,6 +1825,66 @@ export interface components {
          * @enum {string}
          */
         DeliveryStatus: "pending" | "delivered" | "failed" | "expired";
+        /** EnvelopeGroupOut */
+        EnvelopeGroupOut: {
+            /** Currency Code */
+            currency_code: string;
+            /** Envelopes */
+            envelopes: components["schemas"]["EnvelopeOut"][];
+            /** In Envelopes */
+            in_envelopes: string;
+            /** Money */
+            money: string;
+            /** To Budget */
+            to_budget: string;
+        };
+        /** EnvelopeMonthOut */
+        EnvelopeMonthOut: {
+            /** Groups */
+            groups: components["schemas"]["EnvelopeGroupOut"][];
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+        };
+        /** EnvelopeMove */
+        EnvelopeMove: {
+            /** Amount */
+            amount: number | string;
+            /**
+             * From Budget Id
+             * Format: uuid
+             */
+            from_budget_id: string;
+            /** Month */
+            month: string;
+            /**
+             * To Budget Id
+             * Format: uuid
+             */
+            to_budget_id: string;
+        };
+        /** EnvelopeOut */
+        EnvelopeOut: {
+            /** Allocated */
+            allocated: string;
+            /** Available */
+            available: string;
+            /**
+             * Budget Id
+             * Format: uuid
+             */
+            budget_id: string;
+            /** Carried */
+            carried: string;
+            /** Name */
+            name: string;
+            /** Overspent */
+            overspent: string;
+            /** Spent */
+            spent: string;
+        };
         /** GroupedReportOut */
         GroupedReportOut: {
             /** Currencies */
@@ -4353,6 +4496,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpcomingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_month_api_v1_envelopes_get: {
+        parameters: {
+            query?: {
+                /** @description AAAA-MM; sem ele, o mes de hoje */
+                month?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnvelopeMonthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_money_api_v1_envelopes_move_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvelopeMove"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnvelopeMonthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_allocation_api_v1_envelopes__budget_id___month__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: string;
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllocationSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnvelopeMonthOut"];
                 };
             };
             /** @description Validation Error */
