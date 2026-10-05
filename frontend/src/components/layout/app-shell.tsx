@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
@@ -9,12 +9,16 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { UserMenu } from "@/components/user-menu";
 import { Brand } from "./brand";
 import { SidebarNav } from "./sidebar-nav";
+import { useSidebar } from "./use-sidebar";
 
 export const MAIN_CONTENT_ID = "main-content";
+export const SIDEBAR_ID = "sidebar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
+  // So vale no desktop: no celular o menu e a gaveta
+  const { hidden, toggle } = useSidebar();
 
   // Fecha a gaveta quando a rota muda por qualquer caminho (clique, voltar, avancar)
   useEffect(() => {
@@ -30,14 +34,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         Pular para o conteúdo
       </a>
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card lg:flex">
+      <aside id={SIDEBAR_ID} className={`fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card ${hidden ? "" : "lg:flex"}`}>
         <div className="flex h-14 items-center border-b px-4">
           <Brand />
         </div>
         <SidebarNav />
       </aside>
 
-      <div className="lg:pl-60">
+      <div className={hidden ? "" : "lg:pl-60"}>
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
@@ -55,7 +59,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
 
+          {/* Desktop: mostra ou oculta o menu lateral (Ctrl+B). Sem o menu, a marca passa para o cabecalho. */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden lg:inline-flex"
+            onClick={toggle}
+            aria-label={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
+            aria-expanded={!hidden}
+            aria-controls={SIDEBAR_ID}
+            aria-keyshortcuts="Control+B Meta+B"
+            title={`${hidden ? "Mostrar" : "Ocultar"} menu lateral (Ctrl+B)`}
+          >
+            {hidden ? <PanelLeftOpen /> : <PanelLeftClose />}
+          </Button>
+
           <span className="text-base font-semibold text-primary-text lg:hidden">finance-app</span>
+          {hidden && (
+            <span className="hidden lg:block">
+              <Brand />
+            </span>
+          )}
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
