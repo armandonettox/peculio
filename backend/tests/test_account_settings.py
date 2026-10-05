@@ -230,13 +230,13 @@ def test_password_is_not_stored_in_clear(client, db_session):
     assert stored.startswith("$")
 
 
-def test_token_without_password_fingerprint_is_refused(client, db_session):
-    """Um token sem a impressao da senha nao tem como provar que e anterior a uma troca de senha."""
+def test_token_with_wrong_password_fingerprint_is_refused(client, db_session):
+    """O token que carrega a impressao de outra senha nao vale, mesmo assinado e dentro do prazo."""
     import jwt
 
     setup(client)
     user = db_session.query(User).first()
-    claims = {"sub": str(user.id), "typ": "access", "exp": 4102444800, "auth_at": 1}
+    claims = {"sub": str(user.id), "typ": "access", "exp": 4102444800, "auth_at": 1, "pv": "00000000"}
     forged = jwt.encode(claims, settings.jwt_secret, algorithm=settings.jwt_algorithm)
     resp = client.get("/api/v1/auth/me", headers=bearer(forged))
     assert resp.status_code == 401

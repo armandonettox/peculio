@@ -70,8 +70,9 @@ def get_current_user(
     user = db.get(User, user_id)
     if not user:
         raise AppError(401, ErrorCode.USER_NOT_FOUND, "Usuario nao encontrado", _BEARER_HEADERS)
-    # Senha trocada: o token emitido com a senha antiga deixa de valer na hora, nao so na renovacao
-    if payload.get("pv") != password_fingerprint(user.hashed_password):
+    # Senha trocada: o token emitido com a senha antiga deixa de valer na hora, nao so na renovacao.
+    # Token legado, de antes da impressao da senha, nao traz "pv" e segue valendo (como na renovacao)
+    if "pv" in payload and payload["pv"] != password_fingerprint(user.hashed_password):
         raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao invalida, entre novamente", _BEARER_HEADERS)
     _check_not_locked(user)
     return user
