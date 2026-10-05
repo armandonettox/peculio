@@ -47,3 +47,21 @@ it("ApiError.network usa status 0 e o codigo network_error", () => {
   expect(error.status).toBe(0);
   expect(error.code).toBe("network_error");
 });
+
+describe("ApiError.lockedIds", () => {
+  it("le a lista de lancamentos travados do corpo", () => {
+    const error = ApiError.fromResponse(409, { detail: "x", code: "transactions_locked", locked_ids: ["a", "b"] });
+    expect(error.code).toBe("transactions_locked");
+    expect(error.lockedIds).toEqual(["a", "b"]);
+  });
+
+  it("sem a lista, fica vazia", () => {
+    expect(ApiError.fromResponse(409, { detail: "x", code: "y" }).lockedIds).toEqual([]);
+    expect(ApiError.network().lockedIds).toEqual([]);
+  });
+
+  it("ignora o que nao e texto e uma lista que nao e lista", () => {
+    expect(ApiError.fromResponse(409, { locked_ids: ["a", 3, null] }).lockedIds).toEqual(["a"]);
+    expect(ApiError.fromResponse(409, { locked_ids: "a" }).lockedIds).toEqual([]);
+  });
+});

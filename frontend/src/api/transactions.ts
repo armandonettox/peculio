@@ -58,7 +58,7 @@ export function useTransactions(filters: TransactionFilters, { enabled = true }:
 
 // Criar, editar ou apagar um lancamento muda o saldo das contas, o gasto dos orcamentos e pode
 // criar uma contraparte nova: recarrega todas essas listas, mais o painel.
-function useRefreshAfterChange() {
+export function useRefreshAfterChange() {
   const queryClient = useQueryClient();
   return () =>
     Promise.all([

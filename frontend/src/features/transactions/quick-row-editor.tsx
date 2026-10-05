@@ -146,6 +146,8 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
         onKeyDown={handleKeyDown}
         className="bg-accent/40 align-top"
       >
+        {/* Fica sob a coluna de marcar da tabela */}
+        <td />
         <td className="px-2 py-2">
           <Input
             {...fieldProps("date")}
@@ -260,7 +262,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
       </tr>
       {serverError && (
         <tr>
-          <td colSpan={7} role="alert" className="bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <td colSpan={8} role="alert" className="bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {serverError}
           </td>
         </tr>

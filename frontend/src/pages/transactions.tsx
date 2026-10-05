@@ -181,6 +181,7 @@ export default function TransactionsPage() {
         {view === "table" ? (
           <TransactionsTable
             items={items}
+            total={total}
             categories={lookups.categories}
             accounts={accounts.data ?? []}
             onOpen={setDialog}

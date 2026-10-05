@@ -42,6 +42,9 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
     removed: [] as string[],
     nextWriteError: null as { status: number; code: string } | null,
     counterparties: [] as { id: string; name: string; type: string }[],
+    // Acoes em massa recebidas e os lancamentos que o teste quer travados (a acao inteira e recusada com 409)
+    bulks: [] as Record<string, unknown>[],
+    lockedIds: [] as string[],
     counterpartyRequests: [] as URLSearchParams[],
     listError: false,
     // Falha uma vez a pagina que comeca neste offset (para testar "Carregar mais" com erro)
@@ -141,6 +144,37 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
       if (error) return error;
       state.items = state.items.filter((item) => item.id !== params.id);
       return new HttpResponse(null, { status: 204 });
+    }),
+    http.post("*/api/v1/transactions/bulk", async ({ request }) => {
+      const body = (await request.json()) as {
+        ids: string[];
+        action: "set_category" | "set_date" | "duplicate" | "delete";
+        category_id?: string | null;
+        date?: string;
+      };
+      state.bulks.push(body);
+      const error = failWrite();
+      if (error) return error;
+      const chosen = body.ids.map((id) => state.items.find((item) => item.id === id));
+      if (chosen.some((item) => !item)) {
+        return HttpResponse.json({ detail: "erro", code: "transaction_not_found" }, { status: 404 });
+      }
+      const locked = body.ids.filter((id) => state.lockedIds.includes(id));
+      if (body.action !== "duplicate" && locked.length > 0) {
+        return HttpResponse.json({ detail: "erro", code: "transactions_locked", locked_ids: locked }, { status: 409 });
+      }
+      const created: string[] = [];
+      for (const item of chosen as Transaction[]) {
+        if (body.action === "set_category") item.splits = item.splits.map((s) => ({ ...s, category_id: body.category_id ?? null }));
+        if (body.action === "set_date") item.splits = item.splits.map((s) => ({ ...s, date: body.date as string }));
+        if (body.action === "duplicate") {
+          const copy = makeTransaction({ title: item.title }, item.splits.map((s) => ({ ...s, id: undefined, date: "2026-10-04", bill_id: null })));
+          state.items.push(copy);
+          created.push(copy.id);
+        }
+      }
+      if (body.action === "delete") state.items = state.items.filter((item) => !body.ids.includes(item.id));
+      return HttpResponse.json({ affected: body.ids.length, created_ids: created });
     }),
     http.get("*/api/v1/transactions/counterparties",({ request }) => {
       const query = new URL(request.url).searchParams;

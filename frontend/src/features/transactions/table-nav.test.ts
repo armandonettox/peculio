@@ -21,16 +21,34 @@ describe("navAction", () => {
     ["End", { kind: "edge", edge: "last" }],
     ["t", { kind: "new" }],
     ["Enter", { kind: "open" }],
+    [" ", { kind: "select" }],
+    ["Escape", { kind: "clear" }],
   ])("%s", (name, expected) => expect(navAction(key(name))).toEqual(expected));
 
-  it.each(["a", "x", " ", "Tab", "Escape", "J", "K", "T", "1"])("%j nao e da tabela", (name) => {
+  it.each(["a", "x", "Tab", "J", "K", "T", "1"])("%j nao e da tabela", (name) => {
     expect(navAction(key(name))).toBeNull();
   });
 
   it.each(["ctrlKey", "metaKey", "altKey"] as const)("com %s apertado fica para o navegador", (modifier) => {
-    for (const name of ["j", "k", "t", "ArrowDown", "Enter", "Home"]) {
+    for (const name of ["j", "k", "t", "ArrowDown", "Enter", "Home", " ", "Escape"]) {
       expect(navAction(key(name, { [modifier]: true }))).toBeNull();
     }
+  });
+
+  it("Espaco marca a linha e Shift+Espaco marca o intervalo", () => {
+    expect(navAction(key(" "))).toEqual({ kind: "select" });
+    expect(navAction(key(" ", { shiftKey: true }))).toEqual({ kind: "range" });
+  });
+
+  it.each(["ctrlKey", "metaKey"] as const)("%s com A marca todos", (modifier) => {
+    expect(navAction(key("a", { [modifier]: true }))).toEqual({ kind: "all" });
+  });
+
+  it("Ctrl+A so vale sem Shift e sem Alt; Ctrl com outra letra e do navegador", () => {
+    expect(navAction(key("a", { ctrlKey: true, shiftKey: true }))).toBeNull();
+    expect(navAction(key("a", { ctrlKey: true, altKey: true }))).toBeNull();
+    expect(navAction(key("c", { ctrlKey: true }))).toBeNull();
+    expect(navAction(key("A", { ctrlKey: true }))).toBeNull();
   });
 
   it("letra com Shift nao conta, mas a seta com Shift continua andando", () => {
@@ -66,6 +84,7 @@ describe("nextIndex", () => {
 
   it("acoes que nao movem ficam na mesma linha (ou na ultima, se a lista encolheu)", () => {
     expect(nextIndex(2, 5, { kind: "open" })).toBe(2);
+    expect(nextIndex(2, 5, { kind: "select" })).toBe(2);
     expect(nextIndex(9, 5, { kind: "new" })).toBe(4);
   });
 });
@@ -91,6 +110,10 @@ describe("a lista de atalhos", () => {
 
   it("tem as teclas da linha de entrada", () => {
     for (const shown of ["Tab", "Shift+Tab", "Ctrl+Enter", "Esc"]) expect(listed).toContain(shown);
+  });
+
+  it("tem as teclas da selecao", () => {
+    for (const shown of ["Espaço", "Shift+Espaço", "Ctrl+A"]) expect(listed).toContain(shown);
   });
 
   it("nao repete a mesma explicacao", () => {

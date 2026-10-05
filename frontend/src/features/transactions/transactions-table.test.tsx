@@ -33,7 +33,7 @@ function renderTable(items: Transaction[]) {
   const handlers = { onOpen: vi.fn(), onRemove: vi.fn() };
   render(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={items} categories={categories} accounts={[nubank, poupanca]} {...handlers} />
+      <TransactionsTable items={items} total={items.length} categories={categories} accounts={[nubank, poupanca]} {...handlers} />
     </QueryClientProvider>,
   );
   return { ...handlers, api };
@@ -61,6 +61,7 @@ it("mostra uma linha por lancamento, com as colunas do dia a dia", () => {
   renderTable([tx("Mercado do mes", [{ amount: "50.00", category_id: "c1", destination_account_name: "Supermercado", source_account_name: "Nubank" }])]);
   const cells = within(rows()[0]).getAllByRole("cell");
   expect(cells.map((cell) => cell.textContent?.replace(/\s/g, " "))).toEqual([
+    "",
     "10/03/2026",
     "Mercado do mes",
     "Supermercado",
@@ -81,16 +82,16 @@ it("entrada leva sinal de mais e a cor positiva", () => {
 it("transferencia mostra origem e destino na contraparte e nao tem conta propria", () => {
   renderTable([makeTransaction({}, [transfer({ description: "Reserva", source_account_name: "Nubank", destination_account_name: "Poupanca" })])]);
   const cells = within(rows()[0]).getAllByRole("cell");
-  expect(cells[2].textContent).toBe("Nubank → Poupanca");
-  expect(cells[3].textContent).toBe("");
+  expect(cells[3].textContent).toBe("Nubank → Poupanca");
+  expect(cells[4].textContent).toBe("");
 });
 
 it("lancamento dividido diz em quantas partes e nao mostra categoria", () => {
   renderTable([makeTransaction({ title: "Compras" }, [{ description: "a", category_id: "c1" }, { description: "b" }])]);
   const cells = within(rows()[0]).getAllByRole("cell");
-  expect(cells[1].textContent).toBe("Compras");
-  expect(cells[2].textContent).toBe("Dividida em 2");
-  expect(cells[4].textContent).toBe("");
+  expect(cells[2].textContent).toBe("Compras");
+  expect(cells[3].textContent).toBe("Dividida em 2");
+  expect(cells[5].textContent).toBe("");
 });
 
 it("marca conferido e conciliado", () => {
@@ -162,12 +163,12 @@ it("com a lista menor, a parada de Tab continua dentro dela", () => {
   server.use(...fakeAccountsApi([nubank]).handlers);
   const { rerender } = render(
     <QueryClientProvider client={client}>
-      <TransactionsTable items={[tx("A"), tx("B"), tx("C")]} {...props} />
+      <TransactionsTable items={[tx("A"), tx("B"), tx("C")]} total={3} {...props} />
     </QueryClientProvider>,
   );
   rerender(
     <QueryClientProvider client={client}>
-      <TransactionsTable items={[tx("A")]} {...props} />
+      <TransactionsTable items={[tx("A")]} total={1} {...props} />
     </QueryClientProvider>,
   );
   expect(rows().map((row) => row.getAttribute("tabindex"))).toEqual(["0"]);
@@ -505,7 +506,7 @@ it("editar um lancamento de conta arquivada mantem a conta na escolha", async ()
   server.use(...api.handlers, ...fakeAccountsApi([nubank, velha]).handlers);
   render(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={items} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
+      <TransactionsTable items={items} total={items.length} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
     </QueryClientProvider>,
   );
   rowOf(/^Antigo/).focus();
@@ -521,7 +522,7 @@ it("uma conta arquivada nao aparece na linha nova", async () => {
   server.use(...api.handlers, ...fakeAccountsApi([nubank, velha]).handlers);
   render(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={[tx("A")]} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
+      <TransactionsTable items={[tx("A")]} total={1} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
     </QueryClientProvider>,
   );
   await user.click(screen.getByRole("button", { name: "Nova linha" }));

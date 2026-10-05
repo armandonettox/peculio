@@ -6,14 +6,20 @@ export type NavAction =
   | { kind: "move"; delta: 1 | -1 }
   | { kind: "edge"; edge: "first" | "last" }
   | { kind: "new" }
-  | { kind: "open" };
+  | { kind: "open" }
+  // Selecao: marcar a linha, marcar do ultimo marcado ate ela, marcar todas as carregadas, limpar
+  | { kind: "select" }
+  | { kind: "range" }
+  | { kind: "all" }
+  | { kind: "clear" };
 
 export type KeyInfo = { key: string; ctrlKey: boolean; metaKey: boolean; altKey: boolean; shiftKey: boolean };
 
 /** A acao de uma tecla apertada com o foco numa linha; null se a tecla nao e da tabela. */
 export function navAction(event: KeyInfo): NavAction | null {
-  // Ctrl, Alt e Meta sao de outros atalhos (do navegador, do sistema)
-  if (event.ctrlKey || event.metaKey || event.altKey) return null;
+  if (event.altKey) return null;
+  // Ctrl e Meta sao de outros atalhos (do navegador, do sistema); so Ctrl+A e da tabela
+  if (event.ctrlKey || event.metaKey) return event.key === "a" && !event.shiftKey ? { kind: "all" } : null;
   switch (event.key) {
     case "ArrowDown":
       return { kind: "move", delta: 1 };
@@ -25,6 +31,10 @@ export function navAction(event: KeyInfo): NavAction | null {
       return { kind: "edge", edge: "last" };
     case "Enter":
       return { kind: "open" };
+    case " ":
+      return event.shiftKey ? { kind: "range" } : { kind: "select" };
+    case "Escape":
+      return { kind: "clear" };
   }
   // Letra com Shift e outra coisa (maiuscula), e fica de fora
   if (event.shiftKey) return null;
@@ -62,6 +72,15 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ["Home", "End"], text: "Primeira e última linha" },
       { keys: ["Enter"], text: "Editar a linha" },
       { keys: ["T"], text: "Nova linha de lançamento" },
+    ],
+  },
+  {
+    title: "Selecionar vários lançamentos",
+    items: [
+      { keys: ["Espaço"], text: "Marcar ou desmarcar a linha" },
+      { keys: ["Shift+Espaço"], text: "Marcar do último marcado até a linha" },
+      { keys: ["Ctrl+A"], text: "Marcar todos os carregados (de novo, desmarca)" },
+      { keys: ["Esc"], text: "Limpar a seleção" },
     ],
   },
   {

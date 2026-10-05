@@ -5,19 +5,23 @@ type ErrorBody = {
   detail?: unknown;
   code?: unknown;
   errors?: unknown;
+  locked_ids?: unknown;
 };
 
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly fieldErrors: FieldError[];
+  // Acao em massa recusada: os lancamentos travados por uma conciliacao fechada
+  readonly lockedIds: string[];
 
-  constructor(status: number, code: string, detail: string, fieldErrors: FieldError[] = []) {
+  constructor(status: number, code: string, detail: string, fieldErrors: FieldError[] = [], lockedIds: string[] = []) {
     super(detail);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
     this.fieldErrors = fieldErrors;
+    this.lockedIds = lockedIds;
   }
 
   // Monta o erro a partir da resposta do servidor, mesmo que o corpo venha fora do formato
@@ -31,7 +35,8 @@ export class ApiError extends Error {
             typeof e === "object" && e !== null && typeof e.field === "string" && typeof e.message === "string",
         )
       : [];
-    return new ApiError(status, code, detail, fieldErrors);
+    const lockedIds = Array.isArray(data.locked_ids) ? data.locked_ids.filter((id): id is string => typeof id === "string") : [];
+    return new ApiError(status, code, detail, fieldErrors, lockedIds);
   }
 
   static network(): ApiError {
