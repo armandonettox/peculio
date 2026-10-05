@@ -1,3 +1,6 @@
+# Nome fixo: sem ele o Compose usaria o nome da pasta, e renomear a pasta criaria volumes novos
+name: peculio
+
 # Banco descartavel so para os testes do backend (porta 5433, dados em memoria)
 services:
   db-test:

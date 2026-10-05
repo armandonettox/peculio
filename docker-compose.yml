@@ -1,3 +1,6 @@
+# Nome fixo: sem ele o Compose usaria o nome da pasta, e renomear a pasta criaria volumes novos
+name: peculio
+
 services:
   db:
     image: postgres:17-alpine
