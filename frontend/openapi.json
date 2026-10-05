@@ -1334,6 +1334,87 @@
         "title": "BudgetUpdate",
         "type": "object"
       },
+      "BulkAction": {
+        "enum": [
+          "set_category",
+          "set_date",
+          "duplicate",
+          "delete"
+        ],
+        "title": "BulkAction",
+        "type": "string"
+      },
+      "BulkIn": {
+        "additionalProperties": false,
+        "description": "Uma acao aplicada a varios lancamentos de uma vez, tudo ou nada.",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/BulkAction"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids",
+          "action"
+        ],
+        "title": "BulkIn",
+        "type": "object"
+      },
+      "BulkOut": {
+        "properties": {
+          "affected": {
+            "title": "Affected",
+            "type": "integer"
+          },
+          "created_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Created Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "affected",
+          "created_ids"
+        ],
+        "title": "BulkOut",
+        "type": "object"
+      },
       "CategoryCreate": {
         "additionalProperties": false,
         "properties": {
@@ -12040,6 +12121,53 @@
           }
         ],
         "summary": "Create Transaction",
+        "tags": [
+          "transactions"
+        ]
+      }
+    },
+    "/api/v1/transactions/bulk": {
+      "post": {
+        "description": "Muda a categoria, muda a data, duplica ou exclui varios lancamentos de uma vez. Tudo ou nada: se algum estiver\ntravado por uma conciliacao fechada (409 `transactions_locked`, com `locked_ids`), nada muda.",
+        "operationId": "bulk_transactions_api_v1_transactions_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Bulk Transactions",
         "tags": [
           "transactions"
         ]

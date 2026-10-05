@@ -56,6 +56,7 @@ class ErrorCode(StrEnum):
     TEMPLATE_NOT_FOUND = "template_not_found"
     # Conciliacao
     TRANSACTION_LOCKED = "transaction_locked"
+    TRANSACTIONS_LOCKED = "transactions_locked"
     RECONCILIATION_ACCOUNT_INVALID = "reconciliation_account_invalid"
     RECONCILIATION_SPLIT_INVALID = "reconciliation_split_invalid"
     RECONCILIATION_NO_DIFFERENCE = "reconciliation_no_difference"
@@ -126,9 +127,12 @@ class AppError(HTTPException):
         code: ErrorCode,
         detail: str,
         headers: dict[str, str] | None = None,
+        extra: dict | None = None,
     ):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
         self.code = code
+        # Campos a mais no corpo da resposta, alem de `detail` e `code`
+        self.extra = extra or {}
 
 
 # Codigo padrao para erros que o proprio FastAPI/Starlette levanta (rota inexistente etc.)
@@ -156,7 +160,7 @@ def _error_response(
 
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     code = getattr(exc, "code", None) or _DEFAULT_CODES.get(exc.status_code, f"http_{exc.status_code}")
-    return _error_response(exc.status_code, code, str(exc.detail), exc.headers)
+    return _error_response(exc.status_code, code, str(exc.detail), exc.headers, **getattr(exc, "extra", {}))
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

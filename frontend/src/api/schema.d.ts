@@ -1287,6 +1287,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Transactions
+         * @description Muda a categoria, muda a data, duplica ou exclui varios lancamentos de uma vez. Tudo ou nada: se algum estiver
+         *     travado por uma conciliacao fechada (409 `transactions_locked`, com `locked_ids`), nada muda.
+         */
+        post: operations["bulk_transactions_api_v1_transactions_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions/counterparties": {
         parameters: {
             query?: never;
@@ -1905,6 +1926,31 @@ export interface components {
             /** Name */
             name?: string | null;
             period?: components["schemas"]["BudgetPeriod"] | null;
+        };
+        /**
+         * BulkAction
+         * @enum {string}
+         */
+        BulkAction: "set_category" | "set_date" | "duplicate" | "delete";
+        /**
+         * BulkIn
+         * @description Uma acao aplicada a varios lancamentos de uma vez, tudo ou nada.
+         */
+        BulkIn: {
+            action: components["schemas"]["BulkAction"];
+            /** Category Id */
+            category_id?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Ids */
+            ids: string[];
+        };
+        /** BulkOut */
+        BulkOut: {
+            /** Affected */
+            affected: number;
+            /** Created Ids */
+            created_ids: string[];
         };
         /** CategoryCreate */
         CategoryCreate: {
@@ -6751,6 +6797,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TransactionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_transactions_api_v1_transactions_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkOut"];
                 };
             };
             /** @description Validation Error */

@@ -12,7 +12,9 @@ from app.core.database import SessionLocal, get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.user import User
+from app.schemas.bulk import BulkIn, BulkOut
 from app.schemas.transaction import CounterpartyOut, TransactionCreate, TransactionOut, TransactionUpdate
+from app.services import bulk as bulk_service
 from app.services import transactions as service
 from app.services import transactions_csv
 from app.services.attachment_storage import remove_files
@@ -28,6 +30,17 @@ def create_transaction(data: TransactionCreate, user: User = Depends(get_current
     transaction = service.create_transaction(db, user, data)
     db.commit()
     return service.build_output(db, transaction)
+
+
+@router.post("/bulk", response_model=BulkOut)
+def bulk_transactions(data: BulkIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Muda a categoria, muda a data, duplica ou exclui varios lancamentos de uma vez. Tudo ou nada: se algum estiver
+    travado por uma conciliacao fechada (409 `transactions_locked`, com `locked_ids`), nada muda."""
+    result, paths = bulk_service.apply_bulk(db, user, data)
+    db.commit()
+    # Os arquivos dos anexos so saem do disco depois do commit
+    remove_files(paths)
+    return result
 
 
 @router.get("", response_model=Page[TransactionOut])
