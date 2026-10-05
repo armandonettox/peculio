@@ -8,6 +8,7 @@ import { tokenStore } from "@/auth/token-store";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { THEME_STORAGE_KEY } from "@/hooks/use-theme";
 import { fakeAccountsApi } from "@/test-utils/accounts-api";
+import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth, testUser } from "@/test-utils/providers";
 import { fakeAccountApi, fakeInvitesApi, makeInvite } from "@/test-utils/settings-api";
@@ -30,10 +31,18 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderPage({ as = admin, invites = [] as ReturnType<typeof makeInvite>[], updateUser = vi.fn() } = {}) {
+function renderPage({
+  as = admin,
+  invites = [] as ReturnType<typeof makeInvite>[],
+  updateUser = vi.fn(),
+  contact = null as string | null,
+  readError = false,
+} = {}) {
   const account = fakeAccountApi(as);
   const invitesApi = fakeInvitesApi(invites);
-  server.use(...account.handlers, ...invitesApi.handlers, ...fakeAccountsApi([]).handlers);
+  const instance = fakeInstanceApi(contact);
+  instance.state.readError = readError;
+  server.use(...account.handlers, ...invitesApi.handlers, ...instance.handlers, ...fakeAccountsApi([]).handlers);
   render(
     <FakeAuth user={as} updateUser={updateUser}>
       <MemoryRouter>
@@ -42,7 +51,7 @@ function renderPage({ as = admin, invites = [] as ReturnType<typeof makeInvite>[
       </MemoryRouter>
     </FakeAuth>,
   );
-  return { account, invitesApi, updateUser };
+  return { account, invitesApi, instance, updateUser };
 }
 
 const field = (label: string) => screen.getByLabelText(label, { exact: true }) as HTMLInputElement | HTMLSelectElement;
@@ -379,4 +388,133 @@ it("erro ao carregar os convites tem botao de tentar de novo", async () => {
   // O convite aparece na lista (e tambem no aviso de convite criado)
   expect((await screen.findAllByText("nova@example.com")).length).toBeGreaterThan(0);
   expect(screen.queryByRole("button", { name: "Tentar de novo" })).not.toBeInTheDocument();
+});
+
+// ---------- Contato de seguranca ----------
+
+const contactField = () => screen.getByLabelText("Contato de segurança", { exact: true }) as HTMLInputElement;
+
+it("so o administrador ve o contato de seguranca, e quem nao e nem le o contato", async () => {
+  const { instance } = renderPage({ as: member });
+  await screen.findByText("Perfil");
+  expect(screen.queryByText("Contato de segurança")).not.toBeInTheDocument();
+  expect(instance.state.reads).toBe(0);
+});
+
+it("o administrador ve o que esta salvo e o endereco onde ele e publicado", async () => {
+  renderPage({ contact: "seguranca@example.com" });
+  await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
+  expect(screen.getByRole("link", { name: "/.well-known/security.txt" })).toHaveAttribute("href", "/.well-known/security.txt");
+  expect(screen.getByRole("button", { name: "Remover contato" })).toBeInTheDocument();
+});
+
+it("sem contato salvo nao ha Remover nem endereco publicado, e Salvar fica desligado", async () => {
+  renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  expect(screen.queryByRole("button", { name: "Remover contato" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "/.well-known/security.txt" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Salvar contato" })).toBeDisabled();
+});
+
+it("salvar um e-mail manda o contato sem os espacos das pontas e avisa", async () => {
+  const { instance } = renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  await user.type(contactField(), "  seguranca@example.com  ");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  await waitFor(() => expect(instance.state.saves).toHaveLength(1));
+  expect(instance.state.saves[0]).toEqual({ contact: "seguranca@example.com" });
+  expect(await screen.findByText("Contato salvo.")).toBeVisible();
+  // O campo passa a mostrar o contato salvo (sem os espacos que a pessoa digitou)
+  expect(contactField()).toHaveValue("seguranca@example.com");
+  // Depois de salvar nao ha mais o que salvar, e o endereco publicado aparece
+  expect(screen.getByRole("button", { name: "Salvar contato" })).toBeDisabled();
+  expect(screen.getByRole("link", { name: "/.well-known/security.txt" })).toBeInTheDocument();
+});
+
+it("Enter no campo sem nenhuma mudanca nao chama o servidor", async () => {
+  const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
+  await user.click(contactField());
+  await user.keyboard("{Enter}");
+  expect(instance.state.saves).toEqual([]);
+  expect(screen.queryByText("Contato salvo.")).not.toBeInTheDocument();
+});
+
+it("um endereco https tambem e aceito", async () => {
+  const { instance } = renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  await user.type(contactField(), "https://exemplo.com/contato");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  await waitFor(() => expect(instance.state.saves).toEqual([{ contact: "https://exemplo.com/contato" }]));
+});
+
+it("contato invalido mostra o erro, foca o campo e nao chama o servidor", async () => {
+  const { instance } = renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  await user.type(contactField(), "isto nao e um contato");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  expect(await screen.findByText("Informe um e-mail válido ou um endereço que comece com https://.")).toBeVisible();
+  expect(contactField()).toHaveFocus();
+  expect(instance.state.saves).toEqual([]);
+});
+
+it("o erro some quando a pessoa volta a digitar", async () => {
+  renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  await user.type(contactField(), "nada");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  await screen.findByText(/Informe um e-mail válido/);
+  await user.type(contactField(), "x");
+  expect(screen.queryByText(/Informe um e-mail válido/)).not.toBeInTheDocument();
+});
+
+it("Remover contato apaga no servidor e esconde o endereco publicado", async () => {
+  const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
+  await user.click(screen.getByRole("button", { name: "Remover contato" }));
+  await waitFor(() => expect(instance.state.saves).toEqual([{ contact: null }]));
+  expect(await screen.findByText("Contato removido.")).toBeVisible();
+  expect(contactField()).toHaveValue("");
+  expect(screen.queryByRole("button", { name: "Remover contato" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "/.well-known/security.txt" })).not.toBeInTheDocument();
+});
+
+it("apagar o texto e salvar tambem remove o contato", async () => {
+  const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
+  await user.clear(contactField());
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  await waitFor(() => expect(instance.state.saves).toEqual([{ contact: null }]));
+  expect(await screen.findByText("Contato removido.")).toBeVisible();
+});
+
+it("trocar o contato por outro manda so o novo", async () => {
+  const { instance } = renderPage({ contact: "um@example.com" });
+  await waitFor(() => expect(contactField()).toHaveValue("um@example.com"));
+  await user.clear(contactField());
+  await user.type(contactField(), "dois@example.com");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  await waitFor(() => expect(instance.state.saves).toEqual([{ contact: "dois@example.com" }]));
+  expect(contactField()).toHaveValue("dois@example.com");
+});
+
+it("o erro do servidor aparece e o campo continua editavel com o que foi digitado", async () => {
+  const { instance } = renderPage();
+  await waitFor(() => expect(contactField()).toHaveValue(""));
+  instance.state.nextError = { status: 403, code: "admin_required" };
+  await user.type(contactField(), "seguranca@example.com");
+  await user.click(screen.getByRole("button", { name: "Salvar contato" }));
+  expect(await screen.findByRole("alert")).toBeVisible();
+  expect(contactField()).toHaveValue("seguranca@example.com");
+  expect(contactField()).toBeEnabled();
+  expect(screen.queryByText("Contato salvo.")).not.toBeInTheDocument();
+});
+
+it("falha ao ler o contato mostra o erro e deixa tentar de novo", async () => {
+  const { instance } = renderPage({ contact: "seguranca@example.com", readError: true });
+  expect(await screen.findByRole("alert")).toBeVisible();
+  expect(screen.queryByLabelText("Contato de segurança", { exact: true })).not.toBeInTheDocument();
+  instance.state.readError = false;
+  await user.click(screen.getByRole("button", { name: "Tentar de novo" }));
+  await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
 });

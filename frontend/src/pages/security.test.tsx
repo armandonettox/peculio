@@ -5,15 +5,19 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it, vi } from "vitest";
 
 import { fakeApiTokensApi } from "@/test-utils/api-tokens-api";
+import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeTwoFactorApi, GOOD_CODE, GOOD_PASSWORD, SECRET } from "@/test-utils/two-factor-api";
 import SecurityPage from "./security";
 
-function renderPage(options: Parameters<typeof fakeTwoFactorApi>[0] = {}, { strict = false } = {}) {
+function renderPage(
+  options: Parameters<typeof fakeTwoFactorApi>[0] = {},
+  { strict = false, contact = null as string | null } = {},
+) {
   const api = fakeTwoFactorApi(options);
-  // A pagina tambem lista os tokens de API; aqui nao ha nenhum
-  server.use(...api.handlers, ...fakeApiTokensApi().handlers);
+  // A pagina tambem lista os tokens de API (aqui nao ha nenhum) e mostra o contato de seguranca
+  server.use(...api.handlers, ...fakeApiTokensApi().handlers, ...fakeInstanceApi(contact).handlers);
   const page = (
     <FakeAuth>
       <MemoryRouter>
@@ -308,4 +312,26 @@ it("senha errada ao gerar codigos nao troca nada", async () => {
   expect(await inDialog().findByText("Senha incorreta.")).toBeInTheDocument();
   expect(api.state.remaining).toBe(4);
   expect(inDialog().queryByRole("list", { name: "Códigos de recuperação" })).not.toBeInTheDocument();
+});
+
+// ---------- Contato de seguranca ----------
+
+it("sem contato definido a pagina nao fala de contato", async () => {
+  renderPage();
+  await screen.findByText("Desativada");
+  expect(screen.queryByText(/relatar um problema de segurança/)).not.toBeInTheDocument();
+});
+
+it("com um e-mail, o contato aparece como link para escrever", async () => {
+  renderPage({}, { contact: "seguranca@example.com" });
+  const link = await screen.findByRole("link", { name: "seguranca@example.com" });
+  expect(link).toHaveAttribute("href", "mailto:seguranca@example.com");
+  expect(screen.getByText(/Para relatar um problema de segurança nesta instalação/)).toBeInTheDocument();
+});
+
+it("com um endereco https, o contato abre o proprio endereco", async () => {
+  renderPage({}, { contact: "https://exemplo.com/contato" });
+  const link = await screen.findByRole("link", { name: "https://exemplo.com/contato" });
+  expect(link).toHaveAttribute("href", "https://exemplo.com/contato");
+  expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
 });

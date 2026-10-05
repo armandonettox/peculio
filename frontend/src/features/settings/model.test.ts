@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { inviteLink, inviteState, MAX_NAME_LENGTH, passwordFormErrors, profileChanges, profileErrors } from "./model";
+import {
+  inviteLink,
+  inviteState,
+  MAX_NAME_LENGTH,
+  passwordFormErrors,
+  profileChanges,
+  profileErrors,
+  securityContactError,
+  securityContactHref,
+} from "./model";
 
 describe("profileErrors", () => {
   it("perfil completo nao tem erro", () => {
@@ -123,5 +132,58 @@ describe("inviteState", () => {
     [0.5, "Vence em 1 dia"],
   ])("faltando %s dias", (days, label) => {
     expect(inviteState({ used_at: null, expires_at: iso(days) }, now)).toEqual({ kind: "pending", label });
+  });
+});
+
+describe("securityContactError", () => {
+  it.each([
+    [""],
+    ["   "],
+    ["seguranca@example.com"],
+    ["  seguranca@example.com  "],
+    ["https://exemplo.com/contato"],
+    ["HTTPS://exemplo.com/contato"],
+    ["https://exemplo.com:8443/a?b=1#c"],
+  ])("%j e aceito", (value) => expect(securityContactError(value)).toBeUndefined());
+
+  it.each([
+    ["isto nao e um contato"],
+    ["sem-arroba.example.com"],
+    ["a@b"],
+    ["http://exemplo.com/contato"],
+    ["javascript:alert(1)"],
+    ["mailto:alguem@example.com"],
+    ["ftp://exemplo.com"],
+    ["https://"],
+    ["https://usuario:senha@exemplo.com/"],
+    ["https://exemplo.com/com espaco"],
+  ])("%j e recusado", (value) => expect(securityContactError(value)).toBeDefined());
+
+  it("o limite de 200 caracteres e o do servidor: 200 passa e 201 nao", () => {
+    // Fixo de proposito: o servidor recusa acima de 200, e a constante nao pode andar sozinha
+    const base = "https://exemplo.com/";
+    expect(securityContactError(base + "a".repeat(200 - base.length))).toBeUndefined();
+    expect(securityContactError(base + "a".repeat(201 - base.length))).toBe("Use no máximo 200 caracteres.");
+  });
+
+  it("o limite conta sem os espacos das pontas", () => {
+    const base = "https://exemplo.com/";
+    expect(securityContactError(` ${base}${"a".repeat(200 - base.length)} `)).toBeUndefined();
+  });
+
+  it("a mensagem diz o que e aceito", () => {
+    expect(securityContactError("nada")).toBe("Informe um e-mail válido ou um endereço que comece com https://.");
+    expect(securityContactError("https://")).toBe("O endereço https:// não é válido.");
+  });
+});
+
+describe("securityContactHref", () => {
+  it("e-mail abre o programa de e-mail", () => {
+    expect(securityContactHref("seguranca@example.com")).toBe("mailto:seguranca@example.com");
+  });
+
+  it("endereco https abre o proprio endereco", () => {
+    expect(securityContactHref("https://exemplo.com/contato")).toBe("https://exemplo.com/contato");
+    expect(securityContactHref("HTTPS://exemplo.com/contato")).toBe("HTTPS://exemplo.com/contato");
   });
 });

@@ -2,6 +2,7 @@ import { KeyRound, ShieldCheck, ShieldOff } from "lucide-react";
 import { useState } from "react";
 
 import { getErrorMessage } from "@/api/error-messages";
+import { useSecurityContact } from "@/api/instance";
 import { useTwoFactorStatus } from "@/api/two-factor";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
@@ -10,12 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ApiTokensSection } from "@/features/api-tokens/api-tokens-section";
 import { ConfirmTwoFactorDialog, type ConfirmMode } from "@/features/security/confirm-two-factor-dialog";
 import { EnableTwoFactorDialog } from "@/features/security/enable-two-factor-dialog";
+import { securityContactHref } from "@/features/settings/model";
 
 // Abaixo disso o aviso de "poucos codigos" aparece
 const LOW_CODES = 3;
 
 export default function SecurityPage() {
   const status = useTwoFactorStatus();
+  const contact = useSecurityContact().data?.contact;
   const [dialog, setDialog] = useState<"enable" | ConfirmMode | null>(null);
 
   let body;
@@ -86,6 +89,16 @@ export default function SecurityPage() {
   return (
     <>
       <PageHeader title="Segurança" description="Proteja o acesso à sua conta" />
+
+      {contact && (
+        <p className="mb-6 max-w-2xl text-sm text-muted-foreground">
+          Para relatar um problema de segurança nesta instalação, fale com{" "}
+          <a className="font-medium text-foreground underline" href={securityContactHref(contact)} rel="noopener noreferrer">
+            {contact}
+          </a>
+          .
+        </p>
+      )}
 
       <Card className="max-w-2xl">
         <CardHeader>

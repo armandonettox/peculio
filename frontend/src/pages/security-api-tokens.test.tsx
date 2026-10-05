@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { fakeApiTokensApi, makeApiToken } from "@/test-utils/api-tokens-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
+import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { fakeTwoFactorApi } from "@/test-utils/two-factor-api";
 import SecurityPage from "./security";
 
@@ -18,7 +19,7 @@ afterEach(() => vi.useRealTimers());
 
 function renderPage(tokens: ReturnType<typeof makeApiToken>[] = []) {
   const api = fakeApiTokensApi(tokens);
-  server.use(...api.handlers, ...fakeTwoFactorApi().handlers);
+  server.use(...api.handlers, ...fakeTwoFactorApi().handlers, ...fakeInstanceApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter>

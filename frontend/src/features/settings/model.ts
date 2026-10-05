@@ -1,4 +1,4 @@
-import { passwordError } from "@/auth/validation";
+import { emailError, passwordError } from "@/auth/validation";
 
 // As regras das telas de Configuracoes, sem tela: validar os formularios, montar o link do convite e dizer em que pé ele
 // esta. Ficam aqui, com testes, e as telas so as usam. O servidor continua decidindo: aqui so se evita uma ida a rede
@@ -64,4 +64,35 @@ export function inviteState(invite: { used_at: string | null; expires_at: string
   if (left <= 0) return { kind: "expired", label: "Vencido" };
   const days = Math.ceil(left / DAY_MS);
   return { kind: "pending", label: days === 1 ? "Vence em 1 dia" : `Vence em ${days} dias` };
+}
+
+// ---------- Contato de seguranca ----------
+
+export const MAX_CONTACT_LENGTH = 200;
+
+/** Vazio e permitido (apaga o contato). Senao: um e-mail ou um endereco https://, como o servidor exige. */
+export function securityContactError(value: string): string | undefined {
+  const contact = value.trim();
+  if (!contact) return undefined;
+  if (contact.length > MAX_CONTACT_LENGTH) return `Use no máximo ${MAX_CONTACT_LENGTH} caracteres.`;
+  if (contact.toLowerCase().startsWith("https://")) {
+    let url: URL;
+    try {
+      url = new URL(contact);
+    } catch {
+      return "O endereço https:// não é válido.";
+    }
+    if (!url.host || url.username || url.password || /\s/.test(contact)) return "O endereço https:// não é válido.";
+    return undefined;
+  }
+  // Dois pontos nao existem num e-mail comum e denunciam "mailto:" ou "javascript:" colado no campo
+  if (contact.includes(":") || emailError(contact)) {
+    return "Informe um e-mail válido ou um endereço que comece com https://.";
+  }
+  return undefined;
+}
+
+/** O que o contato abre quando clicado: o proprio endereco https://, ou mailto: para e-mail. */
+export function securityContactHref(contact: string): string {
+  return contact.toLowerCase().startsWith("https://") ? contact : `mailto:${contact}`;
 }
