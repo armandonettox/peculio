@@ -20,7 +20,17 @@ from app.core.security import (
     verify_password_constant_time,
 )
 from app.models.user import Invite, User
-from app.schemas.user import AuthStatus, LoginOut, Token, UserCreate, UserLogin, UserOut
+from app.schemas.user import (
+    AuthStatus,
+    LoginOut,
+    PasswordChange,
+    ProfileUpdate,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserOut,
+)
+from app.services.accounts import get_currency
 from app.services.login_attempts import ensure_not_locked, register_failure, register_success
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -147,3 +157,45 @@ def refresh_session(
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(
+    data: ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_session_user),
+):
+    """Troca nome e moeda padrao. So vale o login da tela: token de API nao mexe na conta."""
+    if data.name is not None:
+        current_user.name = data.name
+    if data.default_currency is not None:
+        current_user.default_currency = get_currency(db, data.default_currency.upper()).code
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+@router.post("/password", response_model=Token)
+@limiter.limit("5/minute")
+def change_password(
+    request: Request,
+    data: PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_session_user),
+):
+    """Troca a senha. Pede a atual (um token roubado sozinho nao basta) e conta erro como tentativa
+    de login. Devolve um token novo para quem trocou continuar conectado; os outros tokens perdem
+    a validade porque carregam a impressao da senha antiga."""
+    ensure_not_locked(current_user)
+    if not verify_password_constant_time(data.current_password, current_user.hashed_password):
+        register_failure(db, current_user)
+        raise AppError(403, ErrorCode.INVALID_PASSWORD, "Senha atual incorreta")
+    if data.new_password == data.current_password:
+        raise AppError(400, ErrorCode.PASSWORD_UNCHANGED, "A nova senha precisa ser diferente da atual")
+    current_user.hashed_password = hash_password(data.new_password)
+    register_success(db, current_user)
+    return Token(
+        access_token=create_access_token(
+            subject=str(current_user.id), password_hash=current_user.hashed_password
+        )
+    )

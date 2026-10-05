@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core import clock
 from app.core.database import SessionLocal, get_db
 from app.core.errors import AppError, ErrorCode
-from app.core.security import decode_access_token, parse_user_id
+from app.core.security import decode_access_token, parse_user_id, password_fingerprint
 from app.models.api_token import ApiToken
 from app.models.user import User
 from app.services import api_tokens
@@ -70,6 +70,9 @@ def get_current_user(
     user = db.get(User, user_id)
     if not user:
         raise AppError(401, ErrorCode.USER_NOT_FOUND, "Usuario nao encontrado", _BEARER_HEADERS)
+    # Senha trocada: o token emitido com a senha antiga deixa de valer na hora, nao so na renovacao
+    if payload.get("pv") != password_fingerprint(user.hashed_password):
+        raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao invalida, entre novamente", _BEARER_HEADERS)
     _check_not_locked(user)
     return user
 

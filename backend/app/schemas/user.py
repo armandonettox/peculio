@@ -45,6 +45,31 @@ class UserOut(BaseModel):
     default_currency: str
 
 
+class ProfileUpdate(BaseModel):
+    """Campos que a pessoa pode trocar no proprio perfil. O e-mail fica de fora: trocar exigiria
+    confirmar pelo novo endereco. Campo ausente = nao muda."""
+
+    name: str | None = Field(default=None, max_length=200)
+    default_currency: str | None = Field(default=None, min_length=3, max_length=3)
+
+    @field_validator("name")
+    @classmethod
+    def _name_not_blank(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("Informe o nome")
+        return value
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+    _validate_password = field_validator("new_password")(validate_password)
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"

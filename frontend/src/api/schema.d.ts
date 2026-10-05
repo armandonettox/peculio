@@ -275,6 +275,32 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * Update Me
+         * @description Troca nome e moeda padrao. So vale o login da tela: token de API nao mexe na conta.
+         */
+        patch: operations["update_me_api_v1_auth_me_patch"];
+        trace?: never;
+    };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Troca a senha. Pede a atual (um token roubado sozinho nao basta) e conta erro como tentativa
+         *     de login. Devolve um token novo para quem trocou continuar conectado; os outros tokens perdem
+         *     a validade porque carregam a impressao da senha antiga.
+         */
+        post: operations["change_password_api_v1_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -2641,6 +2667,13 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** PasswordChange */
+        PasswordChange: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
         /** PiggyBankCreate */
         PiggyBankCreate: {
             /**
@@ -2781,6 +2814,17 @@ export interface components {
             reason: ("already_has" | "goal_met" | "date_passed" | "no_due_date" | "no_money_left") | null;
             /** Wanted */
             wanted: string;
+        };
+        /**
+         * ProfileUpdate
+         * @description Campos que a pessoa pode trocar no proprio perfil. O e-mail fica de fora: trocar exigiria
+         *     confirmar pelo novo endereco. Campo ausente = nao muda.
+         */
+        ProfileUpdate: {
+            /** Default Currency */
+            default_currency?: string | null;
+            /** Name */
+            name?: string | null;
         };
         /** ReconRowOut */
         ReconRowOut: {
@@ -4371,6 +4415,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+        };
+    };
+    update_me_api_v1_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_password_api_v1_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Token"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

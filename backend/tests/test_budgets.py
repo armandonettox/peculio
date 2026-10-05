@@ -320,7 +320,7 @@ def test_a_failed_link_keeps_the_old_transaction(client, headers):
     tx = spend(client, headers, account_id, budget_id).json()
     bad = {**tx["splits"][0], "account_id": account_id, "counterparty_name": "Supermercado", "budget_id": str(uuid.uuid4())}
     for key in ("id", "source_account_id", "destination_account_id", "source_account_name", "source_account_type",
-                "destination_account_name", "destination_account_type", "foreign_amount", "foreign_currency_code", "tag_ids"):
+                "destination_account_name", "destination_account_type", "foreign_amount", "foreign_currency_code", "tag_ids", "cleared", "locked"):
         bad.pop(key, None)
 
     assert client.put(f"{TX_URL}/{tx['id']}", json={"splits": [bad]}, headers=headers).status_code == 404
