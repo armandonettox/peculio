@@ -10,6 +10,7 @@ from app.models.piggy_bank import PiggyBank, PiggyBankEvent  # noqa: F401
 from app.models.reconciliation import AccountClearing, Reconciliation  # noqa: F401
 from app.models.recurrence import Recurrence  # noqa: F401
 from app.models.rule import Rule, RuleGroup  # noqa: F401
+from app.models.saved_report import SavedReport  # noqa: F401
 from app.models.tag import Tag  # noqa: F401
 from app.models.transaction import Transaction, TransactionSplit  # noqa: F401
 from app.models.user import Invite, User  # noqa: F401

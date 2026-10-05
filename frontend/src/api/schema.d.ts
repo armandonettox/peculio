@@ -1068,6 +1068,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/by-counterparty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get By Counterparty */
+        get: operations["get_by_counterparty_api_v1_reports_by_counterparty_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/by-tag": {
         parameters: {
             query?: never;
@@ -1097,6 +1114,43 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Saved Reports */
+        get: operations["list_saved_reports_api_v1_reports_saved_get"];
+        put?: never;
+        /** Create Saved Report */
+        post: operations["create_saved_report_api_v1_reports_saved_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/saved/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Saved Report */
+        get: operations["get_saved_report_api_v1_reports_saved__report_id__get"];
+        /** Update Saved Report */
+        put: operations["update_saved_report_api_v1_reports_saved__report_id__put"];
+        post?: never;
+        /** Delete Saved Report */
+        delete: operations["delete_saved_report_api_v1_reports_saved__report_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2896,6 +2950,11 @@ export interface components {
             name?: string | null;
             template?: components["schemas"]["TransactionCreate-Input"] | null;
         };
+        /**
+         * ReportChart
+         * @enum {string}
+         */
+        ReportChart: "table" | "bar" | "line" | "donut";
         /** ReportGroupBlock */
         ReportGroupBlock: {
             /** Count */
@@ -2911,6 +2970,22 @@ export interface components {
             /** Rows */
             rows: components["schemas"]["ReportRow"][];
         };
+        /**
+         * ReportGroupBy
+         * @enum {string}
+         */
+        ReportGroupBy: "category" | "tag" | "budget" | "account" | "counterparty" | "month";
+        /**
+         * ReportMeasure
+         * @enum {string}
+         */
+        ReportMeasure: "expense" | "income" | "net";
+        /**
+         * ReportPeriod
+         * @description Os periodos prontos (os mesmos do `period=` dos relatorios) e as datas fixas.
+         * @enum {string}
+         */
+        ReportPeriod: "this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months" | "fixed";
         /** ReportRow */
         ReportRow: {
             /** Count */
@@ -3123,6 +3198,66 @@ export interface components {
         RunResult: {
             /** Created */
             created: number;
+        };
+        /**
+         * SavedReportIn
+         * @description O que a pessoa montou: tudo que a tela precisa para abrir o relatorio de novo.
+         */
+        SavedReportIn: {
+            /** Account Id */
+            account_id?: string | null;
+            /** Budget Id */
+            budget_id?: string | null;
+            /** Category Id */
+            category_id?: string | null;
+            chart: components["schemas"]["ReportChart"];
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            group_by: components["schemas"]["ReportGroupBy"];
+            measure: components["schemas"]["ReportMeasure"];
+            /** Name */
+            name: string;
+            period: components["schemas"]["ReportPeriod"];
+            /** Tag Id */
+            tag_id?: string | null;
+        };
+        /** SavedReportOut */
+        SavedReportOut: {
+            /** Account Id */
+            account_id: string | null;
+            /** Budget Id */
+            budget_id: string | null;
+            /** Category Id */
+            category_id: string | null;
+            chart: components["schemas"]["ReportChart"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Date From */
+            date_from: string | null;
+            /** Date To */
+            date_to: string | null;
+            group_by: components["schemas"]["ReportGroupBy"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            measure: components["schemas"]["ReportMeasure"];
+            /** Name */
+            name: string;
+            period: components["schemas"]["ReportPeriod"];
+            /** Tag Id */
+            tag_id: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** SplitIds */
         SplitIds: {
@@ -6010,7 +6145,7 @@ export interface operations {
     get_by_account_api_v1_reports_by_account_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -6047,7 +6182,7 @@ export interface operations {
     get_by_budget_api_v1_reports_by_budget_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -6084,7 +6219,44 @@ export interface operations {
     get_by_category_api_v1_reports_by_category_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                account_id?: string | null;
+                category_id?: string | null;
+                tag_id?: string | null;
+                budget_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_by_counterparty_api_v1_reports_by_counterparty_get: {
+        parameters: {
+            query?: {
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -6121,7 +6293,7 @@ export interface operations {
     get_by_tag_api_v1_reports_by_tag_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -6158,7 +6330,7 @@ export interface operations {
     get_monthly_api_v1_reports_monthly_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;
@@ -6192,10 +6364,158 @@ export interface operations {
             };
         };
     };
+    list_saved_reports_api_v1_reports_saved_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReportOut"][];
+                };
+            };
+        };
+    };
+    create_saved_report_api_v1_reports_saved_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_saved_report_api_v1_reports_saved__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_saved_report_api_v1_reports_saved__report_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_saved_report_api_v1_reports_saved__report_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_summary_api_v1_reports_summary_get: {
         parameters: {
             query?: {
-                period?: ("this-month" | "last-month" | "this-year") | null;
+                period?: ("this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months") | null;
                 date_from?: string | null;
                 date_to?: string | null;
                 account_id?: string | null;

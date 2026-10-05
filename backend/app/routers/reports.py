@@ -22,7 +22,7 @@ def _invalid(field: str, message: str) -> RequestValidationError:
 
 
 def report_filters(
-    period: Literal["this-month", "last-month", "this-year"] | None = None,
+    period: Literal["this-month", "last-month", "this-year", "last-3-months", "last-12-months"] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     account_id: uuid.UUID | None = None,
@@ -104,3 +104,12 @@ def get_by_account(
     db: Session = Depends(get_db),
 ):
     return service.grouped(db, user.id, filters, "account")
+
+
+@router.get("/by-counterparty", response_model=GroupedReportOut)
+def get_by_counterparty(
+    filters: service.ReportFilters = Depends(report_filters),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return service.grouped(db, user.id, filters, "counterparty")

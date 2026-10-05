@@ -3951,6 +3951,16 @@
         "title": "RecurrenceUpdate",
         "type": "object"
       },
+      "ReportChart": {
+        "enum": [
+          "table",
+          "bar",
+          "line",
+          "donut"
+        ],
+        "title": "ReportChart",
+        "type": "string"
+      },
       "ReportGroupBlock": {
         "properties": {
           "count": {
@@ -3994,6 +4004,40 @@
         ],
         "title": "ReportGroupBlock",
         "type": "object"
+      },
+      "ReportGroupBy": {
+        "enum": [
+          "category",
+          "tag",
+          "budget",
+          "account",
+          "counterparty",
+          "month"
+        ],
+        "title": "ReportGroupBy",
+        "type": "string"
+      },
+      "ReportMeasure": {
+        "enum": [
+          "expense",
+          "income",
+          "net"
+        ],
+        "title": "ReportMeasure",
+        "type": "string"
+      },
+      "ReportPeriod": {
+        "description": "Os periodos prontos (os mesmos do `period=` dos relatorios) e as datas fixas.",
+        "enum": [
+          "this-month",
+          "last-month",
+          "this-year",
+          "last-3-months",
+          "last-12-months",
+          "fixed"
+        ],
+        "title": "ReportPeriod",
+        "type": "string"
       },
       "ReportRow": {
         "properties": {
@@ -4639,6 +4683,236 @@
           "created"
         ],
         "title": "RunResult",
+        "type": "object"
+      },
+      "SavedReportIn": {
+        "additionalProperties": false,
+        "description": "O que a pessoa montou: tudo que a tela precisa para abrir o relatorio de novo.",
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "budget_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "chart": {
+            "$ref": "#/components/schemas/ReportChart"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date To"
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/ReportGroupBy"
+          },
+          "measure": {
+            "$ref": "#/components/schemas/ReportMeasure"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "tag_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag Id"
+          }
+        },
+        "required": [
+          "name",
+          "group_by",
+          "chart",
+          "measure",
+          "period"
+        ],
+        "title": "SavedReportIn",
+        "type": "object"
+      },
+      "SavedReportOut": {
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "budget_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "chart": {
+            "$ref": "#/components/schemas/ReportChart"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "date_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date To"
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/ReportGroupBy"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "measure": {
+            "$ref": "#/components/schemas/ReportMeasure"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "period": {
+            "$ref": "#/components/schemas/ReportPeriod"
+          },
+          "tag_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag Id"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "group_by",
+          "chart",
+          "measure",
+          "period",
+          "date_from",
+          "date_to",
+          "account_id",
+          "category_id",
+          "tag_id",
+          "budget_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SavedReportOut",
         "type": "object"
       },
       "SplitIds": {
@@ -10085,7 +10359,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },
@@ -10246,7 +10522,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },
@@ -10407,7 +10685,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },
@@ -10554,6 +10834,169 @@
         ]
       }
     },
+    "/api/v1/reports/by-counterparty": {
+      "get": {
+        "operationId": "get_by_counterparty_api_v1_reports_by_counterparty_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "this-month",
+                    "last-month",
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "account_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "budget_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Budget Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get By Counterparty",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
     "/api/v1/reports/by-tag": {
       "get": {
         "operationId": "get_by_tag_api_v1_reports_by_tag_get",
@@ -10568,7 +11011,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },
@@ -10729,7 +11174,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },
@@ -10876,6 +11323,223 @@
         ]
       }
     },
+    "/api/v1/reports/saved": {
+      "get": {
+        "operationId": "list_saved_reports_api_v1_reports_saved_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SavedReportOut"
+                  },
+                  "title": "Response List Saved Reports Api V1 Reports Saved Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Saved Reports",
+        "tags": [
+          "reports"
+        ]
+      },
+      "post": {
+        "operationId": "create_saved_report_api_v1_reports_saved_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Saved Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/saved/{report_id}": {
+      "delete": {
+        "operationId": "delete_saved_report_api_v1_reports_saved__report_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Saved Report",
+        "tags": [
+          "reports"
+        ]
+      },
+      "get": {
+        "operationId": "get_saved_report_api_v1_reports_saved__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Saved Report",
+        "tags": [
+          "reports"
+        ]
+      },
+      "put": {
+        "operationId": "update_saved_report_api_v1_reports_saved__report_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Saved Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
     "/api/v1/reports/summary": {
       "get": {
         "operationId": "get_summary_api_v1_reports_summary_get",
@@ -10890,7 +11554,9 @@
                   "enum": [
                     "this-month",
                     "last-month",
-                    "this-year"
+                    "this-year",
+                    "last-3-months",
+                    "last-12-months"
                   ],
                   "type": "string"
                 },

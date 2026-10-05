@@ -57,6 +57,10 @@ class ErrorCode(StrEnum):
     # Conciliacao
     TRANSACTION_LOCKED = "transaction_locked"
     TRANSACTIONS_LOCKED = "transactions_locked"
+    # Relatorios salvos
+    SAVED_REPORT_NOT_FOUND = "saved_report_not_found"
+    SAVED_REPORT_NAME_TAKEN = "saved_report_name_taken"
+    SAVED_REPORT_LIMIT_REACHED = "saved_report_limit_reached"
     RECONCILIATION_ACCOUNT_INVALID = "reconciliation_account_invalid"
     RECONCILIATION_SPLIT_INVALID = "reconciliation_split_invalid"
     RECONCILIATION_NO_DIFFERENCE = "reconciliation_no_difference"

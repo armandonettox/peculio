@@ -55,7 +55,13 @@ def resolve_period(date_from: date | None, date_to: date | None) -> tuple[date, 
     return date_from, date_to
 
 
-PRESETS = ("this-month", "last-month", "this-year")
+PRESETS = ("this-month", "last-month", "this-year", "last-3-months", "last-12-months")
+
+
+def _months_back(day: date, months: int) -> date:
+    """O primeiro dia do mes que fica `months` meses antes do mes de `day`."""
+    index = day.year * 12 + (day.month - 1) - months
+    return date(index // 12, index % 12 + 1, 1)
 
 
 def preset_period(preset: str, today: date) -> tuple[date, date]:
@@ -66,6 +72,11 @@ def preset_period(preset: str, today: date) -> tuple[date, date]:
         return month_bounds(today.replace(day=1) - timedelta(days=1))
     if preset == "this-year":
         return date(today.year, 1, 1), date(today.year, 12, 31)
+    # Os ultimos N meses contam o mes atual por inteiro: do primeiro dia de N-1 meses atras ate o fim deste mes
+    if preset == "last-3-months":
+        return _months_back(today, 2), month_bounds(today)[1]
+    if preset == "last-12-months":
+        return _months_back(today, 11), month_bounds(today)[1]
     raise ValueError(f"Periodo desconhecido: {preset}")
 
 
@@ -217,6 +228,15 @@ def _grouped_statement(dimension: str, base: _Base):
         )
         keys = (Tag.id, Tag.name)
         fallback = NO_TAG
+    elif dimension == "counterparty":
+        # A outra ponta: a receita de onde o dinheiro veio no deposito, a despesa para onde foi no saque
+        other_account_id = case(
+            (split.type == TransactionType.deposit, split.source_account_id), else_=split.destination_account_id
+        )
+        other = aliased(Account)
+        statement = base.select(split.currency_code, other.id, other.name).join(other, other.id == other_account_id)
+        keys = (other.id, other.name)
+        fallback = ""
     else:
         # A conta do usuario e a que recebe no deposito e a que paga no saque
         own_account_id = case((split.type == TransactionType.deposit, split.destination_account_id), else_=split.source_account_id)
@@ -233,7 +253,7 @@ def _grouped_statement(dimension: str, base: _Base):
 
 
 def grouped(db: Session, user_id: uuid.UUID, filters: ReportFilters, dimension: str) -> dict:
-    """Receita e despesa por categoria, tag, orcamento ou conta, separadas por moeda."""
+    """Receita e despesa por categoria, tag, orcamento, conta ou contraparte, separadas por moeda."""
     check_filters_owned(db, user_id, filters)
     totals = _totals(db, user_id, filters)
 

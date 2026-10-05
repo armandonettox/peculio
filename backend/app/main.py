@@ -29,6 +29,7 @@ from app.routers import (
     reconciliation,
     recurrences,
     reports,
+    saved_reports,
     tags,
     transactions,
     two_factor,
@@ -74,6 +75,7 @@ api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
 api_v1.include_router(envelopes.router)
 api_v1.include_router(reconciliation.router)
+api_v1.include_router(saved_reports.router)
 api_v1.include_router(rules.router)
 api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)
