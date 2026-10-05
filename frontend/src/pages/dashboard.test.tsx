@@ -697,3 +697,51 @@ it("transacoes: o dia vem do relogio do app (aparelho atrasado ainda mostra Hoje
   expect(within(today).getByText("Hoje")).toBeInTheDocument();
   expect(within(yesterday).getByText("Ontem")).toBeInTheDocument();
 });
+
+// ---------- Layout no desktop: sem buracos nem faixas vazias ----------
+
+it("os blocos ficam em colunas que se enchem de cima para baixo, de 1 a 3 colunas conforme a tela", async () => {
+  renderPage();
+  const columns = await screen.findByTestId("dashboard-columns");
+  expect(columns).toHaveClass("columns-1", "lg:columns-2", "2xl:columns-3");
+  // Cada bloco e inteiro numa coluna e tem o proprio espaco embaixo (sem grade em linhas, que deixa buraco ao lado do bloco curto)
+  expect(columns.className).toContain("[&>*]:break-inside-avoid");
+  expect(columns.className).toContain("[&>*]:mb-6");
+  expect(columns.className).not.toContain("grid");
+});
+
+it("o patrimonio fica fora das colunas, ocupando a largura toda", async () => {
+  renderPage();
+  const columns = await screen.findByTestId("dashboard-columns");
+  const networth = await screen.findByRole("region", { name: "Patrimônio" });
+  expect(columns.contains(networth)).toBe(false);
+  expect(networth.className).not.toContain("col-span");
+});
+
+it("as colunas trazem os outros blocos, na ordem de leitura", async () => {
+  renderPage();
+  const columns = await screen.findByTestId("dashboard-columns");
+  await within(columns).findByRole("region", { name: "Este mês" });
+  const names = [...columns.children].map((child) => child.getAttribute("aria-label") ?? child.querySelector("h2")?.textContent);
+  expect(names.slice(0, 2)).toEqual(["Este mês", "Gastos por categoria"]);
+});
+
+it("com mais de uma moeda, os graficos do patrimonio ficam lado a lado no desktop", async () => {
+  renderWithDashboard({
+    netWorth: makeNetWorth({
+      currencies: [
+        makeNetWorthCurrency("BRL", ["100.00", "200.00"]),
+        makeNetWorthCurrency("USD", ["10.00", "20.00"]),
+      ],
+    }),
+  });
+  const grid = await screen.findByTestId("net-worth-currencies");
+  expect(grid).toHaveClass("grid", "lg:grid-cols-2");
+});
+
+it("com uma moeda so, o patrimonio continua em uma coluna", async () => {
+  renderPage();
+  const list = await screen.findByTestId("net-worth-currencies");
+  expect(list).toHaveClass("flex", "flex-col");
+  expect(list).not.toHaveClass("lg:grid-cols-2");
+});

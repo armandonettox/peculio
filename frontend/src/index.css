@@ -61,9 +61,11 @@
 .dark {
   --background: #111111;
   --foreground: #f1f5f9;
-  --card: #0f1e14;
+  /* Tema escuro sem verde (decisao do usuario, 2026-10-05): superficies e bordas em azul. So o valor que entra
+     (--positive) continua verde, porque verde para entrada e vermelho para saida e como se le dinheiro. */
+  --card: #0f1a2e;
   --card-foreground: #f1f5f9;
-  --popover: #0f1e14;
+  --popover: #0f1a2e;
   --popover-foreground: #f1f5f9;
 
   --primary: #1e3a6b;
@@ -71,14 +73,14 @@
   /* O navy sobre fundo escuro quase some (contraste 1,6). Aqui o texto usa uma versao clara */
   --primary-text: #a5b0c4;
 
-  --brand-accent: #00a878;
-  --brand-accent-foreground: #171717;
-  --support: #01603b;
+  --brand-accent: #7f9fe0;
+  --brand-accent-foreground: #111111;
+  --support: #2b4f94;
 
   --muted-foreground: #94a3b8;
-  --border: #1f3d2a;
-  --input: #1f3d2a;
-  --ring: #00a878;
+  --border: #263a5e;
+  --input: #263a5e;
+  --ring: #7f9fe0;
 
   --destructive: #f87171;
   --destructive-foreground: #171717;
@@ -93,7 +95,8 @@
   --chart-negative: #f87171;
   --chart-warning: #fbbf24;
   --chart-muted: #94a3b8;
-  --chart-accent: #00a878;
+  /* Azul mais vivo que o --chart-primary (que e um azul claro apagado), para as duas series nao se confundirem */
+  --chart-accent: #3b82f6;
 }
 
 @theme inline {

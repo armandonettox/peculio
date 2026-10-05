@@ -60,8 +60,14 @@ export default function DashboardPage() {
       ) : (
         <>
           <AlertsBar />
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+          <div className="mb-6">
             <NetWorthBlock />
+          </div>
+          {/*
+            Colunas que se enchem de cima para baixo, cada bloco do proprio tamanho: sem o buraco que uma grade em linhas
+            deixa ao lado de um bloco curto. A ordem do HTML e a da tela (coluna a coluna), tambem para o teclado.
+          */}
+          <div data-testid="dashboard-columns" className="columns-1 gap-6 lg:columns-2 2xl:columns-3 [&>*]:mb-6 [&>*]:break-inside-avoid">
             <ThisMonthBlock />
             <CategoryBlock />
             <BudgetsBlock today={today} />

@@ -19,9 +19,9 @@ export function NetWorthBlock() {
       onRetry={() => void query.refetch()}
       isEmpty={currencies.length === 0}
       empty={<p className="text-sm text-muted-foreground">Sem contas para calcular o patrimônio ainda.</p>}
-      className="lg:col-span-2"
     >
-      <div className="flex flex-col gap-6">
+      {/* Com mais de uma moeda os graficos ficam lado a lado no desktop, em vez de empilhados */}
+      <div data-testid="net-worth-currencies" className={currencies.length > 1 ? "grid grid-cols-1 gap-6 lg:grid-cols-2" : "flex flex-col gap-6"}>
         {currencies.map((currency) => (
           <section key={currency.currency_code} aria-label={`Patrimônio em ${currency.currency_code}`} className="min-w-0">
             {currencies.length > 1 && <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{currency.currency_code}</h3>}

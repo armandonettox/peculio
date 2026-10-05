@@ -105,6 +105,56 @@ describe("tokens dos graficos", () => {
   });
 });
 
+// Matiz (0 a 360) de uma cor em hex
+function hue(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max === min) return 0;
+  const delta = max - min;
+  const raw = max === r ? ((g - b) / delta) % 6 : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+  return (raw * 60 + 360) % 360;
+}
+
+const isGreen = (hex: string) => {
+  const h = hue(hex);
+  return h >= 90 && h <= 170;
+};
+
+describe("tema escuro sem verde", () => {
+  const dark = readTokens("\\.dark");
+
+  it.each(["card", "popover", "border", "input", "ring", "brand-accent", "support", "chart-accent", "chart-primary"])(
+    "%s nao e verde",
+    (name) => {
+      expect(isGreen(dark[name]), `${name} = ${dark[name]}`).toBe(false);
+    },
+  );
+
+  it("as superficies e as bordas sao azuis", () => {
+    for (const name of ["card", "popover", "border", "input"]) {
+      const h = hue(dark[name]);
+      expect(h, `${name} = ${dark[name]}`).toBeGreaterThanOrEqual(200);
+      expect(h, `${name} = ${dark[name]}`).toBeLessThanOrEqual(250);
+    }
+  });
+
+  it("o verde que sobra e so o do valor que entra", () => {
+    const green = Object.entries(dark).filter(([, value]) => isGreen(value)).map(([name]) => name).sort();
+    expect(green).toEqual(["chart-positive", "positive"]);
+  });
+
+  it("o card se distingue do fundo", () => {
+    expect(dark["card"].toLowerCase()).not.toBe(dark["background"].toLowerCase());
+  });
+
+  it("o tema claro nao mudou: continua com a marca verde", () => {
+    const light = readTokens(":root");
+    expect(isGreen(light["brand-accent"])).toBe(true);
+    expect(isGreen(light["positive"])).toBe(true);
+  });
+});
+
 describe("paleta", () => {
   it("usa as cores da Netto Code v3", () => {
     const light = readTokens(":root");

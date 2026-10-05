@@ -63,7 +63,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+        {/* Em monitor largo a area de conteudo cresce com ele: um teto fixo de 72rem deixava faixas vazias nas laterais */}
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="mx-auto w-full max-w-6xl p-4 sm:p-6 xl:max-w-7xl 2xl:max-w-[96rem]">
           {children}
         </main>
       </div>

@@ -93,3 +93,9 @@ it("a gaveta fecha quando a rota muda por outro caminho (voltar/avancar)", async
 
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
+
+it("a area de conteudo cresce com o monitor, sem teto fixo que deixe faixas vazias", () => {
+  renderShell();
+  const main = screen.getByRole("main");
+  expect(main).toHaveClass("max-w-6xl", "xl:max-w-7xl", "2xl:max-w-[96rem]", "mx-auto", "w-full");
+});
