@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import type { SavedReport } from "@/api/saved-reports";
 import {
-  activeFilterCount,
   allowedCharts,
   chartAllowed,
   chartLabel,
@@ -15,6 +14,7 @@ import {
   normalize,
   periodError,
   periodLabel,
+  reportTitle,
   sameConfig,
   toApiFilters,
   toBody,
@@ -255,9 +255,16 @@ describe("textos e contagem", () => {
     expect(periodLabel("fixed")).toBe("Datas fixas");
   });
 
-  it("conta os filtros ligados", () => {
-    expect(activeFilterCount(config())).toBe(0);
-    expect(activeFilterCount(config({ accountId: "a", budgetId: "b" }))).toBe(2);
-    expect(activeFilterCount(config({ accountId: "a", categoryId: "c", tagId: "t", budgetId: "b" }))).toBe(4);
-  });
+});
+
+describe("reportTitle", () => {
+  it.each([
+    ["category", "expense", "Despesas por categoria"],
+    ["tag", "income", "Receitas por tag"],
+    ["counterparty", "net", "Saldo por contraparte"],
+    ["budget", "expense", "Despesas por orçamento"],
+    ["account", "income", "Receitas por conta"],
+    ["month", "expense", "Despesas mês a mês"],
+    ["month", "net", "Saldo mês a mês"],
+  ] as const)("%s com %s", (groupBy, measure, expected) => expect(reportTitle(groupBy, measure)).toBe(expected));
 });

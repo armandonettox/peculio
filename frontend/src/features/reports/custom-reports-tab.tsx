@@ -11,7 +11,7 @@ import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { formatDateRange } from "@/lib/dates";
+import { formatDate } from "@/lib/dates";
 import { CustomReportBuilder } from "./custom-report-builder";
 import { CustomReportView } from "./custom-report-view";
 import { DEFAULT_CONFIG, fromSaved, missingFilters, periodError, sameConfig, toApiFilters, type CustomConfig } from "./custom-config";
@@ -103,7 +103,7 @@ export function CustomReportsTab() {
     result = (
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          Período: {formatDateRange(query.data.date_from, query.data.date_to)}. Só entram receitas e despesas; transferências, pagamento de
+          Período: {formatDate(query.data.date_from)} a {formatDate(query.data.date_to)}. Só entram receitas e despesas; transferências, pagamento de
           dívidas e saldo inicial ficam de fora. Cada moeda é mostrada separada, sem conversão.
         </p>
         <CustomReportView

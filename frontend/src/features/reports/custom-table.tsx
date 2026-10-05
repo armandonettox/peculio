@@ -27,7 +27,7 @@ export function CustomTable({ title, column, fallback, rows, currencyCode, note 
       <div className="overflow-x-auto rounded-lg border bg-card">
         <table className="w-full min-w-[32rem] text-sm">
           <caption className="sr-only">
-            {title} em {currencyCode}
+            {title} em {currencyCode}, todos os grupos
           </caption>
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">

@@ -201,11 +201,6 @@ export function missingFilters(config: CustomConfig, known: KnownIds): string[] 
   return checks.filter(([, id, ids]) => id !== "" && ids !== undefined && !ids.includes(id)).map(([name]) => name);
 }
 
-/** Quantos filtros (alem do periodo) estao ligados. */
-export function activeFilterCount(config: CustomConfig): number {
-  return [config.accountId, config.categoryId, config.tagId, config.budgetId].filter(Boolean).length;
-}
-
 /** O titulo do relatorio: "Despesas por categoria", "Saldo mes a mes". */
 export function reportTitle(groupBy: ReportGroupBy, measure: ReportMeasure): string {
   const what = measure === "expense" ? "Despesas" : measure === "income" ? "Receitas" : "Saldo";

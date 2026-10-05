@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { MonthlyBlock, ReportRow } from "@/api/reports";
-import { barWidth, measureValue, monthPoints, monthRows, rankRows, topWithOthers, type RankedItem } from "./custom-data";
+import { barWidth, measureValue, monthItems, monthPoints, monthRows, rankRows, topWithOthers, type RankedItem } from "./custom-data";
 
 const row = (name: string, expense: string, income = "0.00", id: string | null = name): ReportRow => ({
   id,
@@ -156,5 +156,28 @@ describe("serie por mes", () => {
     expect(rows.map((r) => r.name)).toEqual(["janeiro de 2026", "fevereiro de 2026"]);
     expect(rows.map((r) => r.id)).toEqual(["2026-01", "2026-02"]);
     expect(rows[1]).toMatchObject({ income: "0.00", expense: "80.00", net: "-80.00", count: 1 });
+  });
+});
+
+describe("monthItems", () => {
+  const block: MonthlyBlock = {
+    currency_code: "BRL",
+    months: [
+      { month: "2026-03", income: "0.00", expense: "80.00", net: "-80.00", count: 1 },
+      { month: "2026-01", income: "100.00", expense: "40.00", net: "60.00", count: 3 },
+      { month: "2026-02", income: "0.00", expense: "0.00", net: "0.00", count: 0 },
+    ],
+  };
+
+  it("fica na ordem do servidor (do tempo), nao do tamanho, e mantem o mes vazio", () => {
+    const items = monthItems(block, "expense");
+    expect(items.map((i) => i.label)).toEqual(["mar/26", "jan/26", "fev/26"]);
+    expect(items.map((i) => i.value)).toEqual(["80.00", "40.00", "0.00"]);
+    expect(items.every((i) => !i.isOther)).toBe(true);
+  });
+
+  it("usa a medida escolhida e o mes como chave", () => {
+    expect(monthItems(block, "net").map((i) => i.value)).toEqual(["-80.00", "60.00", "0.00"]);
+    expect(monthItems(block, "income")[1]).toMatchObject({ key: "2026-01", value: "100.00" });
   });
 });
