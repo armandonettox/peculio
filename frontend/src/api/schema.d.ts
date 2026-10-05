@@ -755,6 +755,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/instance/security-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Security Contact
+         * @description Quem usa o app ve a quem relatar um problema de seguranca.
+         */
+        get: operations["get_security_contact_api_v1_instance_security_contact_get"];
+        /**
+         * Put Security Contact
+         * @description So administrador, e so pela tela (token de API nao muda o contato). Contato vazio apaga.
+         */
+        put: operations["put_security_contact_api_v1_instance_security_contact_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invites": {
         parameters: {
             query?: never;
@@ -3303,6 +3327,18 @@ export interface components {
              */
             updated_at: string;
         };
+        /** SecurityContactIn */
+        SecurityContactIn: {
+            /** Contact */
+            contact?: string | null;
+        };
+        /** SecurityContactOut */
+        SecurityContactOut: {
+            /** Contact */
+            contact: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
         /** SplitIds */
         SplitIds: {
             /** Split Ids */
@@ -5493,6 +5529,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportPreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_security_contact_api_v1_instance_security_contact_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecurityContactOut"];
+                };
+            };
+        };
+    };
+    put_security_contact_api_v1_instance_security_contact_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecurityContactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecurityContactOut"];
                 };
             };
             /** @description Validation Error */

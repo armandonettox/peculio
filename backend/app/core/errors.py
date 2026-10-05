@@ -37,6 +37,7 @@ class ErrorCode(StrEnum):
     TWO_FACTOR_NOT_ENABLED = "two_factor_not_enabled"
     TWO_FACTOR_SETUP_REQUIRED = "two_factor_setup_required"
     INVALID_PASSWORD = "invalid_password"
+    SECURITY_CONTACT_NOT_SET = "security_contact_not_set"
     PASSWORD_UNCHANGED = "password_unchanged"
     # Cadastro e convites
     INVITE_REQUIRED = "invite_required"

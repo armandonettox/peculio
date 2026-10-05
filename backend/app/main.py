@@ -24,6 +24,7 @@ from app.routers import (
     dashboard,
     envelopes,
     imports,
+    instance,
     invites,
     piggy_banks,
     reconciliation,
@@ -88,7 +89,10 @@ api_v1.include_router(imports.router)
 api_v1.include_router(api_tokens.router)
 api_v1.include_router(dashboard.router)
 api_v1.include_router(clock.router)
+api_v1.include_router(instance.router)
 app.include_router(api_v1)
+# Fora do /api: o padrao security.txt pede o caminho /.well-known/security.txt na raiz
+app.include_router(instance.well_known_router)
 
 
 @app.get("/api/health")

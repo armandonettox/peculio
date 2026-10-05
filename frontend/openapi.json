@@ -4965,6 +4965,57 @@
         "title": "SavedReportOut",
         "type": "object"
       },
+      "SecurityContactIn": {
+        "properties": {
+          "contact": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          }
+        },
+        "title": "SecurityContactIn",
+        "type": "object"
+      },
+      "SecurityContactOut": {
+        "properties": {
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "contact",
+          "updated_at"
+        ],
+        "title": "SecurityContactOut",
+        "type": "object"
+      },
       "SplitIds": {
         "additionalProperties": false,
         "properties": {
@@ -9190,6 +9241,78 @@
         "summary": "Preview Import",
         "tags": [
           "imports"
+        ]
+      }
+    },
+    "/api/v1/instance/security-contact": {
+      "get": {
+        "description": "Quem usa o app ve a quem relatar um problema de seguranca.",
+        "operationId": "get_security_contact_api_v1_instance_security_contact_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityContactOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Security Contact",
+        "tags": [
+          "instance"
+        ]
+      },
+      "put": {
+        "description": "So administrador, e so pela tela (token de API nao muda o contato). Contato vazio apaga.",
+        "operationId": "put_security_contact_api_v1_instance_security_contact_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityContactIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityContactOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Put Security Contact",
+        "tags": [
+          "instance"
         ]
       }
     },
