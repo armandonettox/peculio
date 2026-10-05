@@ -116,3 +116,27 @@ describe("useTheme", () => {
     expect(result.current.resolvedTheme).toBe("light");
   });
 });
+
+describe("useTheme com mais de uma copia na tela", () => {
+  it("quando uma copia troca o tema, as outras acompanham", () => {
+    mockMatchMedia(false);
+    window.localStorage.clear();
+    const first = renderHook(() => useTheme());
+    const second = renderHook(() => useTheme());
+    expect(second.result.current.theme).toBe("system");
+    act(() => first.result.current.setTheme("dark"));
+    expect(second.result.current.theme).toBe("dark");
+    expect(second.result.current.resolvedTheme).toBe("dark");
+    act(() => second.result.current.setTheme("light"));
+    expect(first.result.current.theme).toBe("light");
+    expect(isDarkApplied()).toBe(false);
+  });
+
+  it("depois de desmontada, uma copia nao recebe mais os avisos", () => {
+    mockMatchMedia(false);
+    const gone = renderHook(() => useTheme());
+    const stay = renderHook(() => useTheme());
+    gone.unmount();
+    expect(() => act(() => stay.result.current.setTheme("dark"))).not.toThrow();
+  });
+});

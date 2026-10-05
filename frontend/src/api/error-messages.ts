@@ -17,6 +17,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   two_factor_not_enabled: "A verificação em duas etapas não está ativada.",
   two_factor_setup_required: "Gere o segredo antes de ativar a verificação em duas etapas.",
   invalid_password: "Senha incorreta.",
+  password_unchanged: "A nova senha precisa ser diferente da atual.",
   invite_required: "O cadastro está disponível somente por convite.",
   invite_invalid: "Convite inválido ou expirado.",
   invite_not_found: "Convite não encontrado.",

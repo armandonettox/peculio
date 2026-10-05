@@ -4,6 +4,8 @@ export type Theme = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "finance-app-theme";
+// O botao do topo e a tela de Configuracoes usam o gancho ao mesmo tempo: este aviso mantem os dois iguais
+export const THEME_EVENT = "finance-app-theme-change";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 function readStoredTheme(): Theme {
@@ -32,6 +34,13 @@ export function useTheme() {
     resolveTheme(readStoredTheme()),
   );
 
+  // Outra copia do gancho trocou o tema: acompanha
+  useEffect(() => {
+    const onChange = (event: Event) => setThemeState((event as CustomEvent<Theme>).detail);
+    window.addEventListener(THEME_EVENT, onChange);
+    return () => window.removeEventListener(THEME_EVENT, onChange);
+  }, []);
+
   // Aplica a classe no <html> e, no modo "system", acompanha a mudanca do sistema
   useEffect(() => {
     const apply = () => {
@@ -49,6 +58,7 @@ export function useTheme() {
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
+    window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: next }));
     try {
       localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {

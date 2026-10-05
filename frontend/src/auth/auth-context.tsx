@@ -23,6 +23,8 @@ export type AuthContextValue = {
   // Cria a conta e ja entra com ela
   register: (input: RegisterInput) => Promise<void>;
   logout: () => void;
+  // Troca o usuario carregado sem novo login (ex: depois de editar o perfil)
+  updateUser: (user: User) => void;
 };
 
 // Exportado para os testes poderem montar um estado de login fixo, sem passar pela API
@@ -125,7 +127,7 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
   }, [tokenStore]);
 
   const value = useMemo(
-    () => ({ user, isAuthenticated, login, verifyTwoFactor, register, logout }),
+    () => ({ user, isAuthenticated, login, verifyTwoFactor, register, logout, updateUser: setUser }),
     [user, isAuthenticated, login, verifyTwoFactor, register, logout],
   );
 

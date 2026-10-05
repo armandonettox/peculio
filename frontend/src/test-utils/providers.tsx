@@ -28,10 +28,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
 export function FakeAuth({
   user = testUser,
   logout = () => undefined,
+  updateUser = () => undefined,
   children,
 }: {
   user?: User | null;
   logout?: () => void;
+  updateUser?: (user: User) => void;
   children: ReactNode;
 }) {
   const value: AuthContextValue = {
@@ -41,6 +43,7 @@ export function FakeAuth({
     verifyTwoFactor: async () => undefined,
     register: async () => undefined,
     logout,
+    updateUser,
   };
   return (
     <QueryClientProvider client={newTestQueryClient()}>

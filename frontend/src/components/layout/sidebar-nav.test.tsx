@@ -3,16 +3,21 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it, vi } from "vitest";
 
+import { Settings } from "lucide-react";
+
 import { navItems } from "./nav-items";
 import { SidebarNav } from "./sidebar-nav";
 
-function renderNav(path = "/", onNavigate?: () => void) {
+function renderNav(path = "/", onNavigate?: () => void, items?: Parameters<typeof SidebarNav>[0]["items"]) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <SidebarNav onNavigate={onNavigate} />
+      <SidebarNav onNavigate={onNavigate} items={items} />
     </MemoryRouter>,
   );
 }
+
+// Um item sem tela ("Em breve"). Nenhum item de verdade esta assim agora, mas o menu sabe mostrar um.
+const comingSoon = [{ label: "Em obras", icon: Settings }];
 
 it("mostra todos os itens do menu", () => {
   renderNav();
@@ -48,13 +53,24 @@ it("marca o painel como pagina atual", () => {
   expect(screen.getByRole("link", { name: "Painel" })).toHaveAttribute("aria-current", "page");
 });
 
-it("itens sem tela aparecem desabilitados e nao sao links", () => {
+it("todos os itens do menu tem tela: nenhum fica como Em breve", () => {
   renderNav();
-  expect(screen.queryByRole("link", { name: /Configurações/ })).not.toBeInTheDocument();
-  const disabled = navItems.filter((item) => !item.to);
-  expect(disabled.length).toBeGreaterThan(0);
-  expect(screen.getAllByText("Em breve")).toHaveLength(disabled.length);
-  expect(screen.getByText("Configurações").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
+  expect(navItems.filter((item) => !item.to)).toEqual([]);
+  expect(screen.queryByText("Em breve")).not.toBeInTheDocument();
+});
+
+it("Configuracoes e um link para /configuracoes", () => {
+  renderNav("/configuracoes");
+  const link = screen.getByRole("link", { name: "Configurações" });
+  expect(link).toHaveAttribute("href", "/configuracoes");
+  expect(link).toHaveAttribute("aria-current", "page");
+});
+
+it("um item sem tela aparece desabilitado e nao e link", () => {
+  renderNav("/", undefined, comingSoon);
+  expect(screen.queryByRole("link", { name: /Em obras/ })).not.toBeInTheDocument();
+  expect(screen.getAllByText("Em breve")).toHaveLength(1);
+  expect(screen.getByText("Em obras").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
 });
 
 it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
@@ -66,8 +82,8 @@ it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
 
 it("clicar num item desabilitado nao faz nada", async () => {
   const onNavigate = vi.fn();
-  renderNav("/", onNavigate);
-  await userEvent.click(screen.getByText("Configurações"));
+  renderNav("/", onNavigate, comingSoon);
+  await userEvent.click(screen.getByText("Em obras"));
   expect(onNavigate).not.toHaveBeenCalled();
 });
 

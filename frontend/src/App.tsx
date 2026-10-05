@@ -20,6 +20,7 @@ import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
 import SecurityPage from "@/pages/security";
+import SettingsPage from "@/pages/settings";
 import TagsPage from "@/pages/tags";
 import TransactionsPage from "@/pages/transactions";
 import WebhooksPage from "@/pages/webhooks";
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="relatorios" element={<ReportsPage />} />
             <Route path="seguranca" element={<SecurityPage />} />
+            <Route path="configuracoes" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>

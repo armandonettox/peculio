@@ -41,5 +41,5 @@ export const navItems: NavItem[] = [
   { label: "Regras", icon: Workflow, to: "/regras" },
   { label: "Webhooks", icon: Webhook, to: "/webhooks" },
   { label: "Relatórios", icon: BarChart3, to: "/relatorios" },
-  { label: "Configurações", icon: Settings },
+  { label: "Configurações", icon: Settings, to: "/configuracoes" },
 ];
