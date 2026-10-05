@@ -22,7 +22,7 @@ export function staleCaches(names: readonly string[], current: string): string[]
 }
 
 const STATIC_PREFIXES = ["/assets/", "/icons/"];
-const STATIC_FILES = ["/manifest.webmanifest", "/favicon.svg"];
+const STATIC_FILES = ["/manifest.webmanifest", "/favicon.svg", "/theme-init.js"];
 
 export function isStaticPath(pathname: string): boolean {
   return STATIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) || STATIC_FILES.includes(pathname);
