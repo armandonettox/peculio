@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.core.config import settings
 
-logger = logging.getLogger("finance-app")
+logger = logging.getLogger("peculio")
 
 
 def user_dir(user_id: uuid.UUID) -> Path:

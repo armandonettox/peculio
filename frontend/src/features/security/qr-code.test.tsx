@@ -4,8 +4,8 @@ import { expect, it } from "vitest";
 
 import { QrCode } from "./qr-code";
 
-const URL_A = "otpauth://totp/finance-app:ana%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=finance-app";
-const URL_B = "otpauth://totp/finance-app:bia%40example.com?secret=KRSXG5CTMVRXEZLU&issuer=finance-app";
+const URL_A = "otpauth://totp/peculio:ana%40example.com?secret=JBSWY3DPEHPK3PXP&issuer=peculio";
+const URL_B = "otpauth://totp/peculio:bia%40example.com?secret=KRSXG5CTMVRXEZLU&issuer=peculio";
 
 const pathOf = () => screen.getByRole("img").querySelector("path")!.getAttribute("d");
 

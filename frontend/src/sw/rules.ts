@@ -9,7 +9,7 @@ export type RequestInfo = { url: string; method: string; mode: string };
 /** ignore: o worker nao mexe (vai direto para a rede). navigate: abrir uma pagina. static: arquivo da casca. */
 export type Strategy = "ignore" | "navigate" | "static";
 
-export const CACHE_PREFIX = "finance-app-shell-";
+export const CACHE_PREFIX = "peculio-shell-";
 
 // A pagina que serve de casca para qualquer rota do app (o React Router decide o resto)
 export const SHELL_URL = "/";
@@ -74,5 +74,5 @@ export const OFFLINE_HTML = `<!doctype html>
 <title>Sem conexão</title>
 <style>body{font-family:system-ui,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#171717;text-align:center;padding:24px}
 button{margin-top:16px;padding:8px 16px;border:0;border-radius:6px;background:#1e3a6b;color:#fff;font-size:16px}</style></head>
-<body><main><h1>Sem conexão</h1><p>O finance-app precisa do servidor para mostrar seus dados. Confira a internet e tente de novo.</p>
+<body><main><h1>Sem conexão</h1><p>O Pecúlio precisa do servidor para mostrar seus dados. Confira a internet e tente de novo.</p>
 <button onclick="location.reload()">Tentar de novo</button></main></body></html>`;

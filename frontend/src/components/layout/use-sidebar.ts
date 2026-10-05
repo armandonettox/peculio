@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 // O menu lateral do desktop pode ficar oculto (a escolha fica neste navegador). No celular ele e a gaveta de sempre e
 // esta escolha nao conta. Regras puras aqui, com testes; o AppShell so as usa.
 
-export const SIDEBAR_STORAGE_KEY = "finance-app:sidebar-hidden";
+export const SIDEBAR_STORAGE_KEY = "peculio:sidebar-hidden";
 
 export function readSidebarHidden(): boolean {
   // O armazenamento pode falhar (janela privada, dados do site bloqueados): nesse caso o menu fica aparente

@@ -84,7 +84,7 @@ def test_an_unexpected_error_hides_the_class_name_but_keeps_it_in_the_log(wire_l
     class Weird(Exception):
         pass
 
-    with caplog.at_level(logging.WARNING, logger="finance-app.webhooks"):
+    with caplog.at_level(logging.WARNING, logger="peculio.webhooks"):
         outcome = wire_like(Weird("segredo interno"))
     assert outcome.ok is False
     assert "Weird" not in outcome.error
@@ -94,7 +94,7 @@ def test_an_unexpected_error_hides_the_class_name_but_keeps_it_in_the_log(wire_l
 
 
 def test_the_class_name_of_a_connection_failure_goes_to_the_log(wire_like, caplog):
-    with caplog.at_level(logging.INFO, logger="finance-app.webhooks"):
+    with caplog.at_level(logging.INFO, logger="peculio.webhooks"):
         wire_like(httpx.ReadError("caiu", request=REQUEST))
     assert any("ReadError" in record.getMessage() for record in caplog.records)
 

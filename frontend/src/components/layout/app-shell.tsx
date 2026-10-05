@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {hidden ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
 
-          <span className="text-base font-semibold text-primary-text lg:hidden">finance-app</span>
+          <span className="text-base font-semibold text-primary-text lg:hidden">Pecúlio</span>
           {hidden && (
             <span className="hidden lg:block">
               <Brand />

@@ -50,7 +50,7 @@ async def lifespan(_app: FastAPI):
                 await task
 
 
-app = FastAPI(title="finance-app", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Pecúlio", version="0.1.0", lifespan=lifespan)
 
 app.state.limiter = limiter
 register_error_handlers(app)

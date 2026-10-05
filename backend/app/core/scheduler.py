@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 from app.services import recurrences, webhook_delivery
 
-logger = logging.getLogger("finance-app.scheduler")
+logger = logging.getLogger("peculio.scheduler")
 
 
 def run_recurrences_once(today: date | None = None) -> int:

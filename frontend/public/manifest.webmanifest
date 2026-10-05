@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "finance-app",
-  "short_name": "finance-app",
+  "name": "Pecúlio",
+  "short_name": "Pecúlio",
   "description": "Organização financeira pessoal, self-hosted",
   "lang": "pt-BR",
   "start_url": "/",

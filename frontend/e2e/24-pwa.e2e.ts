@@ -30,7 +30,7 @@ test("o manifesto descreve o app e os icones existem", async ({ request }) => {
   expect(response.status()).toBe(200);
   expect(response.headers()["content-type"]).toContain("manifest+json");
   const manifest = await response.json();
-  expect(manifest).toMatchObject({ name: "finance-app", start_url: "/", scope: "/", display: "standalone", lang: "pt-BR", theme_color: "#1e3a6b" });
+  expect(manifest).toMatchObject({ name: "Pecúlio", start_url: "/", scope: "/", display: "standalone", lang: "pt-BR", theme_color: "#1e3a6b" });
 
   const sizes = manifest.icons.map((icon: { sizes: string; purpose: string }) => `${icon.sizes}:${icon.purpose}`);
   expect(sizes).toEqual(expect.arrayContaining(["192x192:any", "512x512:any", "512x512:maskable"]));
@@ -73,7 +73,7 @@ test("o service worker registra, guarda a casca e nunca a API", async ({ page })
   expect(registration.scope.endsWith("/")).toBe(true);
 
   const cached = await page.evaluate(async () => {
-    const names = (await caches.keys()).filter((name) => name.startsWith("finance-app-shell-"));
+    const names = (await caches.keys()).filter((name) => name.startsWith("peculio-shell-"));
     const paths: string[] = [];
     for (const name of names) {
       for (const request of await (await caches.open(name)).keys()) paths.push(new URL(request.url).pathname);

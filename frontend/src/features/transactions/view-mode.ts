@@ -3,7 +3,7 @@
 
 export type ViewMode = "list" | "table";
 
-const STORAGE_KEY = "finance-app:transactions-view";
+const STORAGE_KEY = "peculio:transactions-view";
 
 export function parseViewMode(value: string | null): ViewMode {
   return value === "table" ? "table" : "list";

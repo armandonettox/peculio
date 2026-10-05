@@ -40,7 +40,7 @@ export function fakeTwoFactorApi({ enabled = false, remaining = 10 } = {}) {
       if (state.enabled) return fail(409, "two_factor_already_enabled");
       return HttpResponse.json({
         secret: SECRET,
-        otpauth_url: `otpauth://totp/finance-app:ana%40example.com?secret=${SECRET}&issuer=finance-app`,
+        otpauth_url: `otpauth://totp/peculio:ana%40example.com?secret=${SECRET}&issuer=peculio`,
       });
     }),
 

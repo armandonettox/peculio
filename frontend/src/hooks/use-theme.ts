@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 export type Theme = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "finance-app-theme";
+export const THEME_STORAGE_KEY = "peculio-theme";
 // O botao do topo e a tela de Configuracoes usam o gancho ao mesmo tempo: este aviso mantem os dois iguais
-export const THEME_EVENT = "finance-app-theme-change";
+export const THEME_EVENT = "peculio-theme-change";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 function readStoredTheme(): Theme {

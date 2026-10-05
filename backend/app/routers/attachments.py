@@ -14,7 +14,7 @@ from app.schemas.attachment import AttachmentOut
 from app.services import attachments as service
 from app.services.attachment_storage import remove_files, storage_path
 
-logger = logging.getLogger("finance-app")
+logger = logging.getLogger("peculio")
 
 router = APIRouter(tags=["attachments"])
 

@@ -15,7 +15,7 @@ from app.schemas.transaction import TransactionCreate
 from app.services import bills
 from app.services.transactions import create_transaction
 
-logger = logging.getLogger("finance-app.recurrences")
+logger = logging.getLogger("peculio.recurrences")
 
 # Por rodada e por recorrente: uma diaria parada por anos nao trava o laco; o resto sai na proxima
 MAX_PER_RUN = 500

@@ -450,11 +450,11 @@ it("lembra a escolha da tabela ao voltar para a pagina", async () => {
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByText("Padaria");
   await userEvent.click(viewButton("Tabela"));
-  expect(window.localStorage.getItem("finance-app:transactions-view")).toBe("table");
+  expect(window.localStorage.getItem("peculio:transactions-view")).toBe("table");
 });
 
 it("abre direto na tabela quando essa foi a ultima escolha", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   expect(await screen.findByRole("table")).toBeInTheDocument();
   expect(viewButton("Tabela")).toHaveAttribute("aria-pressed", "true");
@@ -480,7 +480,7 @@ it("sem armazenamento no navegador, abre em lista e a troca ainda funciona", asy
 });
 
 it("Enter numa linha da tabela edita na propria linha, sem abrir o dialogo", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
   screen.getByRole("row", { name: /^Padaria/ }).focus();
@@ -490,7 +490,7 @@ it("Enter numa linha da tabela edita na propria linha, sem abrir o dialogo", asy
 });
 
 it("T numa linha da tabela abre uma linha de entrada, sem dialogo", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
   screen.getByRole("row", { name: /^Padaria/ }).focus();
@@ -500,7 +500,7 @@ it("T numa linha da tabela abre uma linha de entrada, sem dialogo", async () => 
 });
 
 it("Editar completo, na tabela, abre o formulario completo", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
   await userEvent.click(screen.getByRole("button", { name: "Editar completo Padaria" }));
@@ -509,7 +509,7 @@ it("Editar completo, na tabela, abre o formulario completo", async () => {
 });
 
 it("um lancamento criado pela linha de entrada aparece na tabela", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
   await userEvent.click(screen.getByRole("button", { name: "Nova linha" }));
@@ -521,7 +521,7 @@ it("um lancamento criado pela linha de entrada aparece na tabela", async () => {
 });
 
 it("o botao de excluir da tabela pede confirmacao", async () => {
-  window.localStorage.setItem("finance-app:transactions-view", "table");
+  window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
   await userEvent.click(screen.getByRole("button", { name: "Excluir Padaria" }));

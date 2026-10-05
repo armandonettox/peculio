@@ -13,7 +13,7 @@ from app.core.config import settings
 # relogio do celular um pouco fora de hora
 TOTP_STEP_SECONDS = 30
 TOTP_WINDOW = 1
-ISSUER = "finance-app"
+ISSUER = "Pecúlio"
 RECOVERY_CODE_COUNT = 10
 
 

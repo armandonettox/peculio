@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-logger = logging.getLogger("finance-app")
+logger = logging.getLogger("peculio")
 
 
 class ErrorCode(StrEnum):

@@ -622,7 +622,7 @@ def test_failure_to_delete_a_file_does_not_break_the_request(client, headers, db
         raise PermissionError("sem permissao")
 
     monkeypatch.setattr(Path, "unlink", broken_unlink)
-    with caplog.at_level("ERROR", logger="finance-app"):
+    with caplog.at_level("ERROR", logger="peculio"):
         resp = client.delete(f"{TX_URL}/{transaction_id}", headers=headers)
     assert resp.status_code == 204
     assert "Nao foi possivel apagar o anexo" in caplog.text

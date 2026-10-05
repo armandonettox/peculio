@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>finance-app</title>
+    <title>Pecúlio</title>
     <meta name="description" content="Organização financeira pessoal, self-hosted" />
     <!-- App instalavel (PWA): manifesto, icones e a cor da barra do sistema nos dois temas -->
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -14,12 +14,12 @@
     <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="finance-app" />
+    <meta name="apple-mobile-web-app-title" content="Pecúlio" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <script>
       // Aplica o tema antes do React carregar, para a tela nao piscar clara e depois escura
       try {
-        var stored = localStorage.getItem("finance-app-theme");
+        var stored = localStorage.getItem("peculio-theme");
         var dark =
           stored === "dark" ||
           ((stored === null || stored === "system") &&

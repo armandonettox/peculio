@@ -56,7 +56,7 @@ def test_decrypt_of_garbage_is_none_not_an_error():
 def test_provisioning_uri_names_the_app_and_the_account():
     uri = tf.provisioning_uri(SECRET, "ana@example.com")
     assert uri.startswith("otpauth://totp/")
-    assert "finance-app" in uri
+    assert "Pec%C3%BAlio" in uri
     assert "ana%40example.com" in uri
     assert f"secret={SECRET}" in uri
 

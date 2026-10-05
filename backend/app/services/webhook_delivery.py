@@ -19,7 +19,7 @@ from app.core.two_factor import decrypt_secret
 from app.core.webhook_url import Resolver, WebhookUrlError, validate_webhook_url
 from app.models.webhook import TEST_EVENT, DeliveryStatus, Webhook, WebhookDelivery
 
-logger = logging.getLogger("finance-app.webhooks")
+logger = logging.getLogger("peculio.webhooks")
 
 TIMEOUT_SECONDS = 10
 MAX_ATTEMPTS = 5
@@ -169,7 +169,7 @@ def post_webhook(
     timestamp = int(now.timestamp())
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "finance-app-webhooks",
+        "User-Agent": "peculio-webhooks",
         "X-Finance-Event": event,
         "X-Finance-Delivery": str(delivery_id),
         "X-Finance-Timestamp": str(timestamp),
@@ -430,7 +430,7 @@ def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None) -
     payload = {
         "event": TEST_EVENT,
         "occurred_at": now.isoformat(),
-        "data": {"message": "Teste de webhook do finance-app"},
+        "data": {"message": "Teste de webhook do Pecúlio"},
     }
     delivery = WebhookDelivery(
         webhook_id=webhook.id,

@@ -103,7 +103,7 @@ it("a area de conteudo cresce com o monitor, sem teto fixo que deixe faixas vazi
 
 const sidebar = () => document.getElementById("sidebar") as HTMLElement;
 const sidebarToggle = () => screen.getByRole("button", { name: /menu lateral/ });
-const brandsInHeader = () => within(screen.getByRole("banner")).getAllByText("finance-app").length;
+const brandsInHeader = () => within(screen.getByRole("banner")).getAllByText("Pecúlio").length;
 
 it("o menu lateral aparece por padrao, com o botao de ocultar", () => {
   renderShell();
@@ -136,7 +136,7 @@ it("mostrar de novo devolve o menu", async () => {
 it("a escolha fica guardada e o app abre do mesmo jeito", async () => {
   const first = renderShell();
   await userEvent.click(sidebarToggle());
-  expect(window.localStorage.getItem("finance-app:sidebar-hidden")).toBe("1");
+  expect(window.localStorage.getItem("peculio:sidebar-hidden")).toBe("1");
   first.unmount();
   renderShell();
   expect(sidebarToggle()).toHaveAccessibleName("Mostrar menu lateral");
