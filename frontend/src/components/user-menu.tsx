@@ -1,4 +1,4 @@
-import { LogOut, ShieldCheck } from "lucide-react";
+import { Download, LogOut, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/auth/auth-context";
+import { useInstallPrompt } from "@/pwa/install";
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -21,6 +22,7 @@ function initialsOf(name: string): string {
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const { canInstall, install } = useInstallPrompt();
   if (!user) return null;
 
   return (
@@ -46,6 +48,12 @@ export function UserMenu() {
             Segurança
           </Link>
         </DropdownMenuItem>
+        {canInstall && (
+          <DropdownMenuItem onSelect={() => void install()}>
+            <Download />
+            Instalar app
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={logout}>
           <LogOut />
           Sair

@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/layout/app-shell";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
+import { PwaBanners } from "@/components/pwa-banners";
 import AccountsPage from "@/pages/accounts";
 import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
@@ -25,35 +26,38 @@ import WebhooksPage from "@/pages/webhooks";
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<PublicOnlyRoute />}>
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+    <>
+      <Routes>
+        <Route element={<PublicOnlyRoute />}>
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="cofrinhos" element={<PiggyBanksPage />} />
-          <Route path="recorrentes" element={<RecurrencesPage />} />
-          <Route path="contas-a-pagar" element={<BillsPage />} />
-          <Route path="orcamentos" element={<BudgetsPage />} />
-          <Route path="envelopes" element={<EnvelopesPage />} />
-          <Route path="regras" element={<RulesPage />} />
-          <Route path="contas" element={<AccountsPage />} />
-          <Route path="transacoes" element={<TransactionsPage />} />
-          <Route path="importar" element={<ImportPage />} />
-          <Route path="conciliar" element={<ReconciliationPage />} />
-          <Route path="categorias" element={<CategoriesPage />} />
-          <Route path="tags" element={<TagsPage />} />
-          <Route path="webhooks" element={<WebhooksPage />} />
-          <Route path="relatorios" element={<ReportsPage />} />
-          <Route path="seguranca" element={<SecurityPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="cofrinhos" element={<PiggyBanksPage />} />
+            <Route path="recorrentes" element={<RecurrencesPage />} />
+            <Route path="contas-a-pagar" element={<BillsPage />} />
+            <Route path="orcamentos" element={<BudgetsPage />} />
+            <Route path="envelopes" element={<EnvelopesPage />} />
+            <Route path="regras" element={<RulesPage />} />
+            <Route path="contas" element={<AccountsPage />} />
+            <Route path="transacoes" element={<TransactionsPage />} />
+            <Route path="importar" element={<ImportPage />} />
+            <Route path="conciliar" element={<ReconciliationPage />} />
+            <Route path="categorias" element={<CategoriesPage />} />
+            <Route path="tags" element={<TagsPage />} />
+            <Route path="webhooks" element={<WebhooksPage />} />
+            <Route path="relatorios" element={<ReportsPage />} />
+            <Route path="seguranca" element={<SecurityPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+      </Routes>
+      <PwaBanners />
+    </>
   );
 }

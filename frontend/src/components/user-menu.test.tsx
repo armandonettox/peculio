@@ -1,8 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 
+import { installPrompt, type InstallPromptEvent } from "@/pwa/install";
 import { FakeAuth, testUser } from "@/test-utils/providers";
 import { UserMenu } from "./user-menu";
 
@@ -92,4 +93,50 @@ it("Seguranca leva para a pagina de seguranca", async () => {
 
   expect(screen.getByText("Pagina de seguranca")).toBeInTheDocument();
   expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+});
+
+// ---------- Instalar app ----------
+
+function installEvent(outcome: "accepted" | "dismissed" = "accepted") {
+  const event = new Event("beforeinstallprompt", { cancelable: true }) as InstallPromptEvent;
+  event.prompt = vi.fn(async () => undefined);
+  event.userChoice = Promise.resolve({ outcome });
+  return event;
+}
+
+const renderMenu = () =>
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <UserMenu />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+
+beforeEach(() => installPrompt.set(null));
+
+it("sem convite do navegador, nao ha Instalar app (ex: iPhone, ou ja instalado)", async () => {
+  renderMenu();
+  await userEvent.click(trigger());
+  expect(screen.getByRole("menuitem", { name: "Sair" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "Instalar app" })).not.toBeInTheDocument();
+});
+
+it("com o convite do navegador, Instalar app abre o convite e some depois", async () => {
+  const event = installEvent();
+  renderMenu();
+  act(() => installPrompt.set(event));
+  await userEvent.click(trigger());
+  await userEvent.click(screen.getByRole("menuitem", { name: "Instalar app" }));
+  expect(event.prompt).toHaveBeenCalledTimes(1);
+  await userEvent.click(trigger());
+  expect(screen.queryByRole("menuitem", { name: "Instalar app" })).not.toBeInTheDocument();
+});
+
+it("o convite chega depois do menu montado e o item aparece", async () => {
+  renderMenu();
+  await userEvent.click(trigger());
+  expect(screen.queryByRole("menuitem", { name: "Instalar app" })).not.toBeInTheDocument();
+  act(() => installPrompt.set(installEvent()));
+  expect(await screen.findByRole("menuitem", { name: "Instalar app" })).toBeInTheDocument();
 });

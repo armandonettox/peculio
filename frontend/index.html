@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>finance-app</title>
+    <meta name="description" content="Organização financeira pessoal, self-hosted" />
+    <!-- App instalavel (PWA): manifesto, icones e a cor da barra do sistema nos dois temas -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#1e3a6b" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="finance-app" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <script>
       // Aplica o tema antes do React carregar, para a tela nao piscar clara e depois escura
       try {
