@@ -39,6 +39,7 @@ export type ReportData = {
   tag: ReportGroupBlock[];
   budget: ReportGroupBlock[];
   account: ReportGroupBlock[];
+  counterparty: ReportGroupBlock[];
 };
 
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -51,6 +52,13 @@ function presetDates(period: string | null, today: string): { from: string; to: 
   if (period === "this-month") return monthRange(year, month);
   if (period === "last-month") return month === 1 ? monthRange(year - 1, 12) : monthRange(year, month - 1);
   if (period === "this-year") return { from: `${year}-01-01`, to: `${year}-12-31` };
+  // Os ultimos N meses contam o mes atual por inteiro
+  const back = (count: number) => {
+    const index = year * 12 + (month - 1) - count;
+    return { from: `${Math.floor(index / 12)}-${pad((index % 12) + 1)}-01`, to: monthRange(year, month).to };
+  };
+  if (period === "last-3-months") return back(2);
+  if (period === "last-12-months") return back(11);
   return null;
 }
 
@@ -60,7 +68,7 @@ function presetDates(period: string | null, today: string): { from: string; to: 
  */
 export function fakeReportsApi(initial: Partial<ReportData> = {}) {
   const state = {
-    data: { summary: [], monthly: [], category: [], tag: [], budget: [], account: [], ...initial } as ReportData,
+    data: { summary: [], monthly: [], category: [], tag: [], budget: [], account: [], counterparty: [], ...initial } as ReportData,
     requests: [] as Recorded[],
     // Erro devolvido nos proximos pedidos de relatorio (um por chamada), ate zerar
     errors: [] as NextError[],
@@ -99,6 +107,7 @@ export function fakeReportsApi(initial: Partial<ReportData> = {}) {
     report("tag", "by-tag"),
     report("budget", "by-budget"),
     report("account", "by-account"),
+    report("counterparty", "by-counterparty"),
 
     http.get("*/api/v1/transactions/export.csv", ({ request }) => {
       const url = new URL(request.url);

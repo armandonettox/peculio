@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { CustomReportsTab } from "@/features/reports/custom-reports-tab";
 import { CurrencySection } from "@/features/reports/currency-section";
 import {
   countActiveFilters,
@@ -34,7 +35,21 @@ export default function ReportsPage() {
   const filters = useMemo(() => toReportFilters(state), [state]);
   const activeCount = countActiveFilters(state);
   const rangeError = dateRangeError(filters);
-  const enabled = !rangeError;
+  // Duas abas: o resumo de sempre e o relatorio personalizado. Os pedidos do resumo so rodam na aba dele.
+  const tab = searchParams.get("aba") === "personalizado" ? "custom" : "summary";
+  const enabled = tab === "summary" && !rangeError;
+
+  function chooseTab(next: "summary" | "custom") {
+    setSearchParams(
+      (previous) => {
+        const params = new URLSearchParams(previous);
+        if (next === "custom") params.set("aba", "personalizado");
+        else params.delete("aba");
+        return params;
+      },
+      { replace: true },
+    );
+  }
 
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -164,12 +179,23 @@ export default function ReportsPage() {
         title="Relatórios"
         description="De onde veio e para onde foi o dinheiro"
         actions={
-          <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || Boolean(rangeError) || !summary.data}>
-            <Download />
-            {exporting ? "Exportando..." : "Exportar CSV"}
-          </Button>
+          tab === "summary" ? (
+            <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || Boolean(rangeError) || !summary.data}>
+              <Download />
+              {exporting ? "Exportando..." : "Exportar CSV"}
+            </Button>
+          ) : undefined
         }
       />
+
+      <div role="group" aria-label="Tipo de relatório" className="mb-6 flex gap-1">
+        <Button size="sm" variant={tab === "summary" ? "default" : "outline"} aria-pressed={tab === "summary"} onClick={() => chooseTab("summary")}>
+          Resumo
+        </Button>
+        <Button size="sm" variant={tab === "custom" ? "default" : "outline"} aria-pressed={tab === "custom"} onClick={() => chooseTab("custom")}>
+          Personalizado
+        </Button>
+      </div>
 
       {exportError && (
         <Alert variant="destructive" className="mb-4">
@@ -177,6 +203,10 @@ export default function ReportsPage() {
         </Alert>
       )}
 
+      {tab === "custom" ? (
+        <CustomReportsTab />
+      ) : (
+        <>
       <ReportFilterBar
         state={state}
         activeCount={activeCount}
@@ -190,6 +220,8 @@ export default function ReportsPage() {
       />
 
       {content}
+        </>
+      )}
     </>
   );
 }

@@ -11,3 +11,4 @@ export const rulesKey = ["rules"] as const;
 export const dashboardKey = ["dashboard"] as const;
 export const clockKey = ["clock"] as const;
 export const apiTokensKey = ["api-tokens"] as const;
+export const savedReportsKey = ["saved-reports"] as const;

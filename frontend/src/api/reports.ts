@@ -15,7 +15,7 @@ export type MonthlyPoint = components["schemas"]["MonthlyPoint"];
 export { reportsKey };
 
 // Periodos prontos: o servidor resolve pelo relogio do app, nunca pelo do navegador
-export type ReportPeriod = "this-month" | "last-month" | "this-year";
+export type ReportPeriod = "this-month" | "last-month" | "this-year" | "last-3-months" | "last-12-months";
 
 export type ReportFilters = {
   period?: ReportPeriod;
@@ -28,7 +28,7 @@ export type ReportFilters = {
   budgetId?: string;
 };
 
-export type GroupedDimension = "category" | "tag" | "budget" | "account";
+export type GroupedDimension = "category" | "tag" | "budget" | "account" | "counterparty";
 
 function toQuery(filters: ReportFilters) {
   return {
@@ -79,6 +79,8 @@ export function useReportGrouped(
           return unwrap(api.client.GET("/api/v1/reports/by-budget", query));
         case "account":
           return unwrap(api.client.GET("/api/v1/reports/by-account", query));
+        case "counterparty":
+          return unwrap(api.client.GET("/api/v1/reports/by-counterparty", query));
       }
     },
   });
