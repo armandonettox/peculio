@@ -103,7 +103,7 @@ export default function SecurityPage() {
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>Verificação em duas etapas</CardTitle>
+          <CardTitle as="h2">Verificação em duas etapas</CardTitle>
           <CardDescription>Um segundo código, além da senha, ao entrar.</CardDescription>
         </CardHeader>
         <CardContent>{body}</CardContent>

@@ -119,7 +119,7 @@ export function SecurityContactSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Contato de segurança</CardTitle>
+        <CardTitle as="h2">Contato de segurança</CardTitle>
         <CardDescription>
           A quem as pessoas desta instalação devem relatar um problema de segurança. Aparece na página Segurança para todos.
         </CardDescription>

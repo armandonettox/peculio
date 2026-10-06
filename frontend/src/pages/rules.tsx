@@ -195,7 +195,9 @@ export default function RulesPage() {
 
         {ungrouped.length > 0 && (
           <section aria-label="Regras sem grupo">
-            {groupList.length > 0 && <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Sem grupo</h2>}
+            <h2 className={groupList.length > 0 ? "mb-3 text-sm font-semibold text-muted-foreground" : "sr-only"}>
+              {groupList.length > 0 ? "Sem grupo" : "Suas regras"}
+            </h2>
             {renderRules(ungrouped)}
           </section>
         )}

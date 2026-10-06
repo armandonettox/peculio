@@ -1,3 +1,4 @@
+import { TableScroll } from "@/components/table-scroll";
 import { useState } from "react";
 
 import type { ImportPreview, ImportRow } from "@/api/imports";
@@ -101,7 +102,7 @@ export function ImportPreviewStep({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <TableScroll label="Lançamentos do arquivo">
         <table className="w-full text-left text-sm sm:min-w-[40rem]">
           <caption className="sr-only">Lançamentos do arquivo</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
@@ -165,7 +166,7 @@ export function ImportPreviewStep({
             })}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
 
       {slice.pages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

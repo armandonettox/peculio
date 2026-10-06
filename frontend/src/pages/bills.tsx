@@ -79,7 +79,9 @@ export default function BillsPage() {
     );
   } else {
     content = (
-      <ul className="flex flex-col gap-3">
+      <>
+        <h2 className="sr-only">Suas contas a pagar</h2>
+        <ul className="flex flex-col gap-3">
         {items.map((bill) => (
           <BillCard
             key={bill.id}
@@ -91,6 +93,7 @@ export default function BillsPage() {
           />
         ))}
       </ul>
+      </>
     );
   }
 

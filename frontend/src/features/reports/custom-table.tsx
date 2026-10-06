@@ -1,3 +1,4 @@
+import { TableScroll } from "@/components/table-scroll";
 import { useId } from "react";
 
 import type { ReportRow } from "@/api/reports";
@@ -24,7 +25,7 @@ export function CustomTable({ title, column, fallback, rows, currencyCode, note 
         Todos os grupos
       </h4>
       {note && <p className="text-xs text-muted-foreground">{note}</p>}
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <TableScroll label={`${title} em ${currencyCode}, todos os grupos`}>
         <table className="w-full min-w-[32rem] text-sm">
           <caption className="sr-only">
             {title} em {currencyCode}, todos os grupos
@@ -68,7 +69,7 @@ export function CustomTable({ title, column, fallback, rows, currencyCode, note 
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
     </section>
   );
 }

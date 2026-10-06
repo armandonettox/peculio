@@ -80,7 +80,9 @@ export default function PiggyBanksPage() {
     );
   } else {
     content = (
-      <ul className="flex flex-col gap-3">
+      <>
+        <h2 className="sr-only">Seus cofrinhos</h2>
+        <ul className="flex flex-col gap-3">
         {items.map((piggy) => (
           <PiggyBankCard
             key={piggy.id}
@@ -90,6 +92,7 @@ export default function PiggyBanksPage() {
           />
         ))}
       </ul>
+      </>
     );
   }
 

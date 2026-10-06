@@ -103,7 +103,7 @@ export function InvitesSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Usuários e convites</CardTitle>
+        <CardTitle as="h2">Usuários e convites</CardTitle>
         <CardDescription>Só quem recebe um convite consegue criar conta. Cada convite vale para um e-mail.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

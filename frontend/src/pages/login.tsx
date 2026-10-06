@@ -69,7 +69,7 @@ function TwoFactorStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Verificação em duas etapas</CardTitle>
+        <CardTitle as="h1">Verificação em duas etapas</CardTitle>
         <CardDescription>
           {recovery
             ? "Digite um dos códigos de recuperação que você guardou. Cada código vale uma vez só."
@@ -186,7 +186,7 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Entrar</CardTitle>
+        <CardTitle as="h1">Entrar</CardTitle>
         <CardDescription>Acesse sua conta para ver suas finanças.</CardDescription>
       </CardHeader>
       <CardContent>

@@ -113,7 +113,7 @@ export function ApiTokensSection() {
     <>
       <Card className="mt-6 max-w-2xl">
         <CardHeader>
-          <CardTitle>Tokens de API</CardTitle>
+          <CardTitle as="h2">Tokens de API</CardTitle>
           <CardDescription>
             Para scripts e integrações acessarem seus dados sem usar sua senha. Cada token tem permissão e validade.
           </CardDescription>

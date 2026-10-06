@@ -1,3 +1,4 @@
+import { TableScroll } from "@/components/table-scroll";
 import { useId } from "react";
 
 import type { ReportGroupBlock } from "@/api/reports";
@@ -22,7 +23,7 @@ export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
         {dimension.title}
       </h4>
       {dimension.note && <p className="text-xs text-muted-foreground">{dimension.note}</p>}
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <TableScroll label={`${dimension.title} em ${code}`}>
         <table className="w-full min-w-96 text-sm">
           <caption className="sr-only">
             {dimension.title} em {code}
@@ -74,7 +75,7 @@ export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
             })}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
     </section>
   );
 }

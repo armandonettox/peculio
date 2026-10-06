@@ -83,7 +83,9 @@ export default function BudgetsPage() {
     );
   } else {
     content = (
-      <ul className="flex flex-col gap-3">
+      <>
+        <h2 className="sr-only">Seus orçamentos</h2>
+        <ul className="flex flex-col gap-3">
         {items.map((budget) => (
           <BudgetCard
             key={budget.id}
@@ -94,6 +96,7 @@ export default function BudgetsPage() {
           />
         ))}
       </ul>
+      </>
     );
   }
 

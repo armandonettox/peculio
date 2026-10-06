@@ -13,7 +13,7 @@ export function AppearanceSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Aparência</CardTitle>
+        <CardTitle as="h2">Aparência</CardTitle>
         <CardDescription>A escolha vale neste navegador.</CardDescription>
       </CardHeader>
       <CardContent>

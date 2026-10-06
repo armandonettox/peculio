@@ -121,6 +121,43 @@ const isGreen = (hex: string) => {
   return h >= 90 && h <= 170;
 };
 
+// ---------- Fundos calculados ----------
+// O Tailwind deriva "muted" e "accent" de outros tokens com color-mix. O teste de pares so lia hex solto, entao o par
+// "texto secundario sobre muted" (4,22:1 no claro) passou despercebido ate o axe achar no navegador.
+
+function mixFormula(name: string): { from: string; percent: number; into: string } {
+  const match = css.match(new RegExp(`--color-${name}:\\s*color-mix\\(in srgb,\\s*var\\(--([\\w-]+)\\)\\s*(\\d+)%,\\s*var\\(--([\\w-]+)\\)\\)`));
+  if (!match) throw new Error(`--color-${name} nao e um color-mix no index.css`);
+  return { from: match[1], percent: Number(match[2]), into: match[3] };
+}
+
+function mixHex(a: string, b: string, percentOfA: number): string {
+  const channel = (i: number) => {
+    const x = parseInt(a.slice(i, i + 2), 16);
+    const y = parseInt(b.slice(i, i + 2), 16);
+    return Math.round((x * percentOfA) / 100 + (y * (100 - percentOfA)) / 100);
+  };
+  return "#" + [1, 3, 5].map((i) => channel(i).toString(16).padStart(2, "0")).join("");
+}
+
+describe.each([
+  ["claro", readTokens(":root")],
+  ["escuro", readTokens("\\.dark")],
+])("fundos calculados no tema %s", (_name, tokens) => {
+  const derived = (name: string) => {
+    const { from, percent, into } = mixFormula(name);
+    return mixHex(tokens[from], tokens[into], percent);
+  };
+
+  it("texto secundario sobre o fundo muted passa no AA", () => {
+    expect(contrast(tokens["muted-foreground"], derived("muted"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("texto principal sobre o fundo accent passa no AA", () => {
+    expect(contrast(tokens["foreground"], derived("accent"))).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+});
+
 describe("tema escuro sem verde", () => {
   const dark = readTokens("\\.dark");
 

@@ -110,7 +110,7 @@ export function DevicesSection() {
   return (
     <Card className="mt-6 max-w-2xl">
       <CardHeader>
-        <CardTitle>Aparelhos conectados</CardTitle>
+        <CardTitle as="h2">Aparelhos conectados</CardTitle>
         <CardDescription>
           Onde a sua conta está aberta. Encerrar um aparelho acaba com o acesso dele na hora. Trocar a senha encerra todos
           os outros.

@@ -65,7 +65,7 @@ export function PasswordSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Senha</CardTitle>
+        <CardTitle as="h2">Senha</CardTitle>
         <CardDescription>Ao trocar, você continua conectado aqui e as outras sessões precisam entrar de novo.</CardDescription>
       </CardHeader>
       <CardContent>

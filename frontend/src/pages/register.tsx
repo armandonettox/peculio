@@ -122,7 +122,7 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{setupRequired ? "Criar conta de administrador" : "Criar conta"}</CardTitle>
+        <CardTitle as="h1">{setupRequired ? "Criar conta de administrador" : "Criar conta"}</CardTitle>
         <CardDescription>
           {setupRequired
             ? "Primeiro acesso: esta conta terá controle total desta instância."

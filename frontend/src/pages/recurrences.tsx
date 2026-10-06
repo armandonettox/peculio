@@ -84,7 +84,9 @@ export default function RecurrencesPage() {
     );
   } else {
     content = (
-      <ul className="flex flex-col gap-3">
+      <>
+        <h2 className="sr-only">Seus lançamentos recorrentes</h2>
+        <ul className="flex flex-col gap-3">
         {items.map((recurrence) => (
           <RecurrenceCard
             key={recurrence.id}
@@ -96,6 +98,7 @@ export default function RecurrencesPage() {
           />
         ))}
       </ul>
+      </>
     );
   }
 

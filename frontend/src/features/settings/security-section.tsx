@@ -9,7 +9,7 @@ export function SecuritySection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Segurança</CardTitle>
+        <CardTitle as="h2">Segurança</CardTitle>
         <CardDescription>Verificação em duas etapas e tokens de API para scripts.</CardDescription>
       </CardHeader>
       <CardContent>

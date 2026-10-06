@@ -53,7 +53,7 @@ export function ProfileSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Perfil</CardTitle>
+        <CardTitle as="h2">Perfil</CardTitle>
         <CardDescription>Como você aparece no app e a moeda que ele sugere nas contas novas.</CardDescription>
       </CardHeader>
       <CardContent>

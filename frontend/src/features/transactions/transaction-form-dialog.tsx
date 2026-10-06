@@ -96,7 +96,7 @@ function TagPicker({
             onClick={() => onChange(on ? selected.filter((id) => id !== tag.id) : [...selected, tag.id])}
             className={cn(
               "rounded-full border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              on ? "border-primary bg-accent font-medium" : "text-muted-foreground hover:bg-accent",
+              on ? "border-primary bg-accent font-medium" : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
           >
             #{tag.name}

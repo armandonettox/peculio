@@ -141,7 +141,9 @@ it("agrupa as regras por grupo e deixa as sem grupo no fim", async () => {
 it("sem nenhum grupo as regras aparecem sem o titulo Sem grupo", async () => {
   renderPage({ rules: [rule()] });
   await screen.findByRole("heading", { level: 3, name: "Mercado" });
-  expect(screen.queryByRole("heading", { level: 2 })).not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Sem grupo" })).not.toBeInTheDocument();
+  // O h2 mantem a ordem dos titulos (h1, h2, h3) para leitor de tela, mas nao aparece na tela
+  expect(screen.getByRole("heading", { level: 2, name: "Suas regras" })).toHaveClass("sr-only");
 });
 
 it("so grupos, sem regras, nao mostra o estado vazio", async () => {

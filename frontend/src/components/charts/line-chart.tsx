@@ -212,6 +212,7 @@ export function LineChart({ title, description, series, formatValue, formatX, he
                     else pointRefs.current.delete(`${seriesIndex}:${xIndex}`);
                   }}
                   tabIndex={stop && stop.seriesIndex === seriesIndex && stop.xIndex === xIndex ? 0 : -1}
+                  role="img"
                   aria-label={`${pointLabel(seriesIndex, xIndex)}: ${pointValue(seriesIndex, xIndex)}`}
                   data-point={`${item.key}:${xs[xIndex]}`}
                   data-si={seriesIndex}

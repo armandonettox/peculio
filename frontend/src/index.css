@@ -28,7 +28,8 @@
   --brand-accent-foreground: #171717;
   --support: #01603b;
 
-  --muted-foreground: #6b7280;
+  /* Era #6b7280 (Netto Code v3): sobre o fundo muted, que e calculado, dava 4,22:1 e nao passava no AA (4,5:1). */
+  --muted-foreground: #656d7b;
   --border: #d9e2ec;
   --input: #d9e2ec;
   /* No tema claro o verde medio fica com contraste 2,9 no fundo; o escuro passa de 3 */
@@ -145,5 +146,19 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* Quem pediu menos movimento no sistema (enxaqueca, vestibular, TDAH) nao ve animacao nem transicao: o esqueleto de
+   carregamento fica parado e as trocas de estado sao imediatas. O tempo quase zero (e nao none) mantem os eventos de
+   fim de animacao que as bibliotecas esperam. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

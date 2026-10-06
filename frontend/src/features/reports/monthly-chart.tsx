@@ -1,3 +1,4 @@
+import { TableScroll } from "@/components/table-scroll";
 import { useId } from "react";
 
 import type { MonthlyBlock } from "@/api/reports";
@@ -60,7 +61,7 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
         </div>
       </div>
 
-      <div className="max-h-72 overflow-auto rounded-lg border bg-card">
+      <TableScroll label="Valores por mês" className="max-h-72 overflow-auto">
         <table className="w-full min-w-96 text-sm">
           <caption className="sr-only">Receita, despesa e resultado por mês em {code}</caption>
           <thead>
@@ -96,7 +97,7 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
     </section>
   );
 }

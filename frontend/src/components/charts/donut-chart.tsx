@@ -115,6 +115,7 @@ export function DonutChart({
               }}
               tabIndex={index === stopIndex ? 0 : -1}
               data-index={index}
+              role="img"
               aria-label={`${item.label}: ${sliceText(index)}`}
               className="pointer-events-auto cursor-pointer outline-none"
               fill="transparent"
