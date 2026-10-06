@@ -2,6 +2,7 @@ import { delay, http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
 
 import { createTokenStore } from "@/auth/token-store";
+import { i18n } from "@/i18n";
 import { sampleUser, server } from "@/test-utils/msw";
 import { createApiClient, unwrap } from "./client";
 import { ApiError } from "./errors";
@@ -352,5 +353,46 @@ describe("sessao guardada (cookie de renovacao)", () => {
     expect(await unwrap(api.client.GET("/api/v1/auth/me"))).toEqual(sampleUser);
     expect(calls).toBe(2);
     expect(tokenStore.get()).toBe("pelo-cookie");
+  });
+});
+
+describe("idioma enviado ao servidor", () => {
+  it("manda Accept-Language em todo pedido, no idioma em uso", async () => {
+    const seen: (string | null)[] = [];
+    server.use(
+      http.get("*/api/v1/auth/me", ({ request }) => {
+        seen.push(request.headers.get("accept-language"));
+        return HttpResponse.json(sampleUser);
+      }),
+    );
+    const { api } = setup("t");
+    await unwrap(api.client.GET("/api/v1/auth/me"));
+    await i18n.changeLanguage("en");
+    await unwrap(api.client.GET("/api/v1/auth/me"));
+    expect(seen).toEqual(["pt-BR", "en"]);
+  });
+
+  it("restaurar, sair e renovar tambem mandam o idioma", async () => {
+    const seen: Record<string, string | null> = {};
+    server.use(
+      http.post("*/api/v1/auth/session", ({ request }) => {
+        seen.session = request.headers.get("accept-language");
+        return HttpResponse.json({ access_token: "x", token_type: "bearer" });
+      }),
+      http.post("*/api/v1/auth/logout", ({ request }) => {
+        seen.logout = request.headers.get("accept-language");
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.post("*/api/v1/auth/refresh", ({ request }) => {
+        seen.refresh = request.headers.get("accept-language");
+        return HttpResponse.json({ access_token: "y", token_type: "bearer" });
+      }),
+    );
+    await i18n.changeLanguage("en");
+    const { api } = setup("t");
+    await api.restoreSession();
+    await api.endSession();
+    await api.refreshAccessToken();
+    expect(seen).toEqual({ session: "en", logout: "en", refresh: "en" });
   });
 });

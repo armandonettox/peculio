@@ -1,0 +1,19 @@
+{
+  "appearance": {
+    "title": "Appearance",
+    "description": "Your choice applies to this browser.",
+    "theme": {
+      "label": "Theme",
+      "light": "Light",
+      "lightHint": "Light background all the time.",
+      "dark": "Dark",
+      "darkHint": "Dark background all the time.",
+      "system": "System",
+      "systemHint": "Follows your device's theme."
+    },
+    "language": {
+      "label": "Language",
+      "hint": "Applies to this browser. The first time, it follows the browser's language."
+    }
+  }
+}

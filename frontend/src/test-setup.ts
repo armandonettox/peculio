@@ -3,6 +3,7 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { tokenStore } from "@/auth/token-store";
+import { i18n, initI18n } from "@/i18n";
 import { resetAppClock } from "@/lib/app-clock";
 import { server } from "@/test-utils/msw";
 
@@ -20,12 +21,16 @@ if (!Element.prototype.scrollIntoView) {
 // simuladas passam disso de vez em quando e o teste falha sem ter nada errado. So atrasa quem ja falharia.
 configure({ asyncUtilTimeout: 5000 });
 
+// Os testes rodam em portugues (o idioma de origem). Quem testa outro idioma troca dentro do proprio teste.
+initI18n("pt-BR");
+
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterAll(() => server.close());
 
 // Limpa o DOM entre os testes, senao um teste enxerga elementos do anterior
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  await i18n.changeLanguage("pt-BR");
   server.resetHandlers();
   // O token e um singleton em memoria: um teste nao pode herdar a sessao do anterior
   tokenStore.clear();

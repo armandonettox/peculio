@@ -1,0 +1,19 @@
+{
+  "appearance": {
+    "title": "Aparência",
+    "description": "A escolha vale neste navegador.",
+    "theme": {
+      "label": "Tema",
+      "light": "Claro",
+      "lightHint": "Fundo claro o tempo todo.",
+      "dark": "Escuro",
+      "darkHint": "Fundo escuro o tempo todo.",
+      "system": "Do sistema",
+      "systemHint": "Acompanha o tema do seu aparelho."
+    },
+    "language": {
+      "label": "Idioma",
+      "hint": "Vale neste navegador. Na primeira vez, segue o idioma do navegador."
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import createClient, { type Middleware } from "openapi-fetch";
 
 import { tokenStore as defaultTokenStore, type TokenStore } from "@/auth/token-store";
+import { currentLanguage } from "@/i18n";
 import { ApiError } from "./errors";
 import type { paths } from "./schema";
 
@@ -35,7 +36,7 @@ export function createApiClient({
    */
   async function restoreSession(): Promise<string | null> {
     try {
-      const response = await fetch(`${baseUrl}${SESSION_PATH}`, { method: "POST", headers: CLIENT_HEADERS });
+      const response = await fetch(`${baseUrl}${SESSION_PATH}`, { method: "POST", headers: { ...CLIENT_HEADERS, "Accept-Language": currentLanguage() } });
       if (!response.ok) return null;
       return ((await response.json()) as { access_token: string }).access_token;
     } catch {
@@ -49,7 +50,11 @@ export function createApiClient({
       const current = tokenStore.get();
       const response = await fetch(`${baseUrl}${LOGOUT_PATH}`, {
         method: "POST",
-        headers: current ? { ...CLIENT_HEADERS, Authorization: `Bearer ${current}` } : CLIENT_HEADERS,
+        headers: {
+          ...CLIENT_HEADERS,
+          "Accept-Language": currentLanguage(),
+          ...(current ? { Authorization: `Bearer ${current}` } : {}),
+        },
       });
       return response.ok;
     } catch {
@@ -63,7 +68,7 @@ export function createApiClient({
     try {
       const response = await fetch(`${baseUrl}${REFRESH_PATH}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${current}` },
+        headers: { Authorization: `Bearer ${current}`, "Accept-Language": currentLanguage() },
       });
       if (!response.ok) {
         // O token nao renova, mas o cookie pode ainda valer (ex: a chave de outra aba): tenta por ele antes de desistir
@@ -99,6 +104,8 @@ export function createApiClient({
     onRequest({ request, id }) {
       const token = tokenStore.get();
       if (token) request.headers.set("Authorization", `Bearer ${token}`);
+      // O servidor escreve no idioma da pessoa os poucos textos que ele gera (webhook de teste, erros do importador)
+      request.headers.set("Accept-Language", currentLanguage());
       copies.set(id, request.clone());
       return request;
     },
