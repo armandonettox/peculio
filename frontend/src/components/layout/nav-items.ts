@@ -18,28 +18,31 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type NavLabelKey = `nav.${keyof typeof import("@/i18n/locales/pt-BR.json")["nav"]}`;
+
 export type NavItem = {
-  label: string;
+  // Chave do texto em src/i18n/locales (nav.*)
+  labelKey: NavLabelKey;
   icon: LucideIcon;
   // Sem `to` o item aparece desabilitado ("Em breve"). Ligar quando a tela existir.
   to?: string;
 };
 
 export const navItems: NavItem[] = [
-  { label: "Painel", icon: LayoutDashboard, to: "/" },
-  { label: "Contas", icon: Landmark, to: "/contas" },
-  { label: "Transações", icon: ArrowLeftRight, to: "/transacoes" },
-  { label: "Importar extrato", icon: Upload, to: "/importar" },
-  { label: "Conciliar", icon: CheckCheck, to: "/conciliar" },
-  { label: "Categorias", icon: Tags, to: "/categorias" },
-  { label: "Tags", icon: Tag, to: "/tags" },
-  { label: "Orçamentos", icon: PiggyBank, to: "/orcamentos" },
-  { label: "Envelopes", icon: Mail, to: "/envelopes" },
-  { label: "Contas a pagar", icon: Receipt, to: "/contas-a-pagar" },
-  { label: "Recorrentes", icon: Repeat, to: "/recorrentes" },
-  { label: "Cofrinhos", icon: Coins, to: "/cofrinhos" },
-  { label: "Regras", icon: Workflow, to: "/regras" },
-  { label: "Webhooks", icon: Webhook, to: "/webhooks" },
-  { label: "Relatórios", icon: BarChart3, to: "/relatorios" },
-  { label: "Configurações", icon: Settings, to: "/configuracoes" },
+  { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
+  { labelKey: "nav.accounts", icon: Landmark, to: "/contas" },
+  { labelKey: "nav.transactions", icon: ArrowLeftRight, to: "/transacoes" },
+  { labelKey: "nav.import", icon: Upload, to: "/importar" },
+  { labelKey: "nav.reconcile", icon: CheckCheck, to: "/conciliar" },
+  { labelKey: "nav.categories", icon: Tags, to: "/categorias" },
+  { labelKey: "nav.tags", icon: Tag, to: "/tags" },
+  { labelKey: "nav.budgets", icon: PiggyBank, to: "/orcamentos" },
+  { labelKey: "nav.envelopes", icon: Mail, to: "/envelopes" },
+  { labelKey: "nav.bills", icon: Receipt, to: "/contas-a-pagar" },
+  { labelKey: "nav.recurrences", icon: Repeat, to: "/recorrentes" },
+  { labelKey: "nav.piggyBanks", icon: Coins, to: "/cofrinhos" },
+  { labelKey: "nav.rules", icon: Workflow, to: "/regras" },
+  { labelKey: "nav.webhooks", icon: Webhook, to: "/webhooks" },
+  { labelKey: "nav.reports", icon: BarChart3, to: "/relatorios" },
+  { labelKey: "nav.settings", icon: Settings, to: "/configuracoes" },
 ];

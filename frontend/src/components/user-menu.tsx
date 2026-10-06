@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/auth/auth-context";
 import { useInstallPrompt } from "@/pwa/install";
+import { useTranslation } from "react-i18next";
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -21,6 +22,7 @@ function initialsOf(name: string): string {
 }
 
 export function UserMenu() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { canInstall, install } = useInstallPrompt();
   if (!user) return null;
@@ -30,7 +32,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Menu do usuário"
+          aria-label={t("components.userMenu.menuDoUsuario")}
           className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {initialsOf(user.name)}
@@ -45,18 +47,18 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link to="/seguranca">
             <ShieldCheck />
-            Segurança
+            {t("common.seguranca")}
           </Link>
         </DropdownMenuItem>
         {canInstall && (
           <DropdownMenuItem onSelect={() => void install()}>
             <Download />
-            Instalar app
+            {t("components.userMenu.instalarApp")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onSelect={logout}>
           <LogOut />
-          Sair
+          {t("components.userMenu.sair")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

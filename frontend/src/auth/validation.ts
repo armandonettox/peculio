@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+
 // Validacoes de formulario que espelham as regras do backend (app/schemas/user.py).
 // O servidor continua sendo quem decide; aqui so evitamos uma ida a rede por erro obvio.
 
@@ -7,14 +9,14 @@ const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_BYTES = 72;
 
 export function emailError(email: string): string | undefined {
-  if (!email.trim()) return "Informe o e-mail.";
-  if (!EMAIL_PATTERN.test(email.trim())) return "Informe um e-mail válido.";
+  if (!email.trim()) return i18n.t("validation.emailRequired");
+  if (!EMAIL_PATTERN.test(email.trim())) return i18n.t("validation.emailInvalid");
   return undefined;
 }
 
 export function passwordError(password: string): string | undefined {
-  if (password.length < MIN_PASSWORD_LENGTH) return `A senha precisa ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`;
-  if (new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES) return "A senha é muito longa (máximo de 72 bytes).";
+  if (password.length < MIN_PASSWORD_LENGTH) return i18n.t("validation.passwordShort", { min: MIN_PASSWORD_LENGTH });
+  if (new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES) return i18n.t("validation.passwordLong");
   return undefined;
 }
 

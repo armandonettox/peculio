@@ -10,11 +10,13 @@ import { UserMenu } from "@/components/user-menu";
 import { Brand } from "./brand";
 import { SidebarNav } from "./sidebar-nav";
 import { useSidebar } from "./use-sidebar";
+import { useTranslation } from "react-i18next";
 
 export const MAIN_CONTENT_ID = "main-content";
 export const SIDEBAR_ID = "sidebar";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   // So vale no desktop: no celular o menu e a gaveta
@@ -31,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         href={`#${MAIN_CONTENT_ID}`}
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:shadow-md"
       >
-        Pular para o conteúdo
+        {t("components.appShell.pularParaOConteudo")}
       </a>
 
       <aside id={SIDEBAR_ID} className={`fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card ${hidden ? "" : "lg:flex"}`}>
@@ -45,14 +47,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu">
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t("components.appShell.abrirMenu")}>
                 <Menu />
               </Button>
             </SheetTrigger>
             <SheetContent>
               <div className="flex h-14 items-center border-b px-4">
-                <SheetTitle className="sr-only">Menu</SheetTitle>
-                <SheetDescription className="sr-only">Navegação principal do aplicativo</SheetDescription>
+                <SheetTitle className="sr-only">{t("components.appShell.menu")}</SheetTitle>
+                <SheetDescription className="sr-only">{t("components.appShell.navegacaoPrincipalDoAplicativo")}</SheetDescription>
                 <Brand />
               </div>
               <SidebarNav onNavigate={() => setMenuOpen(false)} />
@@ -65,11 +67,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             size="icon"
             className="hidden lg:inline-flex"
             onClick={toggle}
-            aria-label={hidden ? "Mostrar menu lateral" : "Ocultar menu lateral"}
+            aria-label={hidden ? t("components.appShell.mostrarMenuLateral") : t("components.appShell.ocultarMenuLateral")}
             aria-expanded={!hidden}
             aria-controls={SIDEBAR_ID}
             aria-keyshortcuts="Control+B Meta+B"
-            title={`${hidden ? "Mostrar" : "Ocultar"} menu lateral (Ctrl+B)`}
+            title={hidden ? t("components.appShell.showSidebarTitle") : t("components.appShell.hideSidebarTitle")}
           >
             {hidden ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>

@@ -12,6 +12,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "email" | "password" | "invite";
 type FieldErrors = Partial<Record<Field, string>>;
@@ -25,6 +26,7 @@ function toField(serverField: string): Field | null {
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const status = useAuthStatus();
   const [searchParams] = useSearchParams();
@@ -41,7 +43,7 @@ export default function RegisterPage() {
   if (status.isPending) {
     return (
       <p role="status" className="text-center text-sm text-muted-foreground">
-        Verificando a instância...
+        {t("pages.register.verificandoAInstancia")}
       </p>
     );
   }
@@ -53,7 +55,7 @@ export default function RegisterPage() {
           {getErrorMessage(status.error)}
         </Alert>
         <Button variant="outline" onClick={() => void status.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -74,10 +76,10 @@ export default function RegisterPage() {
     if (submitting) return;
 
     const found: FieldErrors = {
-      name: requiredError(name, "Informe seu nome."),
+      name: requiredError(name, t("pages.register.nameRequired")),
       email: emailError(email),
       password: passwordError(password),
-      invite: setupRequired ? undefined : requiredError(invite, "Informe o código do convite."),
+      invite: setupRequired ? undefined : requiredError(invite, t("pages.register.inviteRequired")),
     };
     setErrors(found);
     setFormError(null);
@@ -122,24 +124,24 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h1">{setupRequired ? "Criar conta de administrador" : "Criar conta"}</CardTitle>
+        <CardTitle as="h1">{setupRequired ? t("pages.register.criarContaDeAdministrador") : t("pages.register.criarConta")}</CardTitle>
         <CardDescription>
           {setupRequired
-            ? "Primeiro acesso: esta conta terá controle total desta instância."
-            : "Use o convite enviado pelo administrador."}
+            ? t("pages.register.primeiroAcessoEstaConta")
+            : t("pages.register.useOConviteEnviado")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="register-name" label="Nome" error={errors.name}>
+          <FormField id="register-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input {...props} autoComplete="name" value={name} onChange={change("name", setName)} />
             )}
           </FormField>
 
-          <FormField id="register-email" label="E-mail" error={errors.email}>
+          <FormField id="register-email" label={t("common.eMail")} error={errors.email}>
             {(props) => (
               <Input
                 {...props}
@@ -151,7 +153,7 @@ export default function RegisterPage() {
             )}
           </FormField>
 
-          <FormField id="register-password" label="Senha" error={errors.password} hint="Mínimo de 8 caracteres.">
+          <FormField id="register-password" label={t("common.senha")} error={errors.password} hint={t("pages.register.minimoDe8Caracteres")}>
             {(props) => (
               <PasswordInput
                 {...props}
@@ -163,7 +165,7 @@ export default function RegisterPage() {
           </FormField>
 
           {!setupRequired && (
-            <FormField id="register-invite" label="Código do convite" error={errors.invite}>
+            <FormField id="register-invite" label={t("pages.register.codigoDoConvite")} error={errors.invite}>
               {(props) => (
                 <Input
                   {...props}
@@ -176,14 +178,14 @@ export default function RegisterPage() {
           )}
 
           <Button type="submit" disabled={submitting}>
-            {submitting ? "Criando conta..." : "Criar conta"}
+            {submitting ? t("pages.register.criandoConta") : t("pages.register.criarConta")}
           </Button>
 
           {!setupRequired && (
             <p className="text-center text-sm text-muted-foreground">
-              Já tem conta?{" "}
+              {t("pages.register.haveAccount")}{" "}
               <Link to="/login" className="font-medium text-primary-text underline-offset-4 hover:underline">
-                Entrar
+                {t("pages.register.entrar")}
               </Link>
             </p>
           )}

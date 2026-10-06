@@ -5,7 +5,8 @@ import { expect, it, vi } from "vitest";
 
 import { Settings } from "lucide-react";
 
-import { navItems } from "./nav-items";
+import { i18n } from "@/i18n";
+import { navItems, type NavItem } from "./nav-items";
 import { SidebarNav } from "./sidebar-nav";
 
 function renderNav(path = "/", onNavigate?: () => void, items?: Parameters<typeof SidebarNav>[0]["items"]) {
@@ -17,12 +18,12 @@ function renderNav(path = "/", onNavigate?: () => void, items?: Parameters<typeo
 }
 
 // Um item sem tela ("Em breve"). Nenhum item de verdade esta assim agora, mas o menu sabe mostrar um.
-const comingSoon = [{ label: "Em obras", icon: Settings }];
+const comingSoon: NavItem[] = [{ labelKey: "nav.reports", icon: Settings }];
 
 it("mostra todos os itens do menu", () => {
   renderNav();
   for (const item of navItems) {
-    expect(screen.getByText(item.label)).toBeInTheDocument();
+    expect(screen.getByText(i18n.t(item.labelKey))).toBeInTheDocument();
   }
 });
 
@@ -68,9 +69,9 @@ it("Configuracoes e um link para /configuracoes", () => {
 
 it("um item sem tela aparece desabilitado e nao e link", () => {
   renderNav("/", undefined, comingSoon);
-  expect(screen.queryByRole("link", { name: /Em obras/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: /Relatórios/ })).not.toBeInTheDocument();
   expect(screen.getAllByText("Em breve")).toHaveLength(1);
-  expect(screen.getByText("Em obras").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
+  expect(screen.getByText("Relatórios").closest("[aria-disabled]")).toHaveAttribute("aria-disabled", "true");
 });
 
 it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
@@ -83,7 +84,7 @@ it("chama onNavigate ao clicar num item, mesmo na pagina atual", async () => {
 it("clicar num item desabilitado nao faz nada", async () => {
   const onNavigate = vi.fn();
   renderNav("/", onNavigate, comingSoon);
-  await userEvent.click(screen.getByText("Em obras"));
+  await userEvent.click(screen.getByText("Relatórios"));
   expect(onNavigate).not.toHaveBeenCalled();
 });
 

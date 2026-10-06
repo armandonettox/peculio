@@ -44,6 +44,18 @@ describe("arquivos de traducao", () => {
     expect(different).toEqual([]);
   });
 
+  // Textos iguais nos dois idiomas por serem a mesma palavra (nome de funcao, termo tecnico), nao por esquecimento
+  const SAME_IN_BOTH = new Set(["components.appShell.menu", "nav.tags", "nav.webhooks", "nav.envelopes"]);
+
+  it("o ingles nao e uma copia do portugues: texto igual so na lista de excecoes", () => {
+    const copies = Object.keys(pt).filter((key) => english[key] === pt[key] && !SAME_IN_BOTH.has(key));
+    expect(copies).toEqual([]);
+  });
+
+  it("a lista de excecoes so tem chaves que existem e que de fato sao iguais", () => {
+    for (const key of SAME_IN_BOTH) expect(english[key], key).toBe(pt[key]);
+  });
+
   it("o ingles nao ficou com letras acentuadas do portugues por esquecimento", () => {
     // Texto em ingles quase nunca tem estes caracteres; se tiver, e sinal de traducao esquecida
     const suspicious = Object.entries(english)

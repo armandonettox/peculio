@@ -1,112 +1,21 @@
+import { i18n } from "@/i18n";
 import { ApiError } from "./errors";
 
-// Mensagem em portugues para cada codigo de erro do backend (app/core/errors.py, ErrorCode).
-// Um teste confere que todo codigo do backend tem mensagem aqui.
-export const ERROR_MESSAGES: Record<string, string> = {
-  token_missing: "Sua sessão expirou. Entre novamente.",
-  token_invalid: "Sua sessão expirou. Entre novamente.",
-  session_expired: "Sua sessão expirou. Entre novamente.",
-  session_invalid: "Sua sessão não é mais válida. Entre novamente.",
-  user_not_found: "Usuário não encontrado.",
-  invalid_credentials: "E-mail ou senha incorretos.",
-  account_locked: "Conta bloqueada por excesso de tentativas. Tente de novo em alguns minutos.",
-  admin_required: "Apenas administradores podem fazer isso.",
-  two_factor_invalid_code: "Código inválido. Confira o app autenticador ou use um código de recuperação.",
-  two_factor_challenge_invalid: "O tempo para informar o código acabou. Entre novamente.",
-  two_factor_already_enabled: "A verificação em duas etapas já está ativada.",
-  two_factor_not_enabled: "A verificação em duas etapas não está ativada.",
-  two_factor_setup_required: "Gere o segredo antes de ativar a verificação em duas etapas.",
-  invalid_password: "Senha incorreta.",
-  security_contact_not_set: "Esta instalação não definiu um contato de segurança.",
-  client_header_missing: "O pedido não veio do aplicativo. Recarregue a página e tente de novo.",
-  session_not_found: "Essa sessão não existe mais. Ela pode já ter sido encerrada.",
-  password_unchanged: "A nova senha precisa ser diferente da atual.",
-  invite_required: "O cadastro está disponível somente por convite.",
-  invite_invalid: "Convite inválido ou expirado.",
-  invite_not_found: "Convite não encontrado.",
-  email_already_registered: "Este e-mail já está cadastrado.",
-  category_not_found: "Categoria não encontrada.",
-  category_name_taken: "Já existe uma categoria com esse nome.",
-  tag_not_found: "Tag não encontrada.",
-  tag_name_taken: "Já existe uma tag com esse nome.",
-  bill_not_found: "Conta a pagar não encontrada.",
-  bill_name_taken: "Já existe uma conta a pagar com esse nome.",
-  bill_not_allowed: "Conta a pagar só vale para saídas para uma despesa, não para entradas, transferências ou pagamento de dívida.",
-  recurrence_not_found: "Recorrente não encontrada.",
-  recurrence_invalid: "Confira o fim da recorrência: informe só a data final ou só o número de repetições, e a data final não pode ser antes da primeira.",
-  webhook_not_found: "Webhook não encontrado.",
-  webhook_name_taken: "Já existe um webhook com esse nome.",
-  webhook_limit_reached: "Você chegou ao limite de 20 webhooks. Exclua algum para criar outro.",
-  webhook_url_invalid:
-    "Esse endereço não pode receber webhooks: use um endereço https:// público que responda pela internet, sem usuário e senha na URL.",
-  piggy_bank_not_found:"Cofrinho não encontrado.",
-  piggy_bank_name_taken: "Já existe um cofrinho com esse nome.",
-  piggy_bank_account_invalid: "Um cofrinho fica em uma conta, não em uma dívida.",
-  piggy_bank_not_enough_available: "A conta não tem esse valor disponível. O que já está guardado em cofrinhos não conta.",
-  piggy_bank_not_enough_saved: "O cofrinho não tem esse valor guardado.",
-  piggy_bank_archived: "O cofrinho está arquivado: desarquive para guardar mais.",
-  attachment_not_found: "Anexo não encontrado.",
-  attachment_type_not_allowed: "Tipo de arquivo não permitido. Envie PDF, JPEG, PNG, WEBP, TXT ou CSV.",
-  attachment_too_large: "O arquivo passa do limite de 10 MB.",
-  attachment_empty: "O arquivo está vazio.",
-  budget_not_envelope: "Este orçamento não é um envelope ativo.",
-  template_not_found: "Este envelope não tem template.",
-  saved_report_not_found: "Este relatório não existe mais.",
-  saved_report_name_taken: "Já existe um relatório salvo com esse nome.",
-  saved_report_limit_reached: "Você chegou ao limite de 30 relatórios salvos. Exclua algum para salvar outro.",
-  transactions_locked: "Alguns lançamentos estão travados por uma conciliação fechada. Nada foi alterado.",
-  transaction_locked: "Este lançamento foi travado por uma conciliação. Desfaça a conciliação em Conciliar para mudar.",
-  reconciliation_account_invalid: "Só uma conta de ativo ativa pode ser conciliada.",
-  reconciliation_split_invalid: "Um dos lançamentos não pertence a esta conta.",
-  reconciliation_no_difference: "Não há diferença para ajustar.",
-  reconciliation_difference: "Ainda há diferença: o conferido não bate com o extrato.",
-  reconciliation_nothing: "Não há lançamentos conferidos para fechar.",
-  reconciliation_not_found: "Conciliação não encontrada.",
-  envelope_not_enough: "O envelope de origem não tem esse valor disponível.",
-  api_token_expired: "Este token venceu. Crie outro.",
-  api_token_read_only: "Este token é só de leitura: ele consulta, mas não cria, edita nem exclui.",
-  session_required: "Esta ação exige entrar pela tela. Não vale com token de API.",
-  api_token_not_found: "Token não encontrado.",
-  api_token_name_taken: "Já existe um token com esse nome.",
-  api_token_limit_reached: "Você chegou ao limite de 10 tokens. Revogue algum para criar outro.",
-  import_file_invalid: "O arquivo não pôde ser lido como extrato.",
-  import_file_too_large: "O arquivo passa do limite de 5 MB.",
-  import_too_many_rows: "O arquivo tem mais de 5000 linhas: divida em partes menores.",
-  import_account_invalid: "O extrato só pode ser importado em uma conta de ativo, não em uma dívida.",
-  attachment_limit_reached: "Este lançamento já tem 10 anexos, o máximo permitido.",
-  budget_not_found: "Orçamento não encontrado.",
-  budget_name_taken: "Já existe um orçamento com esse nome.",
-  budget_not_allowed: "Orçamento só vale para saídas para uma despesa, não para entradas, transferências ou pagamento de dívida.",
-  rule_not_found: "Regra não encontrada.",
-  rule_name_taken: "Já existe uma regra com esse nome.",
-  rule_invalid: "A regra cita algo que não existe mais. Confira as contas, categorias, etiquetas, orçamentos e contas a pagar escolhidos.",
-  rule_group_not_found: "Grupo de regras não encontrado.",
-  rule_run_too_large: "Lançamentos demais de uma vez. Escolha um período ou uma conta menor.",
-  rule_group_name_taken: "Já existe um grupo de regras com esse nome.",
-  transaction_not_found: "Transação não encontrada.",
-  invalid_split_accounts: "Estas contas não podem ser usadas juntas neste lançamento.",
-  currency_mismatch: "A moeda do lançamento não confere com a das contas.",
-  account_not_found: "Conta não encontrada.",
-  account_name_taken: "Já existe uma conta com esse nome.",
-  account_has_transactions: "Esta conta tem transações e não pode ser excluída. Arquive-a em vez disso.",
-  currency_not_found: "Moeda não encontrada.",
-  invalid_amount: "Valor inválido para esta moeda.",
-  validation_error: "Confira os dados informados.",
-  rate_limited: "Muitas tentativas. Aguarde um instante e tente de novo.",
-  not_found: "Não encontrado.",
-  method_not_allowed: "Ação não permitida.",
-  forbidden: "Você não tem permissão para isso.",
-  unauthorized: "Você precisa entrar para continuar.",
-  internal_error: "Algo deu errado do nosso lado. Tente novamente.",
-  network_error: "Não foi possível conectar ao servidor. Verifique sua conexão.",
-};
+// A mensagem de cada codigo de erro do backend (app/core/errors.py, ErrorCode) fica em src/i18n/locales, em errors.<codigo>,
+// nos dois idiomas. Um teste confere que todo codigo do backend tem mensagem.
+const key = (code: string) => `errors.${code}`;
 
-const FALLBACK_MESSAGE = "Algo deu errado. Tente novamente.";
+/** O codigo tem mensagem traduzida? ("fallback" e a mensagem generica, nao um codigo.) */
+export function hasErrorMessage(code: string): boolean {
+  return code !== "fallback" && i18n.exists(key(code));
+}
 
-// Mensagem para mostrar ao usuario. Codigo desconhecido cai no texto do servidor.
+// Mensagem para mostrar ao usuario, no idioma em uso. Codigo desconhecido cai no texto do servidor.
 export function getErrorMessage(error: unknown): string {
+  const fallback = i18n.t("errors.fallback");
   if (error instanceof ApiError) {
-    return ERROR_MESSAGES[error.code] ?? error.message ?? FALLBACK_MESSAGE;
+    if (hasErrorMessage(error.code)) return i18n.t(key(error.code) as "errors.fallback");
+    return error.message ?? fallback;
   }
-  return FALLBACK_MESSAGE;
+  return fallback;
 }

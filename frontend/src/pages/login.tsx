@@ -12,6 +12,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 type FieldErrors = { email?: string; password?: string };
 
@@ -25,6 +26,7 @@ function TwoFactorStep({
   remember: boolean;
   onBack: (message?: string) => void;
 }) {
+  const { t } = useTranslation();
   const { verifyTwoFactor } = useAuth();
   const [recovery, setRecovery] = useState(false);
   const [code, setCode] = useState("");
@@ -37,7 +39,7 @@ function TwoFactorStep({
     if (submitting) return;
     setError(null);
 
-    const missing = requiredError(code, recovery ? "Informe o código de recuperação." : "Informe o código de 6 dígitos.");
+    const missing = requiredError(code, recovery ? t("pages.login.codeRecoveryRequired") : t("pages.login.codeRequired"));
     setFieldError(missing);
     if (missing) {
       document.getElementById("login-code")?.focus();
@@ -69,18 +71,18 @@ function TwoFactorStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h1">Verificação em duas etapas</CardTitle>
+        <CardTitle as="h1">{t("pages.login.verificacaoEmDuasEtapas")}</CardTitle>
         <CardDescription>
           {recovery
-            ? "Digite um dos códigos de recuperação que você guardou. Cada código vale uma vez só."
-            : "Digite o código de 6 dígitos que aparece no seu app autenticador."}
+            ? t("pages.login.digiteUmDosCodigos")
+            : t("pages.login.digiteOCodigoDe")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {error && <Alert variant="destructive">{error}</Alert>}
 
-          <FormField id="login-code" label={recovery ? "Código de recuperação" : "Código de verificação"} error={fieldError}>
+          <FormField id="login-code" label={recovery ? t("pages.login.codigoDeRecuperacao") : t("pages.login.codigoDeVerificacao")} error={fieldError}>
             {(props) => (
               <Input
                 {...props}
@@ -97,7 +99,7 @@ function TwoFactorStep({
           </FormField>
 
           <Button type="submit" disabled={submitting}>
-            {submitting ? "Verificando..." : "Verificar"}
+            {submitting ? t("pages.login.verificando") : t("pages.login.verificar")}
           </Button>
 
           <div className="flex flex-col items-center gap-2 text-sm">
@@ -106,10 +108,10 @@ function TwoFactorStep({
               onClick={toggleRecovery}
               className="font-medium text-primary-text underline-offset-4 hover:underline"
             >
-              {recovery ? "Usar o código do app" : "Usar um código de recuperação"}
+              {recovery ? t("pages.login.usarOCodigoDo") : t("pages.login.usarUmCodigoDe")}
             </button>
             <button type="button" onClick={() => onBack()} className="text-muted-foreground underline-offset-4 hover:underline">
-              Voltar
+              {t("pages.login.voltar")}
             </button>
           </div>
         </form>
@@ -119,6 +121,7 @@ function TwoFactorStep({
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [challenge, setChallenge] = useState<string | null>(null);
   const status = useAuthStatus();
@@ -144,7 +147,7 @@ export default function LoginPage() {
     const found: FieldErrors = {
       email: emailError(email),
       // No login nao se valida o tamanho: so exige que tenha algo digitado
-      password: requiredError(password, "Informe a senha."),
+      password: requiredError(password, t("pages.login.passwordRequired")),
     };
     setErrors(found);
     setFormError(null);
@@ -186,14 +189,14 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h1">Entrar</CardTitle>
-        <CardDescription>Acesse sua conta para ver suas finanças.</CardDescription>
+        <CardTitle as="h1">{t("pages.login.entrar")}</CardTitle>
+        <CardDescription>{t("pages.login.acesseSuaContaPara")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="login-email" label="E-mail" error={errors.email}>
+          <FormField id="login-email" label={t("common.eMail")} error={errors.email}>
             {(props) => (
               <Input
                 {...props}
@@ -208,7 +211,7 @@ export default function LoginPage() {
             )}
           </FormField>
 
-          <FormField id="login-password" label="Senha" error={errors.password}>
+          <FormField id="login-password" label={t("common.senha")} error={errors.password}>
             {(props) => (
               <PasswordInput
                 {...props}
@@ -230,21 +233,21 @@ export default function LoginPage() {
               className="mt-0.5 size-4 accent-[var(--primary)]"
             />
             <span className="flex flex-col">
-              <span className="font-medium">Manter conectado</span>
+              <span className="font-medium">{t("pages.login.manterConectado")}</span>
               <span className="text-xs text-muted-foreground">
-                Neste aparelho, por 30 dias. Não marque em computador compartilhado.
+                {t("pages.login.nesteAparelhoPor30")}
               </span>
             </span>
           </label>
 
           <Button type="submit" disabled={submitting}>
-            {submitting ? "Entrando..." : "Entrar"}
+            {submitting ? t("pages.login.entrando") : t("pages.login.entrar")}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Recebeu um convite?{" "}
+            {t("pages.login.haveInvite")}{" "}
             <Link to="/register" className="font-medium text-primary-text underline-offset-4 hover:underline">
-              Criar conta
+              {t("pages.login.criarConta")}
             </Link>
           </p>
         </form>
