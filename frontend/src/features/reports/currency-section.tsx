@@ -30,7 +30,7 @@ export function CurrencySection({ totals, monthly, grouped }: CurrencySectionPro
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {cards.map((card) => (
           <Card key={card.label} role="group" aria-label={`${card.label} em ${code}`}>
             <CardHeader className="pb-2">

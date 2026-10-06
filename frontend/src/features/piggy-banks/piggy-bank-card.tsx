@@ -33,7 +33,7 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate text-base font-semibold">{piggy.name}</h3>
+            <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{piggy.name}</h3>
             {archived && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivado</span>
             )}

@@ -33,7 +33,7 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
   const patch = (change: Partial<CustomConfig>) => onChange(normalize({ ...config, ...change }));
 
   return (
-    <section aria-label="Montar relatório" className="grid gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section aria-label="Montar relatório" className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
       <FormField id="custom-group-by" label="Agrupar por">
         {(field) => (
           <Select {...field} value={config.groupBy} onChange={(event) => patch({ groupBy: event.target.value as CustomConfig["groupBy"] })}>

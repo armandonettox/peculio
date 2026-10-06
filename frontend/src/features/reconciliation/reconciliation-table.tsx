@@ -45,7 +45,7 @@ export function ReconciliationTable({ rows, currencyCode, pending, onToggle }: P
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="relative overflow-x-auto rounded-lg border bg-card">
         <table className="w-full text-left text-sm sm:min-w-[32rem]">
           <caption className="sr-only">Lançamentos a conferir</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">

@@ -61,7 +61,7 @@ export default function AccountsPage() {
 
   function renderList(list: Account[]) {
     return (
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {list.map((account) => (
           <AccountCard
             key={account.id}
@@ -78,7 +78,7 @@ export default function AccountsPage() {
   let content;
   if (accounts.isPending) {
     content = (
-      <div aria-busy="true" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div aria-busy="true" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {[0, 1, 2].map((index) => (
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}

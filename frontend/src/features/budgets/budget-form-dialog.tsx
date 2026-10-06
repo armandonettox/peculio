@@ -185,7 +185,7 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
             )}
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="budget-currency" label="Moeda">
               {(props) => (
                 <Select {...props} value={currency} disabled={editing} onChange={(event) => setCurrency(event.target.value)}>

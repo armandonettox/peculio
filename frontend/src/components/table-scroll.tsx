@@ -14,7 +14,7 @@ export function TableScroll({ label, className, children }: { label: string; cla
       role="region"
       aria-label={label}
       className={cn(
-        "overflow-x-auto rounded-lg border bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "relative overflow-x-auto rounded-lg border bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
     >

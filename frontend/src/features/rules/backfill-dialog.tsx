@@ -115,7 +115,7 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
           {activeRules.length === 0 && <Alert>Você não tem regras ativas para aplicar.</Alert>}
           {error && <Alert variant="destructive">{error}</Alert>}
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <FormField id="backfill-from" label="De" error={rangeError}>
               {(props) => (
                 <Input {...props} type="date" value={dateFrom} onChange={(e) => changeFilter(() => setDateFrom(e.target.value))} />

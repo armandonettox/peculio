@@ -219,7 +219,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
 
             {draft.triggers.map((trigger, index) => (
               <div key={index} className="flex flex-col gap-1">
-                <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
                   <Select
                     aria-label={`Campo do gatilho ${index + 1}`}
                     value={trigger.field}
@@ -285,7 +285,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
               );
               return (
                 <div key={index} className="flex flex-col gap-1">
-                  <div className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
                     <Select
                       aria-label={`Ação ${index + 1}`}
                       value={action.kind}
@@ -346,7 +346,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
             </Button>
           </fieldset>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="rule-group" label="Grupo">
               {(props) => (
                 <Select {...props} value={draft.groupId} onChange={(e) => patch({ groupId: e.target.value })}>

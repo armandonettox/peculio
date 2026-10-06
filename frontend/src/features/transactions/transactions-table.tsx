@@ -173,7 +173,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
   const allSelected = items.length > 0 && items.every((item) => selection.ids.has(item.id));
 
   return (
-    <div className="overflow-x-auto rounded-lg border bg-card">
+    <div className="relative overflow-x-auto rounded-lg border bg-card">
       <div className="flex items-center justify-between gap-3 border-b px-3 py-2">
         <p className="text-xs text-muted-foreground">
           Com o foco numa linha: setas ou J e K andam, Enter edita, T cria, Espaço marca.

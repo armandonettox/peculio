@@ -193,7 +193,7 @@ export function PiggyBankFormDialog({ piggy, onClose }: Props) {
             )}
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="piggy-amount" label={`Valor da meta (${currency})`} error={errors.amount}>
               {(props) => (
                 <Input

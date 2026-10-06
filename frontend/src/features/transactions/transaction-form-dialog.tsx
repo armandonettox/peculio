@@ -453,7 +453,7 @@ function FormBody({
             )}
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="rec-frequency" label="Frequência">
               {(props) => (
                 <Select
@@ -538,7 +538,7 @@ function FormBody({
         </div>
       </fieldset>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           id="tx-date"
           label={recurring ? "Primeira data" : "Data"}
@@ -712,7 +712,7 @@ function FormBody({
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           id="tx-amount"
           label={state.splits ? `Valor total (${currency})` : `Valor (${currency})`}
@@ -747,7 +747,7 @@ function FormBody({
       </div>
 
       {originalAllowed(state) && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             id="tx-original-currency"
             label="Moeda original (opcional)"
@@ -821,7 +821,7 @@ function FormBody({
                     </button>
                   )}
                 </div>
-                <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_9rem]">
                   <FormField id={`${row.key}-description`} label={`Descrição da linha ${index + 1}`} error={rowErrors?.description}>
                     {(props) => (
                       <Input

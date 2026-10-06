@@ -65,7 +65,7 @@ export function EnvelopeGroupTable({ month, group, onAction, onError, onCover, b
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="relative overflow-x-auto rounded-lg border bg-card">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Envelopes em {code}</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">

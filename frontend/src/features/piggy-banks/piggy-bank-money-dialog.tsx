@@ -103,7 +103,7 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="money-amount" label={`Valor (${piggy.currency_code})`} error={errors.amount}>
               {(props) => (
                 <Input

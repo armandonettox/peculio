@@ -55,7 +55,7 @@ export function StatementForm({ accounts, onApply }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="grid max-w-3xl gap-4 sm:grid-cols-3">
+    <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-3">
       <FormField id="statement-account" label="Conta" error={errors.account}>
         {(props) => (
           <Select

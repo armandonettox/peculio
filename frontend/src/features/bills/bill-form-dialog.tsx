@@ -186,7 +186,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
             )}
           </FormField>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="bill-currency" label="Moeda">
               {(props) => (
                 <Select {...props} value={currency} disabled={editing} onChange={(event) => setCurrency(event.target.value)}>
@@ -217,7 +217,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
             </FormField>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="bill-min" label="Valor mínimo" error={errors.min}>
               {(props) => (
                 <Input

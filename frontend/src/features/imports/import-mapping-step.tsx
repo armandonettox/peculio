@@ -80,7 +80,7 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
 
       {error && <Alert variant="destructive">{error}</Alert>}
 
-      <div className="overflow-x-auto rounded-lg border bg-card">
+      <div className="relative overflow-x-auto rounded-lg border bg-card">
         <table className="w-full min-w-max text-left text-sm">
           <caption className="sr-only">Primeiras linhas do arquivo</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
@@ -116,7 +116,7 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
         A primeira linha do arquivo é o cabeçalho (os nomes das colunas)
       </label>
 
-      <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-2">
         {columnSelect("import-date-column", "Coluna da data", "dateColumn", form.dateColumn)}
         {columnSelect("import-description-column", "Coluna da descrição", "descriptionColumn", form.descriptionColumn)}
       </div>
@@ -140,7 +140,7 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
             {label}
           </label>
         ))}
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {form.amountMode === "single" ? (
             columnSelect("import-amount-column", "Coluna do valor", "amountColumn", form.amountColumn)
           ) : (

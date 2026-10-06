@@ -95,7 +95,7 @@ function Work({ statement }: { statement: Statement }) {
       )}
 
       <section aria-label="Resumo" className="flex flex-col gap-3">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Figure label={`Saldo do extrato em ${formatDate(data.statement_date)}`} value={formatMoney(data.statement_balance, currency)} />
           <Figure label="Conferido" value={formatMoney(data.cleared_balance, currency)} />
           <Figure
