@@ -27,12 +27,14 @@ test("depois do primeiro usuario, o login e a porta de entrada", async ({ page }
   await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
 });
 
-test("recarregar a pagina pede login de novo e nao deixa token no navegador", async ({ page }) => {
+test("recarregar a pagina continua logado pela sessao guardada, e nao deixa token no navegador", async ({ page }) => {
   await loginAndWaitForDashboard(page);
 
   await page.reload();
 
-  await expect(page).toHaveURL(/\/login/);
+  // A sessao volta pelo cookie HttpOnly de renovacao; o token em si nunca vai para o armazenamento da pagina
+  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
+  await expect(page).not.toHaveURL(/\/login/);
   const stored = await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }));
   expect(stored).not.toContain("eyJ"); // prefixo de todo JWT
 });

@@ -32,9 +32,8 @@ test("trocar o nome e a moeda padrao salva e o nome muda no menu do usuario", as
   // Sem mudanca nova, o botao volta a ficar desligado
   await expect(page.getByRole("button", { name: "Salvar perfil" })).toBeDisabled();
 
-  // Fica salvo no servidor: recarrega, entra de novo e confere
+  // Fica salvo no servidor: recarrega (a sessao guardada volta sozinha) e confere
   await page.reload();
-  await loginAndWaitForDashboard(page);
   await openSettings(page);
   await expect(field(page, "Nome")).toHaveValue("Ana Maria Teste");
   await expect(field(page, "Moeda padrão")).toHaveValue("USD");

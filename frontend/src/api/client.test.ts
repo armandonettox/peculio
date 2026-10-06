@@ -59,7 +59,7 @@ describe("unwrap", () => {
     );
     const { api } = setup(null);
     const error = await unwrap(
-      api.client.POST("/api/v1/auth/login", { body: { email: "a@example.com", password: "x" } }),
+      api.client.POST("/api/v1/auth/login", { body: { email: "a@example.com", password: "x", remember: false } }),
     ).catch((e) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect(error.status).toBe(401);
@@ -205,7 +205,7 @@ describe("renovacao automatica no 401", () => {
     const { api, tokenStore } = setup("old");
 
     await unwrap(
-      api.client.POST("/api/v1/auth/login", { body: { email: "a@example.com", password: "x" } }),
+      api.client.POST("/api/v1/auth/login", { body: { email: "a@example.com", password: "x", remember: false } }),
     ).catch(() => undefined);
 
     expect(refreshCalls).toBe(0);
@@ -253,5 +253,104 @@ describe("renovacao automatica no 401", () => {
     const { api, tokenStore } = setup("old");
     expect(await api.refreshAccessToken()).toBe(true);
     expect(tokenStore.get()).toBe("novo");
+  });
+});
+
+describe("sessao guardada (cookie de renovacao)", () => {
+  const sessionOk = (token = "restaurado") =>
+    http.post("*/api/v1/auth/session", () => HttpResponse.json({ access_token: token, token_type: "bearer" }));
+
+  it("restoreSession troca o cookie por um token e manda o cabecalho do app", async () => {
+    let header: string | null = null;
+    server.use(
+      http.post("*/api/v1/auth/session", ({ request }) => {
+        header = request.headers.get("x-requested-with");
+        return HttpResponse.json({ access_token: "restaurado", token_type: "bearer" });
+      }),
+    );
+    const { api } = setup(null);
+    expect(await api.restoreSession()).toBe("restaurado");
+    expect(header).toBe("peculio");
+  });
+
+  it("restoreSession devolve null quando nao ha sessao (401) ou o servidor nao responde", async () => {
+    const { api } = setup(null);
+    expect(await api.restoreSession()).toBeNull();
+    server.use(http.post("*/api/v1/auth/session", () => HttpResponse.error()));
+    expect(await api.restoreSession()).toBeNull();
+  });
+
+  it("restoreSession nao mexe no token guardado: quem decide e o chamador", async () => {
+    server.use(sessionOk());
+    const { api, tokenStore } = setup("antigo");
+    await api.restoreSession();
+    expect(tokenStore.get()).toBe("antigo");
+  });
+
+  it("endSession avisa o servidor com o token e o cabecalho do app", async () => {
+    let auth: string | null = null;
+    let header: string | null = null;
+    server.use(
+      http.post("*/api/v1/auth/logout", ({ request }) => {
+        auth = request.headers.get("authorization");
+        header = request.headers.get("x-requested-with");
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { api } = setup("meu-token");
+    expect(await api.endSession()).toBe(true);
+    expect(auth).toBe("Bearer meu-token");
+    expect(header).toBe("peculio");
+  });
+
+  it("endSession sem token manda so o cabecalho do app (o cookie basta)", async () => {
+    let auth: string | null = "x";
+    server.use(
+      http.post("*/api/v1/auth/logout", ({ request }) => {
+        auth = request.headers.get("authorization");
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { api } = setup(null);
+    expect(await api.endSession()).toBe(true);
+    expect(auth).toBeNull();
+  });
+
+  it("endSession devolve false quando o servidor recusa ou nao responde", async () => {
+    const { api } = setup("t");
+    server.use(http.post("*/api/v1/auth/logout", () => HttpResponse.json({ detail: "x", code: "client_header_missing" }, { status: 403 })));
+    expect(await api.endSession()).toBe(false);
+    server.use(http.post("*/api/v1/auth/logout", () => HttpResponse.error()));
+    expect(await api.endSession()).toBe(false);
+  });
+
+  it("se o token nao renova mas o cookie ainda vale, a sessao continua com o token novo", async () => {
+    server.use(http.post("*/api/v1/auth/refresh", () => unauthorized()), sessionOk("pelo-cookie"));
+    const { api, tokenStore } = setup("velho");
+    expect(await api.refreshAccessToken()).toBe(true);
+    expect(tokenStore.get()).toBe("pelo-cookie");
+  });
+
+  it("se nem o cookie vale, a sessao acaba", async () => {
+    server.use(http.post("*/api/v1/auth/refresh", () => unauthorized()));
+    const { api, tokenStore } = setup("velho");
+    expect(await api.refreshAccessToken()).toBe(false);
+    expect(tokenStore.get()).toBeNull();
+  });
+
+  it("um pedido que toma 401 e repetido com o token vindo do cookie", async () => {
+    let calls = 0;
+    server.use(
+      http.get("*/api/v1/auth/me", ({ request }) => {
+        calls += 1;
+        return request.headers.get("authorization") === "Bearer pelo-cookie" ? HttpResponse.json(sampleUser) : unauthorized();
+      }),
+      http.post("*/api/v1/auth/refresh", () => unauthorized()),
+      sessionOk("pelo-cookie"),
+    );
+    const { api, tokenStore } = setup("velho");
+    expect(await unwrap(api.client.GET("/api/v1/auth/me"))).toEqual(sampleUser);
+    expect(calls).toBe(2);
+    expect(tokenStore.get()).toBe("pelo-cookie");
   });
 });

@@ -5,6 +5,10 @@ import { ApiError } from "./errors";
 import type { paths } from "./schema";
 
 const REFRESH_PATH = "/api/v1/auth/refresh";
+const SESSION_PATH = "/api/v1/auth/session";
+const LOGOUT_PATH = "/api/v1/auth/logout";
+// O servidor so aceita restaurar a sessao e sair com este cabecalho: um site de fora nao consegue manda-lo
+const CLIENT_HEADERS = { "X-Requested-With": "peculio" };
 // Nessas rotas um 401 e esperado (senha errada) e nao significa sessao vencida
 const NO_REFRESH_PATHS = ["/api/v1/auth/login", "/api/v1/auth/register", REFRESH_PATH];
 
@@ -25,6 +29,34 @@ export function createApiClient({
   // senao cada um dispararia a sua e os tokens se atropelariam.
   let refreshInFlight: Promise<boolean> | null = null;
 
+  /**
+   * Troca o cookie de renovacao (HttpOnly, que o JavaScript nao le) por um token de acesso novo. Devolve o token, ou
+   * null quando nao ha sessao para restaurar (sem cookie, vencida, encerrada) ou o servidor nao respondeu.
+   */
+  async function restoreSession(): Promise<string | null> {
+    try {
+      const response = await fetch(`${baseUrl}${SESSION_PATH}`, { method: "POST", headers: CLIENT_HEADERS });
+      if (!response.ok) return null;
+      return ((await response.json()) as { access_token: string }).access_token;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Encerra a sessao no servidor (o cookie e o token deixam de valer). false quando nao deu para avisar. */
+  async function endSession(): Promise<boolean> {
+    try {
+      const current = tokenStore.get();
+      const response = await fetch(`${baseUrl}${LOGOUT_PATH}`, {
+        method: "POST",
+        headers: current ? { ...CLIENT_HEADERS, Authorization: `Bearer ${current}` } : CLIENT_HEADERS,
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
   async function doRefresh(): Promise<boolean> {
     const current = tokenStore.get();
     if (!current) return false;
@@ -34,6 +66,12 @@ export function createApiClient({
         headers: { Authorization: `Bearer ${current}` },
       });
       if (!response.ok) {
+        // O token nao renova, mas o cookie pode ainda valer (ex: a chave de outra aba): tenta por ele antes de desistir
+        const restored = await restoreSession();
+        if (restored) {
+          tokenStore.set(restored);
+          return true;
+        }
         tokenStore.clear();
         return false;
       }
@@ -80,7 +118,7 @@ export function createApiClient({
   };
   client.use(middleware);
 
-  return { client, refreshAccessToken };
+  return { client, refreshAccessToken, restoreSession, endSession };
 }
 
 // Chamada tipada que devolve os dados ou lanca ApiError. Assim as telas usam try/catch e

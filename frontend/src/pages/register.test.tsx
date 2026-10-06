@@ -76,11 +76,11 @@ it("com usuarios na instancia: pede o convite e oferece o link para entrar", asy
   expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/login");
 });
 
-it("enquanto verifica a instancia mostra um aviso de carregamento", () => {
+it("enquanto verifica a instancia mostra um aviso de carregamento", async () => {
   server.use(http.get("*/api/v1/auth/status", () => new Promise(() => undefined)));
   renderRegister();
-  // role="status" avisa leitores de tela; o texto e o que o usuario ve
-  expect(screen.getByText("Verificando a instância...")).toHaveAttribute("role", "status");
+  // Antes disso o app confere se ha sessao guardada. role="status" avisa leitores de tela; o texto e o que o usuario ve
+  expect(await screen.findByText("Verificando a instância...")).toHaveAttribute("role", "status");
 });
 
 it("o link de convite preenche o campo do codigo", async () => {

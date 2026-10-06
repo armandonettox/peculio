@@ -6,6 +6,7 @@ import { expect, it, vi } from "vitest";
 
 import { fakeApiTokensApi } from "@/test-utils/api-tokens-api";
 import { fakeInstanceApi } from "@/test-utils/instance-api";
+import { fakeSessionsApi, makeSession } from "@/test-utils/sessions-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeTwoFactorApi, GOOD_CODE, GOOD_PASSWORD, SECRET } from "@/test-utils/two-factor-api";
@@ -13,11 +14,11 @@ import SecurityPage from "./security";
 
 function renderPage(
   options: Parameters<typeof fakeTwoFactorApi>[0] = {},
-  { strict = false, contact = null as string | null } = {},
+  { strict = false, contact = null as string | null, sessions = fakeSessionsApi() } = {},
 ) {
   const api = fakeTwoFactorApi(options);
   // A pagina tambem lista os tokens de API (aqui nao ha nenhum) e mostra o contato de seguranca
-  server.use(...api.handlers, ...fakeApiTokensApi().handlers, ...fakeInstanceApi(contact).handlers);
+  server.use(...api.handlers, ...fakeApiTokensApi().handlers, ...fakeInstanceApi(contact).handlers, ...sessions.handlers);
   const page = (
     <FakeAuth>
       <MemoryRouter>
@@ -334,4 +335,84 @@ it("com um endereco https, o contato abre o proprio endereco", async () => {
   const link = await screen.findByRole("link", { name: "https://exemplo.com/contato" });
   expect(link).toHaveAttribute("href", "https://exemplo.com/contato");
   expect(link).toHaveAttribute("rel", expect.stringContaining("noopener"));
+});
+
+// ---------- Aparelhos conectados ----------
+
+it("lista os aparelhos, o atual primeiro e marcado", async () => {
+  const sessions = fakeSessionsApi([
+    makeSession({ device_label: "Firefox no Linux", last_used_at: "2026-03-10T11:00:00Z" }),
+    makeSession({ device_label: "Chrome no Windows", current: true, remember: true }),
+  ]);
+  renderPage({}, { sessions });
+  await screen.findByText("Aparelhos conectados");
+  const rows = (await screen.findAllByRole("listitem")).filter((row) => /no (Windows|Linux)/.test(row.textContent ?? ""));
+  expect(rows[0]).toHaveTextContent("Chrome no Windows");
+  expect(rows[0]).toHaveTextContent("Este aparelho");
+  expect(rows[0]).toHaveTextContent("Manter conectado");
+  expect(rows[1]).toHaveTextContent("Firefox no Linux");
+  expect(rows[1]).not.toHaveTextContent("Este aparelho");
+  // So os outros podem ser encerrados
+  expect(within(rows[0]).queryByRole("button", { name: /Encerrar/ })).not.toBeInTheDocument();
+  expect(within(rows[1]).getByRole("button", { name: /Encerrar Firefox no Linux/ })).toBeInTheDocument();
+});
+
+it("encerrar um aparelho chama o servidor, avisa e tira da lista", async () => {
+  const other = makeSession({ device_label: "Firefox no Linux" });
+  const sessions = fakeSessionsApi([makeSession({ current: true }), other]);
+  renderPage({}, { sessions });
+  await user.click(await screen.findByRole("button", { name: /Encerrar Firefox no Linux/ }));
+  await waitFor(() => expect(sessions.state.requests.filter((r) => r.method === "DELETE")).toEqual([{ method: "DELETE", id: other.id }]));
+  expect(await screen.findByText("Firefox no Linux foi encerrado.")).toBeVisible();
+  await waitFor(() => expect(screen.queryByRole("button", { name: /Encerrar Firefox/ })).not.toBeInTheDocument());
+});
+
+it("encerrar os outros mostra quantos sairam e deixa so este", async () => {
+  const sessions = fakeSessionsApi([
+    makeSession({ current: true }),
+    makeSession({ device_label: "Firefox no Linux" }),
+    makeSession({ device_label: "Safari no iOS" }),
+  ]);
+  renderPage({}, { sessions });
+  await user.click(await screen.findByRole("button", { name: "Encerrar os outros 2 aparelhos" }));
+  expect(await screen.findByText("2 aparelhos encerrados.")).toBeVisible();
+  await waitFor(() => expect(screen.queryByRole("button", { name: /Encerrar os outros/ })).not.toBeInTheDocument());
+});
+
+it("com um so outro aparelho o botao fala no singular", async () => {
+  const sessions = fakeSessionsApi([makeSession({ current: true }), makeSession({ device_label: "Safari no iOS" })]);
+  renderPage({}, { sessions });
+  await user.click(await screen.findByRole("button", { name: "Encerrar o outro aparelho" }));
+  expect(await screen.findByText("1 aparelho encerrado.")).toBeVisible();
+});
+
+it("sem outros aparelhos nao ha botao de encerrar", async () => {
+  renderPage({}, { sessions: fakeSessionsApi([makeSession({ current: true })]) });
+  await screen.findByText("Este aparelho");
+  expect(screen.queryByRole("button", { name: /Encerrar/ })).not.toBeInTheDocument();
+});
+
+it("erro ao encerrar aparece e o aparelho continua na lista", async () => {
+  const sessions = fakeSessionsApi([makeSession({ current: true }), makeSession({ device_label: "Firefox no Linux" })]);
+  renderPage({}, { sessions });
+  const button = await screen.findByRole("button", { name: /Encerrar Firefox no Linux/ });
+  sessions.state.nextError = { status: 404, code: "session_not_found" };
+  await user.click(button);
+  expect(await screen.findByText("Essa sessão não existe mais. Ela pode já ter sido encerrada.")).toBeVisible();
+  expect(screen.getByText("Firefox no Linux")).toBeInTheDocument();
+});
+
+it("falha ao listar os aparelhos mostra o erro e deixa tentar de novo", async () => {
+  const sessions = fakeSessionsApi([makeSession({ current: true })]);
+  sessions.state.listError = true;
+  renderPage({}, { sessions });
+  const retry = await screen.findByRole("button", { name: "Tentar de novo" });
+  sessions.state.listError = false;
+  await user.click(retry);
+  expect(await screen.findByText("Este aparelho")).toBeInTheDocument();
+});
+
+it("o texto avisa que trocar a senha encerra os outros aparelhos", async () => {
+  renderPage();
+  expect(await screen.findByText(/Trocar a senha encerra todos os outros/)).toBeInTheDocument();
 });

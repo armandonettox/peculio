@@ -6,9 +6,9 @@ import { LocationProbe } from "@/test-utils/location-probe";
 import { FakeAuth, testUser } from "@/test-utils/providers";
 import { ProtectedRoute, PublicOnlyRoute } from "./protected-route";
 
-function renderAt(path: string, loggedIn: boolean) {
+function renderAt(path: string, loggedIn: boolean, restoring = false) {
   return render(
-    <FakeAuth user={loggedIn ? testUser : null}>
+    <FakeAuth user={loggedIn ? testUser : null} restoring={restoring}>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route element={<ProtectedRoute />}>
@@ -66,3 +66,31 @@ it.each(["//evil.com", "https://evil.com", "/\\evil.com", "javascript:alert(1)"]
     expect(location()).toHaveTextContent(/^\/$/);
   },
 );
+
+// ---------- Conferindo se ha sessao guardada ----------
+
+it("enquanto confere a sessao guardada, a rota protegida espera em vez de mandar para o login", () => {
+  renderAt("/contas", false, true);
+  expect(screen.getByText("Carregando...")).toHaveAttribute("role", "status");
+  expect(screen.queryByText("Tela de login")).not.toBeInTheDocument();
+  expect(screen.queryByText("Area interna: contas")).not.toBeInTheDocument();
+  expect(location()).toHaveTextContent("/contas");
+});
+
+it("enquanto confere, a tela de login tambem espera (nao pisca o formulario)", () => {
+  renderAt("/login", false, true);
+  expect(screen.getByText("Carregando...")).toHaveAttribute("role", "status");
+  expect(screen.queryByText("Tela de login")).not.toBeInTheDocument();
+});
+
+it("se ja esta logado, nao espera a conferencia", () => {
+  renderAt("/contas", true, true);
+  expect(screen.getByText("Area interna: contas")).toBeInTheDocument();
+  expect(screen.queryByText("Carregando...")).not.toBeInTheDocument();
+});
+
+it("terminada a conferencia sem sessao, volta a mandar para o login", () => {
+  renderAt("/contas", false, false);
+  expect(screen.getByText("Tela de login")).toBeInTheDocument();
+  expect(screen.queryByText("Carregando...")).not.toBeInTheDocument();
+});

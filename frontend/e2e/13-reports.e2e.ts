@@ -16,7 +16,7 @@ async function openReports(page: Page, { filterByAccount = false } = {}) {
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Relatórios" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Relatórios" })).toBeVisible();
   if (filterByAccount) {
-    // O token vive so na memoria: navegar pela URL desloga, entao o filtro entra pela tela
+    // Navegar pela URL recarrega a pagina (a sessao guardada restaura o login), entao o filtro entra pela tela
     await page.getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
   }
 }

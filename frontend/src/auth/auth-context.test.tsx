@@ -101,7 +101,7 @@ describe("login", () => {
 
     await act(() => result.current.verifyTwoFactor("desafio", "123456"));
 
-    expect(sent).toEqual({ challenge_token: "desafio", code: "123456" });
+    expect(sent).toEqual({ challenge_token: "desafio", code: "123456", remember: false });
     expect(tokenStore.get()).toBe("tok2");
     expect(result.current.user).toEqual(sampleUser);
   });
@@ -215,7 +215,7 @@ describe("logout e fim de sessao", () => {
     await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
     queryClient.setQueryData(["dados-do-usuario"], { saldo: 100 });
 
-    act(() => result.current.logout());
+    await act(() => result.current.logout());
 
     expect(tokenStore.get()).toBeNull();
     expect(result.current.user).toBeNull();
@@ -251,6 +251,8 @@ describe("renovacao periodica", () => {
         GET: vi.fn().mockResolvedValue({ ...ok, data: sampleUser }),
       },
       refreshAccessToken,
+      restoreSession: vi.fn().mockResolvedValue(null),
+      endSession: vi.fn().mockResolvedValue(true),
     } as unknown as ReturnType<typeof createApiClient>;
     const wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={new QueryClient()}>
@@ -297,7 +299,7 @@ describe("renovacao periodica", () => {
     vi.useFakeTimers();
     const { result, refreshAccessToken } = setupWithFakeApi();
     await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
-    act(() => result.current.logout());
+    await act(() => result.current.logout());
 
     act(() => vi.advanceTimersByTime(REFRESH_INTERVAL_MS * 2));
 
@@ -309,4 +311,107 @@ it("useAuth fora do AuthProvider lanca erro claro", () => {
   const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
   expect(() => renderHook(() => useAuth())).toThrow("AuthProvider");
   spy.mockRestore();
+});
+
+describe("sessao guardada ao abrir o app", () => {
+  const restoreOk = (token = "restaurado") =>
+    http.post("*/api/v1/auth/session", () => HttpResponse.json({ access_token: token, token_type: "bearer" }));
+
+  it("comeca conferindo: ainda nao sabe se ha sessao", () => {
+    const { result } = setup();
+    expect(result.current.isRestoring).toBe(true);
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("com cookie valido entra sem pedir senha: guarda o token e carrega o usuario", async () => {
+    server.use(restoreOk(), meOk());
+    const { result, tokenStore } = setup();
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+    expect(tokenStore.get()).toBe("restaurado");
+    expect(result.current.user).toEqual(sampleUser);
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it("sem sessao guardada termina de conferir e segue sem usuario", async () => {
+    const { result, tokenStore } = setup();
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(tokenStore.get()).toBeNull();
+  });
+
+  it("se o cookie vale mas nao da para carregar o usuario, nao fica sessao pela metade", async () => {
+    server.use(
+      restoreOk(),
+      http.get("*/api/v1/auth/me", () => HttpResponse.json({ detail: "x", code: "token_invalid" }, { status: 401 })),
+      http.post("*/api/v1/auth/refresh", () => HttpResponse.json({ detail: "x", code: "token_invalid" }, { status: 401 })),
+    );
+    const { result, tokenStore } = setup();
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(tokenStore.get()).toBeNull();
+  });
+});
+
+describe("manter conectado e sair", () => {
+  it("login manda remember falso por padrao e verdadeiro quando pedido", async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      http.post("*/api/v1/auth/login", async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json({ access_token: "tok", token_type: "bearer" });
+      }),
+      meOk(),
+    );
+    const { result } = setup();
+    await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
+    await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123", remember: true }));
+    expect(bodies).toEqual([
+      { email: "ana@example.com", password: "SenhaForte123", remember: false },
+      { email: "ana@example.com", password: "SenhaForte123", remember: true },
+    ]);
+  });
+
+  it("verifyTwoFactor leva o remember do primeiro passo", async () => {
+    let sent: unknown;
+    server.use(
+      http.post("*/api/v1/auth/2fa/verify", async ({ request }) => {
+        sent = await request.json();
+        return HttpResponse.json({ access_token: "tok", token_type: "bearer" });
+      }),
+      meOk(),
+    );
+    const { result } = setup();
+    await act(() => result.current.verifyTwoFactor("desafio", "123456", true));
+    expect(sent).toEqual({ challenge_token: "desafio", code: "123456", remember: true });
+  });
+
+  it("logout avisa o servidor com o token e o cabecalho do app antes de limpar a aba", async () => {
+    let auth: string | null = null;
+    let header: string | null = null;
+    server.use(
+      loginOk(),
+      meOk(),
+      http.post("*/api/v1/auth/logout", ({ request }) => {
+        auth = request.headers.get("authorization");
+        header = request.headers.get("x-requested-with");
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { result, tokenStore } = setup();
+    await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
+    await act(() => result.current.logout());
+    expect(auth).toBe("Bearer tok");
+    expect(header).toBe("peculio");
+    expect(tokenStore.get()).toBeNull();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("sem rede o logout sai desta aba do mesmo jeito", async () => {
+    server.use(loginOk(), meOk(), http.post("*/api/v1/auth/logout", () => HttpResponse.error()));
+    const { result, tokenStore } = setup();
+    await act(() => result.current.login({ email: "ana@example.com", password: "SenhaForte123" }));
+    await act(() => result.current.logout());
+    expect(tokenStore.get()).toBeNull();
+    expect(result.current.user).toBeNull();
+  });
 });

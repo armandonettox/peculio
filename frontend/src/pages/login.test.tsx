@@ -18,8 +18,9 @@ const meOk = () => http.get("*/api/v1/auth/me", () => HttpResponse.json(sampleUs
 const loginFails = (code: string, httpStatus: number) =>
   http.post("*/api/v1/auth/login", () => HttpResponse.json({ detail: "x", code }, { status: httpStatus }));
 
-function renderLogin(path = "/login") {
-  return render(
+// Ao abrir, o app confere se ha sessao guardada (cookie): so depois mostra o formulario
+async function renderLogin(path = "/login") {
+  const view = render(
     <AppProviders>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
@@ -34,6 +35,8 @@ function renderLogin(path = "/login") {
       </MemoryRouter>
     </AppProviders>,
   );
+  await waitFor(() => expect(screen.queryByText("Carregando...")).not.toBeInTheDocument());
+  return view;
 }
 
 const emailField = () => screen.getByLabelText("E-mail");
@@ -48,7 +51,7 @@ async function fillAndSubmit(email = "ana@example.com", password = "SenhaForte12
 
 it("mostra o formulario de entrada", async () => {
   server.use(status());
-  renderLogin();
+  await renderLogin();
   expect(await screen.findByRole("heading", { name: "Entrar" })).toBeInTheDocument();
   expect(emailField()).toHaveAttribute("type", "email");
   expect(passwordField()).toHaveAttribute("type", "password");
@@ -64,7 +67,7 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
       return HttpResponse.json({ access_token: "tok", token_type: "bearer" });
     }),
   );
-  renderLogin();
+  await renderLogin();
 
   await userEvent.click(submit());
 
@@ -78,7 +81,7 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
 
 it("o erro de um campo some quando o usuario volta a digitar nele, e so dele", async () => {
   server.use(status());
-  renderLogin();
+  await renderLogin();
   await userEvent.click(submit());
   expect(screen.getByText("Informe o e-mail.")).toBeInTheDocument();
   expect(screen.getByText("Informe a senha.")).toBeInTheDocument();
@@ -92,7 +95,7 @@ it("o erro de um campo some quando o usuario volta a digitar nele, e so dele", a
 
 it("e-mail em formato invalido e recusado antes de enviar", async () => {
   server.use(status());
-  renderLogin();
+  await renderLogin();
   await userEvent.type(emailField(), "ana-sem-arroba");
   await userEvent.type(passwordField(), "qualquer");
   await userEvent.click(submit());
@@ -101,7 +104,7 @@ it("e-mail em formato invalido e recusado antes de enviar", async () => {
 
 it("login certo leva para o painel", async () => {
   server.use(status(), loginOk(), meOk());
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit();
   expect(await screen.findByText("Painel logado")).toBeInTheDocument();
   expect(screen.getByTestId("location")).toHaveTextContent(/^\/$/);
@@ -109,14 +112,14 @@ it("login certo leva para o painel", async () => {
 
 it("login certo com ?next= volta para onde o usuario queria ir", async () => {
   server.use(status(), loginOk(), meOk());
-  renderLogin("/login?next=%2Fcontas");
+  await renderLogin("/login?next=%2Fcontas");
   await fillAndSubmit();
   expect(await screen.findByText("Pagina de contas")).toBeInTheDocument();
 });
 
 it("login certo com ?next= para outro site cai no painel", async () => {
   server.use(status(), loginOk(), meOk());
-  renderLogin(`/login?next=${encodeURIComponent("//evil.com")}`);
+  await renderLogin(`/login?next=${encodeURIComponent("//evil.com")}`);
   await fillAndSubmit();
   expect(await screen.findByText("Painel logado")).toBeInTheDocument();
 });
@@ -131,10 +134,10 @@ it("envia o e-mail sem espacos nas pontas", async () => {
     }),
     meOk(),
   );
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit("  ana@example.com  ", "SenhaForte123");
   await screen.findByText("Painel logado");
-  expect(sent).toEqual({ email: "ana@example.com", password: "SenhaForte123" });
+  expect(sent).toEqual({ email: "ana@example.com", password: "SenhaForte123", remember: false });
 });
 
 it.each([
@@ -144,7 +147,7 @@ it.each([
   ["internal_error", 500, "Algo deu errado do nosso lado. Tente novamente."],
 ])("erro %s mostra a mensagem em portugues e libera o botao", async (code, httpStatus, message) => {
   server.use(status(), loginFails(code, httpStatus));
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit();
 
   expect(await screen.findByRole("alert")).toHaveTextContent(message);
@@ -154,7 +157,7 @@ it.each([
 
 it("falha de rede mostra aviso de conexao", async () => {
   server.use(status(), http.post("*/api/v1/auth/login", () => HttpResponse.error()));
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit();
   expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível conectar ao servidor");
 });
@@ -168,7 +171,7 @@ it("o botao fica desabilitado e muda o texto enquanto envia", async () => {
     }),
     meOk(),
   );
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit();
 
   expect(screen.getByRole("button", { name: "Entrando..." })).toBeDisabled();
@@ -186,7 +189,7 @@ it("clique duplo no botao envia so um pedido", async () => {
     }),
     meOk(),
   );
-  renderLogin();
+  await renderLogin();
   await userEvent.type(emailField(), "ana@example.com");
   await userEvent.type(passwordField(), "SenhaForte123");
   await userEvent.dblClick(submit());
@@ -196,7 +199,7 @@ it("clique duplo no botao envia so um pedido", async () => {
 
 it("instancia sem usuarios leva para o cadastro do administrador", async () => {
   server.use(status(true));
-  renderLogin();
+  await renderLogin();
   expect(await screen.findByText("Tela de cadastro")).toBeInTheDocument();
   expect(screen.getByTestId("location")).toHaveTextContent("/register");
 });
@@ -207,14 +210,14 @@ it("falha ao consultar o status nao impede de entrar", async () => {
     loginOk(),
     meOk(),
   );
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit();
   expect(await screen.findByText("Painel logado")).toBeInTheDocument();
 });
 
 it("o botao de olho mostra e oculta a senha", async () => {
   server.use(status());
-  renderLogin();
+  await renderLogin();
   await userEvent.type(passwordField(), "segredo123");
   expect(passwordField()).toHaveAttribute("type", "password");
 
@@ -228,7 +231,7 @@ it("o botao de olho mostra e oculta a senha", async () => {
 
 it("a senha digitada nao aparece em nenhuma mensagem de erro", async () => {
   server.use(status(), loginFails("invalid_credentials", 401));
-  renderLogin();
+  await renderLogin();
   await fillAndSubmit("ana@example.com", "minha-senha-secreta");
   await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
   expect(screen.getByRole("alert")).not.toHaveTextContent("minha-senha-secreta");
@@ -252,7 +255,7 @@ const codeField = () => screen.getByLabelText(/^Código de/);
 const verifyButton = () => screen.getByRole("button", { name: /Verificar|Verificando/ });
 
 async function reachSecondStep() {
-  renderLogin();
+  await renderLogin();
   await screen.findByRole("heading", { name: "Entrar" });
   await fillAndSubmit();
   return await screen.findByRole("heading", { name: "Verificação em duas etapas" });
@@ -277,7 +280,7 @@ it("o codigo certo abre a sessao e leva ao painel", async () => {
   await userEvent.click(verifyButton());
 
   expect(await screen.findByText("Painel logado")).toBeInTheDocument();
-  expect(sent).toEqual({ challenge_token: "desafio", code: "123456" });
+  expect(sent).toEqual({ challenge_token: "desafio", code: "123456", remember: false });
 });
 
 it("codigo vazio mostra o erro, foca o campo e nao chama a API", async () => {
@@ -336,7 +339,7 @@ it("usar codigo de recuperacao troca o texto, limpa o campo e envia o codigo dig
   await userEvent.click(verifyButton());
 
   expect(await screen.findByText("Painel logado")).toBeInTheDocument();
-  expect(sent).toEqual({ challenge_token: "desafio", code: "abcdef-123456" });
+  expect(sent).toEqual({ challenge_token: "desafio", code: "abcdef-123456", remember: false });
 });
 
 it("da para voltar ao codigo do app depois de escolher recuperacao", async () => {
@@ -392,4 +395,67 @@ it("o botao fica desabilitado enquanto verifica, sem enviar duas vezes", async (
 
   await screen.findByText("Painel logado");
   expect(calls).toBe(1);
+});
+
+// ---------- Manter conectado ----------
+
+const rememberBox = () => screen.getByRole("checkbox", { name: /Manter conectado/ });
+
+it("a caixa Manter conectado vem desmarcada e avisa sobre computador compartilhado", async () => {
+  server.use(status());
+  await renderLogin();
+  expect(rememberBox()).not.toBeChecked();
+  expect(screen.getByText(/Não marque em computador compartilhado/)).toBeInTheDocument();
+});
+
+async function loginSending() {
+  const sent: unknown[] = [];
+  server.use(
+    status(),
+    http.post("*/api/v1/auth/login", async ({ request }) => {
+      sent.push(await request.json());
+      return HttpResponse.json({ access_token: "tok", token_type: "bearer" });
+    }),
+    meOk(),
+  );
+  return sent;
+}
+
+it("desmarcada, o login manda remember falso", async () => {
+  const sent = await loginSending();
+  await renderLogin();
+  await fillAndSubmit();
+  await waitFor(() => expect(sent).toHaveLength(1));
+  expect(sent[0]).toMatchObject({ remember: false });
+});
+
+it("marcada, o login manda remember verdadeiro", async () => {
+  const sent = await loginSending();
+  await renderLogin();
+  await userEvent.click(rememberBox());
+  await fillAndSubmit();
+  await waitFor(() => expect(sent).toHaveLength(1));
+  expect(sent[0]).toMatchObject({ remember: true });
+});
+
+it("com 2FA, a escolha do primeiro passo vai junto no segundo", async () => {
+  let verified: unknown;
+  server.use(
+    status(),
+    http.post("*/api/v1/auth/login", () =>
+      HttpResponse.json({ access_token: null, two_factor_required: true, challenge_token: "desafio" }),
+    ),
+    http.post("*/api/v1/auth/2fa/verify", async ({ request }) => {
+      verified = await request.json();
+      return HttpResponse.json({ access_token: "tok", token_type: "bearer" });
+    }),
+    meOk(),
+  );
+  await renderLogin();
+  await userEvent.click(rememberBox());
+  await fillAndSubmit();
+  await userEvent.type(await screen.findByLabelText("Código de verificação"), "123456");
+  await userEvent.click(screen.getByRole("button", { name: "Verificar" }));
+  await waitFor(() => expect(verified).toBeDefined());
+  expect(verified).toMatchObject({ challenge_token: "desafio", code: "123456", remember: true });
 });

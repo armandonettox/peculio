@@ -29,16 +29,20 @@ export function FakeAuth({
   user = testUser,
   logout = () => undefined,
   updateUser = () => undefined,
+  restoring = false,
   children,
 }: {
   user?: User | null;
   logout?: () => void;
   updateUser?: (user: User) => void;
+  // O app ainda confere, ao abrir, se ha sessao guardada
+  restoring?: boolean;
   children: ReactNode;
 }) {
   const value: AuthContextValue = {
     user,
     isAuthenticated: user !== null,
+    isRestoring: restoring,
     login: async () => ({ status: "ok" }),
     verifyTwoFactor: async () => undefined,
     register: async () => undefined,

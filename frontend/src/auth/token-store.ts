@@ -1,6 +1,6 @@
 // O token de acesso vive so em memoria. Nao vai para localStorage nem sessionStorage:
-// assim um script injetado na pagina (XSS) nao consegue le-lo. O custo e que recarregar a
-// pagina pede novo login (ver a nota do plano: da para trocar por cookie HttpOnly na Fase 6).
+// assim um script injetado na pagina (XSS) nao consegue le-lo. Ao recarregar a pagina ele some,
+// e o app pega um novo pelo cookie de renovacao (HttpOnly), que o JavaScript tambem nao le.
 
 export type TokenStore = {
   get: () => string | null;

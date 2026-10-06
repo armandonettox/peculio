@@ -15,11 +15,15 @@ export async function login(page: Page, { email, password }: { email: string; pa
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
-// Entra pela tela de login e espera o painel aparecer
+// Entra pela tela de login e espera o painel aparecer. Se a aba ja tem sessao (o cookie de renovacao restaura sozinho,
+// por exemplo depois de abrir a tela de novo no mesmo teste), o app pula o formulario e vai direto ao painel.
 export async function loginAndWaitForDashboard(page: Page, user = ADMIN) {
   await page.goto("/login");
-  await login(page, user);
-  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
+  const form = page.getByRole("button", { name: "Entrar" });
+  const dashboard = page.getByRole("heading", { level: 1, name: "Painel" });
+  await expect(form.or(dashboard)).toBeVisible();
+  if (await form.isVisible()) await login(page, user);
+  await expect(dashboard).toBeVisible();
 }
 
 // ---------- Dados criados direto pela API (para testar telas que listam coisas) ----------

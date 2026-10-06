@@ -16,7 +16,15 @@ import { Input } from "@/components/ui/input";
 type FieldErrors = { email?: string; password?: string };
 
 // Segundo passo para contas com 2FA: o codigo do app autenticador ou um codigo de recuperacao
-function TwoFactorStep({ challenge, onBack }: { challenge: string; onBack: (message?: string) => void }) {
+function TwoFactorStep({
+  challenge,
+  remember,
+  onBack,
+}: {
+  challenge: string;
+  remember: boolean;
+  onBack: (message?: string) => void;
+}) {
   const { verifyTwoFactor } = useAuth();
   const [recovery, setRecovery] = useState(false);
   const [code, setCode] = useState("");
@@ -38,7 +46,7 @@ function TwoFactorStep({ challenge, onBack }: { challenge: string; onBack: (mess
 
     setSubmitting(true);
     try {
-      await verifyTwoFactor(challenge, code.trim());
+      await verifyTwoFactor(challenge, code.trim(), remember);
     } catch (failure) {
       // Desafio vencido ou invalido: nao adianta tentar de novo, volta para a senha
       if (failure instanceof ApiError && failure.code === "two_factor_challenge_invalid") {
@@ -116,6 +124,7 @@ export default function LoginPage() {
   const status = useAuthStatus();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -148,7 +157,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       // Ao entrar, o PublicOnlyRoute leva para o ?next= ou para o painel
-      const outcome = await login({ email: email.trim(), password });
+      const outcome = await login({ email: email.trim(), password, remember });
       if (outcome.status === "two_factor") {
         setChallenge(outcome.challengeToken);
         setSubmitting(false);
@@ -163,6 +172,7 @@ export default function LoginPage() {
     return (
       <TwoFactorStep
         challenge={challenge}
+        remember={remember}
         onBack={(message) => {
           setChallenge(null);
           // A senha nao fica guardada: ao voltar, digita de novo
@@ -211,6 +221,21 @@ export default function LoginPage() {
               />
             )}
           </FormField>
+
+          <label className="flex cursor-pointer items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+              className="mt-0.5 size-4 accent-[var(--primary)]"
+            />
+            <span className="flex flex-col">
+              <span className="font-medium">Manter conectado</span>
+              <span className="text-xs text-muted-foreground">
+                Neste aparelho, por 30 dias. Não marque em computador compartilhado.
+              </span>
+            </span>
+          </label>
 
           <Button type="submit" disabled={submitting}>
             {submitting ? "Entrando..." : "Entrar"}

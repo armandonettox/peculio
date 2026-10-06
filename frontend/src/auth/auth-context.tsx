@@ -11,7 +11,7 @@ type Api = typeof defaultApi;
 
 export type LoginResult = { status: "ok" } | { status: "two_factor"; challengeToken: string };
 
-type Credentials ={ email: string; password: string };
+type Credentials = { email: string; password: string; remember?: boolean };
 type RegisterInput = Credentials & { name: string; inviteToken?: string };
 
 export type AuthContextValue = {
@@ -19,10 +19,13 @@ export type AuthContextValue = {
   isAuthenticated: boolean;
   // "two_factor": a senha esta certa, falta o codigo (verifyTwoFactor com o challengeToken)
   login: (credentials: Credentials) => Promise<LoginResult>;
-  verifyTwoFactor: (challengeToken: string, code: string) => Promise<void>;
+  verifyTwoFactor: (challengeToken: string, code: string, remember?: boolean) => Promise<void>;
+  // true enquanto o app confere, ao abrir, se ha uma sessao guardada no cookie. As rotas esperam antes de mandar para o login.
+  isRestoring: boolean;
   // Cria a conta e ja entra com ela
   register: (input: RegisterInput) => Promise<void>;
-  logout: () => void;
+  // Avisa o servidor (que encerra a sessao e apaga o cookie) e limpa o que ha na aba
+  logout: () => void | Promise<void>;
   // Troca o usuario carregado sem novo login (ex: depois de editar o perfil)
   updateUser: (user: User) => void;
 };
@@ -43,6 +46,7 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
   const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const isAuthenticated = user !== null;
+  const [isRestoring, setIsRestoring] = useState(true);
 
   // Se o token for limpo por fora (renovacao que falhou), a sessao acaba aqui tambem
   useEffect(() => {
@@ -84,9 +88,28 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
     [api, tokenStore],
   );
 
+  // Ao abrir (ou recarregar) o app: se o cookie de renovacao ainda vale, entra sem pedir senha
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const restored = await api.restoreSession();
+      if (restored && !cancelled) {
+        try {
+          await startSession(restored);
+        } catch {
+          // Sem conseguir carregar o usuario nao ha sessao: cai na tela de login
+        }
+      }
+      if (!cancelled) setIsRestoring(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [api, startSession]);
+
   const login = useCallback(
-    async ({ email, password }: Credentials): Promise<LoginResult> => {
-      const result = await unwrap(api.client.POST("/api/v1/auth/login", { body: { email, password } }));
+    async ({ email, password, remember = false }: Credentials): Promise<LoginResult> => {
+      const result = await unwrap(api.client.POST("/api/v1/auth/login", { body: { email, password, remember } }));
       // Conta com 2FA: a senha certa so rende um desafio, que o segundo passo troca pelo token
       if (result.two_factor_required && result.challenge_token) {
         return { status: "two_factor", challengeToken: result.challenge_token };
@@ -101,9 +124,9 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
   );
 
   const verifyTwoFactor = useCallback(
-    async (challengeToken: string, code: string) => {
+    async (challengeToken: string, code: string, remember = false) => {
       const token = await unwrap(
-        api.client.POST("/api/v1/auth/2fa/verify", { body: { challenge_token: challengeToken, code } }),
+        api.client.POST("/api/v1/auth/2fa/verify", { body: { challenge_token: challengeToken, code, remember } }),
       );
       await startSession(token.access_token);
     },
@@ -122,13 +145,15 @@ export function AuthProvider({ children, api = defaultApi, tokenStore = defaultT
     [api, login],
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Primeiro o servidor (precisa do token para saber qual sessao); sem rede, sai desta aba do mesmo jeito
+    await api.endSession();
     tokenStore.clear();
-  }, [tokenStore]);
+  }, [api, tokenStore]);
 
   const value = useMemo(
-    () => ({ user, isAuthenticated, login, verifyTwoFactor, register, logout, updateUser: setUser }),
-    [user, isAuthenticated, login, verifyTwoFactor, register, logout],
+    () => ({ user, isAuthenticated, isRestoring, login, verifyTwoFactor, register, logout, updateUser: setUser }),
+    [user, isAuthenticated, isRestoring, login, verifyTwoFactor, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

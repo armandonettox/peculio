@@ -86,7 +86,7 @@ test("o gasto dos lancamentos ligados aparece, com aviso perto do limite e depoi
   await expect(card(page).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "87");
 
   await spend("150.00", "Compra extra");
-  // O token vive so na memoria: recarregar a pagina desloga, entao entra de novo
+  // Abre a tela de novo: a sessao guardada restaura o login sozinha
   await openBudgets(page);
   await expect(card(page)).toContainText("Limite atingido");
   await expect(card(page)).toContainText("Passou R$ 50,00 do limite");
