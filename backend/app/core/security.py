@@ -41,6 +41,7 @@ def create_access_token(
     subject: str,
     auth_at: datetime | None = None,
     password_hash: str | None = None,
+    session_id: str | None = None,
 ) -> str:
     """`auth_at` e o momento do login original e atravessa as renovacoes (sessao deslizante):
     e ele que limita a duracao total da sessao. `password_hash` gera a impressao usada para
@@ -54,6 +55,9 @@ def create_access_token(
         "auth_at": int((auth_at or now).timestamp()),
         "pv": password_fingerprint(password_hash),
     }
+    # `sid` liga o token a uma sessao do servidor: encerrar a sessao derruba o token na hora
+    if session_id is not None:
+        payload["sid"] = session_id
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 

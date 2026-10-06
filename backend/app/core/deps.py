@@ -12,7 +12,7 @@ from app.core.errors import AppError, ErrorCode
 from app.core.security import decode_access_token, parse_user_id, password_fingerprint
 from app.models.api_token import ApiToken
 from app.models.user import User
-from app.services import api_tokens
+from app.services import api_tokens, auth_sessions
 
 # auto_error desligado para a falta do token cair no nosso formato de erro, nao no padrao
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -74,6 +74,12 @@ def get_current_user(
     # Token legado, de antes da impressao da senha, nao traz "pv" e segue valendo (como na renovacao)
     if "pv" in payload and payload["pv"] != password_fingerprint(user.hashed_password):
         raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao invalida, entre novamente", _BEARER_HEADERS)
+    # Token ligado a uma sessao: encerrar o aparelho derruba o token na hora. Token antigo, sem `sid`, segue valendo
+    # ate expirar.
+    if "sid" in payload:
+        session_id = auth_sessions.parse_session_id(payload["sid"])
+        if session_id is None or auth_sessions.get_active(db, session_id, user.id) is None:
+            raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao encerrada, entre novamente", _BEARER_HEADERS)
     _check_not_locked(user)
     return user
 

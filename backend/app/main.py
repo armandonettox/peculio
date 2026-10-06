@@ -31,6 +31,7 @@ from app.routers import (
     recurrences,
     reports,
     saved_reports,
+    sessions,
     tags,
     transactions,
     two_factor,
@@ -67,6 +68,7 @@ app.add_middleware(
 
 api_v1 = APIRouter(prefix="/api/v1")
 api_v1.include_router(auth.router)
+api_v1.include_router(sessions.router)
 api_v1.include_router(two_factor.router)
 api_v1.include_router(invites.router)
 api_v1.include_router(currencies.router)

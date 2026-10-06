@@ -31,6 +31,8 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    # "Manter conectado": cookie de renovacao de 30 dias em vez de cookie de sessao do navegador
+    remember: bool = False
 
     _normalize_email = field_validator("email")(normalize_email)
 
@@ -88,6 +90,7 @@ class TwoFactorVerify(BaseModel):
     challenge_token: str
     # Codigo de 6 digitos do app autenticador ou codigo de recuperacao
     code: str = Field(min_length=1, max_length=32)
+    remember: bool = False
 
 
 class TwoFactorSetupOut(BaseModel):

@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     # Teto absoluto da sessao deslizante, em horas. 0 desliga o teto.
     session_max_hours: int = 168
     cors_origins: str = "http://localhost:5173"
+    # "Manter conectado": quantos dias o cookie de renovacao vale (renovado a cada uso). Sem a opcao marcada, o cookie
+    # morre ao fechar o navegador e a sessao vence apos tantas horas sem uso.
+    session_remember_days: int = Field(default=30, ge=1)
+    session_idle_hours: int = Field(default=12, ge=1)
+    # Tolerancia, em segundos, para duas abas abertas juntas usarem a mesma chave de renovacao
+    refresh_grace_seconds: int = Field(default=10, ge=0)
+    # Marca o cookie de renovacao como Secure (so viaja por HTTPS). Ligar quando o Pecúlio estiver atras de HTTPS.
+    cookie_secure: bool = False
     max_failed_login_attempts: int = 5
     account_lock_minutes: int = 15
     invite_expire_days: int = 7

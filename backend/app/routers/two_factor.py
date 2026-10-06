@@ -6,6 +6,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core import two_factor
+from app.services import auth_sessions
 from app.core.database import get_db
 from app.core.deps import get_session_user
 from app.core.errors import AppError, ErrorCode
@@ -87,7 +88,7 @@ def _require_password_and_code(db: Session, user: User, data: TwoFactorConfirm) 
 
 @router.post("/verify", response_model=Token)
 @limiter.limit("10/minute")
-def verify_login(request: Request, data: TwoFactorVerify, db: Session = Depends(get_db)):
+def verify_login(request: Request, response: Response, data: TwoFactorVerify, db: Session = Depends(get_db)):
     """Passo 2 do login: troca o desafio e um codigo pelo token de acesso."""
     invalid = AppError(401, ErrorCode.TWO_FACTOR_CHALLENGE_INVALID, "Desafio invalido ou expirado, entre novamente")
     try:
@@ -112,7 +113,13 @@ def verify_login(request: Request, data: TwoFactorVerify, db: Session = Depends(
         raise _invalid_code()
 
     register_success(db, user)
-    return Token(access_token=create_access_token(subject=str(user.id), password_hash=user.hashed_password))
+    session, raw = auth_sessions.create(db, user.id, request.headers.get("user-agent"), data.remember)
+    auth_sessions.set_refresh_cookie(response, raw, session.remember)
+    return Token(
+        access_token=create_access_token(
+            subject=str(user.id), password_hash=user.hashed_password, session_id=str(session.id)
+        )
+    )
 
 
 @router.get("/status", response_model=TwoFactorStatus)

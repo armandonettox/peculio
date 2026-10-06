@@ -27,6 +27,9 @@ services:
       # mundo chega com o IP do Nginx e a instancia inteira divide o mesmo limite de login.
       TRUST_PROXY_HEADERS: "true"
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      # Cookie de "Manter conectado" so viaja por HTTPS. Ligar (true) quando o Pecúlio estiver atras de HTTPS;
+      # com false o cookie tambem funciona em http://localhost
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Define "hoje" para recorrentes, orcamentos e contas a pagar
       APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
       # Libera webhooks para IP privado e http (padrao: so https para enderecos publicos)

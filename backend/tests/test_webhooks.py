@@ -318,8 +318,8 @@ def test_listing_does_not_run_a_query_per_webhook(client, headers):
     finally:
         sa_event.remove(engine, "before_cursor_execute", count)
 
-    # Autenticacao, contagem, pagina e a ultima entrega de todos
-    assert len(statements) <= 4, statements
+    # Autenticacao (usuario e sessao), contagem, pagina e a ultima entrega de todos
+    assert len(statements) <= 5, statements
 
 
 def test_last_delivery_is_the_most_recent_one(client, headers, server):

@@ -38,6 +38,8 @@ class ErrorCode(StrEnum):
     TWO_FACTOR_SETUP_REQUIRED = "two_factor_setup_required"
     INVALID_PASSWORD = "invalid_password"
     SECURITY_CONTACT_NOT_SET = "security_contact_not_set"
+    CLIENT_HEADER_MISSING = "client_header_missing"
+    SESSION_NOT_FOUND = "session_not_found"
     PASSWORD_UNCHANGED = "password_unchanged"
     # Cadastro e convites
     INVITE_REQUIRED = "invite_required"

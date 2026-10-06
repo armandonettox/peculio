@@ -260,7 +260,14 @@ def test_every_write_route_refuses_a_read_token(client, headers):
     """Varre o OpenAPI: toda rota que nao e consulta recusa o token de leitura. Uma rota nova entra sozinha;
     uma rota publica nova de escrita falha aqui e obriga a decidir."""
     value = make_token(client, headers, scope="read")["token"]
-    public = {"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/2fa/verify"}
+    # Sessao e sair se autenticam pelo cookie de renovacao (nao por token) e exigem o cabecalho do app
+    public = {
+        "/api/v1/auth/register",
+        "/api/v1/auth/login",
+        "/api/v1/auth/2fa/verify",
+        "/api/v1/auth/session",
+        "/api/v1/auth/logout",
+    }
     checked, wrong = 0, []
     for path, methods in app.openapi()["paths"].items():
         if path in public:

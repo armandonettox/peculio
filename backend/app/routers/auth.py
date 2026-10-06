@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -31,6 +31,7 @@ from app.schemas.user import (
     UserOut,
 )
 from app.services.accounts import get_currency
+from app.services import auth_sessions
 from app.services.login_attempts import ensure_not_locked, register_failure, register_success
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -99,7 +100,7 @@ def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=LoginOut)
 @limiter.limit("10/minute")
-def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
+def login(request: Request, response: Response, data: UserLogin, db: Session = Depends(get_db)):
     user = db.execute(select(User).where(User.email == data.email)).scalar_one_or_none()
 
     ensure_not_locked(user)
@@ -123,7 +124,11 @@ def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
         )
 
     register_success(db, user)
-    token = create_access_token(subject=str(user.id), password_hash=user.hashed_password)
+    session, raw = auth_sessions.create(db, user.id, request.headers.get("user-agent"), data.remember)
+    auth_sessions.set_refresh_cookie(response, raw, session.remember)
+    token = create_access_token(
+        subject=str(user.id), password_hash=user.hashed_password, session_id=str(session.id)
+    )
     return LoginOut(access_token=token)
 
 
@@ -133,6 +138,7 @@ def refresh_session(
     request: Request,
     token: str = Depends(oauth2_scheme),
     current_user: User = Depends(get_session_user),
+    db: Session = Depends(get_db),
 ):
     """Sessao deslizante: troca um token ainda valido por um novo, sem novo login. Usuario
     apagado e conta bloqueada ja sao barrados no get_current_user. Aqui ficam o teto
@@ -148,8 +154,19 @@ def refresh_session(
     if "pv" in claims and claims["pv"] != password_fingerprint(current_user.hashed_password):
         raise AppError(401, ErrorCode.SESSION_INVALID, "Sessao invalida, entre novamente")
 
+    # Quem usa o app mantem a sessao viva (o token ja foi conferido contra a sessao em get_current_user)
+    session_id = claims.get("sid")
+    session_uuid = auth_sessions.parse_session_id(session_id) if session_id is not None else None
+    if session_uuid is not None:
+        session = auth_sessions.get_active(db, session_uuid, current_user.id)
+        if session is not None:
+            auth_sessions.touch(db, session)
+
     new_token = create_access_token(
-        subject=str(current_user.id), auth_at=auth_at, password_hash=current_user.hashed_password
+        subject=str(current_user.id),
+        auth_at=auth_at,
+        password_hash=current_user.hashed_password,
+        session_id=str(session_uuid) if session_uuid is not None else None,
     )
     return Token(access_token=new_token)
 
@@ -180,6 +197,7 @@ def update_me(
 def change_password(
     request: Request,
     data: PasswordChange,
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_session_user),
 ):
@@ -194,8 +212,13 @@ def change_password(
         raise AppError(400, ErrorCode.PASSWORD_UNCHANGED, "A nova senha precisa ser diferente da atual")
     current_user.hashed_password = hash_password(data.new_password)
     register_success(db, current_user)
+    # Os outros aparelhos saem: a chave de renovacao deles tambem morre, nao so o token
+    current = auth_sessions.parse_session_id(decode_access_token(token).get("sid"))
+    auth_sessions.revoke_all_except(db, current_user.id, current)
     return Token(
         access_token=create_access_token(
-            subject=str(current_user.id), password_hash=current_user.hashed_password
+            subject=str(current_user.id),
+            password_hash=current_user.hashed_password,
+            session_id=str(current) if current is not None else None,
         )
     )
