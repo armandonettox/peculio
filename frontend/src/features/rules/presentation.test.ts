@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   ACTION_KINDS,
-  ACTION_LABELS,
-  FIELD_LABELS,
+  actionLabel,
+  fieldLabel,
   FIELD_OPS,
   FIELDS,
-  OP_LABELS,
+  opLabel,
   actionSummary,
   previewChanges,
   triggerSummary,
@@ -55,11 +55,11 @@ describe("actionSummary", () => {
 
 it("todo campo, operacao e acao tem rotulo", () => {
   for (const field of FIELDS) {
-    expect(FIELD_LABELS[field]).toBeTruthy();
+    expect(fieldLabel(field)).toBeTruthy();
     expect(FIELD_OPS[field].length).toBeGreaterThan(0);
-    for (const op of FIELD_OPS[field]) expect(OP_LABELS[op]).toBeTruthy();
+    for (const op of FIELD_OPS[field]) expect(opLabel(op)).toBeTruthy();
   }
-  for (const kind of ACTION_KINDS) expect(ACTION_LABELS[kind]).toBeTruthy();
+  for (const kind of ACTION_KINDS) expect(actionLabel(kind)).toBeTruthy();
 });
 
 describe("previewChanges", () => {

@@ -16,6 +16,7 @@ import {
   rowsToImport,
   statusLabel,
 } from "./preview-model";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   preview: ImportPreview;
@@ -56,6 +57,7 @@ export function ImportPreviewStep({
   pending,
   error,
 }: Props) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const { rows, counts } = preview;
   const slice = pageOf(rows, page);
@@ -76,51 +78,48 @@ export function ImportPreviewStep({
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <p className="text-sm" role="status">
           <span className="font-semibold">{parts.news}</span>
-          <span className="text-muted-foreground">
-            {" "}
-            · {parts.rest} · conta {accountName}
-          </span>
+          <span className="text-muted-foreground"> · {t("imports.importPreviewStep.restoContaAccount", { rest: parts.rest, account: accountName })}</span>
         </p>
-        <p className="text-sm text-muted-foreground">As regras que você já criou preenchem categoria, tags e orçamento sozinhas.</p>
+        <p className="text-sm text-muted-foreground">{t("imports.importPreviewStep.asRegrasQueVoce")}</p>
       </div>
 
       {counts.duplicate > 0 && (
         <p className="text-sm text-muted-foreground">
-          As que parecem repetidas vêm desmarcadas: já existe um lançamento igual. Marque à mão as que forem legítimas.
+          {t("imports.importPreviewStep.asQueParecemRepetidas")}
         </p>
       )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" size="sm" variant="outline" onClick={() => onChosenChange(newRows(rows))}>
-          Marcar só as novas
+          {t("imports.importPreviewStep.marcarSoAsNovas")}
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={() => onChosenChange(allSelectable(rows))}>
-          Marcar todas (inclui repetidas)
+          {t("imports.importPreviewStep.marcarTodasIncluiRepetidas")}
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={() => onChosenChange(new Set())}>
-          Desmarcar tudo
+          {t("imports.importPreviewStep.desmarcarTudo")}
         </Button>
       </div>
 
-      <TableScroll label="Lançamentos do arquivo">
+      <TableScroll label={t("imports.importPreviewStep.lancamentosDoArquivo")}>
         <table className="w-full text-left text-sm sm:min-w-[40rem]">
-          <caption className="sr-only">Lançamentos do arquivo</caption>
+          <caption className="sr-only">{t("imports.importPreviewStep.lancamentosDoArquivo")}</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
             <tr>
               <th scope="col" className="w-8 px-2 py-2 font-medium sm:w-10 sm:px-3">
-                <span className="sr-only">Importar</span>
+                <span className="sr-only">{t("imports.importPreviewStep.importar")}</span>
               </th>
               <th scope="col" className="hidden px-3 py-2 font-medium sm:table-cell">
-                Linha
+                {t("imports.importPreviewStep.linha")}
               </th>
               <th scope="col" className="px-2 py-2 font-medium sm:px-3">
-                Data
+                {t("common.data")}
               </th>
               <th scope="col" className="px-2 py-2 font-medium sm:px-3">
-                Descrição
+                {t("common.descricao")}
               </th>
               <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">
-                Valor
+                {t("common.valor")}
               </th>
             </tr>
           </thead>
@@ -135,7 +134,7 @@ export function ImportPreviewStep({
                       checked={chosen.has(row.index) && !failed}
                       disabled={failed}
                       onChange={() => toggle(row.index)}
-                      aria-label={`Importar a linha ${row.index}`}
+                      aria-label={t("imports.importPreviewStep.importarALinha", { index: row.index })}
                       className="accent-[var(--primary)]"
                     />
                   </td>
@@ -171,11 +170,11 @@ export function ImportPreviewStep({
       {slice.pages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <p className="text-muted-foreground" role="status">
-            Linhas {slice.first} a {slice.last} de {rows.length}
+            {t("imports.importPreviewStep.linhasDeA", { first: slice.first, last: slice.last, total: rows.length })}
           </p>
           <div className="flex gap-2">
             <Button type="button" size="sm" variant="outline" disabled={slice.page === 0} onClick={() => setPage(slice.page - 1)}>
-              Anterior
+              {t("imports.importPreviewStep.anterior")}
             </Button>
             <Button
               type="button"
@@ -184,7 +183,7 @@ export function ImportPreviewStep({
               disabled={slice.page >= slice.pages - 1}
               onClick={() => setPage(slice.page + 1)}
             >
-              Próxima
+              {t("imports.importPreviewStep.proxima")}
             </Button>
           </div>
         </div>
@@ -192,15 +191,19 @@ export function ImportPreviewStep({
 
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" variant="outline" onClick={onBack} disabled={pending}>
-          Escolher outro arquivo
+          {t("imports.importPreviewStep.escolherOutroArquivo")}
         </Button>
         {onAdjustColumns && (
           <Button type="button" variant="outline" onClick={onAdjustColumns} disabled={pending}>
-            Ajustar colunas
+            {t("imports.importPreviewStep.ajustarColunas")}
           </Button>
         )}
         <Button type="button" onClick={onConfirm} disabled={pending || toImport === 0}>
-          {pending ? "Importando..." : toImport === 0 ? "Nada marcado para importar" : `Importar ${entriesText(toImport)}`}
+          {pending
+            ? t("imports.importPreviewStep.importando")
+            : toImport === 0
+              ? t("imports.importPreviewStep.nadaMarcadoParaImportar")
+              : t("imports.importPreviewStep.importarEntries", { entries: entriesText(toImport) })}
         </Button>
       </div>
     </div>

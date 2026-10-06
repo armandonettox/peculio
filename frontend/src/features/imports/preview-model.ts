@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { ImportConfirm, ImportPreview, ImportRow } from "@/api/imports";
 
 // Quantas linhas da previa aparecem por vez (um extrato pode ter milhares)
@@ -18,9 +19,9 @@ export function allSelectable(rows: ImportRow[]): Set<number> {
 
 /** Texto da situacao. A cor nunca e a unica pista. */
 export function statusLabel(row: Pick<ImportRow, "status" | "duplicate_kind">): string {
-  if (row.status === "error") return "Erro";
-  if (row.status === "new") return "Nova";
-  return row.duplicate_kind === "same_id" ? "Já importada" : "Parece repetida";
+  if (row.status === "error") return i18n.t("imports.previewModel.erro");
+  if (row.status === "new") return i18n.t("imports.previewModel.nova");
+  return row.duplicate_kind === "same_id" ? i18n.t("imports.previewModel.jaImportada") : i18n.t("imports.previewModel.pareceRepetida");
 }
 
 /** O corpo da confirmacao: so as linhas marcadas, na ordem do arquivo. Linha com erro nunca vai. */
@@ -55,5 +56,5 @@ export function countsParts(counts: ImportPreview["counts"]): { news: string; re
 
 /** "1 lançamento" ou "3 lançamentos". */
 export function entriesText(count: number): string {
-  return `${count} ${count === 1 ? "lançamento" : "lançamentos"}`;
+  return i18n.t("imports.previewModel.entries", { count });
 }

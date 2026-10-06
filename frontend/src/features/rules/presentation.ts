@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { RuleAction, RuleMatchMode, RuleTrigger } from "@/api/rules";
 
 export type TriggerField = RuleTrigger["field"];
@@ -6,13 +7,9 @@ export type ActionKind = RuleAction["kind"];
 
 export const FIELDS: TriggerField[] = ["description", "counterparty", "amount", "account", "type"];
 
-export const FIELD_LABELS: Record<TriggerField, string> = {
-  description: "Descrição",
-  counterparty: "Quem recebeu ou pagou",
-  amount: "Valor",
-  account: "Conta",
-  type: "Tipo",
-};
+export function fieldLabel(field: TriggerField): string {
+  return i18n.t(`rules.presentation.field.${field}`);
+}
 
 // Operacoes de cada campo, na mesma regra do backend
 export const FIELD_OPS: Record<TriggerField, TriggerOp[]> = {
@@ -23,42 +20,37 @@ export const FIELD_OPS: Record<TriggerField, TriggerOp[]> = {
   type: ["is"],
 };
 
-export const OP_LABELS: Record<TriggerOp, string> = {
-  contains: "contém",
-  starts_with: "começa com",
-  equals: "é igual a",
-  greater_than: "é maior que",
-  less_than: "é menor que",
-  is: "é",
-};
+export function opLabel(op: TriggerOp): string {
+  return i18n.t(`rules.presentation.op.${op}`);
+}
 
-export const TYPE_LABELS: Record<string, string> = {
-  withdrawal: "Saída",
-  deposit: "Entrada",
-  transfer: "Transferência",
-};
+export function typeLabel(type: string): string | undefined {
+  switch (type) {
+    case "withdrawal":
+      return i18n.t("rules.presentation.type.withdrawal");
+    case "deposit":
+      return i18n.t("rules.presentation.type.deposit");
+    case "transfer":
+      return i18n.t("rules.presentation.type.transfer");
+    default:
+      return undefined;
+  }
+}
 
 export const ACTION_KINDS: ActionKind[] = ["set_category", "add_tag", "set_budget", "set_bill"];
 
-export const ACTION_LABELS: Record<ActionKind, string> = {
-  set_category: "Definir categoria",
-  add_tag: "Adicionar tag",
-  set_budget: "Ligar ao orçamento",
-  set_bill: "Ligar à conta a pagar",
-};
+export function actionLabel(kind: ActionKind): string {
+  return i18n.t(`rules.presentation.action.${kind}`);
+}
 
 // Rotulo curto do resumo na lista ("Categoria: Mercado")
-const ACTION_SUMMARY_LABELS: Record<ActionKind, string> = {
-  set_category: "Categoria",
-  add_tag: "Tag",
-  set_budget: "Orçamento",
-  set_bill: "Conta a pagar",
-};
+function actionSummaryLabel(kind: ActionKind): string {
+  return i18n.t(`rules.presentation.actionSummary.${kind}`);
+}
 
-export const MATCH_MODE_LABELS: Record<RuleMatchMode, string> = {
-  all: "Todos os gatilhos precisam valer",
-  any: "Basta um gatilho valer",
-};
+export function matchModeLabel(mode: RuleMatchMode): string {
+  return i18n.t(`rules.presentation.matchMode.${mode}`);
+}
 
 /** Nomes por id, para escrever o resumo da regra sem buscar nada de novo. */
 export type NameLookups = {
@@ -69,13 +61,12 @@ export type NameLookups = {
   bills: Map<string, string>;
 };
 
-const REMOVED = "item removido";
-
 export function triggerSummary(trigger: RuleTrigger, lookups: NameLookups): string {
-  const field = FIELD_LABELS[trigger.field];
-  const op = OP_LABELS[trigger.op];
-  if (trigger.field === "account") return `${field} ${op} ${lookups.accounts.get(trigger.value) ?? REMOVED}`;
-  if (trigger.field === "type") return `${field} ${op} ${TYPE_LABELS[trigger.value] ?? trigger.value}`;
+  const field = fieldLabel(trigger.field);
+  const op = opLabel(trigger.op);
+  const removed = i18n.t("rules.presentation.itemRemovido");
+  if (trigger.field === "account") return `${field} ${op} ${lookups.accounts.get(trigger.value) ?? removed}`;
+  if (trigger.field === "type") return `${field} ${op} ${typeLabel(trigger.value) ?? trigger.value}`;
   if (trigger.field === "amount") return `${field} ${op} ${trigger.value.replace(".", ",")}`;
   return `${field} ${op} "${trigger.value}"`;
 }
@@ -87,7 +78,8 @@ export function actionSummary(action: RuleAction, lookups: NameLookups): string 
     set_budget: lookups.budgets,
     set_bill: lookups.bills,
   }[action.kind];
-  return `${ACTION_SUMMARY_LABELS[action.kind]}: ${source.get(action.target_id) ?? REMOVED}`;
+  const removed = i18n.t("rules.presentation.itemRemovido");
+  return `${actionSummaryLabel(action.kind)}: ${source.get(action.target_id) ?? removed}`;
 }
 
 type PreviewChanges = {

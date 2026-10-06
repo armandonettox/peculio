@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { formatBytes } from "@/features/attachments/format";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   accounts: Account[];
@@ -25,6 +26,7 @@ type Errors = { account?: string; file?: string };
 
 /** Passo 1: a conta que recebe o extrato e o arquivo. */
 export function ImportFileStep({ accounts, accountId, onAccountChange, file, onFileChange, onSubmit, pending, error }: Props) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Errors>({});
 
@@ -35,11 +37,11 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
 
   function submit() {
     const found: Errors = {};
-    if (!accountId) found.account = "Escolha a conta que vai receber o extrato.";
-    if (!file) found.file = "Escolha o arquivo do extrato.";
-    else if (file.size === 0) found.file = "O arquivo está vazio.";
+    if (!accountId) found.account = t("imports.importFileStep.escolhaAContaQueVai");
+    if (!file) found.file = t("imports.importFileStep.escolhaOArquivoDo");
+    else if (file.size === 0) found.file = t("imports.importFileStep.oArquivoEstaVazio");
     else if (file.size > IMPORT_MAX_BYTES) {
-      found.file = `O arquivo passa do limite de ${IMPORT_MAX_BYTES / (1024 * 1024)} MB.`;
+      found.file = t("imports.importFileStep.oArquivoPassaDoLimite", { max: IMPORT_MAX_BYTES / (1024 * 1024) });
     }
     setErrors(found);
     if (Object.keys(found).length === 0) onSubmit();
@@ -58,9 +60,9 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
 
       <FormField
         id="import-account"
-        label="Conta que recebe o extrato"
+        label={t("imports.importFileStep.contaQueRecebeO")}
         error={errors.account}
-        hint="Os lançamentos entram nesta conta. Dívidas não recebem extrato."
+        hint={t("imports.importFileStep.osLancamentosEntramNesta")}
       >
         {(props) => (
           <Select
@@ -71,7 +73,7 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
               onAccountChange(event.target.value);
             }}
           >
-            <option value="">Escolha uma conta</option>
+            <option value="">{t("imports.importFileStep.escolhaUmaConta")}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name} ({account.currency_code})
@@ -83,9 +85,9 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
 
       <FormField
         id="import-file"
-        label="Arquivo do extrato (CSV ou OFX)"
+        label={t("imports.importFileStep.arquivoDoExtratoCsv")}
         error={errors.file}
-        hint={`Até ${IMPORT_MAX_BYTES / (1024 * 1024)} MB e 5000 linhas. O arquivo não fica guardado: só é lido para mostrar a prévia.`}
+        hint={t("imports.importFileStep.ateMbELinhas", { max: IMPORT_MAX_BYTES / (1024 * 1024) })}
       >
         {(props) => (
           <div className="flex flex-wrap items-center gap-3">
@@ -99,7 +101,7 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
             />
             <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
               <FileUp />
-              {file ? "Trocar arquivo" : "Escolher arquivo"}
+              {file ? t("imports.importFileStep.trocarArquivo") : t("imports.importFileStep.escolherArquivo")}
             </Button>
             {file && (
               <p className="min-w-0 break-words text-sm text-muted-foreground">
@@ -112,7 +114,7 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
 
       <div>
         <Button type="submit" disabled={pending}>
-          {pending ? "Lendo o arquivo..." : "Ver prévia"}
+          {pending ? t("imports.importFileStep.lendoOArquivo") : t("imports.importFileStep.verPrevia")}
         </Button>
       </div>
     </form>

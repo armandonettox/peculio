@@ -165,6 +165,89 @@
       "mostrarArquivados": "Show archived",
       "excluirCofrinho": "Delete piggy bank",
       "oValorGuardadoVolta": "The saved amount becomes available in the account again; no money disappears."
+    },
+    "import": {
+      "nadaFoiImportado": "Nothing was imported",
+      "verLancamentos": "View transactions",
+      "importarOutroExtrato": "Import another statement",
+      "importarExtrato": "Import statement",
+      "tragaOsLancamentosDe": "Bring in transactions from a bank statement (CSV or OFX)",
+      "passosDaImportacao": "Import steps",
+      "aindaNaoTemConta": "You don't have an account to receive the statement yet. <cta>Create an account</cta> first.",
+      "naoFoiPossivelLer": "Couldn't read the file: {{message}}",
+      "step": {
+        "file": "File",
+        "mapping": "Columns",
+        "preview": "Preview",
+        "done": "Done"
+      },
+      "importados": "{{entries}} imported",
+      "deixadosDeFora_one": "{{entries}} was left out because the bank had already sent it before.",
+      "deixadosDeFora_other": "{{entries}} were left out because the bank had already sent them before."
+    },
+    "reconciliation": {
+      "carregandoConciliacao": "Loading reconciliation...",
+      "resumo": "Summary",
+      "conferido": "Cleared",
+      "diferenca": "Difference",
+      "criarLancamentoDeAjuste": "Create adjustment transaction",
+      "fechando": "Closing...",
+      "fecharConciliacao": "Close reconciliation",
+      "marqueAoMenosUm": "Mark at least one transaction as cleared to close.",
+      "lancamentos": "Transactions",
+      "conciliar": "Reconcile",
+      "confiraOsLancamentosDa": "Check the account's transactions against the bank statement. When the cleared total matches the statement, close the reconciliation.",
+      "historico": "History",
+      "conciliacoesFechadas": "Closed reconciliations",
+      "conciliacaoFechada": "Reconciliation closed. {{locked}}.",
+      "saldoDoExtratoEm": "Statement balance on {{date}}",
+      "saldoDaContaNoApp": "Account balance for {{account}} in the app on that date: {{amount}}. The cleared total starts from the opening balance and adds only what you've marked below.",
+      "lancamentosAte": "Transactions up to {{date}}",
+      "aindaNaoTemConta": "You don't have an account to reconcile yet. <cta>Create an account</cta> first."
+    },
+    "reports": {
+      "carregandoRelatorio": "Loading report...",
+      "nadaNestePeriodo": "Nothing in this period",
+      "nenhumaReceitaOuDespesa": "No income or expense matches the chosen filters.",
+      "quandoHouverReceitasOu": "When there's income or expense in the period, the report appears here.",
+      "soEntramReceitasE": "Only income and expenses are included. Transfers, debt payments and the opening balance are left out. Each currency is shown separately, with no conversion.",
+      "relatorios": "Reports",
+      "deOndeVeioE": "Where the money came from and where it went",
+      "exportando": "Exporting...",
+      "exportarCsv": "Export CSV",
+      "tipoDeRelatorio": "Report type",
+      "resumo": "Summary",
+      "personalizado": "Custom"
+    },
+    "rules": {
+      "novaRegra": "New rule",
+      "carregandoRegras": "Loading rules...",
+      "nenhumaRegraAinda": "No rules yet",
+      "umaRegraPreencheSozinha": "A rule fills in the category, tags, budget or bill on its own for transactions that match it, for example anything with 'groceries' in the description.",
+      "esteGrupoAindaNao": "This group doesn't have any rules yet.",
+      "regrasSemGrupo": "Rules without a group",
+      "semGrupo": "No group",
+      "suasRegras": "Your rules",
+      "regras": "Rules",
+      "preenchemSozinhasOQue": "Fill in on their own whatever transactions leave blank",
+      "aplicarNasAntigas": "Apply to old ones",
+      "novoGrupo": "New group",
+      "excluirRegra": "Delete rule",
+      "asTransacoesJaPreenchidas": "The transactions it already filled in stay as they are.",
+      "excluirGrupo": "Delete group",
+      "asRegrasDoGrupo": "The group's rules stay; they just lose the group.",
+      "grupo": "Group {{name}}",
+      "acoesDoGrupo": "Actions for group {{name}}"
+    },
+    "webhooks": {
+      "novoWebhook": "New webhook",
+      "carregandoWebhooks": "Loading webhooks...",
+      "nenhumWebhookAinda": "No webhooks yet",
+      "umWebhookAvisaOutro": "A webhook notifies another system, like a spreadsheet or an automation, whenever a transaction is created, edited or deleted.",
+      "webhooks": "Webhooks",
+      "avisosAutomaticosParaOutros": "Automatic notices for other systems",
+      "excluirWebhook": "Delete webhook",
+      "oHistoricoDeEntregas": "Its delivery history is also deleted and pending notices aren't sent."
     }
   },
   "common": {
@@ -202,7 +285,11 @@
       "tomorrow": "tomorrow",
       "inDays_one": "in {{count}} day",
       "inDays_other": "in {{count}} days"
-    }
+    },
+    "receita": "Income",
+    "despesa": "Expense",
+    "resultado": "Net",
+    "concluir": "Done"
   },
   "components": {
     "appShell": {
@@ -1065,6 +1152,496 @@
         "warning": "The balance of {{account}} is {{amount}} below what's saved in piggy banks",
         "ok": "Available in {{account}}: {{amount}}"
       }
+    }
+  },
+  "imports": {
+    "importFileStep": {
+      "contaQueRecebeO": "Account receiving the statement",
+      "osLancamentosEntramNesta": "Transactions go into this account. Debts don't receive statements.",
+      "escolhaUmaConta": "Choose an account",
+      "arquivoDoExtratoCsv": "Statement file (CSV or OFX)",
+      "trocarArquivo": "Change file",
+      "escolherArquivo": "Choose file",
+      "lendoOArquivo": "Reading the file...",
+      "verPrevia": "View preview",
+      "escolhaAContaQueVai": "Choose the account that will receive the statement.",
+      "escolhaOArquivoDo": "Choose the statement file.",
+      "oArquivoEstaVazio": "The file is empty.",
+      "oArquivoPassaDoLimite": "The file is over the {{max}} MB limit.",
+      "ateMbELinhas": "Up to {{max}} MB and 5000 rows. The file isn't stored: it's only read to show the preview."
+    },
+    "importMappingStep": {
+      "escolhaAColuna": "Choose the column",
+      "naoDeuParaDescobrir": "Couldn't figure out on its own which column is which. Tell us below what each one means.",
+      "primeirasLinhasDoArquivo": "First rows of the file",
+      "aPrimeiraLinhaDo": "The file's first row is the header (the column names)",
+      "comoOValorAparece": "How the amount appears",
+      "voltar": "Back",
+      "lendoOArquivo": "Reading the file...",
+      "verPrevia": "View preview",
+      "colunaDaData": "Date column",
+      "colunaDaDescricao": "Description column",
+      "umaColunaComSinal": "One column with a sign (negative is outgoing, positive is incoming)",
+      "duasColunasDebito": "Two columns: debit (outgoing) and credit (incoming)",
+      "colunaDoValor": "Amount column",
+      "colunaDeDebito": "Debit column",
+      "colunaDeCredito": "Credit column"
+    },
+    "importPreviewStep": {
+      "asRegrasQueVoce": "The rules you've already created fill in category, tags and budget on their own.",
+      "asQueParecemRepetidas": "Rows that look duplicated come unchecked: a matching transaction already exists. Check by hand the ones that are legitimate.",
+      "marcarSoAsNovas": "Check only the new ones",
+      "marcarTodasIncluiRepetidas": "Check all (includes duplicates)",
+      "desmarcarTudo": "Uncheck all",
+      "lancamentosDoArquivo": "Transactions from the file",
+      "importar": "Import",
+      "linha": "Row",
+      "anterior": "Previous",
+      "proxima": "Next",
+      "escolherOutroArquivo": "Choose another file",
+      "ajustarColunas": "Adjust columns",
+      "importando": "Importing...",
+      "nadaMarcadoParaImportar": "Nothing checked to import",
+      "restoContaAccount": "{{rest}} · account {{account}}",
+      "importarALinha": "Import row {{index}}",
+      "linhasDeA": "Rows {{first}} to {{last}} of {{total}}",
+      "importarEntries": "Import {{entries}}"
+    },
+    "previewModel": {
+      "erro": "Error",
+      "nova": "New",
+      "jaImportada": "Already imported",
+      "pareceRepetida": "Looks duplicated",
+      "entries_zero": "{{count}} transactions",
+      "entries_one": "{{count}} transaction",
+      "entries_other": "{{count}} transactions"
+    }
+  },
+  "reconciliation": {
+    "adjustmentDialog": {
+      "criarLancamentoDeAjuste": "Create adjustment transaction",
+      "vaiCriar": "Will create <strong>{{text}}</strong> in the <strong>{{account}}</strong> account, dated {{date}}, with the description “Reconciliation adjustment”. It's already marked as cleared and the difference zeroes out.",
+      "naoHaDiferencaPara": "There's no difference to adjust.",
+      "useOAjusteSo": "Only use the adjustment once you've already checked the transactions and the difference is something the app doesn't know about (a fee, interest earned).",
+      "criando": "Creating...",
+      "criarAjuste": "Create adjustment"
+    },
+    "historyList": {
+      "desfazerConciliacao": "Undo reconciliation",
+      "desfazendo": "Undoing...",
+      "desfazer": "Undo",
+      "carregandoHistorico": "Loading history...",
+      "estaContaAindaNao": "This account hasn't had a closed reconciliation yet.",
+      "conciliacaoDeixaDeValer_one": "The reconciliation from {{date}} ({{amount}}) stops being valid and {{locked}} becomes editable again. Transactions stay marked as cleared.",
+      "conciliacaoDeixaDeValer_other": "The reconciliation from {{date}} ({{amount}}) stops being valid and {{locked}} become editable again. Transactions stay marked as cleared.",
+      "extratoDe": "Statement from {{date}} · {{amount}}"
+    },
+    "reconciliationTable": {
+      "naoHaLancamentosAbertos": "There are no open transactions up to that date.",
+      "marcarTodos": "Check all",
+      "desmarcarTodos": "Uncheck all",
+      "lancamentosAConferir": "Transactions to clear",
+      "conferido": "Cleared",
+      "conferidosDeEntries": "{{checked}} of {{entries}} cleared",
+      "conferidoDescription": "Cleared: {{description}}"
+    },
+    "statementForm": {
+      "dataDoExtrato": "Statement date",
+      "conferir": "Check",
+      "escolhaAConta": "Choose the account.",
+      "informeAData": "Enter the statement date.",
+      "dataNaoPodeSerFutura": "The statement date can't be in the future.",
+      "saldoDoExtrato": "Statement balance",
+      "saldoDoExtratoCom": "Statement balance ({{currency}})"
+    },
+    "presentation": {
+      "bate": "The cleared total matches the statement.",
+      "extratoTemAMais": "The statement has {{amount}} more than the cleared total.",
+      "conferidoTemAMais": "The cleared total has {{amount}} more than the statement.",
+      "umaEntradaDe": "an income of {{amount}}",
+      "umaSaidaDe": "an expense of {{amount}}",
+      "entries_one": "{{count}} transaction",
+      "entries_other": "{{count}} transactions",
+      "mostrando": "Showing {{shown}} of {{total}} open transactions. Check and close these; the others appear next.",
+      "desfeita": "Undone",
+      "fechada": "Closed",
+      "nenhumTravado": "No locked transactions",
+      "travados_one": "{{entries}} locked",
+      "travados_other": "{{entries}} locked"
+    }
+  },
+  "reports": {
+    "period": {
+      "this-month": "This month",
+      "last-month": "Last month",
+      "this-year": "This year",
+      "custom": "Custom",
+      "dataInicialDepoisDaFinal": "The start date is after the end date."
+    },
+    "breakdownTable": {
+      "tituloEm": "{{title}} in {{code}}",
+      "despesaDePercent": "Expense of {{amount}}, {{percent}}% of the biggest expense in the list"
+    },
+    "currencySection": {
+      "relatorioEm": "Report in {{code}}",
+      "entriesDeReceitaOuDespesa_one": "{{count}} income or expense transaction in the period",
+      "entriesDeReceitaOuDespesa_other": "{{count}} income or expense transactions in the period",
+      "cardEm": "{{label}} in {{code}}"
+    },
+    "presentation": {
+      "dimension": {
+        "category": {
+          "title": "By category",
+          "column": "Category",
+          "fallback": "No category"
+        },
+        "tag": {
+          "title": "By tag",
+          "column": "Tag",
+          "fallback": "No tag",
+          "note": "A transaction with several tags appears in each one, so the sum of the rows may exceed the total."
+        },
+        "budget": {
+          "title": "By budget",
+          "column": "Budget",
+          "fallback": "No budget"
+        },
+        "account": {
+          "title": "By account",
+          "column": "Account",
+          "fallback": "No account"
+        }
+      }
+    },
+    "customReportBuilder": {
+      "montarRelatorio": "Build report",
+      "agruparPor": "Group by",
+      "medir": "Measure",
+      "grafico": "Chart",
+      "linhaSoServePara": "Line only works for grouping by month. Donut doesn't work for month or for net.",
+      "arquivada": "(archived)",
+      "todos": "All",
+      "arquivado": "(archived)",
+      "esteRelatorioFiltraPor": "This report filters by {{missing}}, which no longer exists. Choose another value, or “All”, and save again."
+    },
+    "customConfig": {
+      "groupBy": {
+        "category": "Category",
+        "tag": "Tag",
+        "budget": "Budget",
+        "account": "Account",
+        "counterparty": "Counterparty",
+        "month": "Month"
+      },
+      "measure": {
+        "expense": "Expenses",
+        "income": "Income",
+        "net": "Net (income minus expenses)"
+      },
+      "chart": {
+        "table": "Table",
+        "bar": "Bars",
+        "line": "Line",
+        "donut": "Donut"
+      },
+      "period": {
+        "this-month": "This month",
+        "last-month": "Last month",
+        "last-3-months": "Last 3 months",
+        "last-12-months": "Last 12 months",
+        "this-year": "This year",
+        "fixed": "Fixed dates"
+      },
+      "lineOnlyForMonth": "Line chart only works for grouping by month.",
+      "donutNotForMonth": "Donut chart doesn't work for grouping by month.",
+      "donutNotForNet": "Donut chart doesn't work for net, which can be negative.",
+      "informeAsDatas": "Enter both dates.",
+      "dataInicialDepoisDaFinal": "The start date is after the end date.",
+      "filterName": {
+        "account": "account",
+        "category": "category",
+        "tag": "tag",
+        "budget": "budget"
+      },
+      "reportTitleWhat": {
+        "expense": "Expenses",
+        "income": "Income",
+        "net": "Net"
+      },
+      "reportTitleByMonth": "{{what}} month by month",
+      "reportTitleByGroup": "{{what}} by {{group}}"
+    },
+    "customReportsTab": {
+      "carregandoRelatorio": "Loading report...",
+      "nadaNestePeriodo": "Nothing in this period",
+      "nenhumaReceitaOuDespesa": "No income or expense matches the period and the chosen filters.",
+      "salvarRelatorio": "Save report",
+      "novoRelatorio": "New report",
+      "comMudancasAindaNao": "(with unsaved changes)",
+      "excluirRelatorioSalvo": "Delete saved report",
+      "soORelatorioSalvo": "Only the saved report disappears; the transactions and numbers stay as they are.",
+      "relatorioExcluido": "Report deleted.",
+      "relatorioSalvo": "Report saved.",
+      "periodoDeA": "Period: {{from}} to {{to}}. Only income and expenses are included; transfers, debt payments and the opening balance are left out. Each currency is shown separately, with no conversion.",
+      "aberto": "Open:"
+    },
+    "customReportView": {
+      "fallback": {
+        "category": "No category",
+        "tag": "No tag",
+        "budget": "No budget",
+        "account": "No account",
+        "counterparty": "No counterparty"
+      },
+      "tituloEm": "{{title}} in {{code}}",
+      "nenhumGrupoTem": "No group has {{measure}} in this period.",
+      "oGraficoMostra": "The chart shows the {{limit}} biggest and groups the rest into “{{label}}”. The table below has them all.",
+      "tagNote": "A transaction with several tags appears in each one, so the sum of the rows may exceed the total.",
+      "agrupadoPor": "(grouped by {{group}})"
+    },
+    "customTable": {
+      "todosOsGrupos": "All groups",
+      "lancamentos": "Transactions",
+      "tituloEmTodosOsGrupos": "{{title}} in {{currency}}, all groups"
+    },
+    "customData": {
+      "outros": "Others"
+    },
+    "monthlyChart": {
+      "mesAMes": "Month by month",
+      "valoresPorMes": "Values by month",
+      "mes": "Month",
+      "receitaEDespesaPorMes": "Income and expense by month in {{code}}, from {{from}} to {{to}}. The values are in the table below.",
+      "receitaDespesaResultadoPorMes": "Income, expense and net by month in {{code}}"
+    },
+    "reportFilterBar": {
+      "filtrosDoRelatorio": "Report filters",
+      "arquivada": "(archived)",
+      "todos": "All",
+      "arquivado": "(archived)"
+    },
+    "saveReportDialog": {
+      "salvarRelatorio": "Save report",
+      "oRelatorioGuardaO": "The report keeps the grouping, the measure, the chart, the period and the filters. With a period like “This month”, it updates itself every time you open it.",
+      "oQueFazer": "What to do",
+      "salvarComoUmRelatorio": "Save as a new report",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "informeONome": "Enter the report's name.",
+      "useNoMaximo": "Use at most {{max}} characters.",
+      "atualizar": "Update “{{name}}”"
+    },
+    "savedReportsPanel": {
+      "carregandoRelatoriosSalvos": "Loading saved reports...",
+      "voceAindaNaoSalvou": "You haven't saved any report yet. Build one below and use “Save report”.",
+      "relatoriosSalvos": "Saved reports",
+      "abrir": "Open {{name}}",
+      "excluir": "Delete {{name}}",
+      "resumo": "{{measure}} by {{group}} · {{chart}} · {{period}}"
+    }
+  },
+  "rules": {
+    "backfillDialog": {
+      "aplicarNasTransacoesAntigas": "Apply to old transactions",
+      "vejaPrimeiroOQue": "See first what would change. Only fields that are blank get filled in: category, tags, budget and bill you've already chosen stay as they are.",
+      "voceNaoTemRegras": "You don't have active rules to apply.",
+      "de": "From",
+      "ate": "To",
+      "todasAsContas": "All accounts",
+      "regras": "Rules",
+      "calculando": "Calculating...",
+      "verPrevia": "View preview",
+      "previa": "Preview",
+      "aplicando": "Applying...",
+      "dataInicialNaoPode": "The start date can't be after the end date.",
+      "nadaParaPreencher_one": "Nothing to fill in among {{count}} transaction.",
+      "nadaParaPreencher_other": "Nothing to fill in among {{count}} transactions.",
+      "seriaAlterado_one": "{{count}} transaction would be changed out of {{scanned}}.",
+      "seriaAlterado_other": "{{count}} transactions would be changed out of {{scanned}}.",
+      "mostrandoOsPrimeiros": "Showing the first {{shown}}. The application applies to all {{total}}.",
+      "pronto_one": "Done: {{count}} transaction updated.",
+      "pronto_other": "Done: {{count}} transactions updated.",
+      "aplicarEm_one": "Apply to {{count}} transaction",
+      "aplicarEm_other": "Apply to {{count}} transactions"
+    },
+    "groupFormDialog": {
+      "editarGrupo": "Edit group",
+      "novoGrupo": "New group",
+      "gruposAjudamAOrganizar": "Groups help organize rules. They run in order: the lowest number runs first, and rules without a group run last.",
+      "ordem": "Order",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarGrupo": "Create group",
+      "informeONome": "Enter the group's name.",
+      "informeUmNumero": "Enter a whole number from 0 to {{max}}."
+    },
+    "ruleCard": {
+      "pausada": "Paused",
+      "paraAqui": "Stops here",
+      "quandoTodosValerem": "When all match",
+      "quandoQualquerUmValer": "When any one matches",
+      "entao": "Then",
+      "pausar": "Pause",
+      "ativar": "Activate",
+      "acoesDaRegra": "Actions for rule {{name}}"
+    },
+    "ruleFormDialog": {
+      "texto": "Text",
+      "editarRegra": "Edit rule",
+      "novaRegra": "New rule",
+      "aRegraPreencheCategoria": "The rule fills in category, tags, budget or bill on transactions that match the triggers. It only fills in what's empty: what you chose on the transaction is never replaced.",
+      "quando": "When",
+      "combinacaoDosGatilhos": "Trigger combination",
+      "adicionarGatilho": "Add trigger",
+      "entao": "Then",
+      "escolha": "Choose",
+      "adicionarAcao": "Add action",
+      "grupo": "Group",
+      "semGrupo": "No group",
+      "ordem": "Order",
+      "pararAquiSeEsta": "Stop here: if this rule matches, the following ones don't run",
+      "regraAtiva": "Rule active",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarRegra": "Create rule",
+      "campoDoGatilho": "Trigger field {{index}}",
+      "operacaoDoGatilho": "Trigger operator {{index}}",
+      "removerGatilho": "Remove trigger {{index}}",
+      "acao": "Action {{index}}",
+      "alvoDaAcao": "Action target {{index}}",
+      "removerAcao": "Remove action {{index}}"
+    },
+    "presentation": {
+      "field": {
+        "description": "Description",
+        "counterparty": "Who received or paid",
+        "amount": "Amount",
+        "account": "Account",
+        "type": "Type"
+      },
+      "op": {
+        "contains": "contains",
+        "starts_with": "starts with",
+        "equals": "equals",
+        "greater_than": "is greater than",
+        "less_than": "is less than",
+        "is": "is"
+      },
+      "type": {
+        "withdrawal": "Expense",
+        "deposit": "Income",
+        "transfer": "Transfer"
+      },
+      "action": {
+        "set_category": "Set category",
+        "add_tag": "Add tag",
+        "set_budget": "Link to budget",
+        "set_bill": "Link to bill"
+      },
+      "actionSummary": {
+        "set_category": "Category",
+        "add_tag": "Tag",
+        "set_budget": "Budget",
+        "set_bill": "Bill"
+      },
+      "matchMode": {
+        "all": "All triggers must match",
+        "any": "Just one trigger has to match"
+      },
+      "itemRemovido": "removed item"
+    }
+  },
+  "webhooks": {
+    "deliveriesDialog": {
+      "carregandoEntregas": "Loading deliveries...",
+      "nenhumaEntregaAinda": "No deliveries yet.",
+      "nenhumaEntregaComEsta": "No deliveries with this status.",
+      "historicoDeEntregas": "Delivery history",
+      "situacao": "Status",
+      "entregues": "Delivered",
+      "pendentes": "Pending",
+      "comFalha": "Failed",
+      "expiradas": "Expired",
+      "maisRecentes": "Most recent",
+      "maisAntigas": "Oldest",
+      "avisosEnviadosPara": "Notices sent to <strong>{{name}}</strong>, most recent first.",
+      "resumo_one": "{{date}} · {{count}} attempt · {{http}}",
+      "resumo_other": "{{date}} · {{count}} attempts · {{http}}",
+      "paginaDe": "Page {{page}} of {{total}}"
+    },
+    "rotateSecretDialog": {
+      "girarSegredo": "Rotate secret",
+      "girando": "Rotating...",
+      "oSegredoAtualDe": "The current secret for <strong>{{name}}</strong> stops working right away. Whoever receives the notices needs to use the new secret to verify the signature."
+    },
+    "secretDialog": {
+      "segredoDoWebhook": "Webhook secret",
+      "guardeOSegredoDe": "Save the secret for <strong>{{name}}</strong> somewhere safe. It's used to verify the signature of every notice and won't be shown again.",
+      "segredo": "Secret",
+      "copiar": "Copy",
+      "segredoCopiado": "Secret copied.",
+      "naoFoiPossivelCopiar": "Couldn't copy. Select and copy by hand.",
+      "guardeiOSegredo": "I saved the secret"
+    },
+    "testResultDialog": {
+      "testeDoWebhook": "Webhook test",
+      "enviandoOTeste": "Sending the test...",
+      "respostaDoEndereco": "Response from the address",
+      "avisoDeTeste": "Test notice sent now to <strong>{{name}}</strong>. It doesn't enter the retries.",
+      "entregueComSucesso": "Delivered successfully ({{http}}).",
+      "naoFoiEntregue": "Not delivered ({{http}})",
+      "naoFoiEntregueComErro": "Not delivered ({{http}}): {{error}}"
+    },
+    "webhookCard": {
+      "pausado": "Paused",
+      "testar": "Test",
+      "historicoDeEntregas": "Delivery history",
+      "girarSegredo": "Rotate secret",
+      "pausar": "Pause",
+      "retomar": "Resume",
+      "eventos": "Events",
+      "acoesDoWebhook": "Actions for webhook {{name}}"
+    },
+    "webhookFormDialog": {
+      "editarWebhook": "Edit webhook",
+      "novoWebhook": "New webhook",
+      "mudarOEnderecoNao": "Changing the address doesn't change the secret. To change the secret, use Rotate secret.",
+      "oAppEnviaUm": "The app sends a signed notice to this address whenever something happens to your transactions. The signing secret appears only once, right after creating it.",
+      "endereco": "Address",
+      "httpsExemploComWebhook": "https://example.com/webhook",
+      "eventos": "Events",
+      "ativo": "Active",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarWebhook": "Create webhook",
+      "informeONome": "Enter the webhook's name.",
+      "informeOEndereco": "Enter the address that will receive the notices.",
+      "urlSchemeMessage": "The address needs to start with https:// (or http://, only accepted for local destinations allowed by the server).",
+      "escolhaPeloMenos": "Choose at least one event.",
+      "plainHttpHint": "http:// addresses only work if the server allows local destinations. In normal use, use https://.",
+      "defaultUrlHint": "Use a public https:// address. Internal network addresses are rejected."
+    },
+    "presentation": {
+      "event": {
+        "transactionCreated": "Transaction created",
+        "transactionUpdated": "Transaction edited",
+        "transactionDeleted": "Transaction deleted",
+        "webhookTest": "Test"
+      },
+      "status": {
+        "delivered": "Delivered",
+        "pending": "Pending",
+        "failed": "Failed",
+        "expired": "Expired"
+      },
+      "nenhumaEntregaAinda": "No deliveries yet",
+      "ultimaEntrega": "Last delivery: {{status}} on {{date}}",
+      "aindaNaoTentada": "Not attempted yet",
+      "httpCode": "HTTP {{code}}",
+      "semResposta": "No response"
+    },
+    "maskUrl": {
+      "enderecoInvalido": "Invalid address"
     }
   }
 }

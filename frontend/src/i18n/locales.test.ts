@@ -60,6 +60,12 @@ describe("arquivos de traducao", () => {
     "budgets.budgetFormDialog.envelope",
     "envelopes.applyTemplatesDialog.envelope",
     "envelopes.envelopeGroupTable.envelope",
+    "pages.webhooks.webhooks",
+    "reports.presentation.dimension.tag.column",
+    "reports.customConfig.groupBy.tag",
+    "reports.customConfig.filterName.tag",
+    "rules.presentation.actionSummary.add_tag",
+    "webhooks.presentation.httpCode",
   ]);
 
   it("o ingles nao e uma copia do portugues: texto igual so na lista de excecoes", () => {

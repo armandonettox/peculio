@@ -1,4 +1,5 @@
 import type { ClosedReconciliation, ReconciliationRow, ReconciliationView } from "@/api/reconciliation";
+import { i18n } from "@/i18n";
 import { formatMoney, negateMoney } from "@/lib/money";
 
 /** -1, 0 ou 1, lendo o texto do valor sem passar por float. */
@@ -12,11 +13,17 @@ export type DifferenceInfo = { tone: "ok" | "statement_more" | "cleared_more"; t
 /** A diferenca (extrato - conferido) em uma frase: quem tem mais dinheiro, e quanto. */
 export function differenceInfo(difference: string, currencyCode: string): DifferenceInfo {
   const sign = signOf(difference);
-  if (sign === 0) return { tone: "ok", text: "O conferido bate com o extrato." };
+  if (sign === 0) return { tone: "ok", text: i18n.t("reconciliation.presentation.bate") };
   if (sign > 0) {
-    return { tone: "statement_more", text: `O extrato tem ${formatMoney(difference, currencyCode)} a mais do que o conferido.` };
+    return {
+      tone: "statement_more",
+      text: i18n.t("reconciliation.presentation.extratoTemAMais", { amount: formatMoney(difference, currencyCode) }),
+    };
   }
-  return { tone: "cleared_more", text: `O conferido tem ${formatMoney(negateMoney(difference), currencyCode)} a mais do que o extrato.` };
+  return {
+    tone: "cleared_more",
+    text: i18n.t("reconciliation.presentation.conferidoTemAMais", { amount: formatMoney(negateMoney(difference), currencyCode) }),
+  };
 }
 
 export type AdjustmentPreview = { kind: "deposit" | "withdrawal"; amount: string; text: string };
@@ -26,10 +33,18 @@ export function adjustmentPreview(difference: string, currencyCode: string): Adj
   const sign = signOf(difference);
   if (sign === 0) return null;
   if (sign > 0) {
-    return { kind: "deposit", amount: difference, text: `uma entrada de ${formatMoney(difference, currencyCode)}` };
+    return {
+      kind: "deposit",
+      amount: difference,
+      text: i18n.t("reconciliation.presentation.umaEntradaDe", { amount: formatMoney(difference, currencyCode) }),
+    };
   }
   const amount = negateMoney(difference);
-  return { kind: "withdrawal", amount, text: `uma saída de ${formatMoney(amount, currencyCode)}` };
+  return {
+    kind: "withdrawal",
+    amount,
+    text: i18n.t("reconciliation.presentation.umaSaidaDe", { amount: formatMoney(amount, currencyCode) }),
+  };
 }
 
 /** Os lancamentos que mudariam ao marcar (ou desmarcar) todos. */
@@ -42,22 +57,24 @@ export function clearedCount(rows: ReconciliationRow[]): number {
 }
 
 export function entriesText(count: number): string {
-  return count === 1 ? "1 lançamento" : `${count} lançamentos`;
+  return i18n.t("reconciliation.presentation.entries", { count });
 }
 
 /** Quantos lancamentos abertos ha alem dos que a tela traz. */
 export function truncatedText(view: ReconciliationView): string | null {
   if (!view.truncated) return null;
-  return `Mostrando ${view.rows.length} de ${view.total_rows} lançamentos abertos. Confira e feche estes; os outros aparecem em seguida.`;
+  return i18n.t("reconciliation.presentation.mostrando", { shown: view.rows.length, total: view.total_rows });
 }
 
 export type HistoryStatus = { label: string; active: boolean };
 
 export function historyStatus(item: ClosedReconciliation): HistoryStatus {
-  return item.invalidated_at ? { label: "Desfeita", active: false } : { label: "Fechada", active: true };
+  return item.invalidated_at
+    ? { label: i18n.t("reconciliation.presentation.desfeita"), active: false }
+    : { label: i18n.t("reconciliation.presentation.fechada"), active: true };
 }
 
 export function lockedText(count: number): string {
-  if (count === 0) return "Nenhum lançamento travado";
-  return `${entriesText(count)} ${count === 1 ? "travado" : "travados"}`;
+  if (count === 0) return i18n.t("reconciliation.presentation.nenhumTravado");
+  return i18n.t("reconciliation.presentation.travados", { entries: entriesText(count), count });
 }

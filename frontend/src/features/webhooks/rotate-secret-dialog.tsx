@@ -4,6 +4,7 @@ import { getErrorMessage } from "@/api/error-messages";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trans, useTranslation } from "react-i18next";
 
 type Props = {
   webhookName: string;
@@ -14,6 +15,7 @@ type Props = {
 
 /** Confirmacao antes de girar o segredo: o antigo deixa de valer na hora. */
 export function RotateSecretDialog({ webhookName, onConfirm, onClose }: Props) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,10 +35,13 @@ export function RotateSecretDialog({ webhookName, onConfirm, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Girar segredo</DialogTitle>
+          <DialogTitle>{t("webhooks.rotateSecretDialog.girarSegredo")}</DialogTitle>
           <DialogDescription>
-            O segredo atual de <strong>{webhookName}</strong> deixa de valer na hora. Quem recebe os avisos precisa
-            usar o segredo novo para conferir a assinatura.
+            <Trans
+              i18nKey="webhooks.rotateSecretDialog.oSegredoAtualDe"
+              values={{ name: webhookName }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -44,10 +49,10 @@ export function RotateSecretDialog({ webhookName, onConfirm, onClose }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t("common.cancelar")}
           </Button>
           <Button onClick={() => void confirm()} disabled={busy}>
-            {busy ? "Girando..." : "Girar segredo"}
+            {busy ? t("webhooks.rotateSecretDialog.girando") : t("webhooks.rotateSecretDialog.girarSegredo")}
           </Button>
         </DialogFooter>
       </DialogContent>

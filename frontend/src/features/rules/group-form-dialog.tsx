@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { MAX_POSITION, parsePosition } from "./form-model";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "position";
 type Errors = Partial<Record<Field, string>>;
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function GroupFormDialog({ group, onClose }: Props) {
+  const { t } = useTranslation();
   const editing = group !== undefined;
   const create = useCreateRuleGroup();
   const update = useUpdateRuleGroup();
@@ -49,9 +51,9 @@ export function GroupFormDialog({ group, onClose }: Props) {
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, "Informe o nome do grupo.") };
+    const found: Errors = { name: requiredError(name, t("rules.groupFormDialog.informeONome")) };
     const parsed = parsePosition(position);
-    if (parsed === null) found.position = `Informe um número inteiro de 0 a ${MAX_POSITION}.`;
+    if (parsed === null) found.position = t("rules.groupFormDialog.informeUmNumero", { max: MAX_POSITION });
     setErrors(found);
     const firstInvalid = (["name", "position"] as const).find((field) => found[field]);
     if (firstInvalid || parsed === null) {
@@ -79,17 +81,16 @@ export function GroupFormDialog({ group, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar grupo" : "Novo grupo"}</DialogTitle>
+          <DialogTitle>{editing ? t("rules.groupFormDialog.editarGrupo") : t("rules.groupFormDialog.novoGrupo")}</DialogTitle>
           <DialogDescription>
-            Grupos ajudam a organizar as regras. Eles rodam em ordem: o de número menor vem primeiro, e as regras sem
-            grupo rodam por último.
+            {t("rules.groupFormDialog.gruposAjudamAOrganizar")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="rule-group-name" label="Nome" error={errors.name}>
+          <FormField id="rule-group-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -103,7 +104,7 @@ export function GroupFormDialog({ group, onClose }: Props) {
             )}
           </FormField>
 
-          <FormField id="rule-group-position" label="Ordem" error={errors.position}>
+          <FormField id="rule-group-position" label={t("rules.groupFormDialog.ordem")} error={errors.position}>
             {(props) => (
               <Input
                 {...props}
@@ -120,10 +121,10 @@ export function GroupFormDialog({ group, onClose }: Props) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar grupo"}
+              {submitting ? t("rules.groupFormDialog.salvando") : editing ? t("rules.groupFormDialog.salvar") : t("rules.groupFormDialog.criarGrupo")}
             </Button>
           </DialogFooter>
         </form>

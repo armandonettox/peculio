@@ -3,15 +3,17 @@ import { useId } from "react";
 
 import type { ReportGroupBlock } from "@/api/reports";
 import { formatMoney } from "@/lib/money";
-import { barPercent, netClass, rowName, type DIMENSIONS } from "./presentation";
+import { barPercent, dimensions, netClass, rowName } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type BreakdownTableProps = {
-  dimension: (typeof DIMENSIONS)[number];
+  dimension: ReturnType<typeof dimensions>[number];
   block: ReportGroupBlock;
 };
 
 /** Tabela de receita e despesa por categoria, tag, orcamento ou conta, com uma barra de despesa em CSS. */
 export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
+  const { t } = useTranslation();
   const headingId = useId();
   const code = block.currency_code;
   // As linhas vem do maior gasto para o menor, mas a barra nao depende disso
@@ -23,24 +25,22 @@ export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
         {dimension.title}
       </h4>
       {dimension.note && <p className="text-xs text-muted-foreground">{dimension.note}</p>}
-      <TableScroll label={`${dimension.title} em ${code}`}>
+      <TableScroll label={t("reports.breakdownTable.tituloEm", { title: dimension.title, code })}>
         <table className="w-full min-w-96 text-sm">
-          <caption className="sr-only">
-            {dimension.title} em {code}
-          </caption>
+          <caption className="sr-only">{t("reports.breakdownTable.tituloEm", { title: dimension.title, code })}</caption>
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
               <th scope="col" className="px-3 py-2 font-medium">
                 {dimension.column}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Receita
+                {t("common.receita")}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Despesa
+                {t("common.despesa")}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Resultado
+                {t("common.resultado")}
               </th>
             </tr>
           </thead>
@@ -56,7 +56,7 @@ export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
                       <span className="mt-1 block h-1.5 w-full rounded-full bg-muted">
                         <span
                           role="img"
-                          aria-label={`Despesa de ${formatMoney(row.expense, code)}, ${percent}% do maior gasto da lista`}
+                          aria-label={t("reports.breakdownTable.despesaDePercent", { amount: formatMoney(row.expense, code), percent })}
                           className="block h-full rounded-full bg-destructive"
                           style={{ width: `${percent}%` }}
                         />

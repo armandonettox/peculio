@@ -14,25 +14,24 @@ import { ImportMappingStep } from "@/features/imports/import-mapping-step";
 import { ImportPreviewStep } from "@/features/imports/import-preview-step";
 import { buildMapping, emptyMappingForm, formFromMapping, type MappingForm } from "@/features/imports/mapping-model";
 import { entriesText, newRows, rowsToImport } from "@/features/imports/preview-model";
+import { i18n } from "@/i18n";
+import { Trans, useTranslation } from "react-i18next";
 
 type Step = "file" | "mapping" | "preview" | "done";
 
 // Erros do arquivo trazem o motivo exato no texto do servidor (moeda diferente, arquivo vazio...)
 function importErrorMessage(error: unknown): string {
   if (error instanceof ApiError && (error.code === "import_file_invalid" || error.code === "import_too_many_rows")) {
-    return `Não foi possível ler o arquivo: ${error.message}`;
+    return i18n.t("pages.import.naoFoiPossivelLer", { message: error.message });
   }
   return getErrorMessage(error);
 }
 
-const STEPS: { key: Step; label: string }[] = [
-  { key: "file", label: "Arquivo" },
-  { key: "mapping", label: "Colunas" },
-  { key: "preview", label: "Prévia" },
-  { key: "done", label: "Pronto" },
-];
+const STEP_KEYS: Step[] = ["file", "mapping", "preview", "done"];
 
 export default function ImportPage() {
+  const { t } = useTranslation();
+  const STEPS: { key: Step; label: string }[] = STEP_KEYS.map((key) => ({ key, label: t(`pages.import.step.${key}`) }));
   const accountsQuery = useAccounts({ includeArchived: false });
   const preview = usePreviewImport();
   const confirm = useConfirmImport();
@@ -106,7 +105,7 @@ export default function ImportPage() {
   if (accountsQuery.isPending) {
     content = (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando contas...
+        {t("common.carregandoContas")}
       </p>
     );
   } else if (accountsQuery.isError) {
@@ -116,14 +115,17 @@ export default function ImportPage() {
           {getErrorMessage(accountsQuery.error)}
         </Alert>
         <Button variant="outline" onClick={() => void accountsQuery.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
   } else if (accounts.length === 0) {
     content = (
       <Alert>
-        Você ainda não tem uma conta para receber o extrato. <Link to="/contas" className="font-medium underline">Crie uma conta</Link> primeiro.
+        <Trans
+          i18nKey="pages.import.aindaNaoTemConta"
+          components={{ cta: <Link to="/contas" className="font-medium underline" /> }}
+        />
       </Alert>
     );
   } else if (step === "file" || !data) {
@@ -181,21 +183,20 @@ export default function ImportPage() {
         </span>
         <div role="status" className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">
-            {result && result.created > 0 ? `${entriesText(result.created)} importados` : "Nada foi importado"}
+            {result && result.created > 0 ? t("pages.import.importados", { entries: entriesText(result.created) }) : t("pages.import.nadaFoiImportado")}
           </h2>
           {result && result.skipped > 0 && (
             <p className="text-sm text-muted-foreground">
-              {entriesText(result.skipped)} {result.skipped === 1 ? "foi deixado" : "foram deixados"} de fora porque o banco já tinha enviado
-              {result.skipped === 1 ? " esse" : " esses"} antes.
+              {t("pages.import.deixadosDeFora", { entries: entriesText(result.skipped), count: result.skipped })}
             </p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link to="/transacoes">Ver lançamentos</Link>
+            <Link to="/transacoes">{t("pages.import.verLancamentos")}</Link>
           </Button>
           <Button variant="outline" onClick={startOver}>
-            Importar outro extrato
+            {t("pages.import.importarOutroExtrato")}
           </Button>
         </div>
       </div>
@@ -208,10 +209,10 @@ export default function ImportPage() {
 
   return (
     <>
-      <PageHeader title="Importar extrato" description="Traga os lançamentos de um extrato do banco (CSV ou OFX)" />
+      <PageHeader title={t("pages.import.importarExtrato")} description={t("pages.import.tragaOsLancamentosDe")} />
 
       {showSteps && (
-        <ol className="mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label="Passos da importação">
+        <ol className="mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={t("pages.import.passosDaImportacao")}>
           {visibleSteps.map((item, index) => (
             <li
               key={item.key}

@@ -3,6 +3,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { httpText } from "./presentation";
+import { Trans, useTranslation } from "react-i18next";
 
 type Props = {
   webhookName: string;
@@ -13,19 +14,24 @@ type Props = {
 };
 
 export function TestResultDialog({ webhookName, result, error, onClose }: Props) {
+  const { t } = useTranslation();
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Teste do webhook</DialogTitle>
+          <DialogTitle>{t("webhooks.testResultDialog.testeDoWebhook")}</DialogTitle>
           <DialogDescription>
-            Aviso de teste enviado agora para <strong>{webhookName}</strong>. Ele não entra nas retentativas.
+            <Trans
+              i18nKey="webhooks.testResultDialog.avisoDeTeste"
+              values={{ name: webhookName }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
         {!result && !error && (
           <p role="status" className="text-sm text-muted-foreground">
-            Enviando o teste...
+            {t("webhooks.testResultDialog.enviandoOTeste")}
           </p>
         )}
 
@@ -34,15 +40,17 @@ export function TestResultDialog({ webhookName, result, error, onClose }: Props)
         {result && (
           <div className="flex flex-col gap-2">
             {result.status === "delivered" ? (
-              <Alert>Entregue com sucesso ({httpText(result)}).</Alert>
+              <Alert>{t("webhooks.testResultDialog.entregueComSucesso", { http: httpText(result) })}</Alert>
             ) : (
               <Alert variant="destructive">
-                Não foi entregue ({httpText(result)}){result.last_error ? `: ${result.last_error}` : ""}
+                {result.last_error
+                  ? t("webhooks.testResultDialog.naoFoiEntregueComErro", { http: httpText(result), error: result.last_error })
+                  : t("webhooks.testResultDialog.naoFoiEntregue", { http: httpText(result) })}
               </Alert>
             )}
             {result.response_excerpt && (
               <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium text-muted-foreground">Resposta do endereço</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("webhooks.testResultDialog.respostaDoEndereco")}</p>
                 <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-md border bg-muted p-2 text-xs">
                   {result.response_excerpt}
                 </pre>
@@ -52,7 +60,7 @@ export function TestResultDialog({ webhookName, result, error, onClose }: Props)
         )}
 
         <DialogFooter>
-          <Button onClick={onClose}>Fechar</Button>
+          <Button onClick={onClose}>{t("common.fechar")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

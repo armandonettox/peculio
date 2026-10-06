@@ -31,17 +31,18 @@ import {
 } from "./form-model";
 import {
   ACTION_KINDS,
-  ACTION_LABELS,
+  actionLabel,
   FIELDS,
-  FIELD_LABELS,
+  fieldLabel,
   FIELD_OPS,
-  MATCH_MODE_LABELS,
-  OP_LABELS,
-  TYPE_LABELS,
+  matchModeLabel,
+  opLabel,
+  typeLabel,
   type ActionKind,
   type TriggerField,
   type TriggerOp,
 } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Option = { id: string; name: string };
 
@@ -56,6 +57,7 @@ type Props = {
 };
 
 export function RuleFormDialog({ rule, onClose }: Props) {
+  const { t } = useTranslation();
   const editing = rule !== undefined;
   const create = useCreateRule();
   const update = useUpdateRule();
@@ -141,7 +143,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
     if (trigger.field === "account") {
       return (
         <Select id={id} aria-label={label} aria-invalid={invalid} value={trigger.value} onChange={(e) => patchTrigger(index, { value: e.target.value })}>
-          <option value="">Escolha a conta</option>
+          <option value="">{t("common.escolhaAConta")}</option>
           {(accounts.data ?? []).map((account) => (
             <option key={account.id} value={account.id}>
               {account.name}
@@ -155,7 +157,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
         <Select id={id} aria-label={label} value={trigger.value} onChange={(e) => patchTrigger(index, { value: e.target.value })}>
           {TYPE_OPTIONS.map((type) => (
             <option key={type} value={type}>
-              {TYPE_LABELS[type]}
+              {typeLabel(type)}
             </option>
           ))}
         </Select>
@@ -168,7 +170,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
         aria-invalid={invalid}
         autoComplete="off"
         inputMode={trigger.field === "amount" ? "decimal" : undefined}
-        placeholder={trigger.field === "amount" ? "0,00" : "Texto"}
+        placeholder={trigger.field === "amount" ? "0,00" : t("rules.ruleFormDialog.texto")}
         value={trigger.value}
         onChange={(e) => patchTrigger(index, { value: e.target.value })}
       />
@@ -179,17 +181,16 @@ export function RuleFormDialog({ rule, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar regra" : "Nova regra"}</DialogTitle>
+          <DialogTitle>{editing ? t("rules.ruleFormDialog.editarRegra") : t("rules.ruleFormDialog.novaRegra")}</DialogTitle>
           <DialogDescription>
-            A regra preenche categoria, tags, orçamento ou conta a pagar nas transações que combinam com os gatilhos. Ela
-            só preenche o que estiver vazio: o que você escolheu na transação nunca é trocado.
+            {t("rules.ruleFormDialog.aRegraPreencheCategoria")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="rule-name" label="Nome" error={errors.name}>
+          <FormField id="rule-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -204,13 +205,13 @@ export function RuleFormDialog({ rule, onClose }: Props) {
           </FormField>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="text-sm font-medium">Quando</legend>
-            <FormField id="rule-match-mode" label="Combinação dos gatilhos">
+            <legend className="text-sm font-medium">{t("rules.ruleFormDialog.quando")}</legend>
+            <FormField id="rule-match-mode" label={t("rules.ruleFormDialog.combinacaoDosGatilhos")}>
               {(props) => (
                 <Select {...props} value={draft.matchMode} onChange={(e) => patch({ matchMode: e.target.value as RuleMatchMode })}>
-                  {(Object.keys(MATCH_MODE_LABELS) as RuleMatchMode[]).map((mode) => (
+                  {(["all", "any"] as RuleMatchMode[]).map((mode) => (
                     <option key={mode} value={mode}>
-                      {MATCH_MODE_LABELS[mode]}
+                      {matchModeLabel(mode)}
                     </option>
                   ))}
                 </Select>
@@ -221,24 +222,24 @@ export function RuleFormDialog({ rule, onClose }: Props) {
               <div key={index} className="flex flex-col gap-1">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]">
                   <Select
-                    aria-label={`Campo do gatilho ${index + 1}`}
+                    aria-label={t("rules.ruleFormDialog.campoDoGatilho", { index: index + 1 })}
                     value={trigger.field}
                     onChange={(e) => changeField(index, e.target.value as TriggerField)}
                   >
                     {FIELDS.map((field) => (
                       <option key={field} value={field}>
-                        {FIELD_LABELS[field]}
+                        {fieldLabel(field)}
                       </option>
                     ))}
                   </Select>
                   <Select
-                    aria-label={`Operação do gatilho ${index + 1}`}
+                    aria-label={t("rules.ruleFormDialog.operacaoDoGatilho", { index: index + 1 })}
                     value={trigger.op}
                     onChange={(e) => patchTrigger(index, { op: e.target.value as TriggerOp })}
                   >
                     {FIELD_OPS[trigger.field].map((op) => (
                       <option key={op} value={op}>
-                        {OP_LABELS[op]}
+                        {opLabel(op)}
                       </option>
                     ))}
                   </Select>
@@ -247,7 +248,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label={`Remover gatilho ${index + 1}`}
+                    aria-label={t("rules.ruleFormDialog.removerGatilho", { index: index + 1 })}
                     disabled={draft.triggers.length === 1}
                     onClick={() => {
                       patch({ triggers: draft.triggers.filter((_, i) => i !== index) });
@@ -273,12 +274,12 @@ export function RuleFormDialog({ rule, onClose }: Props) {
               onClick={() => patch({ triggers: [...draft.triggers, newTrigger()] })}
             >
               <Plus />
-              Adicionar gatilho
+              {t("rules.ruleFormDialog.adicionarGatilho")}
             </Button>
           </fieldset>
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="text-sm font-medium">Então</legend>
+            <legend className="text-sm font-medium">{t("rules.ruleFormDialog.entao")}</legend>
             {draft.actions.map((action, index) => {
               const usedElsewhere = new Set(
                 draft.actions.filter((_, i) => i !== index).map((other) => other.kind),
@@ -287,24 +288,24 @@ export function RuleFormDialog({ rule, onClose }: Props) {
                 <div key={index} className="flex flex-col gap-1">
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
                     <Select
-                      aria-label={`Ação ${index + 1}`}
+                      aria-label={t("rules.ruleFormDialog.acao", { index: index + 1 })}
                       value={action.kind}
                       onChange={(e) => patchAction(index, { kind: e.target.value as ActionKind, targetId: "" })}
                     >
                       {ACTION_KINDS.map((kind) => (
                         <option key={kind} value={kind} disabled={SINGLE_KINDS.includes(kind) && usedElsewhere.has(kind)}>
-                          {ACTION_LABELS[kind]}
+                          {actionLabel(kind)}
                         </option>
                       ))}
                     </Select>
                     <Select
                       id={`rule-action-target-${index}`}
-                      aria-label={`Alvo da ação ${index + 1}`}
+                      aria-label={t("rules.ruleFormDialog.alvoDaAcao", { index: index + 1 })}
                       aria-invalid={errors.actions[index] ? true : undefined}
                       value={action.targetId}
                       onChange={(e) => patchAction(index, { targetId: e.target.value })}
                     >
-                      <option value="">Escolha</option>
+                      <option value="">{t("rules.ruleFormDialog.escolha")}</option>
                       {targets[action.kind].map((option) => (
                         <option key={option.id} value={option.id}>
                           {option.name}
@@ -315,7 +316,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      aria-label={`Remover ação ${index + 1}`}
+                      aria-label={t("rules.ruleFormDialog.removerAcao", { index: index + 1 })}
                       disabled={draft.actions.length === 1}
                       onClick={() => {
                         patch({ actions: draft.actions.filter((_, i) => i !== index) });
@@ -342,15 +343,15 @@ export function RuleFormDialog({ rule, onClose }: Props) {
               onClick={() => patch({ actions: [...draft.actions, newAction(draft.actions)] })}
             >
               <Plus />
-              Adicionar ação
+              {t("rules.ruleFormDialog.adicionarAcao")}
             </Button>
           </fieldset>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="rule-group" label="Grupo">
+            <FormField id="rule-group" label={t("rules.ruleFormDialog.grupo")}>
               {(props) => (
                 <Select {...props} value={draft.groupId} onChange={(e) => patch({ groupId: e.target.value })}>
-                  <option value="">Sem grupo</option>
+                  <option value="">{t("rules.ruleFormDialog.semGrupo")}</option>
                   {(groups.data ?? []).map((group) => (
                     <option key={group.id} value={group.id}>
                       {group.name}
@@ -360,7 +361,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
               )}
             </FormField>
 
-            <FormField id="rule-position" label="Ordem" error={errors.position}>
+            <FormField id="rule-position" label={t("rules.ruleFormDialog.ordem")} error={errors.position}>
               {(props) => (
                 <Input
                   {...props}
@@ -384,7 +385,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
                 onChange={(event) => patch({ stopProcessing: event.target.checked })}
                 className="accent-[var(--primary)]"
               />
-              Parar aqui: se esta regra valer, as seguintes não rodam
+              {t("rules.ruleFormDialog.pararAquiSeEsta")}
             </label>
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
@@ -393,16 +394,16 @@ export function RuleFormDialog({ rule, onClose }: Props) {
                 onChange={(event) => patch({ active: event.target.checked })}
                 className="accent-[var(--primary)]"
               />
-              Regra ativa
+              {t("rules.ruleFormDialog.regraAtiva")}
             </label>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar regra"}
+              {submitting ? t("rules.ruleFormDialog.salvando") : editing ? t("rules.ruleFormDialog.salvar") : t("rules.ruleFormDialog.criarRegra")}
             </Button>
           </DialogFooter>
         </form>

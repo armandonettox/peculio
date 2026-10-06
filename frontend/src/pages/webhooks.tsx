@@ -22,6 +22,7 @@ import { SecretDialog } from "@/features/webhooks/secret-dialog";
 import { TestResultDialog } from "@/features/webhooks/test-result-dialog";
 import { WebhookCard } from "@/features/webhooks/webhook-card";
 import { WebhookFormDialog } from "@/features/webhooks/webhook-form-dialog";
+import { useTranslation } from "react-i18next";
 
 type DialogState =
   | { kind: "create" }
@@ -34,6 +35,7 @@ type DialogState =
   | null;
 
 export default function WebhooksPage() {
+  const { t } = useTranslation();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -71,7 +73,7 @@ export default function WebhooksPage() {
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Novo webhook
+      {t("pages.webhooks.novoWebhook")}
     </Button>
   );
 
@@ -83,7 +85,7 @@ export default function WebhooksPage() {
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando webhooks...
+          {t("pages.webhooks.carregandoWebhooks")}
         </p>
       </div>
     );
@@ -94,7 +96,7 @@ export default function WebhooksPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -102,8 +104,8 @@ export default function WebhooksPage() {
     content = (
       <EmptyState
         icon={WebhookIcon}
-        title="Nenhum webhook ainda"
-        description="Um webhook avisa outro sistema, como uma planilha ou uma automação, sempre que um lançamento é criado, editado ou excluído."
+        title={t("pages.webhooks.nenhumWebhookAinda")}
+        description={t("pages.webhooks.umWebhookAvisaOutro")}
         action={newButton}
       />
     );
@@ -128,7 +130,7 @@ export default function WebhooksPage() {
 
   return (
     <>
-      <PageHeader title="Webhooks" description="Avisos automáticos para outros sistemas" actions={newButton} />
+      <PageHeader title={t("pages.webhooks.webhooks")} description={t("pages.webhooks.avisosAutomaticosParaOutros")} actions={newButton} />
 
       {actionError && (
         <Alert variant="destructive" className="mb-4">
@@ -147,9 +149,9 @@ export default function WebhooksPage() {
       {dialog?.kind === "edit" && <WebhookFormDialog webhook={dialog.webhook} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir webhook"
+          title={t("pages.webhooks.excluirWebhook")}
           itemName={dialog.webhook.name}
-          consequence="O histórico de entregas dele também é apagado e os avisos pendentes não são enviados."
+          consequence={t("pages.webhooks.oHistoricoDeEntregas")}
           onConfirm={() => remove.mutateAsync(dialog.webhook.id)}
           onClose={() => setDialog(null)}
         />

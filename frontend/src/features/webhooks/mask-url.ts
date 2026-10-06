@@ -1,5 +1,6 @@
+import { i18n } from "@/i18n";
+
 const MASK = "***";
-const INVALID_TEXT = "Endereço inválido";
 
 /**
  * Versão do endereço do webhook que pode aparecer na tela da lista.
@@ -15,9 +16,9 @@ export function maskWebhookUrl(raw: string): string {
     // O parser ja ignora espacos nas pontas, e para http(s) nunca aceita host vazio
     url = new URL(raw);
   } catch {
-    return INVALID_TEXT;
+    return i18n.t("webhooks.maskUrl.enderecoInvalido");
   }
-  if (url.protocol !== "https:" && url.protocol !== "http:") return INVALID_TEXT;
+  if (url.protocol !== "https:" && url.protocol !== "http:") return i18n.t("webhooks.maskUrl.enderecoInvalido");
 
   const hasCredentials = url.username !== "" || url.password !== "";
   let masked = `${url.protocol}//${hasCredentials ? `${MASK}@` : ""}${url.host}${url.pathname}`;

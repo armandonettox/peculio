@@ -19,14 +19,13 @@ import { Select } from "@/components/ui/select";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { previewChanges, type NameLookups } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   rules: Rule[];
   lookups: NameLookups;
   onClose: () => void;
 };
-
-export const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /** Filtros digitados -> corpo da API. Campos vazios saem; `rule_ids` so quando nem todas as regras valem. */
 export function buildRun(
@@ -43,6 +42,7 @@ export function buildRun(
 }
 
 export function BackfillDialog({ rules, lookups, onClose }: Props) {
+  const { t } = useTranslation();
   const activeRules = rules.filter((rule) => rule.active);
   const accounts = useAccounts({ includeArchived: true });
   const previewMutation = usePreviewRules();
@@ -61,7 +61,7 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const busy = previewMutation.isPending || applyMutation.isPending;
-  const rangeError = dateFrom && dateTo && dateFrom > dateTo ? "A data inicial não pode ser depois da final." : undefined;
+  const rangeError = dateFrom && dateTo && dateFrom > dateTo ? t("rules.backfillDialog.dataInicialNaoPode") : undefined;
 
   // Mudar qualquer filtro invalida a previa: o que se aplica e sempre o que foi mostrado
   function changeFilter(change: () => void) {
@@ -104,32 +104,31 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Aplicar nas transações antigas</DialogTitle>
+          <DialogTitle>{t("rules.backfillDialog.aplicarNasTransacoesAntigas")}</DialogTitle>
           <DialogDescription>
-            Veja primeiro o que mudaria. Só são preenchidos os campos que estão em branco: categoria, tags, orçamento e
-            conta a pagar que você já escolheu ficam como estão.
+            {t("rules.backfillDialog.vejaPrimeiroOQue")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {activeRules.length === 0 && <Alert>Você não tem regras ativas para aplicar.</Alert>}
+          {activeRules.length === 0 && <Alert>{t("rules.backfillDialog.voceNaoTemRegras")}</Alert>}
           {error && <Alert variant="destructive">{error}</Alert>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FormField id="backfill-from" label="De" error={rangeError}>
+            <FormField id="backfill-from" label={t("rules.backfillDialog.de")} error={rangeError}>
               {(props) => (
                 <Input {...props} type="date" value={dateFrom} onChange={(e) => changeFilter(() => setDateFrom(e.target.value))} />
               )}
             </FormField>
-            <FormField id="backfill-to" label="Até">
+            <FormField id="backfill-to" label={t("rules.backfillDialog.ate")}>
               {(props) => (
                 <Input {...props} type="date" value={dateTo} onChange={(e) => changeFilter(() => setDateTo(e.target.value))} />
               )}
             </FormField>
-            <FormField id="backfill-account" label="Conta">
+            <FormField id="backfill-account" label={t("common.conta")}>
               {(props) => (
                 <Select {...props} value={accountId} onChange={(e) => changeFilter(() => setAccountId(e.target.value))}>
-                  <option value="">Todas as contas</option>
+                  <option value="">{t("rules.backfillDialog.todasAsContas")}</option>
                   {(accounts.data ?? []).map((account) => (
                     <option key={account.id} value={account.id}>
                       {account.name}
@@ -142,7 +141,7 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
 
           {activeRules.length > 0 && (
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium">Regras</legend>
+              <legend className="mb-1 text-sm font-medium">{t("rules.backfillDialog.regras")}</legend>
               {activeRules.map((rule) => (
                 <label key={rule.id} className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
@@ -164,15 +163,15 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
             disabled={busy || Boolean(rangeError) || selected.length === 0}
             onClick={() => void handlePreview()}
           >
-            {previewMutation.isPending ? "Calculando..." : "Ver prévia"}
+            {previewMutation.isPending ? t("rules.backfillDialog.calculando") : t("rules.backfillDialog.verPrevia")}
           </Button>
 
           {preview && (
-            <section aria-label="Prévia" className="flex flex-col gap-3">
+            <section aria-label={t("rules.backfillDialog.previa")} className="flex flex-col gap-3">
               <p role="status" className="text-sm font-medium">
                 {preview.changed === 0
-                  ? `Nada para preencher em ${plural(preview.scanned, "lançamento", "lançamentos")}.`
-                  : `${plural(preview.changed, "lançamento seria alterado", "lançamentos seriam alterados")} de ${preview.scanned}.`}
+                  ? t("rules.backfillDialog.nadaParaPreencher", { count: preview.scanned })
+                  : t("rules.backfillDialog.seriaAlterado", { count: preview.changed, scanned: preview.scanned })}
               </p>
               {preview.items.length > 0 && (
                 <ul className="flex max-h-72 flex-col gap-2 overflow-y-auto">
@@ -193,28 +192,24 @@ export function BackfillDialog({ rules, lookups, onClose }: Props) {
               )}
               {preview.truncated && (
                 <p className="text-xs text-muted-foreground">
-                  Mostrando os primeiros {preview.items.length}. A aplicação vale para todos os {preview.changed}.
+                  {t("rules.backfillDialog.mostrandoOsPrimeiros", { shown: preview.items.length, total: preview.changed })}
                 </p>
               )}
             </section>
           )}
 
           {applied && (
-            <Alert role="status">
-              Pronto: {plural(applied.changed, "lançamento atualizado", "lançamentos atualizados")}.
-            </Alert>
+            <Alert role="status">{t("rules.backfillDialog.pronto", { count: applied.changed })}</Alert>
           )}
         </div>
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-            {applied ? "Fechar" : "Cancelar"}
+            {applied ? t("common.fechar") : t("common.cancelar")}
           </Button>
           {preview && preview.changed > 0 && !applied && (
             <Button type="button" disabled={busy} onClick={() => void handleApply()}>
-              {applyMutation.isPending
-                ? "Aplicando..."
-                : `Aplicar em ${plural(preview.changed, "lançamento", "lançamentos")}`}
+              {applyMutation.isPending ? t("rules.backfillDialog.aplicando") : t("rules.backfillDialog.aplicarEm", { count: preview.changed })}
             </Button>
           )}
         </DialogFooter>

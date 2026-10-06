@@ -13,6 +13,7 @@ import {
   type MappingErrors,
   type MappingForm,
 } from "./mapping-model";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   preview: ImportPreview;
@@ -27,6 +28,7 @@ type Props = {
 
 /** Passo 2 (so CSV): a pessoa diz qual coluna e a data, a descricao e o valor. */
 export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBack, pending, error }: Props) {
+  const { t } = useTranslation();
   const [errors, setErrors] = useState<MappingErrors>({});
   const table = sampleTable(preview, form.hasHeader);
   const width = Math.max(table.headers.length, ...table.rows.map((row) => row.length), 0);
@@ -54,7 +56,7 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
           value={value}
           onChange={(event) => change({ [key]: event.target.value } as Partial<MappingForm>, key)}
         >
-          <option value="">Escolha a coluna</option>
+          <option value="">{t("imports.importMappingStep.escolhaAColuna")}</option>
           {Array.from({ length: width }, (_, index) => (
             <option key={index} value={String(index)}>
               {columnLabel(index, table.headers[index])}
@@ -75,14 +77,14 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
       noValidate
     >
       <p className="text-sm text-muted-foreground">
-        Não deu para descobrir sozinho qual coluna é qual. Diga abaixo o que cada uma significa.
+        {t("imports.importMappingStep.naoDeuParaDescobrir")}
       </p>
 
       {error && <Alert variant="destructive">{error}</Alert>}
 
       <div className="relative overflow-x-auto rounded-lg border bg-card">
         <table className="w-full min-w-max text-left text-sm">
-          <caption className="sr-only">Primeiras linhas do arquivo</caption>
+          <caption className="sr-only">{t("imports.importMappingStep.primeirasLinhasDoArquivo")}</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
             <tr>
               {Array.from({ length: width }, (_, index) => (
@@ -113,20 +115,20 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
           onChange={(event) => change({ hasHeader: event.target.checked }, "dateColumn", "descriptionColumn", "amountColumn", "debitColumn", "creditColumn")}
           className="accent-[var(--primary)]"
         />
-        A primeira linha do arquivo é o cabeçalho (os nomes das colunas)
+        {t("imports.importMappingStep.aPrimeiraLinhaDo")}
       </label>
 
       <div className="grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-2">
-        {columnSelect("import-date-column", "Coluna da data", "dateColumn", form.dateColumn)}
-        {columnSelect("import-description-column", "Coluna da descrição", "descriptionColumn", form.descriptionColumn)}
+        {columnSelect("import-date-column", t("imports.importMappingStep.colunaDaData"), "dateColumn", form.dateColumn)}
+        {columnSelect("import-description-column", t("imports.importMappingStep.colunaDaDescricao"), "descriptionColumn", form.descriptionColumn)}
       </div>
 
       <fieldset className="flex max-w-3xl flex-col gap-3">
-        <legend className="mb-1 text-sm font-medium">Como o valor aparece</legend>
+        <legend className="mb-1 text-sm font-medium">{t("imports.importMappingStep.comoOValorAparece")}</legend>
         {(
           [
-            ["single", "Uma coluna com sinal (negativo é saída, positivo é entrada)"],
-            ["split", "Duas colunas: débito (saída) e crédito (entrada)"],
+            ["single", t("imports.importMappingStep.umaColunaComSinal")],
+            ["split", t("imports.importMappingStep.duasColunasDebito")],
           ] as [AmountMode, string][]
         ).map(([mode, label]) => (
           <label key={mode} className="flex w-fit cursor-pointer items-center gap-2 text-sm">
@@ -142,11 +144,11 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
         ))}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {form.amountMode === "single" ? (
-            columnSelect("import-amount-column", "Coluna do valor", "amountColumn", form.amountColumn)
+            columnSelect("import-amount-column", t("imports.importMappingStep.colunaDoValor"), "amountColumn", form.amountColumn)
           ) : (
             <>
-              {columnSelect("import-debit-column", "Coluna de débito", "debitColumn", form.debitColumn)}
-              {columnSelect("import-credit-column", "Coluna de crédito", "creditColumn", form.creditColumn)}
+              {columnSelect("import-debit-column", t("imports.importMappingStep.colunaDeDebito"), "debitColumn", form.debitColumn)}
+              {columnSelect("import-credit-column", t("imports.importMappingStep.colunaDeCredito"), "creditColumn", form.creditColumn)}
             </>
           )}
         </div>
@@ -154,10 +156,10 @@ export function ImportMappingStep({ preview, form, onFormChange, onSubmit, onBac
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" onClick={onBack} disabled={pending}>
-          Voltar
+          {t("imports.importMappingStep.voltar")}
         </Button>
         <Button type="submit" disabled={pending}>
-          {pending ? "Lendo o arquivo..." : "Ver prévia"}
+          {pending ? t("imports.importMappingStep.lendoOArquivo") : t("imports.importMappingStep.verPrevia")}
         </Button>
       </div>
     </form>

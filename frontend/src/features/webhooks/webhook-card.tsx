@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { maskWebhookUrl } from "./mask-url";
-import { EVENT_LABELS, lastDeliveryText } from "./presentation";
+import { eventLabel, lastDeliveryText } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   webhook: Webhook;
@@ -30,6 +31,7 @@ const LAST_STATUS_STYLE = {
 } as const;
 
 export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory, onTogglePause, onDelete }: Props) {
+  const { t } = useTranslation();
   // O token costuma ir na query: na lista ele fica escondido. O valor real so aparece ao editar.
   const maskedUrl = maskWebhookUrl(webhook.url);
   return (
@@ -39,7 +41,7 @@ export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="truncate text-base font-semibold">{webhook.name}</h3>
             {!webhook.active && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Pausado</span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("webhooks.webhookCard.pausado")}</span>
             )}
           </div>
           <p className="truncate text-sm text-muted-foreground" title={maskedUrl}>
@@ -51,7 +53,7 @@ export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações do webhook ${webhook.name}`}
+              aria-label={t("webhooks.webhookCard.acoesDoWebhook", { name: webhook.name })}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -60,37 +62,37 @@ export function WebhookCard({ webhook, onEdit, onTest, onRotateSecret, onHistory
           <DropdownMenuContent align="end" className="min-w-52">
             <DropdownMenuItem onSelect={() => onTest(webhook)}>
               <Send />
-              Testar
+              {t("webhooks.webhookCard.testar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onHistory(webhook)}>
               <History />
-              Histórico de entregas
+              {t("webhooks.webhookCard.historicoDeEntregas")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onEdit(webhook)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onRotateSecret(webhook)}>
               <KeyRound />
-              Girar segredo
+              {t("webhooks.webhookCard.girarSegredo")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onTogglePause(webhook)}>
               {webhook.active ? <Pause /> : <Play />}
-              {webhook.active ? "Pausar" : "Retomar"}
+              {webhook.active ? t("webhooks.webhookCard.pausar") : t("webhooks.webhookCard.retomar")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onDelete(webhook)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <ul aria-label="Eventos" className="mt-3 flex flex-wrap gap-1.5">
+      <ul aria-label={t("webhooks.webhookCard.eventos")} className="mt-3 flex flex-wrap gap-1.5">
         {webhook.events.map((event) => (
           <li key={event} className="rounded-md bg-accent px-2 py-0.5 text-xs text-primary-text">
-            {EVENT_LABELS[event]}
+            {eventLabel(event)}
           </li>
         ))}
       </ul>

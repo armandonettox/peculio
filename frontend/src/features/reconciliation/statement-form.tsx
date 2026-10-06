@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { appToday } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
+import { useTranslation } from "react-i18next";
 
 type Field = "account" | "balance" | "date";
 type Errors = Partial<Record<Field, string>>;
@@ -20,6 +21,7 @@ type Props = {
 
 /** O que o extrato do banco mostra: a conta, o saldo e a data dele. */
 export function StatementForm({ accounts, onApply }: Props) {
+  const { t } = useTranslation();
   const currencies = useCurrencies();
   const today = appToday();
   // Uma conta so: nao ha o que escolher
@@ -39,11 +41,11 @@ export function StatementForm({ accounts, onApply }: Props) {
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const found: Errors = {};
-    if (!accountId) found.account = "Escolha a conta.";
+    if (!accountId) found.account = t("reconciliation.statementForm.escolhaAConta");
     const parsed = parseMoneyInput(balance, places);
     if (!parsed.ok) found.balance = parsed.error;
-    if (!date) found.date = "Informe a data do extrato.";
-    else if (date > today) found.date = "A data do extrato não pode ser no futuro.";
+    if (!date) found.date = t("reconciliation.statementForm.informeAData");
+    else if (date > today) found.date = t("reconciliation.statementForm.dataNaoPodeSerFutura");
 
     setErrors(found);
     const firstInvalid = (["account", "balance", "date"] as const).find((field) => found[field]);
@@ -56,7 +58,7 @@ export function StatementForm({ accounts, onApply }: Props) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-3">
-      <FormField id="statement-account" label="Conta" error={errors.account}>
+      <FormField id="statement-account" label={t("common.conta")} error={errors.account}>
         {(props) => (
           <Select
             {...props}
@@ -67,7 +69,7 @@ export function StatementForm({ accounts, onApply }: Props) {
               onApply(null);
             }}
           >
-            <option value="">Escolha a conta</option>
+            <option value="">{t("common.escolhaAConta")}</option>
             {accounts.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -77,7 +79,11 @@ export function StatementForm({ accounts, onApply }: Props) {
         )}
       </FormField>
 
-      <FormField id="statement-balance" label={`Saldo do extrato${account ? ` (${account.currency_code})` : ""}`} error={errors.balance}>
+      <FormField
+        id="statement-balance"
+        label={account ? t("reconciliation.statementForm.saldoDoExtratoCom", { currency: account.currency_code }) : t("reconciliation.statementForm.saldoDoExtrato")}
+        error={errors.balance}
+      >
         {(props) => (
           <Input
             {...props}
@@ -93,7 +99,7 @@ export function StatementForm({ accounts, onApply }: Props) {
         )}
       </FormField>
 
-      <FormField id="statement-date" label="Data do extrato" error={errors.date}>
+      <FormField id="statement-date" label={t("reconciliation.statementForm.dataDoExtrato")} error={errors.date}>
         {(props) => (
           <Input
             {...props}
@@ -109,7 +115,7 @@ export function StatementForm({ accounts, onApply }: Props) {
       </FormField>
 
       <div className="sm:col-span-3">
-        <Button type="submit">Conferir</Button>
+        <Button type="submit">{t("reconciliation.statementForm.conferir")}</Button>
       </div>
     </form>
   );

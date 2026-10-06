@@ -17,9 +17,11 @@ import { CustomReportView } from "./custom-report-view";
 import { DEFAULT_CONFIG, fromSaved, missingFilters, periodError, sameConfig, toApiFilters, type CustomConfig } from "./custom-config";
 import { SaveReportDialog } from "./save-report-dialog";
 import { SavedReportsPanel } from "./saved-reports-panel";
+import { useTranslation } from "react-i18next";
 
 /** A aba "Personalizado": monta um relatorio (agrupar, medir, grafico, periodo, filtros), salva e abre os salvos. */
 export function CustomReportsTab() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState<CustomConfig>(DEFAULT_CONFIG);
   const [openId, setOpenId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -65,7 +67,7 @@ export function CustomReportsTab() {
   async function confirmRemove(report: SavedReport) {
     await remove.mutateAsync(report.id);
     if (report.id === openId) setOpenId(null);
-    setNotice("Relatório excluído.");
+    setNotice(t("reports.customReportsTab.relatorioExcluido"));
   }
 
   let result;
@@ -78,7 +80,7 @@ export function CustomReportsTab() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -87,7 +89,7 @@ export function CustomReportsTab() {
       <div aria-busy="true" className="flex flex-col gap-3">
         <div className="h-32 animate-pulse rounded-lg border bg-muted" />
         <p className="sr-only" role="status">
-          Carregando relatório...
+          {t("reports.customReportsTab.carregandoRelatorio")}
         </p>
       </div>
     );
@@ -95,16 +97,15 @@ export function CustomReportsTab() {
     result = (
       <EmptyState
         icon={BarChart3}
-        title="Nada neste período"
-        description="Nenhuma receita ou despesa atende ao período e aos filtros escolhidos."
+        title={t("reports.customReportsTab.nadaNestePeriodo")}
+        description={t("reports.customReportsTab.nenhumaReceitaOuDespesa")}
       />
     );
   } else {
     result = (
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          Período: {formatDate(query.data.date_from)} a {formatDate(query.data.date_to)}. Só entram receitas e despesas; transferências, pagamento de
-          dívidas e saldo inicial ficam de fora. Cada moeda é mostrada separada, sem conversão.
+          {t("reports.customReportsTab.periodoDeA", { from: formatDate(query.data.date_from), to: formatDate(query.data.date_to) })}
         </p>
         <CustomReportView
           config={config}
@@ -129,15 +130,15 @@ export function CustomReportsTab() {
 
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={() => setSaving(true)} disabled={Boolean(rangeError)}>
-          Salvar relatório
+          {t("reports.customReportsTab.salvarRelatorio")}
         </Button>
         <Button variant="outline" onClick={startNew}>
-          Novo relatório
+          {t("reports.customReportsTab.novoRelatorio")}
         </Button>
         {openReport && (
           <p className="text-sm text-muted-foreground">
-            Aberto: <strong>{openReport.name}</strong>
-            {modified ? " (com mudanças ainda não salvas)" : ""}
+            {t("reports.customReportsTab.aberto")} <strong>{openReport.name}</strong>
+            {modified ? ` ${t("reports.customReportsTab.comMudancasAindaNao")}` : ""}
           </p>
         )}
       </div>
@@ -170,16 +171,16 @@ export function CustomReportsTab() {
           current={openReport}
           onSaved={(report) => {
             setOpenId(report.id);
-            setNotice("Relatório salvo.");
+            setNotice(t("reports.customReportsTab.relatorioSalvo"));
           }}
           onClose={() => setSaving(false)}
         />
       )}
       {removing && (
         <ConfirmDeleteDialog
-          title="Excluir relatório salvo"
+          title={t("reports.customReportsTab.excluirRelatorioSalvo")}
           itemName={removing.name}
-          consequence="Só o relatório salvo some; os lançamentos e os números continuam como estão."
+          consequence={t("reports.customReportsTab.soORelatorioSalvo")}
           onConfirm={() => confirmRemove(removing)}
           onClose={() => setRemoving(null)}
         />

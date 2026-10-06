@@ -32,6 +32,7 @@ import { GroupFormDialog } from "@/features/rules/group-form-dialog";
 import type { NameLookups } from "@/features/rules/presentation";
 import { RuleCard } from "@/features/rules/rule-card";
 import { RuleFormDialog } from "@/features/rules/rule-form-dialog";
+import { useTranslation } from "react-i18next";
 
 type DialogState =
   | { kind: "new-rule" }
@@ -48,6 +49,7 @@ function nameMap(items: { id: string; name: string }[] | undefined) {
 }
 
 export default function RulesPage() {
+  const { t } = useTranslation();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -89,7 +91,7 @@ export default function RulesPage() {
   const newRuleButton = (
     <Button onClick={() => setDialog({ kind: "new-rule" })}>
       <Plus />
-      Nova regra
+      {t("pages.rules.novaRegra")}
     </Button>
   );
 
@@ -118,7 +120,7 @@ export default function RulesPage() {
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando regras...
+          {t("pages.rules.carregandoRegras")}
         </p>
       </div>
     );
@@ -135,7 +137,7 @@ export default function RulesPage() {
             void groups.refetch();
           }}
         >
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -143,8 +145,8 @@ export default function RulesPage() {
     content = (
       <EmptyState
         icon={Workflow}
-        title="Nenhuma regra ainda"
-        description="Uma regra preenche sozinha a categoria, as tags, o orçamento ou a conta a pagar das transações que combinam com ela, por exemplo tudo que tem 'mercado' na descrição."
+        title={t("pages.rules.nenhumaRegraAinda")}
+        description={t("pages.rules.umaRegraPreencheSozinha")}
         action={newRuleButton}
       />
     );
@@ -154,7 +156,7 @@ export default function RulesPage() {
         {groupList.map((group) => {
           const inGroup = ruleList.filter((rule) => rule.group_id === group.id);
           return (
-            <section key={group.id} aria-label={`Grupo ${group.name}`}>
+            <section key={group.id} aria-label={t("pages.rules.grupo", { name: group.name })}>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold text-muted-foreground">
                   {group.name} <span className="font-normal">({inGroup.length})</span>
@@ -163,7 +165,7 @@ export default function RulesPage() {
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      aria-label={`Ações do grupo ${group.name}`}
+                      aria-label={t("pages.rules.acoesDoGrupo", { name: group.name })}
                       className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <MoreVertical className="size-4" />
@@ -172,19 +174,19 @@ export default function RulesPage() {
                   <DropdownMenuContent align="end" className="min-w-40">
                     <DropdownMenuItem onSelect={() => setDialog({ kind: "edit-group", group })}>
                       <Pencil />
-                      Editar
+                      {t("common.editar")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => setDialog({ kind: "delete-group", group })} className="text-destructive">
                       <Trash2 />
-                      Excluir
+                      {t("common.excluir")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
               {inGroup.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  Este grupo ainda não tem regras.
+                  {t("pages.rules.esteGrupoAindaNao")}
                 </p>
               ) : (
                 renderRules(inGroup)
@@ -194,9 +196,9 @@ export default function RulesPage() {
         })}
 
         {ungrouped.length > 0 && (
-          <section aria-label="Regras sem grupo">
+          <section aria-label={t("pages.rules.regrasSemGrupo")}>
             <h2 className={groupList.length > 0 ? "mb-3 text-sm font-semibold text-muted-foreground" : "sr-only"}>
-              {groupList.length > 0 ? "Sem grupo" : "Suas regras"}
+              {groupList.length > 0 ? t("pages.rules.semGrupo") : t("pages.rules.suasRegras")}
             </h2>
             {renderRules(ungrouped)}
           </section>
@@ -208,18 +210,18 @@ export default function RulesPage() {
   return (
     <>
       <PageHeader
-        title="Regras"
-        description="Preenchem sozinhas o que as transações deixarem em branco"
+        title={t("pages.rules.regras")}
+        description={t("pages.rules.preenchemSozinhasOQue")}
         actions={
           <div className="flex flex-wrap gap-2">
             {/* Sem as regras carregadas o dialogo abriria dizendo que nao ha regras ativas */}
             <Button variant="outline" disabled={rules.isPending} onClick={() => setDialog({ kind: "backfill" })}>
               <History />
-              Aplicar nas antigas
+              {t("pages.rules.aplicarNasAntigas")}
             </Button>
             <Button variant="outline" onClick={() => setDialog({ kind: "new-group" })}>
               <FolderPlus />
-              Novo grupo
+              {t("pages.rules.novoGrupo")}
             </Button>
             {newRuleButton}
           </div>
@@ -243,18 +245,18 @@ export default function RulesPage() {
       {dialog?.kind === "edit-group" && <GroupFormDialog group={dialog.group} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete-rule" && (
         <ConfirmDeleteDialog
-          title="Excluir regra"
+          title={t("pages.rules.excluirRegra")}
           itemName={dialog.rule.name}
-          consequence="As transações já preenchidas por ela continuam como estão."
+          consequence={t("pages.rules.asTransacoesJaPreenchidas")}
           onConfirm={() => removeRule.mutateAsync(dialog.rule.id)}
           onClose={() => setDialog(null)}
         />
       )}
       {dialog?.kind === "delete-group" && (
         <ConfirmDeleteDialog
-          title="Excluir grupo"
+          title={t("pages.rules.excluirGrupo")}
           itemName={dialog.group.name}
-          consequence="As regras do grupo continuam, só ficam sem grupo."
+          consequence={t("pages.rules.asRegrasDoGrupo")}
           onConfirm={() => removeGroup.mutateAsync(dialog.group.id)}
           onClose={() => setDialog(null)}
         />

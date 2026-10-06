@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trans, useTranslation } from "react-i18next";
 
 type Props = {
   webhookName: string;
@@ -15,6 +16,7 @@ type Props = {
  * cifrado e nao o mostra de novo (para ter outro, e preciso girar o segredo).
  */
 export function SecretDialog({ webhookName, secret, onDone }: Props) {
+  const { t } = useTranslation();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState<"ok" | "fail" | null>(null);
 
@@ -32,15 +34,18 @@ export function SecretDialog({ webhookName, secret, onDone }: Props) {
     <Dialog open onOpenChange={() => undefined}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Segredo do webhook</DialogTitle>
+          <DialogTitle>{t("webhooks.secretDialog.segredoDoWebhook")}</DialogTitle>
           <DialogDescription>
-            Guarde o segredo de <strong>{webhookName}</strong> em um lugar seguro. Ele serve para conferir a assinatura
-            de cada aviso e não aparece de novo.
+            <Trans
+              i18nKey="webhooks.secretDialog.guardeOSegredoDe"
+              values={{ name: webhookName }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
         <code
-          aria-label="Segredo"
+          aria-label={t("webhooks.secretDialog.segredo")}
           className="break-all rounded-md border bg-muted p-3 font-mono text-sm"
           data-testid="webhook-secret"
         >
@@ -50,11 +55,11 @@ export function SecretDialog({ webhookName, secret, onDone }: Props) {
         <div className="flex items-center gap-3">
           <Button type="button" variant="outline" size="sm" onClick={() => void copy()}>
             <Copy />
-            Copiar
+            {t("webhooks.secretDialog.copiar")}
           </Button>
           <p role="status" className="text-xs text-muted-foreground">
-            {copied === "ok" && "Segredo copiado."}
-            {copied === "fail" && "Não foi possível copiar. Selecione e copie à mão."}
+            {copied === "ok" && t("webhooks.secretDialog.segredoCopiado")}
+            {copied === "fail" && t("webhooks.secretDialog.naoFoiPossivelCopiar")}
           </p>
         </div>
 
@@ -65,12 +70,12 @@ export function SecretDialog({ webhookName, secret, onDone }: Props) {
             onChange={(event) => setSaved(event.target.checked)}
             className="mt-0.5 accent-[var(--primary)]"
           />
-          Guardei o segredo
+          {t("webhooks.secretDialog.guardeiOSegredo")}
         </label>
 
         <DialogFooter>
           <Button type="button" onClick={onDone} disabled={!saved}>
-            Concluir
+            {t("common.concluir")}
           </Button>
         </DialogFooter>
       </DialogContent>

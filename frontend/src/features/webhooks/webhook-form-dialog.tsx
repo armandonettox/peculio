@@ -16,7 +16,8 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { EVENT_LABELS, EVENTS } from "./presentation";
+import { eventLabel, EVENTS } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "url" | "events";
 type Errors = Partial<Record<Field, string>>;
@@ -32,18 +33,11 @@ type Props = {
   onCreated?: (created: WebhookWithSecret) => void;
 };
 
-// O formulario aceita http:// porque o servidor o libera para destinos locais (WEBHOOK_ALLOW_PRIVATE); quem
-// decide e o servidor, que o recusa por padrao. Por isso as mensagens falam dos dois casos.
-const URL_SCHEME_MESSAGE =
-  "O endereço precisa começar com https:// (ou http://, só aceito em destinos locais liberados pelo servidor).";
-const DEFAULT_URL_HINT = "Use um endereço https:// público. Endereços da rede interna são recusados.";
-const PLAIN_HTTP_HINT =
-  "Endereços http:// só funcionam se o servidor liberar destinos locais. Em uso normal, use https://.";
-
 // O campo e type=url: o navegador ja tira os espacos do comeco, entao nao ha o que aparar aqui
 const isPlainHttp = (value: string) => /^http:\/\//i.test(value);
 
 export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
+  const { t } = useTranslation();
   const editing = webhook !== undefined;
   const create = useCreateWebhook();
   const update = useUpdateWebhook();
@@ -94,11 +88,11 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, "Informe o nome do webhook.") };
+    const found: Errors = { name: requiredError(name, t("webhooks.webhookFormDialog.informeONome")) };
     const trimmedUrl = url.trim();
-    if (trimmedUrl === "") found.url = "Informe o endereço que vai receber os avisos.";
-    else if (!/^https?:\/\/\S+$/i.test(trimmedUrl)) found.url = URL_SCHEME_MESSAGE;
-    if (events.length === 0) found.events = "Escolha pelo menos um evento.";
+    if (trimmedUrl === "") found.url = t("webhooks.webhookFormDialog.informeOEndereco");
+    else if (!/^https?:\/\/\S+$/i.test(trimmedUrl)) found.url = t("webhooks.webhookFormDialog.urlSchemeMessage");
+    if (events.length === 0) found.events = t("webhooks.webhookFormDialog.escolhaPeloMenos");
 
     setErrors(found);
     const firstInvalid = FIELD_ORDER.find((field) => found[field]);
@@ -130,18 +124,18 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar webhook" : "Novo webhook"}</DialogTitle>
+          <DialogTitle>{editing ? t("webhooks.webhookFormDialog.editarWebhook") : t("webhooks.webhookFormDialog.novoWebhook")}</DialogTitle>
           <DialogDescription>
             {editing
-              ? "Mudar o endereço não muda o segredo. Para trocar o segredo, use Girar segredo."
-              : "O app envia um aviso assinado para este endereço quando algo acontece com seus lançamentos. O segredo da assinatura aparece uma única vez, depois de criar."}
+              ? t("webhooks.webhookFormDialog.mudarOEnderecoNao")
+              : t("webhooks.webhookFormDialog.oAppEnviaUm")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="webhook-name" label="Nome" error={errors.name}>
+          <FormField id="webhook-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -157,9 +151,9 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
 
           <FormField
             id="webhook-url"
-            label="Endereço"
+            label={t("webhooks.webhookFormDialog.endereco")}
             error={errors.url}
-            hint={isPlainHttp(url) ? PLAIN_HTTP_HINT : DEFAULT_URL_HINT}
+            hint={isPlainHttp(url) ? t("webhooks.webhookFormDialog.plainHttpHint") : t("webhooks.webhookFormDialog.defaultUrlHint")}
           >
             {(props) => (
               <Input
@@ -167,7 +161,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
                 type="url"
                 inputMode="url"
                 autoComplete="off"
-                placeholder="https://exemplo.com/webhook"
+                placeholder={t("webhooks.webhookFormDialog.httpsExemploComWebhook")}
                 value={url}
                 onChange={(event) => {
                   setUrl(event.target.value);
@@ -178,7 +172,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
           </FormField>
 
           <fieldset className="flex flex-col gap-2" aria-describedby={errors.events ? "webhook-events-error" : undefined}>
-            <legend className="mb-2 text-sm font-medium">Eventos</legend>
+            <legend className="mb-2 text-sm font-medium">{t("webhooks.webhookFormDialog.eventos")}</legend>
             {EVENTS.map((item, index) => (
               <label key={item} className="flex cursor-pointer items-center gap-2 text-sm">
                 <input
@@ -189,7 +183,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
                   aria-invalid={Boolean(errors.events)}
                   className="accent-[var(--primary)]"
                 />
-                {EVENT_LABELS[item]}
+                {eventLabel(item)}
               </label>
             ))}
             {errors.events && (
@@ -206,15 +200,15 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
               onChange={(event) => setActive(event.target.checked)}
               className="accent-[var(--primary)]"
             />
-            Ativo
+            {t("webhooks.webhookFormDialog.ativo")}
           </label>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar webhook"}
+              {submitting ? t("webhooks.webhookFormDialog.salvando") : editing ? t("webhooks.webhookFormDialog.salvar") : t("webhooks.webhookFormDialog.criarWebhook")}
             </Button>
           </DialogFooter>
         </form>

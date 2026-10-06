@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { ReportFilters } from "@/api/reports";
 import type {
   ReportChart,
@@ -39,55 +40,46 @@ export const DEFAULT_CONFIG: CustomConfig = {
   budgetId: "",
 };
 
-export const GROUP_BY_OPTIONS: { value: ReportGroupBy; label: string; column: string }[] = [
-  { value: "category", label: "Categoria", column: "Categoria" },
-  { value: "tag", label: "Tag", column: "Tag" },
-  { value: "budget", label: "Orçamento", column: "Orçamento" },
-  { value: "account", label: "Conta", column: "Conta" },
-  { value: "counterparty", label: "Contraparte", column: "Contraparte" },
-  { value: "month", label: "Mês", column: "Mês" },
-];
+const GROUP_BY_VALUES: ReportGroupBy[] = ["category", "tag", "budget", "account", "counterparty", "month"];
+const MEASURE_VALUES: ReportMeasure[] = ["expense", "income", "net"];
+const CHART_VALUES: ReportChart[] = ["table", "bar", "line", "donut"];
+const PERIOD_VALUES: SavedPeriod[] = ["this-month", "last-month", "last-3-months", "last-12-months", "this-year", "fixed"];
 
-export const MEASURE_OPTIONS: { value: ReportMeasure; label: string }[] = [
-  { value: "expense", label: "Despesas" },
-  { value: "income", label: "Receitas" },
-  { value: "net", label: "Saldo (receitas menos despesas)" },
-];
+export function groupByOptions(): { value: ReportGroupBy; label: string; column: string }[] {
+  return GROUP_BY_VALUES.map((value) => ({
+    value,
+    label: i18n.t(`reports.customConfig.groupBy.${value}`),
+    column: i18n.t(`reports.customConfig.groupBy.${value}`),
+  }));
+}
 
-export const CHART_OPTIONS: { value: ReportChart; label: string }[] = [
-  { value: "table", label: "Tabela" },
-  { value: "bar", label: "Barras" },
-  { value: "line", label: "Linha" },
-  { value: "donut", label: "Rosca" },
-];
+export function measureOptions(): { value: ReportMeasure; label: string }[] {
+  return MEASURE_VALUES.map((value) => ({ value, label: i18n.t(`reports.customConfig.measure.${value}`) }));
+}
 
-export const PERIOD_OPTIONS: { value: SavedPeriod; label: string }[] = [
-  { value: "this-month", label: "Este mês" },
-  { value: "last-month", label: "Mês passado" },
-  { value: "last-3-months", label: "Últimos 3 meses" },
-  { value: "last-12-months", label: "Últimos 12 meses" },
-  { value: "this-year", label: "Este ano" },
-  { value: "fixed", label: "Datas fixas" },
-];
+export function chartOptions(): { value: ReportChart; label: string }[] {
+  return CHART_VALUES.map((value) => ({ value, label: i18n.t(`reports.customConfig.chart.${value}`) }));
+}
 
-const labelOf = <T extends string>(options: { value: T; label: string }[], value: T) =>
-  options.find((option) => option.value === value)?.label ?? value;
+export function periodOptions(): { value: SavedPeriod; label: string }[] {
+  return PERIOD_VALUES.map((value) => ({ value, label: i18n.t(`reports.customConfig.period.${value}`) }));
+}
 
-export const groupByLabel = (value: ReportGroupBy) => labelOf(GROUP_BY_OPTIONS, value);
-export const measureLabel = (value: ReportMeasure) => labelOf(MEASURE_OPTIONS, value);
-export const chartLabel = (value: ReportChart) => labelOf(CHART_OPTIONS, value);
-export const periodLabel = (value: SavedPeriod) => labelOf(PERIOD_OPTIONS, value);
+export const groupByLabel = (value: ReportGroupBy) => i18n.t(`reports.customConfig.groupBy.${value}`);
+export const measureLabel = (value: ReportMeasure) => i18n.t(`reports.customConfig.measure.${value}`);
+export const chartLabel = (value: ReportChart) => i18n.t(`reports.customConfig.chart.${value}`);
+export const periodLabel = (value: SavedPeriod) => i18n.t(`reports.customConfig.period.${value}`);
 
 // ---------- Regras da combinacao (as mesmas do servidor) ----------
 
 /** Por que a combinacao nao faz sentido, ou null se serve. */
 export function configError(groupBy: ReportGroupBy, chart: ReportChart, measure: ReportMeasure): string | null {
   // A linha liga pontos no tempo: so o agrupamento por mes tem uma ordem
-  if (chart === "line" && groupBy !== "month") return "O gráfico de linha só serve para agrupar por mês.";
+  if (chart === "line" && groupBy !== "month") return i18n.t("reports.customConfig.lineOnlyForMonth");
   if (chart === "donut") {
     // A rosca mostra fatias de um todo: meses nao sao partes de um todo e o saldo pode ser negativo
-    if (groupBy === "month") return "O gráfico de rosca não serve para agrupar por mês.";
-    if (measure === "net") return "O gráfico de rosca não serve para o saldo, que pode ser negativo.";
+    if (groupBy === "month") return i18n.t("reports.customConfig.donutNotForMonth");
+    if (measure === "net") return i18n.t("reports.customConfig.donutNotForNet");
   }
   return null;
 }
@@ -96,7 +88,7 @@ export const chartAllowed = (groupBy: ReportGroupBy, chart: ReportChart, measure
   configError(groupBy, chart, measure) === null;
 
 export function allowedCharts(groupBy: ReportGroupBy, measure: ReportMeasure): ReportChart[] {
-  return CHART_OPTIONS.map((option) => option.value).filter((chart) => chartAllowed(groupBy, chart, measure));
+  return CHART_VALUES.filter((chart) => chartAllowed(groupBy, chart, measure));
 }
 
 /**
@@ -113,8 +105,8 @@ export function normalize(config: CustomConfig): CustomConfig {
 /** Datas fixas incompletas ou ao contrario; undefined se esta tudo certo. */
 export function periodError(config: CustomConfig): string | undefined {
   if (config.period !== "fixed") return undefined;
-  if (!config.dateFrom || !config.dateTo) return "Informe as duas datas.";
-  if (config.dateFrom > config.dateTo) return "A data inicial é depois da data final.";
+  if (!config.dateFrom || !config.dateTo) return i18n.t("reports.customConfig.informeAsDatas");
+  if (config.dateFrom > config.dateTo) return i18n.t("reports.customConfig.dataInicialDepoisDaFinal");
   return undefined;
 }
 
@@ -193,16 +185,18 @@ export type KnownIds = { accounts?: string[]; categories?: string[]; tags?: stri
  */
 export function missingFilters(config: CustomConfig, known: KnownIds): string[] {
   const checks: [string, string, string[] | undefined][] = [
-    ["conta", config.accountId, known.accounts],
-    ["categoria", config.categoryId, known.categories],
-    ["tag", config.tagId, known.tags],
-    ["orçamento", config.budgetId, known.budgets],
+    [i18n.t("reports.customConfig.filterName.account"), config.accountId, known.accounts],
+    [i18n.t("reports.customConfig.filterName.category"), config.categoryId, known.categories],
+    [i18n.t("reports.customConfig.filterName.tag"), config.tagId, known.tags],
+    [i18n.t("reports.customConfig.filterName.budget"), config.budgetId, known.budgets],
   ];
   return checks.filter(([, id, ids]) => id !== "" && ids !== undefined && !ids.includes(id)).map(([name]) => name);
 }
 
 /** O titulo do relatorio: "Despesas por categoria", "Saldo mes a mes". */
 export function reportTitle(groupBy: ReportGroupBy, measure: ReportMeasure): string {
-  const what = measure === "expense" ? "Despesas" : measure === "income" ? "Receitas" : "Saldo";
-  return groupBy === "month" ? `${what} mês a mês` : `${what} por ${groupByLabel(groupBy).toLowerCase()}`;
+  const what = i18n.t(`reports.customConfig.reportTitleWhat.${measure}`);
+  return groupBy === "month"
+    ? i18n.t("reports.customConfig.reportTitleByMonth", { what })
+    : i18n.t("reports.customConfig.reportTitleByGroup", { what, group: groupByLabel(groupBy).toLowerCase() });
 }

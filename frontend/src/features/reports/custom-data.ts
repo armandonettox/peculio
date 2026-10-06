@@ -1,6 +1,7 @@
 import type { ChartPoint } from "@/components/charts";
 import type { MonthlyBlock, ReportRow } from "@/api/reports";
 import type { ReportMeasure } from "@/api/saved-reports";
+import { i18n } from "@/i18n";
 import { isNegativeMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
 import { barPercent, longMonthLabel, rowName, shortMonthLabel } from "./presentation";
 
@@ -15,7 +16,9 @@ export function measureValue(source: Amounts, measure: ReportMeasure): string {
 
 export type RankedItem = { key: string; label: string; value: string; isOther: boolean };
 
-export const OTHERS_LABEL = "Outros";
+export function othersLabel(): string {
+  return i18n.t("reports.customData.outros");
+}
 // Quantos grupos os graficos mostram antes de juntar o resto em "Outros"
 export const TOP_LIMIT = 10;
 
@@ -50,7 +53,7 @@ export function topWithOthers(items: RankedItem[], currencyCode: string, limit =
     rest.map((item) => item.value),
     placesOf(currencyCode),
   );
-  return [...top, { key: "others", label: OTHERS_LABEL, value: total, isOther: true }];
+  return [...top, { key: "others", label: othersLabel(), value: total, isOther: true }];
 }
 
 /** Largura da barra (1 a 100) em relacao ao maior valor absoluto da lista; 0 se o valor e zero. */

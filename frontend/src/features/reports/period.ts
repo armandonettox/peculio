@@ -1,15 +1,14 @@
+import { i18n } from "@/i18n";
 import type { ReportFilters } from "@/api/reports";
 
 // Os filtros ficam na URL (/relatorios?periodo=ano&conta=...), como na tela de transacoes:
 // o link copiado e o botao Voltar abrem o mesmo relatorio.
 export type PeriodKind = "this-month" | "last-month" | "this-year" | "custom";
 
-export const PERIOD_LABELS: Record<PeriodKind, string> = {
-  "this-month": "Este mês",
-  "last-month": "Mês passado",
-  "this-year": "Este ano",
-  custom: "Personalizado",
-};
+/** Rotulo do periodo do relatorio, no idioma atual. */
+export function periodLabel(kind: PeriodKind): string {
+  return i18n.t(`reports.period.${kind}`);
+}
 
 export const PERIOD_KINDS: PeriodKind[] = ["this-month", "last-month", "this-year", "custom"];
 
@@ -95,7 +94,7 @@ export function toReportFilters(state: ReportState): ReportFilters {
 /** A data inicial nao pode ser depois da final (texto AAAA-MM-DD compara certo como string). */
 export function dateRangeError(filters: ReportFilters): string | undefined {
   if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
-    return "A data inicial é depois da data final.";
+    return i18n.t("reports.period.dataInicialDepoisDaFinal");
   }
   return undefined;
 }

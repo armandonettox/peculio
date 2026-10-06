@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { actionSummary, triggerSummary, type NameLookups } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   rule: Rule;
@@ -26,18 +27,19 @@ function Badge({ children }: { children: string }) {
 }
 
 export function RuleCard({ rule, lookups, onEdit, onToggleActive, onDelete }: Props) {
+  const { t } = useTranslation();
   return (
     <li className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", !rule.active && "opacity-70")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="break-words font-medium">{rule.name}</h3>
-            {!rule.active && <Badge>Pausada</Badge>}
-            {rule.stop_processing && <Badge>Para aqui</Badge>}
+            {!rule.active && <Badge>{t("rules.ruleCard.pausada")}</Badge>}
+            {rule.stop_processing && <Badge>{t("rules.ruleCard.paraAqui")}</Badge>}
           </div>
 
           <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {rule.match_mode === "all" ? "Quando todos valerem" : "Quando qualquer um valer"}
+            {rule.match_mode === "all" ? t("rules.ruleCard.quandoTodosValerem") : t("rules.ruleCard.quandoQualquerUmValer")}
           </p>
           <ul className="mt-1 flex flex-col gap-0.5 text-sm">
             {rule.triggers.map((trigger, index) => (
@@ -45,7 +47,7 @@ export function RuleCard({ rule, lookups, onEdit, onToggleActive, onDelete }: Pr
             ))}
           </ul>
 
-          <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Então</p>
+          <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("rules.ruleCard.entao")}</p>
           <ul className="mt-1 flex flex-col gap-0.5 text-sm">
             {rule.actions.map((action, index) => (
               <li key={index}>{actionSummary(action, lookups)}</li>
@@ -57,7 +59,7 @@ export function RuleCard({ rule, lookups, onEdit, onToggleActive, onDelete }: Pr
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações da regra ${rule.name}`}
+              aria-label={t("rules.ruleCard.acoesDaRegra", { name: rule.name })}
               className="-mr-2 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -66,16 +68,16 @@ export function RuleCard({ rule, lookups, onEdit, onToggleActive, onDelete }: Pr
           <DropdownMenuContent align="end" className="min-w-40">
             <DropdownMenuItem onSelect={() => onEdit(rule)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onToggleActive(rule)}>
               {rule.active ? <Pause /> : <Play />}
-              {rule.active ? "Pausar" : "Ativar"}
+              {rule.active ? t("rules.ruleCard.pausar") : t("rules.ruleCard.ativar")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onDelete(rule)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

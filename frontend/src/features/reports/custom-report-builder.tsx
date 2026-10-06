@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import {
   allowedCharts,
-  CHART_OPTIONS,
-  GROUP_BY_OPTIONS,
-  MEASURE_OPTIONS,
+  chartOptions,
+  groupByOptions,
+  measureOptions,
   normalize,
-  PERIOD_OPTIONS,
+  periodOptions,
   type CustomConfig,
 } from "./custom-config";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   config: CustomConfig;
@@ -29,15 +30,16 @@ type Props = {
 
 /** O montador: agrupar por, medida, grafico, periodo e filtros. Mudar um deles ja troca o grafico se ele nao servir mais. */
 export function CustomReportBuilder({ config, onChange, periodError, missing, accounts, categories, tags, budgets }: Props) {
+  const { t } = useTranslation();
   const charts = allowedCharts(config.groupBy, config.measure);
   const patch = (change: Partial<CustomConfig>) => onChange(normalize({ ...config, ...change }));
 
   return (
-    <section aria-label="Montar relatório" className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
-      <FormField id="custom-group-by" label="Agrupar por">
+    <section aria-label={t("reports.customReportBuilder.montarRelatorio")} className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
+      <FormField id="custom-group-by" label={t("reports.customReportBuilder.agruparPor")}>
         {(field) => (
           <Select {...field} value={config.groupBy} onChange={(event) => patch({ groupBy: event.target.value as CustomConfig["groupBy"] })}>
-            {GROUP_BY_OPTIONS.map((option) => (
+            {groupByOptions().map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -46,10 +48,10 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
         )}
       </FormField>
 
-      <FormField id="custom-measure" label="Medir">
+      <FormField id="custom-measure" label={t("reports.customReportBuilder.medir")}>
         {(field) => (
           <Select {...field} value={config.measure} onChange={(event) => patch({ measure: event.target.value as CustomConfig["measure"] })}>
-            {MEASURE_OPTIONS.map((option) => (
+            {measureOptions().map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -60,12 +62,12 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
 
       <FormField
         id="custom-chart"
-        label="Gráfico"
-        hint="Linha só serve para agrupar por mês. Rosca não serve para mês nem para saldo."
+        label={t("reports.customReportBuilder.grafico")}
+        hint={t("reports.customReportBuilder.linhaSoServePara")}
       >
         {(field) => (
           <Select {...field} value={config.chart} onChange={(event) => patch({ chart: event.target.value as CustomConfig["chart"] })}>
-            {CHART_OPTIONS.filter((option) => charts.includes(option.value)).map((option) => (
+            {chartOptions().filter((option) => charts.includes(option.value)).map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -74,10 +76,10 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
         )}
       </FormField>
 
-      <FormField id="custom-period" label="Período">
+      <FormField id="custom-period" label={t("common.periodo")}>
         {(field) => (
           <Select {...field} value={config.period} onChange={(event) => patch({ period: event.target.value as CustomConfig["period"] })}>
-            {PERIOD_OPTIONS.map((option) => (
+            {periodOptions().map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -88,33 +90,33 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
 
       {config.period === "fixed" && (
         <>
-          <FormField id="custom-date-from" label="Data inicial" error={periodError}>
+          <FormField id="custom-date-from" label={t("common.dataInicial")} error={periodError}>
             {(field) => <Input {...field} type="date" value={config.dateFrom} onChange={(event) => patch({ dateFrom: event.target.value })} />}
           </FormField>
-          <FormField id="custom-date-to" label="Data final">
+          <FormField id="custom-date-to" label={t("common.dataFinal")}>
             {(field) => <Input {...field} type="date" value={config.dateTo} onChange={(event) => patch({ dateTo: event.target.value })} />}
           </FormField>
         </>
       )}
 
-      <FormField id="custom-account" label="Conta">
+      <FormField id="custom-account" label={t("common.conta")}>
         {(field) => (
           <Select {...field} value={config.accountId} onChange={(event) => patch({ accountId: event.target.value })}>
-            <option value="">Todas</option>
+            <option value="">{t("common.todas")}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name}
-                {account.active ? "" : " (arquivada)"}
+                {account.active ? "" : ` ${t("reports.customReportBuilder.arquivada")}`}
               </option>
             ))}
           </Select>
         )}
       </FormField>
 
-      <FormField id="custom-category" label="Categoria">
+      <FormField id="custom-category" label={t("common.categoria")}>
         {(field) => (
           <Select {...field} value={config.categoryId} onChange={(event) => patch({ categoryId: event.target.value })}>
-            <option value="">Todas</option>
+            <option value="">{t("common.todas")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -124,10 +126,10 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
         )}
       </FormField>
 
-      <FormField id="custom-tag" label="Tag">
+      <FormField id="custom-tag" label={t("common.tag")}>
         {(field) => (
           <Select {...field} value={config.tagId} onChange={(event) => patch({ tagId: event.target.value })}>
-            <option value="">Todas</option>
+            <option value="">{t("common.todas")}</option>
             {tags.map((tag) => (
               <option key={tag.id} value={tag.id}>
                 {tag.name}
@@ -137,14 +139,14 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
         )}
       </FormField>
 
-      <FormField id="custom-budget" label="Orçamento">
+      <FormField id="custom-budget" label={t("common.orcamento")}>
         {(field) => (
           <Select {...field} value={config.budgetId} onChange={(event) => patch({ budgetId: event.target.value })}>
-            <option value="">Todos</option>
+            <option value="">{t("reports.customReportBuilder.todos")}</option>
             {budgets.map((budget) => (
               <option key={budget.id} value={budget.id}>
                 {budget.name}
-                {budget.active ? "" : " (arquivado)"}
+                {budget.active ? "" : ` ${t("reports.customReportBuilder.arquivado")}`}
               </option>
             ))}
           </Select>
@@ -153,7 +155,7 @@ export function CustomReportBuilder({ config, onChange, periodError, missing, ac
 
       {missing.length > 0 && (
         <Alert variant="destructive" className="sm:col-span-2 lg:col-span-3">
-          Este relatório filtra por {missing.join(", ")} que não existe mais. Escolha outro valor, ou “Todas”, e salve de novo.
+          {t("reports.customReportBuilder.esteRelatorioFiltraPor", { missing: missing.join(", ") })}
         </Alert>
       )}
     </section>

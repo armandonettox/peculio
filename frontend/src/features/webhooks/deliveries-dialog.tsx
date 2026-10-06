@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { EVENT_LABELS, formatDateTime, httpText, STATUS_LABELS } from "./presentation";
+import { eventLabel, formatDateTime, httpText, statusLabel } from "./presentation";
+import { Trans, useTranslation } from "react-i18next";
 
 type Props = {
   webhook: Webhook;
@@ -22,6 +23,7 @@ const STATUS_STYLE: Record<DeliveryStatus, string> = {
 };
 
 export function DeliveriesDialog({ webhook, onClose }: Props) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<DeliveryStatus | "all">("all");
   const [page, setPage] = useState(0);
   const query = useDeliveries({ webhookId: webhook.id, status, page });
@@ -32,7 +34,7 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
   if (query.isPending) {
     content = (
       <p role="status" className="text-sm text-muted-foreground">
-        Carregando entregas...
+        {t("webhooks.deliveriesDialog.carregandoEntregas")}
       </p>
     );
   } else if (query.isError) {
@@ -42,14 +44,14 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
   } else if (query.data.items.length === 0) {
     content = (
       <p className="text-sm text-muted-foreground">
-        {status === "all" ? "Nenhuma entrega ainda." : "Nenhuma entrega com esta situação."}
+        {status === "all" ? t("webhooks.deliveriesDialog.nenhumaEntregaAinda") : t("webhooks.deliveriesDialog.nenhumaEntregaComEsta")}
       </p>
     );
   } else {
@@ -58,12 +60,15 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
         {query.data.items.map((delivery) => (
           <li key={delivery.id} className="rounded-md border p-3 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="font-medium">{EVENT_LABELS[delivery.event]}</span>
-              <span className={cn("font-medium", STATUS_STYLE[delivery.status])}>{STATUS_LABELS[delivery.status]}</span>
+              <span className="font-medium">{eventLabel(delivery.event)}</span>
+              <span className={cn("font-medium", STATUS_STYLE[delivery.status])}>{statusLabel(delivery.status)}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              {formatDateTime(delivery.created_at)} · {delivery.attempts}{" "}
-              {delivery.attempts === 1 ? "tentativa" : "tentativas"} · {httpText(delivery)}
+              {t("webhooks.deliveriesDialog.resumo", {
+                count: delivery.attempts,
+                date: formatDateTime(delivery.created_at),
+                http: httpText(delivery),
+              })}
             </p>
             {delivery.last_error && <p className="mt-1 text-xs text-destructive">{delivery.last_error}</p>}
             {delivery.response_excerpt && (
@@ -81,15 +86,15 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Histórico de entregas</DialogTitle>
+          <DialogTitle>{t("webhooks.deliveriesDialog.historicoDeEntregas")}</DialogTitle>
           <DialogDescription>
-            Avisos enviados para <strong>{webhook.name}</strong>, do mais recente para o mais antigo.
+            <Trans i18nKey="webhooks.deliveriesDialog.avisosEnviadosPara" values={{ name: webhook.name }} components={{ strong: <strong /> }} />
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2">
           <label htmlFor="deliveries-status" className="text-sm">
-            Situação
+            {t("webhooks.deliveriesDialog.situacao")}
           </label>
           <Select
             id="deliveries-status"
@@ -100,11 +105,11 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
               setPage(0);
             }}
           >
-            <option value="all">Todas</option>
-            <option value="delivered">Entregues</option>
-            <option value="pending">Pendentes</option>
-            <option value="failed">Com falha</option>
-            <option value="expired">Expiradas</option>
+            <option value="all">{t("common.todas")}</option>
+            <option value="delivered">{t("webhooks.deliveriesDialog.entregues")}</option>
+            <option value="pending">{t("webhooks.deliveriesDialog.pendentes")}</option>
+            <option value="failed">{t("webhooks.deliveriesDialog.comFalha")}</option>
+            <option value="expired">{t("webhooks.deliveriesDialog.expiradas")}</option>
           </Select>
         </div>
 
@@ -113,19 +118,17 @@ export function DeliveriesDialog({ webhook, onClose }: Props) {
         {total > DELIVERIES_PAGE_SIZE && (
           <div className="flex items-center justify-between text-sm">
             <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
-              Mais recentes
+              {t("webhooks.deliveriesDialog.maisRecentes")}
             </Button>
-            <span className="text-muted-foreground">
-              Página {page + 1} de {lastPage + 1}
-            </span>
+            <span className="text-muted-foreground">{t("webhooks.deliveriesDialog.paginaDe", { page: page + 1, total: lastPage + 1 })}</span>
             <Button variant="outline" size="sm" disabled={page >= lastPage} onClick={() => setPage(page + 1)}>
-              Mais antigas
+              {t("webhooks.deliveriesDialog.maisAntigas")}
             </Button>
           </div>
         )}
 
         <DialogFooter>
-          <Button onClick={onClose}>Fechar</Button>
+          <Button onClick={onClose}>{t("common.fechar")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -25,11 +25,13 @@ import {
   toReportFilters,
   writeState,
 } from "@/features/reports/period";
-import { DIMENSIONS } from "@/features/reports/presentation";
+import { dimensions } from "@/features/reports/presentation";
 import { ReportFilterBar } from "@/features/reports/report-filter-bar";
 import { saveBlob } from "@/lib/download";
+import { useTranslation } from "react-i18next";
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const state = useMemo(() => readState(searchParams), [searchParams]);
   const filters = useMemo(() => toReportFilters(state), [state]);
@@ -118,7 +120,7 @@ export default function ReportsPage() {
           {getErrorMessage(failed.error)}
         </Alert>
         <Button variant="outline" onClick={retry}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -129,7 +131,7 @@ export default function ReportsPage() {
           <div key={index} className="h-32 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando relatório...
+          {t("pages.reports.carregandoRelatorio")}
         </p>
       </div>
     );
@@ -137,16 +139,16 @@ export default function ReportsPage() {
     content = (
       <EmptyState
         icon={BarChart3}
-        title="Nada neste período"
+        title={t("pages.reports.nadaNestePeriodo")}
         description={
           activeCount > 0
-            ? "Nenhuma receita ou despesa atende aos filtros escolhidos."
-            : "Quando houver receitas ou despesas no período, o relatório aparece aqui."
+            ? t("pages.reports.nenhumaReceitaOuDespesa")
+            : t("pages.reports.quandoHouverReceitasOu")
         }
         action={
           activeCount > 0 ? (
             <Button variant="outline" onClick={clearFilters}>
-              Limpar filtros
+              {t("common.limparFiltros")}
             </Button>
           ) : undefined
         }
@@ -156,15 +158,14 @@ export default function ReportsPage() {
     content = (
       <div className="flex flex-col gap-10">
         <p className="text-sm text-muted-foreground">
-          Só entram receitas e despesas. Transferências, pagamento de dívidas e saldo inicial ficam de fora. Cada moeda
-          é mostrada separada, sem conversão.
+          {t("pages.reports.soEntramReceitasE")}
         </p>
         {summary.data.currencies.map((totals) => (
           <CurrencySection
             key={totals.currency_code}
             totals={totals}
             monthly={monthly.data?.currencies.find((block) => block.currency_code === totals.currency_code)}
-            grouped={DIMENSIONS.map((_, index) =>
+            grouped={dimensions().map((_, index) =>
               grouped[index].data?.currencies.find((block) => block.currency_code === totals.currency_code),
             )}
           />
@@ -176,24 +177,24 @@ export default function ReportsPage() {
   return (
     <>
       <PageHeader
-        title="Relatórios"
-        description="De onde veio e para onde foi o dinheiro"
+        title={t("pages.reports.relatorios")}
+        description={t("pages.reports.deOndeVeioE")}
         actions={
           tab === "summary" ? (
             <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || Boolean(rangeError) || !summary.data}>
               <Download />
-              {exporting ? "Exportando..." : "Exportar CSV"}
+              {exporting ? t("pages.reports.exportando") : t("pages.reports.exportarCsv")}
             </Button>
           ) : undefined
         }
       />
 
-      <div role="group" aria-label="Tipo de relatório" className="mb-6 flex gap-1">
+      <div role="group" aria-label={t("pages.reports.tipoDeRelatorio")} className="mb-6 flex gap-1">
         <Button size="sm" variant={tab === "summary" ? "default" : "outline"} aria-pressed={tab === "summary"} onClick={() => chooseTab("summary")}>
-          Resumo
+          {t("pages.reports.resumo")}
         </Button>
         <Button size="sm" variant={tab === "custom" ? "default" : "outline"} aria-pressed={tab === "custom"} onClick={() => chooseTab("custom")}>
-          Personalizado
+          {t("pages.reports.personalizado")}
         </Button>
       </div>
 

@@ -1,26 +1,26 @@
-import { currentIntlLocale } from "@/i18n";
+import { currentIntlLocale, i18n } from "@/i18n";
 import type { GroupedDimension, ReportRow } from "@/api/reports";
 import { isNegativeMoney } from "@/lib/money";
 
-export const DIMENSIONS: {
+const DIMENSION_KEYS = ["category", "tag", "budget", "account"] as const satisfies readonly GroupedDimension[];
+
+/** Uma dimensao por chave (categoria, tag, orcamento, conta), com titulo e rotulos no idioma atual. */
+export function dimensions(): {
   key: GroupedDimension;
   title: string;
   column: string;
   // Texto da linha sem categoria, orcamento ou tag (o backend manda id nulo)
   fallback: string;
   note?: string;
-}[] = [
-  { key: "category", title: "Por categoria", column: "Categoria", fallback: "Sem categoria" },
-  {
-    key: "tag",
-    title: "Por tag",
-    column: "Tag",
-    fallback: "Sem tag",
-    note: "Um lançamento com várias tags aparece em cada uma delas, então a soma das linhas pode passar do total.",
-  },
-  { key: "budget", title: "Por orçamento", column: "Orçamento", fallback: "Sem orçamento" },
-  { key: "account", title: "Por conta", column: "Conta", fallback: "Sem conta" },
-];
+}[] {
+  return DIMENSION_KEYS.map((key) => ({
+    key,
+    title: i18n.t(`reports.presentation.dimension.${key}.title`),
+    column: i18n.t(`reports.presentation.dimension.${key}.column`),
+    fallback: i18n.t(`reports.presentation.dimension.${key}.fallback`),
+    note: key === "tag" ? i18n.t("reports.presentation.dimension.tag.note") : undefined,
+  }));
+}
 
 export function rowName(row: ReportRow, fallback: string): string {
   return row.id === null ? fallback : row.name;

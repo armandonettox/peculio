@@ -16,6 +16,7 @@ import { HistoryList } from "@/features/reconciliation/history-list";
 import { clearedCount, differenceInfo, lockedText, truncatedText } from "@/features/reconciliation/presentation";
 import { ReconciliationTable } from "@/features/reconciliation/reconciliation-table";
 import { StatementForm } from "@/features/reconciliation/statement-form";
+import { Trans, useTranslation } from "react-i18next";
 
 function Figure({ label, value, tone }: { label: string; value: string; tone?: "ok" | "warn" }) {
   return (
@@ -29,6 +30,7 @@ function Figure({ label, value, tone }: { label: string; value: string; tone?: "
 }
 
 function Work({ statement }: { statement: Statement }) {
+  const { t } = useTranslation();
   const view = useReconciliation(statement);
   const setCleared = useSetCleared(statement.accountId);
   const close = useCloseReconciliation(statement.accountId);
@@ -39,7 +41,7 @@ function Work({ statement }: { statement: Statement }) {
   if (view.isPending) {
     return (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando conciliação...
+        {t("pages.reconciliation.carregandoConciliacao")}
       </p>
     );
   }
@@ -50,7 +52,7 @@ function Work({ statement }: { statement: Statement }) {
           {getErrorMessage(view.error)}
         </Alert>
         <Button variant="outline" onClick={() => void view.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -78,7 +80,7 @@ function Work({ statement }: { statement: Statement }) {
     setNotice(null);
     try {
       const result = await close.mutateAsync(statement);
-      setNotice(`Conciliação fechada. ${lockedText(result.locked_count)}.`);
+      setNotice(t("pages.reconciliation.conciliacaoFechada", { locked: lockedText(result.locked_count) }));
     } catch (failure) {
       setError(getErrorMessage(failure));
     }
@@ -94,12 +96,12 @@ function Work({ statement }: { statement: Statement }) {
         </Alert>
       )}
 
-      <section aria-label="Resumo" className="flex flex-col gap-3">
+      <section aria-label={t("pages.reconciliation.resumo")} className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Figure label={`Saldo do extrato em ${formatDate(data.statement_date)}`} value={formatMoney(data.statement_balance, currency)} />
-          <Figure label="Conferido" value={formatMoney(data.cleared_balance, currency)} />
+          <Figure label={t("pages.reconciliation.saldoDoExtratoEm", { date: formatDate(data.statement_date) })} value={formatMoney(data.statement_balance, currency)} />
+          <Figure label={t("pages.reconciliation.conferido")} value={formatMoney(data.cleared_balance, currency)} />
           <Figure
-            label="Diferença"
+            label={t("pages.reconciliation.diferenca")}
             value={formatMoney(data.difference, currency)}
             tone={info.tone === "ok" ? "ok" : "warn"}
           />
@@ -108,30 +110,29 @@ function Work({ statement }: { statement: Statement }) {
           {info.text}
         </p>
         <p className="text-xs text-muted-foreground">
-          Saldo da conta {data.account_name} no app nessa data: {formatMoney(data.book_balance, currency)}. O conferido começa pelo saldo
-          inicial e soma só o que você marcou abaixo.
+          {t("pages.reconciliation.saldoDaContaNoApp", { account: data.account_name, amount: formatMoney(data.book_balance, currency) })}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {info.tone !== "ok" && (
             <Button variant="outline" onClick={() => setAdjusting(true)} disabled={busy}>
-              Criar lançamento de ajuste
+              {t("pages.reconciliation.criarLancamentoDeAjuste")}
             </Button>
           )}
           {info.tone === "ok" && (
             <>
               <Button onClick={() => void closeReconciliation()} disabled={busy || nothingToClose}>
-                {close.isPending ? "Fechando..." : "Fechar conciliação"}
+                {close.isPending ? t("pages.reconciliation.fechando") : t("pages.reconciliation.fecharConciliacao")}
               </Button>
               {nothingToClose && (
-                <p className="text-xs text-muted-foreground">Marque ao menos um lançamento como conferido para fechar.</p>
+                <p className="text-xs text-muted-foreground">{t("pages.reconciliation.marqueAoMenosUm")}</p>
               )}
             </>
           )}
         </div>
       </section>
 
-      <section aria-label="Lançamentos" className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Lançamentos até {formatDate(data.statement_date)}</h2>
+      <section aria-label={t("pages.reconciliation.lancamentos")} className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold">{t("pages.reconciliation.lancamentosAte", { date: formatDate(data.statement_date) })}</h2>
         {truncatedText(data) && <Alert>{truncatedText(data)}</Alert>}
         <ReconciliationTable rows={data.rows} currencyCode={currency} pending={busy} onToggle={(ids, cleared) => void toggle(ids, cleared)} />
       </section>
@@ -142,6 +143,7 @@ function Work({ statement }: { statement: Statement }) {
 }
 
 export default function ReconciliationPage() {
+  const { t } = useTranslation();
   const accountsQuery = useAccounts({ includeArchived: false });
   const [statement, setStatement] = useState<Statement | null>(null);
 
@@ -153,7 +155,7 @@ export default function ReconciliationPage() {
   if (accountsQuery.isPending) {
     form = (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando contas...
+        {t("common.carregandoContas")}
       </p>
     );
   } else if (accountsQuery.isError) {
@@ -163,14 +165,17 @@ export default function ReconciliationPage() {
           {getErrorMessage(accountsQuery.error)}
         </Alert>
         <Button variant="outline" onClick={() => void accountsQuery.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
   } else if (accounts.length === 0) {
     form = (
       <Alert>
-        Você ainda não tem uma conta para conciliar. <Link to="/contas" className="font-medium underline">Crie uma conta</Link> primeiro.
+        <Trans
+          i18nKey="pages.reconciliation.aindaNaoTemConta"
+          components={{ cta: <Link to="/contas" className="font-medium underline" /> }}
+        />
       </Alert>
     );
   } else {
@@ -180,15 +185,15 @@ export default function ReconciliationPage() {
   return (
     <>
       <PageHeader
-        title="Conciliar"
-        description="Confira os lançamentos da conta com o extrato do banco. Quando o conferido bate com o extrato, feche a conciliação."
+        title={t("pages.reconciliation.conciliar")}
+        description={t("pages.reconciliation.confiraOsLancamentosDa")}
       />
       <div className="flex flex-col gap-8">
         {form}
         {statement && <Work key={`${statement.accountId}|${statement.balance}|${statement.date}`} statement={statement} />}
         {statement && account && (
-          <section aria-label="Histórico" className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold">Conciliações fechadas</h2>
+          <section aria-label={t("pages.reconciliation.historico")} className="flex flex-col gap-3">
+            <h2 className="text-base font-semibold">{t("pages.reconciliation.conciliacoesFechadas")}</h2>
             <HistoryList accountId={statement.accountId} currencyCode={account.currency_code} />
           </section>
         )}

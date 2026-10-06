@@ -4,12 +4,14 @@ import { useId } from "react";
 import type { MonthlyBlock } from "@/api/reports";
 import { formatMoney } from "@/lib/money";
 import { barPercent, longMonthLabel, netClass, shortMonthLabel } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 /**
  * Receita e despesa mes a mes, em barras de CSS. O desenho e so um resumo visual (leitor de tela
  * recebe uma frase) e a tabela logo abaixo tem todos os valores em texto.
  */
 export function MonthlyChart({ block }: { block: MonthlyBlock }) {
+  const { t } = useTranslation();
   const headingId = useId();
   const code = block.currency_code;
   const months = block.months;
@@ -20,24 +22,24 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
   const first = months[0];
   const last = months[months.length - 1];
   const summary = first
-    ? `Receita e despesa por mês em ${code}, de ${longMonthLabel(first.month)} a ${longMonthLabel(last.month)}. Os valores estão na tabela abaixo.`
+    ? t("reports.monthlyChart.receitaEDespesaPorMes", { code, from: longMonthLabel(first.month), to: longMonthLabel(last.month) })
     : "";
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <h3 id={headingId} className="text-base font-semibold">
-        Mês a mês
+        {t("reports.monthlyChart.mesAMes")}
       </h3>
 
       <div className="rounded-lg border bg-card p-4">
         <ul aria-hidden className="mb-3 flex gap-4 text-xs text-muted-foreground">
           <li className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-positive" />
-            Receita
+            {t("common.receita")}
           </li>
           <li className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-destructive" />
-            Despesa
+            {t("common.despesa")}
           </li>
         </ul>
         <div className="overflow-x-auto">
@@ -61,22 +63,22 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
         </div>
       </div>
 
-      <TableScroll label="Valores por mês" className="max-h-72 overflow-auto">
+      <TableScroll label={t("reports.monthlyChart.valoresPorMes")} className="max-h-72 overflow-auto">
         <table className="w-full min-w-96 text-sm">
-          <caption className="sr-only">Receita, despesa e resultado por mês em {code}</caption>
+          <caption className="sr-only">{t("reports.monthlyChart.receitaDespesaResultadoPorMes", { code })}</caption>
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
               <th scope="col" className="px-3 py-2 font-medium">
-                Mês
+                {t("reports.monthlyChart.mes")}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Receita
+                {t("common.receita")}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Despesa
+                {t("common.despesa")}
               </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
-                Resultado
+                {t("common.resultado")}
               </th>
             </tr>
           </thead>

@@ -13,6 +13,7 @@ import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { historyStatus, lockedText } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = { accountId: string; currencyCode: string };
 
@@ -27,6 +28,7 @@ function UndoDialog({
   accountId: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const undo = useUndoReconciliation(accountId);
   const [error, setError] = useState<string | null>(null);
   const busy = undo.isPending;
@@ -45,20 +47,23 @@ function UndoDialog({
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Desfazer conciliação</DialogTitle>
+          <DialogTitle>{t("reconciliation.historyList.desfazerConciliacao")}</DialogTitle>
           <DialogDescription>
-            A conciliação de {formatDate(item.statement_date)} ({formatMoney(item.statement_balance, currencyCode)}) deixa de valer e{" "}
-            {lockedText(item.locked_count).toLowerCase()} {item.locked_count === 1 ? "volta" : "voltam"} a poder ser editado. Os
-            lançamentos continuam marcados como conferidos.
+            {t("reconciliation.historyList.conciliacaoDeixaDeValer", {
+              date: formatDate(item.statement_date),
+              amount: formatMoney(item.statement_balance, currencyCode),
+              locked: lockedText(item.locked_count).toLowerCase(),
+              count: item.locked_count,
+            })}
           </DialogDescription>
         </DialogHeader>
         {error && <Alert variant="destructive">{error}</Alert>}
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t("common.cancelar")}
           </Button>
           <Button variant="destructive" onClick={() => void confirm()} disabled={busy}>
-            {busy ? "Desfazendo..." : "Desfazer"}
+            {busy ? t("reconciliation.historyList.desfazendo") : t("reconciliation.historyList.desfazer")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -68,12 +73,13 @@ function UndoDialog({
 
 /** As conciliacoes ja fechadas da conta, da mais nova para a mais antiga. */
 export function HistoryList({ accountId, currencyCode }: Props) {
+  const { t } = useTranslation();
   const history = useReconciliationHistory(accountId);
   const [undoing, setUndoing] = useState<ClosedReconciliation | null>(null);
 
-  if (history.isPending) return <p className="text-sm text-muted-foreground">Carregando histórico...</p>;
+  if (history.isPending) return <p className="text-sm text-muted-foreground">{t("reconciliation.historyList.carregandoHistorico")}</p>;
   if (history.isError) return <Alert variant="destructive">{getErrorMessage(history.error)}</Alert>;
-  if (history.data.length === 0) return <p className="text-sm text-muted-foreground">Esta conta ainda não teve conciliação fechada.</p>;
+  if (history.data.length === 0) return <p className="text-sm text-muted-foreground">{t("reconciliation.historyList.estaContaAindaNao")}</p>;
 
   return (
     <>
@@ -84,7 +90,7 @@ export function HistoryList({ accountId, currencyCode }: Props) {
             <li key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="font-medium">
-                  Extrato de {formatDate(item.statement_date)} · {formatMoney(item.statement_balance, currencyCode)}
+                  {t("reconciliation.historyList.extratoDe", { date: formatDate(item.statement_date), amount: formatMoney(item.statement_balance, currencyCode) })}
                 </p>
                 <p className="text-xs text-muted-foreground">{lockedText(item.locked_count)}</p>
               </div>
@@ -98,7 +104,7 @@ export function HistoryList({ accountId, currencyCode }: Props) {
               </span>
               {status.active && (
                 <Button size="sm" variant="outline" onClick={() => setUndoing(item)}>
-                  Desfazer
+                  {t("reconciliation.historyList.desfazer")}
                 </Button>
               )}
             </li>

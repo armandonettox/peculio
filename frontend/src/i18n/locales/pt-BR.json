@@ -165,6 +165,89 @@
       "mostrarArquivados": "Mostrar arquivados",
       "excluirCofrinho": "Excluir cofrinho",
       "oValorGuardadoVolta": "O valor guardado volta a ficar disponível na conta; nenhum dinheiro some."
+    },
+    "import": {
+      "nadaFoiImportado": "Nada foi importado",
+      "verLancamentos": "Ver lançamentos",
+      "importarOutroExtrato": "Importar outro extrato",
+      "importarExtrato": "Importar extrato",
+      "tragaOsLancamentosDe": "Traga os lançamentos de um extrato do banco (CSV ou OFX)",
+      "passosDaImportacao": "Passos da importação",
+      "aindaNaoTemConta": "Você ainda não tem uma conta para receber o extrato. <cta>Crie uma conta</cta> primeiro.",
+      "naoFoiPossivelLer": "Não foi possível ler o arquivo: {{message}}",
+      "step": {
+        "file": "Arquivo",
+        "mapping": "Colunas",
+        "preview": "Prévia",
+        "done": "Pronto"
+      },
+      "importados": "{{entries}} importados",
+      "deixadosDeFora_one": "{{entries}} foi deixado de fora porque o banco já tinha enviado esse antes.",
+      "deixadosDeFora_other": "{{entries}} foram deixados de fora porque o banco já tinha enviado esses antes."
+    },
+    "reconciliation": {
+      "carregandoConciliacao": "Carregando conciliação...",
+      "resumo": "Resumo",
+      "conferido": "Conferido",
+      "diferenca": "Diferença",
+      "criarLancamentoDeAjuste": "Criar lançamento de ajuste",
+      "fechando": "Fechando...",
+      "fecharConciliacao": "Fechar conciliação",
+      "marqueAoMenosUm": "Marque ao menos um lançamento como conferido para fechar.",
+      "lancamentos": "Lançamentos",
+      "conciliar": "Conciliar",
+      "confiraOsLancamentosDa": "Confira os lançamentos da conta com o extrato do banco. Quando o conferido bate com o extrato, feche a conciliação.",
+      "historico": "Histórico",
+      "conciliacoesFechadas": "Conciliações fechadas",
+      "conciliacaoFechada": "Conciliação fechada. {{locked}}.",
+      "saldoDoExtratoEm": "Saldo do extrato em {{date}}",
+      "saldoDaContaNoApp": "Saldo da conta {{account}} no app nessa data: {{amount}}. O conferido começa pelo saldo inicial e soma só o que você marcou abaixo.",
+      "lancamentosAte": "Lançamentos até {{date}}",
+      "aindaNaoTemConta": "Você ainda não tem uma conta para conciliar. <cta>Crie uma conta</cta> primeiro."
+    },
+    "reports": {
+      "carregandoRelatorio": "Carregando relatório...",
+      "nadaNestePeriodo": "Nada neste período",
+      "nenhumaReceitaOuDespesa": "Nenhuma receita ou despesa atende aos filtros escolhidos.",
+      "quandoHouverReceitasOu": "Quando houver receitas ou despesas no período, o relatório aparece aqui.",
+      "soEntramReceitasE": "Só entram receitas e despesas. Transferências, pagamento de dívidas e saldo inicial ficam de fora. Cada moeda é mostrada separada, sem conversão.",
+      "relatorios": "Relatórios",
+      "deOndeVeioE": "De onde veio e para onde foi o dinheiro",
+      "exportando": "Exportando...",
+      "exportarCsv": "Exportar CSV",
+      "tipoDeRelatorio": "Tipo de relatório",
+      "resumo": "Resumo",
+      "personalizado": "Personalizado"
+    },
+    "rules": {
+      "novaRegra": "Nova regra",
+      "carregandoRegras": "Carregando regras...",
+      "nenhumaRegraAinda": "Nenhuma regra ainda",
+      "umaRegraPreencheSozinha": "Uma regra preenche sozinha a categoria, as tags, o orçamento ou a conta a pagar das transações que combinam com ela, por exemplo tudo que tem 'mercado' na descrição.",
+      "esteGrupoAindaNao": "Este grupo ainda não tem regras.",
+      "regrasSemGrupo": "Regras sem grupo",
+      "semGrupo": "Sem grupo",
+      "suasRegras": "Suas regras",
+      "regras": "Regras",
+      "preenchemSozinhasOQue": "Preenchem sozinhas o que as transações deixarem em branco",
+      "aplicarNasAntigas": "Aplicar nas antigas",
+      "novoGrupo": "Novo grupo",
+      "excluirRegra": "Excluir regra",
+      "asTransacoesJaPreenchidas": "As transações já preenchidas por ela continuam como estão.",
+      "excluirGrupo": "Excluir grupo",
+      "asRegrasDoGrupo": "As regras do grupo continuam, só ficam sem grupo.",
+      "grupo": "Grupo {{name}}",
+      "acoesDoGrupo": "Ações do grupo {{name}}"
+    },
+    "webhooks": {
+      "novoWebhook": "Novo webhook",
+      "carregandoWebhooks": "Carregando webhooks...",
+      "nenhumWebhookAinda": "Nenhum webhook ainda",
+      "umWebhookAvisaOutro": "Um webhook avisa outro sistema, como uma planilha ou uma automação, sempre que um lançamento é criado, editado ou excluído.",
+      "webhooks": "Webhooks",
+      "avisosAutomaticosParaOutros": "Avisos automáticos para outros sistemas",
+      "excluirWebhook": "Excluir webhook",
+      "oHistoricoDeEntregas": "O histórico de entregas dele também é apagado e os avisos pendentes não são enviados."
     }
   },
   "common": {
@@ -202,7 +285,11 @@
       "tomorrow": "amanhã",
       "inDays_one": "em {{count}} dia",
       "inDays_other": "em {{count}} dias"
-    }
+    },
+    "receita": "Receita",
+    "despesa": "Despesa",
+    "resultado": "Resultado",
+    "concluir": "Concluir"
   },
   "components": {
     "appShell": {
@@ -877,10 +964,22 @@
     },
     "templatePresentation": {
       "kind": {
-        "fixed": { "label": "Valor fixo por mês", "description": "Distribui o mesmo valor todo mês." },
-        "by_date": { "label": "Juntar até uma data", "description": "Divide o que falta pelos meses que restam até a meta." },
-        "bill": { "label": "Ligado a uma conta a pagar", "description": "Distribui o valor máximo da conta nos meses em que ela vence." },
-        "remainder": { "label": "O que sobrar", "description": "Fica com a sua parte do que sobrou do A orçar, depois dos outros templates." }
+        "fixed": {
+          "label": "Valor fixo por mês",
+          "description": "Distribui o mesmo valor todo mês."
+        },
+        "by_date": {
+          "label": "Juntar até uma data",
+          "description": "Divide o que falta pelos meses que restam até a meta."
+        },
+        "bill": {
+          "label": "Ligado a uma conta a pagar",
+          "description": "Distribui o valor máximo da conta nos meses em que ela vence."
+        },
+        "remainder": {
+          "label": "O que sobrar",
+          "description": "Fica com a sua parte do que sobrou do A orçar, depois dos outros templates."
+        }
       },
       "summary": {
         "fixed": "{{amount}} por mês",
@@ -1053,6 +1152,496 @@
         "warning": "O saldo de {{account}} está {{amount}} abaixo do que está guardado em cofrinhos",
         "ok": "Disponível em {{account}}: {{amount}}"
       }
+    }
+  },
+  "imports": {
+    "importFileStep": {
+      "contaQueRecebeO": "Conta que recebe o extrato",
+      "osLancamentosEntramNesta": "Os lançamentos entram nesta conta. Dívidas não recebem extrato.",
+      "escolhaUmaConta": "Escolha uma conta",
+      "arquivoDoExtratoCsv": "Arquivo do extrato (CSV ou OFX)",
+      "trocarArquivo": "Trocar arquivo",
+      "escolherArquivo": "Escolher arquivo",
+      "lendoOArquivo": "Lendo o arquivo...",
+      "verPrevia": "Ver prévia",
+      "escolhaAContaQueVai": "Escolha a conta que vai receber o extrato.",
+      "escolhaOArquivoDo": "Escolha o arquivo do extrato.",
+      "oArquivoEstaVazio": "O arquivo está vazio.",
+      "oArquivoPassaDoLimite": "O arquivo passa do limite de {{max}} MB.",
+      "ateMbELinhas": "Até {{max}} MB e 5000 linhas. O arquivo não fica guardado: só é lido para mostrar a prévia."
+    },
+    "importMappingStep": {
+      "escolhaAColuna": "Escolha a coluna",
+      "naoDeuParaDescobrir": "Não deu para descobrir sozinho qual coluna é qual. Diga abaixo o que cada uma significa.",
+      "primeirasLinhasDoArquivo": "Primeiras linhas do arquivo",
+      "aPrimeiraLinhaDo": "A primeira linha do arquivo é o cabeçalho (os nomes das colunas)",
+      "comoOValorAparece": "Como o valor aparece",
+      "voltar": "Voltar",
+      "lendoOArquivo": "Lendo o arquivo...",
+      "verPrevia": "Ver prévia",
+      "colunaDaData": "Coluna da data",
+      "colunaDaDescricao": "Coluna da descrição",
+      "umaColunaComSinal": "Uma coluna com sinal (negativo é saída, positivo é entrada)",
+      "duasColunasDebito": "Duas colunas: débito (saída) e crédito (entrada)",
+      "colunaDoValor": "Coluna do valor",
+      "colunaDeDebito": "Coluna de débito",
+      "colunaDeCredito": "Coluna de crédito"
+    },
+    "importPreviewStep": {
+      "asRegrasQueVoce": "As regras que você já criou preenchem categoria, tags e orçamento sozinhas.",
+      "asQueParecemRepetidas": "As que parecem repetidas vêm desmarcadas: já existe um lançamento igual. Marque à mão as que forem legítimas.",
+      "marcarSoAsNovas": "Marcar só as novas",
+      "marcarTodasIncluiRepetidas": "Marcar todas (inclui repetidas)",
+      "desmarcarTudo": "Desmarcar tudo",
+      "lancamentosDoArquivo": "Lançamentos do arquivo",
+      "importar": "Importar",
+      "linha": "Linha",
+      "anterior": "Anterior",
+      "proxima": "Próxima",
+      "escolherOutroArquivo": "Escolher outro arquivo",
+      "ajustarColunas": "Ajustar colunas",
+      "importando": "Importando...",
+      "nadaMarcadoParaImportar": "Nada marcado para importar",
+      "restoContaAccount": "{{rest}} · conta {{account}}",
+      "importarALinha": "Importar a linha {{index}}",
+      "linhasDeA": "Linhas {{first}} a {{last}} de {{total}}",
+      "importarEntries": "Importar {{entries}}"
+    },
+    "previewModel": {
+      "erro": "Erro",
+      "nova": "Nova",
+      "jaImportada": "Já importada",
+      "pareceRepetida": "Parece repetida",
+      "entries_zero": "{{count}} lançamentos",
+      "entries_one": "{{count}} lançamento",
+      "entries_other": "{{count}} lançamentos"
+    }
+  },
+  "reconciliation": {
+    "adjustmentDialog": {
+      "criarLancamentoDeAjuste": "Criar lançamento de ajuste",
+      "vaiCriar": "Vai criar <strong>{{text}}</strong> na conta <strong>{{account}}</strong>, com a data {{date}} e a descrição “Ajuste de conciliacao”. Ele já entra marcado como conferido e a diferença zera.",
+      "naoHaDiferencaPara": "Não há diferença para ajustar.",
+      "useOAjusteSo": "Use o ajuste só quando você já conferiu os lançamentos e a diferença é algo que o app não conhece (uma tarifa, um rendimento).",
+      "criando": "Criando...",
+      "criarAjuste": "Criar ajuste"
+    },
+    "historyList": {
+      "desfazerConciliacao": "Desfazer conciliação",
+      "desfazendo": "Desfazendo...",
+      "desfazer": "Desfazer",
+      "carregandoHistorico": "Carregando histórico...",
+      "estaContaAindaNao": "Esta conta ainda não teve conciliação fechada.",
+      "conciliacaoDeixaDeValer_one": "A conciliação de {{date}} ({{amount}}) deixa de valer e {{locked}} volta a poder ser editado. Os lançamentos continuam marcados como conferidos.",
+      "conciliacaoDeixaDeValer_other": "A conciliação de {{date}} ({{amount}}) deixa de valer e {{locked}} voltam a poder ser editados. Os lançamentos continuam marcados como conferidos.",
+      "extratoDe": "Extrato de {{date}} · {{amount}}"
+    },
+    "reconciliationTable": {
+      "naoHaLancamentosAbertos": "Não há lançamentos abertos até essa data.",
+      "marcarTodos": "Marcar todos",
+      "desmarcarTodos": "Desmarcar todos",
+      "lancamentosAConferir": "Lançamentos a conferir",
+      "conferido": "Conferido",
+      "conferidosDeEntries": "{{checked}} de {{entries}} conferidos",
+      "conferidoDescription": "Conferido: {{description}}"
+    },
+    "statementForm": {
+      "dataDoExtrato": "Data do extrato",
+      "conferir": "Conferir",
+      "escolhaAConta": "Escolha a conta.",
+      "informeAData": "Informe a data do extrato.",
+      "dataNaoPodeSerFutura": "A data do extrato não pode ser no futuro.",
+      "saldoDoExtrato": "Saldo do extrato",
+      "saldoDoExtratoCom": "Saldo do extrato ({{currency}})"
+    },
+    "presentation": {
+      "bate": "O conferido bate com o extrato.",
+      "extratoTemAMais": "O extrato tem {{amount}} a mais do que o conferido.",
+      "conferidoTemAMais": "O conferido tem {{amount}} a mais do que o extrato.",
+      "umaEntradaDe": "uma entrada de {{amount}}",
+      "umaSaidaDe": "uma saída de {{amount}}",
+      "entries_one": "{{count}} lançamento",
+      "entries_other": "{{count}} lançamentos",
+      "mostrando": "Mostrando {{shown}} de {{total}} lançamentos abertos. Confira e feche estes; os outros aparecem em seguida.",
+      "desfeita": "Desfeita",
+      "fechada": "Fechada",
+      "nenhumTravado": "Nenhum lançamento travado",
+      "travados_one": "{{entries}} travado",
+      "travados_other": "{{entries}} travados"
+    }
+  },
+  "reports": {
+    "period": {
+      "this-month": "Este mês",
+      "last-month": "Mês passado",
+      "this-year": "Este ano",
+      "custom": "Personalizado",
+      "dataInicialDepoisDaFinal": "A data inicial é depois da data final."
+    },
+    "breakdownTable": {
+      "tituloEm": "{{title}} em {{code}}",
+      "despesaDePercent": "Despesa de {{amount}}, {{percent}}% do maior gasto da lista"
+    },
+    "currencySection": {
+      "relatorioEm": "Relatório em {{code}}",
+      "entriesDeReceitaOuDespesa_one": "{{count}} lançamento de receita ou despesa no período",
+      "entriesDeReceitaOuDespesa_other": "{{count}} lançamentos de receita ou despesa no período",
+      "cardEm": "{{label}} em {{code}}"
+    },
+    "presentation": {
+      "dimension": {
+        "category": {
+          "title": "Por categoria",
+          "column": "Categoria",
+          "fallback": "Sem categoria"
+        },
+        "tag": {
+          "title": "Por tag",
+          "column": "Tag",
+          "fallback": "Sem tag",
+          "note": "Um lançamento com várias tags aparece em cada uma delas, então a soma das linhas pode passar do total."
+        },
+        "budget": {
+          "title": "Por orçamento",
+          "column": "Orçamento",
+          "fallback": "Sem orçamento"
+        },
+        "account": {
+          "title": "Por conta",
+          "column": "Conta",
+          "fallback": "Sem conta"
+        }
+      }
+    },
+    "customReportBuilder": {
+      "montarRelatorio": "Montar relatório",
+      "agruparPor": "Agrupar por",
+      "medir": "Medir",
+      "grafico": "Gráfico",
+      "linhaSoServePara": "Linha só serve para agrupar por mês. Rosca não serve para mês nem para saldo.",
+      "arquivada": "(arquivada)",
+      "todos": "Todos",
+      "arquivado": "(arquivado)",
+      "esteRelatorioFiltraPor": "Este relatório filtra por {{missing}} que não existe mais. Escolha outro valor, ou “Todas”, e salve de novo."
+    },
+    "customConfig": {
+      "groupBy": {
+        "category": "Categoria",
+        "tag": "Tag",
+        "budget": "Orçamento",
+        "account": "Conta",
+        "counterparty": "Contraparte",
+        "month": "Mês"
+      },
+      "measure": {
+        "expense": "Despesas",
+        "income": "Receitas",
+        "net": "Saldo (receitas menos despesas)"
+      },
+      "chart": {
+        "table": "Tabela",
+        "bar": "Barras",
+        "line": "Linha",
+        "donut": "Rosca"
+      },
+      "period": {
+        "this-month": "Este mês",
+        "last-month": "Mês passado",
+        "last-3-months": "Últimos 3 meses",
+        "last-12-months": "Últimos 12 meses",
+        "this-year": "Este ano",
+        "fixed": "Datas fixas"
+      },
+      "lineOnlyForMonth": "O gráfico de linha só serve para agrupar por mês.",
+      "donutNotForMonth": "O gráfico de rosca não serve para agrupar por mês.",
+      "donutNotForNet": "O gráfico de rosca não serve para o saldo, que pode ser negativo.",
+      "informeAsDatas": "Informe as duas datas.",
+      "dataInicialDepoisDaFinal": "A data inicial é depois da data final.",
+      "filterName": {
+        "account": "conta",
+        "category": "categoria",
+        "tag": "tag",
+        "budget": "orçamento"
+      },
+      "reportTitleWhat": {
+        "expense": "Despesas",
+        "income": "Receitas",
+        "net": "Saldo"
+      },
+      "reportTitleByMonth": "{{what}} mês a mês",
+      "reportTitleByGroup": "{{what}} por {{group}}"
+    },
+    "customReportsTab": {
+      "carregandoRelatorio": "Carregando relatório...",
+      "nadaNestePeriodo": "Nada neste período",
+      "nenhumaReceitaOuDespesa": "Nenhuma receita ou despesa atende ao período e aos filtros escolhidos.",
+      "salvarRelatorio": "Salvar relatório",
+      "novoRelatorio": "Novo relatório",
+      "comMudancasAindaNao": "(com mudanças ainda não salvas)",
+      "excluirRelatorioSalvo": "Excluir relatório salvo",
+      "soORelatorioSalvo": "Só o relatório salvo some; os lançamentos e os números continuam como estão.",
+      "relatorioExcluido": "Relatório excluído.",
+      "relatorioSalvo": "Relatório salvo.",
+      "periodoDeA": "Período: {{from}} a {{to}}. Só entram receitas e despesas; transferências, pagamento de dívidas e saldo inicial ficam de fora. Cada moeda é mostrada separada, sem conversão.",
+      "aberto": "Aberto:"
+    },
+    "customReportView": {
+      "fallback": {
+        "category": "Sem categoria",
+        "tag": "Sem tag",
+        "budget": "Sem orçamento",
+        "account": "Sem conta",
+        "counterparty": "Sem contraparte"
+      },
+      "tituloEm": "{{title}} em {{code}}",
+      "nenhumGrupoTem": "Nenhum grupo tem {{measure}} neste período.",
+      "oGraficoMostra": "O gráfico mostra os {{limit}} maiores e junta o resto em “{{label}}”. A tabela abaixo tem todos.",
+      "tagNote": "Um lançamento com várias tags aparece em cada uma delas, então a soma das linhas pode passar do total.",
+      "agrupadoPor": "(agrupado por {{group}})"
+    },
+    "customTable": {
+      "todosOsGrupos": "Todos os grupos",
+      "lancamentos": "Lançamentos",
+      "tituloEmTodosOsGrupos": "{{title}} em {{currency}}, todos os grupos"
+    },
+    "customData": {
+      "outros": "Outros"
+    },
+    "monthlyChart": {
+      "mesAMes": "Mês a mês",
+      "valoresPorMes": "Valores por mês",
+      "mes": "Mês",
+      "receitaEDespesaPorMes": "Receita e despesa por mês em {{code}}, de {{from}} a {{to}}. Os valores estão na tabela abaixo.",
+      "receitaDespesaResultadoPorMes": "Receita, despesa e resultado por mês em {{code}}"
+    },
+    "reportFilterBar": {
+      "filtrosDoRelatorio": "Filtros do relatório",
+      "arquivada": "(arquivada)",
+      "todos": "Todos",
+      "arquivado": "(arquivado)"
+    },
+    "saveReportDialog": {
+      "salvarRelatorio": "Salvar relatório",
+      "oRelatorioGuardaO": "O relatório guarda o agrupamento, a medida, o gráfico, o período e os filtros. Com um período como “Este mês”, ele se atualiza sozinho cada vez que você abrir.",
+      "oQueFazer": "O que fazer",
+      "salvarComoUmRelatorio": "Salvar como um relatório novo",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "informeONome": "Informe o nome do relatório.",
+      "useNoMaximo": "Use no máximo {{max}} letras.",
+      "atualizar": "Atualizar “{{name}}”"
+    },
+    "savedReportsPanel": {
+      "carregandoRelatoriosSalvos": "Carregando relatórios salvos...",
+      "voceAindaNaoSalvou": "Você ainda não salvou nenhum relatório. Monte um abaixo e use “Salvar relatório”.",
+      "relatoriosSalvos": "Relatórios salvos",
+      "abrir": "Abrir {{name}}",
+      "excluir": "Excluir {{name}}",
+      "resumo": "{{measure}} por {{group}} · {{chart}} · {{period}}"
+    }
+  },
+  "rules": {
+    "backfillDialog": {
+      "aplicarNasTransacoesAntigas": "Aplicar nas transações antigas",
+      "vejaPrimeiroOQue": "Veja primeiro o que mudaria. Só são preenchidos os campos que estão em branco: categoria, tags, orçamento e conta a pagar que você já escolheu ficam como estão.",
+      "voceNaoTemRegras": "Você não tem regras ativas para aplicar.",
+      "de": "De",
+      "ate": "Até",
+      "todasAsContas": "Todas as contas",
+      "regras": "Regras",
+      "calculando": "Calculando...",
+      "verPrevia": "Ver prévia",
+      "previa": "Prévia",
+      "aplicando": "Aplicando...",
+      "dataInicialNaoPode": "A data inicial não pode ser depois da final.",
+      "nadaParaPreencher_one": "Nada para preencher em {{count}} lançamento.",
+      "nadaParaPreencher_other": "Nada para preencher em {{count}} lançamentos.",
+      "seriaAlterado_one": "{{count}} lançamento seria alterado de {{scanned}}.",
+      "seriaAlterado_other": "{{count}} lançamentos seriam alterados de {{scanned}}.",
+      "mostrandoOsPrimeiros": "Mostrando os primeiros {{shown}}. A aplicação vale para todos os {{total}}.",
+      "pronto_one": "Pronto: {{count}} lançamento atualizado.",
+      "pronto_other": "Pronto: {{count}} lançamentos atualizados.",
+      "aplicarEm_one": "Aplicar em {{count}} lançamento",
+      "aplicarEm_other": "Aplicar em {{count}} lançamentos"
+    },
+    "groupFormDialog": {
+      "editarGrupo": "Editar grupo",
+      "novoGrupo": "Novo grupo",
+      "gruposAjudamAOrganizar": "Grupos ajudam a organizar as regras. Eles rodam em ordem: o de número menor vem primeiro, e as regras sem grupo rodam por último.",
+      "ordem": "Ordem",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarGrupo": "Criar grupo",
+      "informeONome": "Informe o nome do grupo.",
+      "informeUmNumero": "Informe um número inteiro de 0 a {{max}}."
+    },
+    "ruleCard": {
+      "pausada": "Pausada",
+      "paraAqui": "Para aqui",
+      "quandoTodosValerem": "Quando todos valerem",
+      "quandoQualquerUmValer": "Quando qualquer um valer",
+      "entao": "Então",
+      "pausar": "Pausar",
+      "ativar": "Ativar",
+      "acoesDaRegra": "Ações da regra {{name}}"
+    },
+    "ruleFormDialog": {
+      "texto": "Texto",
+      "editarRegra": "Editar regra",
+      "novaRegra": "Nova regra",
+      "aRegraPreencheCategoria": "A regra preenche categoria, tags, orçamento ou conta a pagar nas transações que combinam com os gatilhos. Ela só preenche o que estiver vazio: o que você escolheu na transação nunca é trocado.",
+      "quando": "Quando",
+      "combinacaoDosGatilhos": "Combinação dos gatilhos",
+      "adicionarGatilho": "Adicionar gatilho",
+      "entao": "Então",
+      "escolha": "Escolha",
+      "adicionarAcao": "Adicionar ação",
+      "grupo": "Grupo",
+      "semGrupo": "Sem grupo",
+      "ordem": "Ordem",
+      "pararAquiSeEsta": "Parar aqui: se esta regra valer, as seguintes não rodam",
+      "regraAtiva": "Regra ativa",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarRegra": "Criar regra",
+      "campoDoGatilho": "Campo do gatilho {{index}}",
+      "operacaoDoGatilho": "Operação do gatilho {{index}}",
+      "removerGatilho": "Remover gatilho {{index}}",
+      "acao": "Ação {{index}}",
+      "alvoDaAcao": "Alvo da ação {{index}}",
+      "removerAcao": "Remover ação {{index}}"
+    },
+    "presentation": {
+      "field": {
+        "description": "Descrição",
+        "counterparty": "Quem recebeu ou pagou",
+        "amount": "Valor",
+        "account": "Conta",
+        "type": "Tipo"
+      },
+      "op": {
+        "contains": "contém",
+        "starts_with": "começa com",
+        "equals": "é igual a",
+        "greater_than": "é maior que",
+        "less_than": "é menor que",
+        "is": "é"
+      },
+      "type": {
+        "withdrawal": "Saída",
+        "deposit": "Entrada",
+        "transfer": "Transferência"
+      },
+      "action": {
+        "set_category": "Definir categoria",
+        "add_tag": "Adicionar tag",
+        "set_budget": "Ligar ao orçamento",
+        "set_bill": "Ligar à conta a pagar"
+      },
+      "actionSummary": {
+        "set_category": "Categoria",
+        "add_tag": "Tag",
+        "set_budget": "Orçamento",
+        "set_bill": "Conta a pagar"
+      },
+      "matchMode": {
+        "all": "Todos os gatilhos precisam valer",
+        "any": "Basta um gatilho valer"
+      },
+      "itemRemovido": "item removido"
+    }
+  },
+  "webhooks": {
+    "deliveriesDialog": {
+      "carregandoEntregas": "Carregando entregas...",
+      "nenhumaEntregaAinda": "Nenhuma entrega ainda.",
+      "nenhumaEntregaComEsta": "Nenhuma entrega com esta situação.",
+      "historicoDeEntregas": "Histórico de entregas",
+      "situacao": "Situação",
+      "entregues": "Entregues",
+      "pendentes": "Pendentes",
+      "comFalha": "Com falha",
+      "expiradas": "Expiradas",
+      "maisRecentes": "Mais recentes",
+      "maisAntigas": "Mais antigas",
+      "avisosEnviadosPara": "Avisos enviados para <strong>{{name}}</strong>, do mais recente para o mais antigo.",
+      "resumo_one": "{{date}} · {{count}} tentativa · {{http}}",
+      "resumo_other": "{{date}} · {{count}} tentativas · {{http}}",
+      "paginaDe": "Página {{page}} de {{total}}"
+    },
+    "rotateSecretDialog": {
+      "girarSegredo": "Girar segredo",
+      "girando": "Girando...",
+      "oSegredoAtualDe": "O segredo atual de <strong>{{name}}</strong> deixa de valer na hora. Quem recebe os avisos precisa usar o segredo novo para conferir a assinatura."
+    },
+    "secretDialog": {
+      "segredoDoWebhook": "Segredo do webhook",
+      "guardeOSegredoDe": "Guarde o segredo de <strong>{{name}}</strong> em um lugar seguro. Ele serve para conferir a assinatura de cada aviso e não aparece de novo.",
+      "segredo": "Segredo",
+      "copiar": "Copiar",
+      "segredoCopiado": "Segredo copiado.",
+      "naoFoiPossivelCopiar": "Não foi possível copiar. Selecione e copie à mão.",
+      "guardeiOSegredo": "Guardei o segredo"
+    },
+    "testResultDialog": {
+      "testeDoWebhook": "Teste do webhook",
+      "enviandoOTeste": "Enviando o teste...",
+      "respostaDoEndereco": "Resposta do endereço",
+      "avisoDeTeste": "Aviso de teste enviado agora para <strong>{{name}}</strong>. Ele não entra nas retentativas.",
+      "entregueComSucesso": "Entregue com sucesso ({{http}}).",
+      "naoFoiEntregue": "Não foi entregue ({{http}})",
+      "naoFoiEntregueComErro": "Não foi entregue ({{http}}): {{error}}"
+    },
+    "webhookCard": {
+      "pausado": "Pausado",
+      "testar": "Testar",
+      "historicoDeEntregas": "Histórico de entregas",
+      "girarSegredo": "Girar segredo",
+      "pausar": "Pausar",
+      "retomar": "Retomar",
+      "eventos": "Eventos",
+      "acoesDoWebhook": "Ações do webhook {{name}}"
+    },
+    "webhookFormDialog": {
+      "editarWebhook": "Editar webhook",
+      "novoWebhook": "Novo webhook",
+      "mudarOEnderecoNao": "Mudar o endereço não muda o segredo. Para trocar o segredo, use Girar segredo.",
+      "oAppEnviaUm": "O app envia um aviso assinado para este endereço quando algo acontece com seus lançamentos. O segredo da assinatura aparece uma única vez, depois de criar.",
+      "endereco": "Endereço",
+      "httpsExemploComWebhook": "https://exemplo.com/webhook",
+      "eventos": "Eventos",
+      "ativo": "Ativo",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarWebhook": "Criar webhook",
+      "informeONome": "Informe o nome do webhook.",
+      "informeOEndereco": "Informe o endereço que vai receber os avisos.",
+      "urlSchemeMessage": "O endereço precisa começar com https:// (ou http://, só aceito em destinos locais liberados pelo servidor).",
+      "escolhaPeloMenos": "Escolha pelo menos um evento.",
+      "plainHttpHint": "Endereços http:// só funcionam se o servidor liberar destinos locais. Em uso normal, use https://.",
+      "defaultUrlHint": "Use um endereço https:// público. Endereços da rede interna são recusados."
+    },
+    "presentation": {
+      "event": {
+        "transactionCreated": "Lançamento criado",
+        "transactionUpdated": "Lançamento editado",
+        "transactionDeleted": "Lançamento excluído",
+        "webhookTest": "Teste"
+      },
+      "status": {
+        "delivered": "Entregue",
+        "pending": "Pendente",
+        "failed": "Falhou",
+        "expired": "Expirada"
+      },
+      "nenhumaEntregaAinda": "Nenhuma entrega ainda",
+      "ultimaEntrega": "Última entrega: {{status}} em {{date}}",
+      "aindaNaoTentada": "Ainda não tentada",
+      "httpCode": "HTTP {{code}}",
+      "semResposta": "Sem resposta"
+    },
+    "maskUrl": {
+      "enderecoInvalido": "Endereço inválido"
     }
   }
 }

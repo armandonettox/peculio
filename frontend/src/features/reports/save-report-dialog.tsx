@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toBody, type CustomConfig } from "./custom-config";
+import { useTranslation } from "react-i18next";
 
 const MAX_NAME = 80;
 
@@ -26,6 +27,7 @@ type Props = {
 
 /** Pede o nome e salva o relatorio montado; com um relatorio aberto, oferece atualizar ele ou salvar um novo. */
 export function SaveReportDialog({ config, current, onSaved, onClose }: Props) {
+  const { t } = useTranslation();
   const create = useCreateSavedReport();
   const update = useUpdateSavedReport();
   const [name, setName] = useState(current?.name ?? "");
@@ -39,8 +41,8 @@ export function SaveReportDialog({ config, current, onSaved, onClose }: Props) {
     if (busy) return;
     setFormError(null);
     const trimmed = name.trim();
-    if (!trimmed) return setNameError("Informe o nome do relatório.");
-    if (trimmed.length > MAX_NAME) return setNameError(`Use no máximo ${MAX_NAME} letras.`);
+    if (!trimmed) return setNameError(t("reports.saveReportDialog.informeONome"));
+    if (trimmed.length > MAX_NAME) return setNameError(t("reports.saveReportDialog.useNoMaximo", { max: MAX_NAME }));
     setNameError(undefined);
 
     try {
@@ -60,10 +62,9 @@ export function SaveReportDialog({ config, current, onSaved, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Salvar relatório</DialogTitle>
+          <DialogTitle>{t("reports.saveReportDialog.salvarRelatorio")}</DialogTitle>
           <DialogDescription>
-            O relatório guarda o agrupamento, a medida, o gráfico, o período e os filtros. Com um período como “Este mês”, ele se atualiza
-            sozinho cada vez que você abrir.
+            {t("reports.saveReportDialog.oRelatorioGuardaO")}
           </DialogDescription>
         </DialogHeader>
 
@@ -72,19 +73,19 @@ export function SaveReportDialog({ config, current, onSaved, onClose }: Props) {
 
           {current && (
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium">O que fazer</legend>
+              <legend className="mb-1 text-sm font-medium">{t("reports.saveReportDialog.oQueFazer")}</legend>
               <label className="flex items-center gap-2 text-sm">
                 <input type="radio" name="save-mode" checked={mode === "update"} onChange={() => setMode("update")} className="accent-[var(--primary)]" />
-                Atualizar “{current.name}”
+                {t("reports.saveReportDialog.atualizar", { name: current.name })}
               </label>
               <label className="flex items-center gap-2 text-sm">
                 <input type="radio" name="save-mode" checked={mode === "new"} onChange={() => setMode("new")} className="accent-[var(--primary)]" />
-                Salvar como um relatório novo
+                {t("reports.saveReportDialog.salvarComoUmRelatorio")}
               </label>
             </fieldset>
           )}
 
-          <FormField id="save-report-name" label="Nome" error={nameError}>
+          <FormField id="save-report-name" label={t("common.nome")} error={nameError}>
             {(field) => (
               <Input
                 {...field}
@@ -101,10 +102,10 @@ export function SaveReportDialog({ config, current, onSaved, onClose }: Props) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={busy}>
-              {busy ? "Salvando..." : "Salvar"}
+              {busy ? t("reports.saveReportDialog.salvando") : t("reports.saveReportDialog.salvar")}
             </Button>
           </DialogFooter>
         </form>
