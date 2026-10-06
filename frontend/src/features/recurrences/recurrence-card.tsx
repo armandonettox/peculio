@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { createdText, endText, FREQUENCY_LABELS, nextText, templateSummary } from "./presentation";
+import { createdText, endText, frequencyLabel, nextText, templateSummary } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   recurrence: Recurrence;
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDelete }: Props) {
+  const { t } = useTranslation();
   const paused = !recurrence.active;
   // Terminada nao pode ser pausada nem retomada: nao ha mais o que criar
   const canToggle = !recurrence.ended;
@@ -30,13 +32,13 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{recurrence.name}</h3>
-            {paused && <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Pausada</span>}
+            {paused && <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("recurrences.recurrenceCard.pausada")}</span>}
             {recurrence.ended && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Terminou</span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("recurrences.recurrenceCard.terminou")}</span>
             )}
           </div>
           <p className="break-words text-sm text-muted-foreground">
-            {FREQUENCY_LABELS[recurrence.frequency]} · {templateSummary(recurrence.template)}
+            {frequencyLabel(recurrence.frequency)} · {templateSummary(recurrence.template)}
           </p>
         </div>
 
@@ -44,7 +46,7 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações da recorrente ${recurrence.name}`}
+              aria-label={t("recurrences.recurrenceCard.acoesDaRecorrente", { name: recurrence.name })}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -53,18 +55,18 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
           <DropdownMenuContent align="end" className="min-w-44">
             <DropdownMenuItem onSelect={() => onEdit(recurrence)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             {canToggle && (
               <DropdownMenuItem onSelect={() => onToggleActive(recurrence)}>
                 {recurrence.active ? <Pause /> : <Play />}
-                {recurrence.active ? "Pausar" : "Retomar"}
+                {recurrence.active ? t("recurrences.recurrenceCard.pausar") : t("recurrences.recurrenceCard.retomar")}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onDelete(recurrence)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -80,14 +82,14 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
 
       {paused && !recurrence.ended && (
         <p className="mt-3 text-xs text-muted-foreground">
-          Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.
+          {t("recurrences.recurrenceCard.aoRetomarOPeriodo")}
         </p>
       )}
 
       {recurrence.last_error && (
         <p className="mt-3 flex items-start gap-1.5 text-sm text-destructive" role="alert">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span>Não foi possível criar o próximo lançamento: {recurrence.last_error}</span>
+          <span>{t("recurrences.recurrenceCard.naoFoiPossivelCriar", { error: recurrence.last_error })}</span>
         </p>
       )}
     </li>

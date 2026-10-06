@@ -1,15 +1,12 @@
 import type { Recurrence, RecurrenceFrequency } from "@/api/recurrences";
+import { i18n } from "@/i18n";
 import { daysBetween, formatDate } from "@/lib/dates";
 import { formatMoney, placesOf, sumMoney } from "@/lib/money";
 
-export const FREQUENCY_LABELS: Record<RecurrenceFrequency, string> = {
-  daily: "Diária",
-  weekly: "Semanal",
-  monthly: "Mensal",
-  quarterly: "Trimestral",
-  half_yearly: "Semestral",
-  yearly: "Anual",
-};
+/** Rotulo da frequencia da recorrente, no idioma atual. */
+export function frequencyLabel(frequency: RecurrenceFrequency): string {
+  return i18n.t(`recurrences.presentation.frequency.${frequency}`);
+}
 
 export const FREQUENCIES: RecurrenceFrequency[] = ["daily", "weekly", "monthly", "quarterly", "half_yearly", "yearly"];
 
@@ -20,21 +17,26 @@ const RELATIVE_UNTIL_DAYS = 30;
 export function relativeDays(date: string, today: string): string | null {
   const days = daysBetween(today, date);
   if (days < 0 || days > RELATIVE_UNTIL_DAYS) return null;
-  if (days === 0) return "hoje";
-  if (days === 1) return "amanhã";
-  return `em ${days} dias`;
+  if (days === 0) return i18n.t("common.relativeDays.today");
+  if (days === 1) return i18n.t("common.relativeDays.tomorrow");
+  return i18n.t("common.relativeDays.inDays", { count: days });
 }
 
 /** "1 criada" ou "3 criadas". */
 export function createdText(count: number): string {
-  return `${count} ${count === 1 ? "criada" : "criadas"}`;
+  return i18n.t("recurrences.presentation.created", { count });
 }
 
 /** Quando termina: "Sem data final", "Até 31/12/2026" ou "12 vezes (3 criadas)". */
 export function endText(item: Pick<Recurrence, "end_date" | "max_occurrences" | "created_count">): string {
-  if (item.end_date) return `Até ${formatDate(item.end_date)}`;
-  if (item.max_occurrences) return `${item.max_occurrences} ${item.max_occurrences === 1 ? "vez" : "vezes"} (${createdText(item.created_count)})`;
-  return "Sem data final";
+  if (item.end_date) return i18n.t("recurrences.presentation.until", { date: formatDate(item.end_date) });
+  if (item.max_occurrences) {
+    return i18n.t("recurrences.presentation.times", {
+      count: item.max_occurrences,
+      created: createdText(item.created_count),
+    });
+  }
+  return i18n.t("recurrences.presentation.noEndDate");
 }
 
 /** Descricao e valor do modelo: "Aluguel · R$ 1.500,00". Dividido: titulo e soma das linhas. */
@@ -53,8 +55,11 @@ export function templateSummary(template: Recurrence["template"]): string {
 /** Linha de situacao do proximo lancamento. */
 export function nextText(item: Pick<Recurrence, "active" | "next_date">, today: string): string {
   // Sem proxima data a recorrente terminou (o servidor so zera next_date quando acaba o fim configurado)
-  if (!item.next_date) return "Terminou";
-  if (!item.active) return "Pausada";
+  if (!item.next_date) return i18n.t("recurrences.presentation.ended");
+  if (!item.active) return i18n.t("recurrences.presentation.paused");
   const relative = relativeDays(item.next_date, today);
-  return `Próximo: ${formatDate(item.next_date)}${relative ? ` (${relative})` : ""}`;
+  const date = formatDate(item.next_date);
+  return relative
+    ? i18n.t("recurrences.presentation.nextWithRelative", { date, relative })
+    : i18n.t("recurrences.presentation.next", { date });
 }

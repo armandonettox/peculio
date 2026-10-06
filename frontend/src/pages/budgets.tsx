@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { BudgetCard } from "@/features/budgets/budget-card";
 import { BudgetFormDialog } from "@/features/budgets/budget-form-dialog";
 import { firstOfMonth, formatMonthYear, shiftMonth, appToday } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
 type DialogState =
   | { kind: "create" }
@@ -19,6 +20,7 @@ type DialogState =
   | null;
 
 export default function BudgetsPage() {
+  const { t } = useTranslation();
   const today = appToday();
   const currentMonth = firstOfMonth(today);
   const [month, setMonth] = useState(currentMonth);
@@ -45,7 +47,7 @@ export default function BudgetsPage() {
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Novo orçamento
+      {t("pages.budgets.novoOrcamento")}
     </Button>
   );
 
@@ -57,7 +59,7 @@ export default function BudgetsPage() {
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando orçamentos...
+          {t("pages.budgets.carregandoOrcamentos")}
         </p>
       </div>
     );
@@ -68,7 +70,7 @@ export default function BudgetsPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -76,15 +78,15 @@ export default function BudgetsPage() {
     content = (
       <EmptyState
         icon={PiggyBank}
-        title="Nenhum orçamento ainda"
-        description="Crie um limite de gasto para uma parte do seu dinheiro, como mercado ou lazer, e acompanhe quanto já usou."
+        title={t("pages.budgets.nenhumOrcamentoAinda")}
+        description={t("pages.budgets.crieUmLimiteDe")}
         action={newButton}
       />
     );
   } else {
     content = (
       <>
-        <h2 className="sr-only">Seus orçamentos</h2>
+        <h2 className="sr-only">{t("pages.budgets.seusOrcamentos")}</h2>
         <ul className="flex flex-col gap-3">
         {items.map((budget) => (
           <BudgetCard
@@ -102,14 +104,14 @@ export default function BudgetsPage() {
 
   return (
     <>
-      <PageHeader title="Orçamentos" description="Quanto você já usou do limite de cada gasto" actions={newButton} />
+      <PageHeader title={t("pages.budgets.orcamentos")} description={t("pages.budgets.quantoVoceJaUsou")} actions={newButton} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="icon"
-            aria-label="Mês anterior"
+            aria-label={t("pages.budgets.mesAnterior")}
             onClick={() => setMonth(shiftMonth(month, -1))}
           >
             <ChevronLeft />
@@ -117,12 +119,12 @@ export default function BudgetsPage() {
           <p aria-live="polite" className="min-w-40 text-center text-sm font-medium">
             {formatMonthYear(month)}
           </p>
-          <Button variant="outline" size="icon" aria-label="Próximo mês" onClick={() => setMonth(shiftMonth(month, 1))}>
+          <Button variant="outline" size="icon" aria-label={t("pages.budgets.proximoMes")} onClick={() => setMonth(shiftMonth(month, 1))}>
             <ChevronRight />
           </Button>
           {month !== currentMonth && (
             <Button variant="ghost" size="sm" onClick={() => setMonth(currentMonth)}>
-              Mês atual
+              {t("pages.budgets.mesAtual")}
             </Button>
           )}
         </div>
@@ -134,7 +136,7 @@ export default function BudgetsPage() {
             onChange={(event) => setIncludeArchived(event.target.checked)}
             className="accent-[var(--primary)]"
           />
-          Mostrar arquivados
+          {t("pages.budgets.mostrarArquivados")}
         </label>
       </div>
 
@@ -150,9 +152,9 @@ export default function BudgetsPage() {
       {dialog?.kind === "edit" && <BudgetFormDialog budget={dialog.budget} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir orçamento"
+          title={t("pages.budgets.excluirOrcamento")}
           itemName={dialog.budget.name}
-          consequence="Os lançamentos ligados a ele continuam, só ficam sem orçamento."
+          consequence={t("pages.budgets.osLancamentosLigadosA")}
           onConfirm={() => remove.mutateAsync(dialog.budget.id)}
           onClose={() => setDialog(null)}
         />

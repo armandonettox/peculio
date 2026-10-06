@@ -56,6 +56,10 @@ describe("arquivos de traducao", () => {
     "labels.tag.title",
     "labels.tag.count_one",
     "labels.tag.count_other",
+    "pages.envelopes.envelopes",
+    "budgets.budgetFormDialog.envelope",
+    "envelopes.applyTemplatesDialog.envelope",
+    "envelopes.envelopeGroupTable.envelope",
   ]);
 
   it("o ingles nao e uma copia do portugues: texto igual so na lista de excecoes", () => {

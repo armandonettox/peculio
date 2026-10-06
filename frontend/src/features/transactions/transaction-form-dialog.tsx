@@ -50,7 +50,7 @@ import {
   type SplitDraft,
 } from "./form-model";
 
-import { FREQUENCIES, FREQUENCY_LABELS } from "@/features/recurrences/presentation";
+import { FREQUENCIES, frequencyLabel } from "@/features/recurrences/presentation";
 import { appToday } from "@/lib/dates";
 import { useTranslation } from "react-i18next";
 
@@ -463,7 +463,7 @@ function FormBody({
                 >
                   {FREQUENCIES.map((option) => (
                     <option key={option} value={option}>
-                      {FREQUENCY_LABELS[option]}
+                      {frequencyLabel(option)}
                     </option>
                   ))}
                 </Select>

@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { appToday } from "@/lib/dates";
 import { isNegativeMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
-import { FREQUENCIES, FREQUENCY_LABELS } from "./presentation";
+import { FREQUENCIES, frequencyLabel } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "min" | "max" | "date";
 type Errors = Partial<Record<Field, string>>;
@@ -47,6 +48,7 @@ type Props = {
 };
 
 export function BillFormDialog({ bill, onClose }: Props) {
+  const { t } = useTranslation();
   const editing = bill !== undefined;
   const { user } = useAuth();
   const currencies = useCurrencies();
@@ -95,7 +97,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
     const parsed = parseMoneyInput(text, places);
     if (!parsed.ok) return { error: parsed.error };
     if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-      return { error: "Informe um valor maior que zero." };
+      return { error: t("bills.billFormDialog.informeUmValorMaior") };
     }
     return { value: parsed.value };
   }
@@ -105,20 +107,20 @@ export function BillFormDialog({ bill, onClose }: Props) {
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, "Informe o nome da conta.") };
-    const minResult = parsePositive(min, "Informe o valor.");
+    const found: Errors = { name: requiredError(name, t("bills.billFormDialog.informeONome")) };
+    const minResult = parsePositive(min, t("bills.billFormDialog.informeOValor"));
     if ("error" in minResult) found.min = minResult.error;
     // Sem valor maximo, a conta tem preco fixo: o maximo e igual ao minimo
-    const maxResult = max.trim() === "" ? minResult : parsePositive(max, "Informe o valor.");
+    const maxResult = max.trim() === "" ? minResult : parsePositive(max, t("bills.billFormDialog.informeOValor"));
     if (max.trim() !== "" && "error" in maxResult) found.max = maxResult.error;
     if (
       "value" in minResult &&
       "value" in maxResult &&
       isNegativeMoney(sumMoney([maxResult.value, negateMoney(minResult.value)], places))
     ) {
-      found.max = "O valor máximo não pode ser menor que o mínimo.";
+      found.max = t("bills.billFormDialog.valorMaximoNaoPode");
     }
-    if (!DATE_PATTERN.test(date)) found.date = "Informe uma data válida.";
+    if (!DATE_PATTERN.test(date)) found.date = t("bills.billFormDialog.informeUmaData");
 
     setErrors(found);
     const firstInvalid = FIELD_ORDER.find((field) => found[field]);
@@ -161,18 +163,18 @@ export function BillFormDialog({ bill, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar conta a pagar" : "Nova conta a pagar"}</DialogTitle>
+          <DialogTitle>{editing ? t("bills.billFormDialog.editarContaAPagar") : t("bills.billFormDialog.novaContaAPagar")}</DialogTitle>
           <DialogDescription>
             {editing
-              ? "Mudar a data ou a frequência recalcula todos os vencimentos. A moeda não pode mudar."
-              : "Algo que vence sempre, como aluguel ou uma assinatura. O app liga sozinho os lançamentos que combinam."}
+              ? t("bills.billFormDialog.mudarADataOu")
+              : t("bills.billFormDialog.algoQueVenceSempre")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="bill-name" label="Nome" error={errors.name}>
+          <FormField id="bill-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -187,7 +189,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="bill-currency" label="Moeda">
+            <FormField id="bill-currency" label={t("common.moeda")}>
               {(props) => (
                 <Select {...props} value={currency} disabled={editing} onChange={(event) => setCurrency(event.target.value)}>
                   {/* Enquanto a lista carrega, mostra so a moeda atual */}
@@ -200,7 +202,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
               )}
             </FormField>
 
-            <FormField id="bill-frequency" label="Frequência">
+            <FormField id="bill-frequency" label={t("bills.billFormDialog.frequencia")}>
               {(props) => (
                 <Select
                   {...props}
@@ -209,7 +211,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
                 >
                   {FREQUENCIES.map((option) => (
                     <option key={option} value={option}>
-                      {FREQUENCY_LABELS[option]}
+                      {frequencyLabel(option)}
                     </option>
                   ))}
                 </Select>
@@ -218,7 +220,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="bill-min" label="Valor mínimo" error={errors.min}>
+            <FormField id="bill-min" label={t("bills.billFormDialog.valorMinimo")} error={errors.min}>
               {(props) => (
                 <Input
                   {...props}
@@ -236,9 +238,9 @@ export function BillFormDialog({ bill, onClose }: Props) {
 
             <FormField
               id="bill-max"
-              label="Valor máximo"
+              label={t("bills.billFormDialog.valorMaximo")}
               error={errors.max}
-              hint="Deixe em branco se o valor é sempre o mesmo."
+              hint={t("bills.billFormDialog.deixeEmBrancoSe")}
             >
               {(props) => (
                 <Input
@@ -256,7 +258,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
             </FormField>
           </div>
 
-          <FormField id="bill-date" label="Primeiro vencimento" error={errors.date}>
+          <FormField id="bill-date" label={t("bills.billFormDialog.primeiroVencimento")} error={errors.date}>
             {(props) => (
               <Input
                 {...props}
@@ -272,8 +274,8 @@ export function BillFormDialog({ bill, onClose }: Props) {
 
           <FormField
             id="bill-match"
-            label="Texto para ligar sozinho"
-            hint="Quando uma saída tiver este texto na descrição ou no nome de quem recebeu, e o valor estiver na faixa, ela é ligada a esta conta. Deixe em branco para ligar só à mão."
+            label={t("bills.billFormDialog.textoParaLigarSozinho")}
+            hint={t("bills.billFormDialog.quandoUmaSaidaTiver")}
           >
             {(props) => (
               <Input {...props} autoComplete="off" value={match} onChange={(event) => setMatch(event.target.value)} />
@@ -282,10 +284,10 @@ export function BillFormDialog({ bill, onClose }: Props) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar conta a pagar"}
+              {submitting ? t("bills.billFormDialog.salvando") : editing ? t("bills.billFormDialog.salvar") : t("bills.billFormDialog.criarContaAPagar")}
             </Button>
           </DialogFooter>
         </form>

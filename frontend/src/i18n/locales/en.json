@@ -99,6 +99,72 @@
       "tudoOQueEntrou": "Everything that came in, went out or moved between accounts",
       "excluirLancamento": "Delete transaction",
       "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it."
+    },
+    "budgets": {
+      "novoOrcamento": "New budget",
+      "carregandoOrcamentos": "Loading budgets...",
+      "nenhumOrcamentoAinda": "No budgets yet",
+      "crieUmLimiteDe": "Set a spending limit for part of your money, like groceries or leisure, and track how much you've used.",
+      "seusOrcamentos": "Your budgets",
+      "orcamentos": "Budgets",
+      "quantoVoceJaUsou": "How much you've already used of each spending limit",
+      "mesAnterior": "Previous month",
+      "proximoMes": "Next month",
+      "mesAtual": "Current month",
+      "mostrarArquivados": "Show archived",
+      "excluirOrcamento": "Delete budget",
+      "osLancamentosLigadosA": "The transactions linked to it stay; they just lose the budget."
+    },
+    "envelopes": {
+      "novoEnvelope": "New envelope",
+      "carregandoEnvelopes": "Loading envelopes...",
+      "nenhumEnvelopeAinda": "No envelopes yet",
+      "noEnvelopeVoceDistribui": "In an envelope you distribute the money you already have, month by month. What's left over carries to the next month; what overspends comes out of what's still unbudgeted.",
+      "moverDinheiro": "Move money",
+      "envelopes": "Envelopes",
+      "distribuaODinheiroQue": "Distribute the money you have, month by month",
+      "mesAnterior": "Previous month",
+      "proximoMes": "Next month",
+      "mesAtual": "Current month",
+      "aplicarTemplates": "Apply templates",
+      "excluirEnvelope": "Delete envelope",
+      "oQueFoiDistribuido": "What was distributed to it disappears and goes back to Ready to budget. Linked transactions lose the envelope."
+    },
+    "bills": {
+      "novaContaAPagar": "New bill",
+      "carregandoContasAPagar": "Loading bills...",
+      "nenhumaContaAPagar": "No bills yet",
+      "cadastreOQueVence": "Register what's always due, like rent, internet or a subscription, and see what's already paid and what's overdue.",
+      "suasContasAPagar": "Your bills",
+      "contasAPagar": "Bills",
+      "oQueVenceSempre": "What's always due and whether it's already been paid",
+      "mostrarArquivadas": "Show archived",
+      "excluirContaAPagar": "Delete bill",
+      "osLancamentosLigadosA": "The transactions linked to it stay; they just stop being linked."
+    },
+    "recurrences": {
+      "novaRecorrente": "New recurrence",
+      "carregandoRecorrentes": "Loading recurrences...",
+      "nenhumaRecorrenteAinda": "No recurrences yet",
+      "cadastreOQueSe": "Register what repeats on its own, like rent or a paycheck, and the app creates the transactions for you, including days it was turned off.",
+      "seusLancamentosRecorrentes": "Your recurring transactions",
+      "recorrentes": "Recurrences",
+      "lancamentosQueSeRepetem": "Transactions that repeat on their own",
+      "mostrarPausadas": "Show paused",
+      "excluirRecorrente": "Delete recurrence",
+      "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones."
+    },
+    "piggyBanks": {
+      "novoCofrinho": "New piggy bank",
+      "carregandoCofrinhos": "Loading piggy banks...",
+      "nenhumCofrinhoAinda": "No piggy banks yet",
+      "separeUmValorDe": "Set aside an amount from an account for a goal, like a trip or an emergency fund. The money stays in the account; it just stops showing as available.",
+      "seusCofrinhos": "Your piggy banks",
+      "cofrinhos": "Piggy banks",
+      "metasGuardadasDentroDas": "Goals saved inside your accounts",
+      "mostrarArquivados": "Show archived",
+      "excluirCofrinho": "Delete piggy bank",
+      "oValorGuardadoVolta": "The saved amount becomes available in the account again; no money disappears."
     }
   },
   "common": {
@@ -128,7 +194,15 @@
     "escolha": "Choose...",
     "descricao": "Description",
     "orcamento": "Budget",
-    "dividedIn": "Split into {{count}}"
+    "dividedIn": "Split into {{count}}",
+    "periodo": "Period",
+    "escolhaAConta": "Choose the account",
+    "relativeDays": {
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "inDays_one": "in {{count}} day",
+      "inDays_other": "in {{count}} days"
+    }
   },
   "components": {
     "appShell": {
@@ -687,6 +761,310 @@
       "editDescription": "Change the tag's details.",
       "deleteTitle": "Delete tag",
       "deleteConsequence": "It will be removed from the transactions that use it."
+    }
+  },
+  "budgets": {
+    "budgetCard": {
+      "arquivado": "Archived",
+      "arquivar": "Archive",
+      "restaurar": "Restore",
+      "acoesDoOrcamento": "Actions for budget {{name}}",
+      "gastoDe": "Spent for {{name}}",
+      "percentDoLimite": "{{percent}}% of the limit",
+      "de": "of"
+    },
+    "budgetFormDialog": {
+      "editarEnvelope": "Edit envelope",
+      "editarOrcamento": "Edit budget",
+      "novoEnvelope": "New envelope",
+      "novoOrcamento": "New budget",
+      "voceDistribuiUmValor": "You distribute an amount each month and what's left carries to the next month.",
+      "mudarOValorOu": "Changing the amount or the period also applies to past periods. The currency can't change.",
+      "umLimiteDeGasto": "A spending limit that repeats every period, like Groceries: R$ 800 a month.",
+      "limitePorPeriodo": "Limit per period",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarOrcamento": "Create budget",
+      "informeONome": "Enter the budget's name.",
+      "informeOValorDoLimite": "Enter the limit amount.",
+      "informeUmValorMaior": "Enter an amount greater than zero.",
+      "limiteFixo": "Fixed limit",
+      "umTetoDeGasto": "A spending cap that repeats every period.",
+      "envelope": "Envelope",
+      "voceDistribuiDinheiroPorMes": "You distribute money every month and what's left carries to the next month."
+    },
+    "presentation": {
+      "period": {
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "state": {
+        "warning": "Near the limit",
+        "over": "Limit reached"
+      },
+      "passedLimit": "Went {{amount}} over the limit",
+      "remaining": "{{amount}} left"
+    }
+  },
+  "envelopes": {
+    "applyTemplatesDialog": {
+      "calculandoAPrevia": "Calculating preview...",
+      "nenhumEnvelopeTemTemplate": "No envelope has a template yet. Pick one from the envelope row's menu.",
+      "osTemplatesSomamMais": "The templates add up to more than you have. You can still apply them: Ready to budget will go negative until you adjust.",
+      "envelope": "Envelope",
+      "hoje": "Today",
+      "fica": "Will be",
+      "vaiMudar": "Will change",
+      "semMudanca": "No change",
+      "vejaOQueCada": "See what each template would do. It only saves when you confirm.",
+      "sobrescreverOsEnvelopesQue": "Overwrite envelopes that already have an amount",
+      "aplicando": "Applying...",
+      "nadaParaAplicar": "Nothing to apply",
+      "aplicar": "Apply",
+      "previaEm": "Preview in {{code}}",
+      "aOrcarDepoisDeAplicar": "Ready to budget ({{code}}): {{before}} will become",
+      "aplicarTemplatesEm": "Apply templates in {{month}}"
+    },
+    "envelopeGroupTable": {
+      "envelope": "Envelope",
+      "passouDoMesAnterior": "Carried from last month",
+      "distribuido": "Allocated",
+      "gasto": "Spent",
+      "disponivel": "Available",
+      "acoes": "Actions",
+      "mudarTemplate": "Change template",
+      "definirTemplate": "Set template",
+      "envelopesEm": "Envelopes in {{code}}",
+      "aOrcar": "Ready to budget ({{code}})",
+      "aOrcarEm": "Ready to budget in {{code}}",
+      "dinheiroNasContas": "Money in accounts: {{money}} · In envelopes: {{inEnvelopes}}",
+      "distribuidoPara": "Allocated to {{name}}",
+      "cobrir": "Cover {{amount}}",
+      "acoesDoEnvelope": "Actions for envelope {{name}}"
+    },
+    "moveMoneyDialog": {
+      "moverDinheiro": "Move money",
+      "passaDinheiroDeUm": "Moves money from one envelope to another this month. This is how you cover an overspend.",
+      "tirarDe": "Take from",
+      "escolhaOEnvelope": "Choose the envelope",
+      "levarPara": "Send to",
+      "movendo": "Moving...",
+      "mover": "Move",
+      "escolhaDeOnde": "Choose where to take it from.",
+      "escolhaParaOnde": "Choose where to send it.",
+      "escolhaUmEnvelopeDiferente": "Choose an envelope different from the source.",
+      "informeUmValorMaior": "Enter an amount greater than zero.",
+      "oEnvelopeSoTem": "The {{name}} envelope only has {{amount}} available.",
+      "itemDisponivel": "{{name}} ({{amount}} available)",
+      "valor": "Amount ({{currency}})"
+    },
+    "templateDialog": {
+      "dizQuantoDistribuirA": "Says how much to allocate to this envelope each month. Nothing changes on its own: you apply templates from the page, seeing what will happen first.",
+      "metaProntaAteO": "Goal ready by month",
+      "contaAPagar": "Bill",
+      "tirarTemplate": "Remove template",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "templateDe": "Template for {{name}}",
+      "informeUmValorMaior": "Enter an amount greater than zero.",
+      "escolhaOMes": "Choose the month the goal needs to be ready by.",
+      "escolhaAConta2": "Choose the bill.",
+      "valorPorMes": "Amount per month ({{currency}})",
+      "meta": "Goal ({{currency}})",
+      "voceNaoTemConta": "You don't have a bill in {{currency}}.",
+      "billOption": "{{name}} (up to {{amount}})"
+    },
+    "templatePresentation": {
+      "kind": {
+        "fixed": {
+          "label": "Fixed amount per month",
+          "description": "Distributes the same amount every month."
+        },
+        "by_date": {
+          "label": "Save up by a date",
+          "description": "Splits what's left among the remaining months until the goal."
+        },
+        "bill": {
+          "label": "Linked to a bill",
+          "description": "Distributes the bill's maximum amount in the months it's due."
+        },
+        "remainder": {
+          "label": "Whatever's left",
+          "description": "Keeps its share of what's left of Ready to budget, after the other templates."
+        }
+      },
+      "summary": {
+        "fixed": "{{amount}} per month",
+        "byDate": "{{amount}} by {{month}}",
+        "billNamed": "Bill: {{name}}",
+        "billPlain": "Bill",
+        "remainder": "Whatever's left"
+      },
+      "goal": {
+        "met": "Goal met",
+        "partial": "Almost there",
+        "short": "Far from goal"
+      },
+      "reason": {
+        "already_has": "Already has an amount",
+        "goal_met": "Goal already met",
+        "date_passed": "Date has passed",
+        "no_due_date": "Bill isn't due this month",
+        "no_money_left": "No money left"
+      },
+      "applyCount_zero": "No envelopes will change.",
+      "applyCount_one": "1 envelope will change.",
+      "applyCount_other": "{{count}} envelopes will change."
+    }
+  },
+  "bills": {
+    "billCard": {
+      "arquivada": "Archived",
+      "arquivar": "Archive",
+      "restaurar": "Restore",
+      "jaPago": "· already paid",
+      "acoesDaConta": "Actions for bill {{name}}"
+    },
+    "billFormDialog": {
+      "editarContaAPagar": "Edit bill",
+      "novaContaAPagar": "New bill",
+      "mudarADataOu": "Changing the date or frequency recalculates every due date. The currency can't change.",
+      "algoQueVenceSempre": "Something that's always due, like rent or a subscription. The app links matching transactions on its own.",
+      "frequencia": "Frequency",
+      "valorMinimo": "Minimum amount",
+      "valorMaximo": "Maximum amount",
+      "deixeEmBrancoSe": "Leave it blank if the amount is always the same.",
+      "primeiroVencimento": "First due date",
+      "textoParaLigarSozinho": "Text to auto-link",
+      "quandoUmaSaidaTiver": "When an expense has this text in the description or in who received it, and the amount is in range, it's linked to this bill. Leave it blank to link only by hand.",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarContaAPagar": "Create bill",
+      "informeONome": "Enter the bill's name.",
+      "informeOValor": "Enter the amount.",
+      "valorMaximoNaoPode": "The maximum amount can't be less than the minimum.",
+      "informeUmaData": "Enter a valid date.",
+      "informeUmValorMaior": "Enter an amount greater than zero."
+    },
+    "presentation": {
+      "frequency": {
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "half_yearly": "Semiannual",
+        "yearly": "Yearly"
+      },
+      "nextDue": "Next due date: {{date}}",
+      "nextDueWithRelative": "Next due date: {{date}} ({{relative}})",
+      "amountRange": "{{min}} to {{max}}",
+      "status": {
+        "paid": "Paid",
+        "overdueMultiple": "Overdue · {{count}} overdue payments, the oldest on {{date}}",
+        "overdueSingle": "Overdue · was due on {{date}}",
+        "upcoming": "Upcoming"
+      },
+      "matchText": "Auto-links when it contains “{{text}}”",
+      "noMatchText": "No automatic link"
+    }
+  },
+  "recurrences": {
+    "recurrenceCard": {
+      "pausada": "Paused",
+      "terminou": "Ended",
+      "pausar": "Pause",
+      "retomar": "Resume",
+      "aoRetomarOPeriodo": "On resuming, the paused period isn't recreated: it resumes from the next due date.",
+      "acoesDaRecorrente": "Actions for recurrence {{name}}",
+      "naoFoiPossivelCriar": "Couldn't create the next transaction: {{error}}"
+    },
+    "presentation": {
+      "frequency": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "half_yearly": "Semiannual",
+        "yearly": "Yearly"
+      },
+      "created_one": "{{count}} created",
+      "created_other": "{{count}} created",
+      "until": "Until {{date}}",
+      "times_one": "{{count}} time ({{created}})",
+      "times_other": "{{count}} times ({{created}})",
+      "noEndDate": "No end date",
+      "ended": "Ended",
+      "paused": "Paused",
+      "next": "Next: {{date}}",
+      "nextWithRelative": "Next: {{date}} ({{relative}})"
+    }
+  },
+  "piggy-banks": {
+    "piggyBankCard": {
+      "arquivado": "Archived",
+      "guardar": "Add money",
+      "retirar": "Withdraw",
+      "historico": "History",
+      "desarquivar": "Unarchive",
+      "arquivar": "Archive",
+      "arquivadoOValorGuardado": "Archived: the saved amount stays reserved in the account. Withdraw it to free it up.",
+      "acoesDoCofrinho": "Actions for piggy bank {{name}}",
+      "progressoDe": "Progress for {{name}}",
+      "percentDaMeta": "{{percent}}% of the goal",
+      "de": "of"
+    },
+    "piggyBankFormDialog": {
+      "editarCofrinho": "Edit piggy bank",
+      "novoCofrinho": "New piggy bank",
+      "aContaNaoPode": "The account can't change: the saved amount is reserved in it.",
+      "separeUmValorDe": "Set aside an amount from an account for a goal. The money stays in the account; it just stops showing as available.",
+      "dataAlvoOpcional": "Target date (optional)",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarCofrinho": "Create piggy bank",
+      "informeONome": "Enter the piggy bank's name.",
+      "escolhaAConta": "Choose the account.",
+      "informeOValorDaMeta": "Enter the goal amount.",
+      "informeUmValorMaior": "Enter an amount greater than zero.",
+      "informeUmaData": "Enter a valid date.",
+      "valorDaMeta": "Goal amount ({{currency}})"
+    },
+    "piggyBankHistoryDialog": {
+      "quandoVoceGuardouE": "When you added and withdrew money, most recent first.",
+      "aindaNaoHaMovimentos": "No movements in this piggy bank yet.",
+      "movimentos": "Movements",
+      "guardou": "Added",
+      "retirou": "Withdrew",
+      "historicoDe": "History for {{name}}",
+      "mostrandoOsMaisRecentes": "Showing the {{limit}} most recent of {{total}}."
+    },
+    "piggyBankMoneyDialog": {
+      "guardarDinheiro": "Add money",
+      "retirarDinheiro": "Withdraw money",
+      "notaOpcional": "Note (optional)",
+      "salvando": "Saving...",
+      "guardar": "Add",
+      "retirar": "Withdraw",
+      "informeOValor": "Enter the amount.",
+      "informeUmValorMaior": "Enter an amount greater than zero.",
+      "informeUmaData": "Enter a valid date.",
+      "dataNaoPodeSerFutura": "The date can't be in the future.",
+      "reservaUmValor": "Sets aside an amount from {{account}} for {{name}}. Available now: {{available}}.",
+      "devolveUmValor": "Returns an amount from {{name}} to the available balance of {{account}}. Saved now: {{saved}}.",
+      "valor": "Amount ({{currency}})"
+    },
+    "presentation": {
+      "metaAtingida": "Goal reached",
+      "faltam": "{{amount}} left",
+      "target": {
+        "reached": "By {{date}}",
+        "passed": "Target date has passed ({{date}})",
+        "withSuggestion": "By {{date}} · save {{amount}} a month"
+      },
+      "available": {
+        "warning": "The balance of {{account}} is {{amount}} below what's saved in piggy banks",
+        "ok": "Available in {{account}}: {{amount}}"
+      }
     }
   }
 }

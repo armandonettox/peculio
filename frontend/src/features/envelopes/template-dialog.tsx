@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { formatMoney, parseMoneyInput, placesOf } from "@/lib/money";
 import { signOf, toInputText } from "./presentation";
-import { KIND_OPTIONS } from "./template-presentation";
+import { kindOptions } from "./template-presentation";
+import { useTranslation } from "react-i18next";
 
 type Field = "amount" | "month" | "bill";
 type Errors = Partial<Record<Field, string>>;
@@ -28,6 +29,7 @@ type Props = {
 
 /** Define (ou troca, ou tira) o template de um envelope. Nada e distribuido aqui: so quando mandar aplicar. */
 export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
+  const { t } = useTranslation();
   const current = envelope.template ?? null;
   const currencies = useCurrencies();
   const bills = useBills({ activeOnly: true });
@@ -61,11 +63,11 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
     if (needsAmount) {
       const parsed = parseMoneyInput(amount, places);
       if (!parsed.ok) found.amount = parsed.error;
-      else if (signOf(parsed.value) <= 0) found.amount = "Informe um valor maior que zero.";
+      else if (signOf(parsed.value) <= 0) found.amount = t("envelopes.templateDialog.informeUmValorMaior");
       else value = parsed.value;
     }
-    if (kind === "by_date" && !MONTH_PATTERN.test(month)) found.month = "Escolha o mês em que a meta precisa estar pronta.";
-    if (kind === "bill" && !billId) found.bill = "Escolha a conta a pagar.";
+    if (kind === "by_date" && !MONTH_PATTERN.test(month)) found.month = t("envelopes.templateDialog.escolhaOMes");
+    if (kind === "bill" && !billId) found.bill = t("envelopes.templateDialog.escolhaAConta2");
     setErrors(found);
     const firstInvalid = (["amount", "month", "bill"] as const).find((field) => found[field]);
     if (firstInvalid) {
@@ -110,10 +112,9 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Template de {envelope.name}</DialogTitle>
+          <DialogTitle>{t("envelopes.templateDialog.templateDe", { name: envelope.name })}</DialogTitle>
           <DialogDescription>
-            Diz quanto distribuir a este envelope por mês. Nada muda sozinho: você aplica os templates pela página, vendo antes o
-            que vai acontecer.
+            {t("envelopes.templateDialog.dizQuantoDistribuirA")}
           </DialogDescription>
         </DialogHeader>
 
@@ -121,8 +122,8 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
           <fieldset className="flex flex-col gap-2">
-            <legend className="mb-1 text-sm font-medium">Tipo</legend>
-            {KIND_OPTIONS.map((option) => (
+            <legend className="mb-1 text-sm font-medium">{t("common.tipo")}</legend>
+            {kindOptions().map((option) => (
               <label key={option.value} className="flex cursor-pointer items-start gap-2 text-sm">
                 <input
                   type="radio"
@@ -143,7 +144,15 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
           </fieldset>
 
           {needsAmount && (
-            <FormField id="template-amount" label={kind === "fixed" ? `Valor por mês (${currencyCode})` : `Meta (${currencyCode})`} error={errors.amount}>
+            <FormField
+              id="template-amount"
+              label={
+                kind === "fixed"
+                  ? t("envelopes.templateDialog.valorPorMes", { currency: currencyCode })
+                  : t("envelopes.templateDialog.meta", { currency: currencyCode })
+              }
+              error={errors.amount}
+            >
               {(props) => (
                 <Input
                   {...props}
@@ -161,7 +170,7 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
           )}
 
           {kind === "by_date" && (
-            <FormField id="template-month" label="Meta pronta até o mês" error={errors.month}>
+            <FormField id="template-month" label={t("envelopes.templateDialog.metaProntaAteO")} error={errors.month}>
               {(props) => (
                 <Input
                   {...props}
@@ -179,9 +188,9 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
           {kind === "bill" && (
             <FormField
               id="template-bill"
-              label="Conta a pagar"
+              label={t("envelopes.templateDialog.contaAPagar")}
               error={errors.bill}
-              hint={billOptions.length === 0 && !bills.isPending ? `Você não tem conta a pagar em ${currencyCode}.` : undefined}
+              hint={billOptions.length === 0 && !bills.isPending ? t("envelopes.templateDialog.voceNaoTemConta", { currency: currencyCode }) : undefined}
             >
               {(props) => (
                 <Select
@@ -192,10 +201,10 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
                     clearError("bill");
                   }}
                 >
-                  <option value="">Escolha a conta</option>
+                  <option value="">{t("common.escolhaAConta")}</option>
                   {billOptions.map((bill) => (
                     <option key={bill.id} value={bill.id}>
-                      {bill.name} (até {formatMoney(bill.amount_max, bill.currency_code)})
+                      {t("envelopes.templateDialog.billOption", { name: bill.name, amount: formatMoney(bill.amount_max, bill.currency_code) })}
                     </option>
                   ))}
                 </Select>
@@ -206,14 +215,14 @@ export function TemplateDialog({ envelope, currencyCode, onClose }: Props) {
           <DialogFooter>
             {current && (
               <Button type="button" variant="outline" className="text-destructive sm:mr-auto" onClick={() => void removeTemplate()} disabled={busy}>
-                Tirar template
+                {t("envelopes.templateDialog.tirarTemplate")}
               </Button>
             )}
             <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={busy}>
-              {set.isPending ? "Salvando..." : "Salvar"}
+              {set.isPending ? t("envelopes.templateDialog.salvando") : t("envelopes.templateDialog.salvar")}
             </Button>
           </DialogFooter>
         </form>

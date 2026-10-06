@@ -99,6 +99,72 @@
       "tudoOQueEntrou": "Tudo o que entrou, saiu ou mudou de conta",
       "excluirLancamento": "Excluir lançamento",
       "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele."
+    },
+    "budgets": {
+      "novoOrcamento": "Novo orçamento",
+      "carregandoOrcamentos": "Carregando orçamentos...",
+      "nenhumOrcamentoAinda": "Nenhum orçamento ainda",
+      "crieUmLimiteDe": "Crie um limite de gasto para uma parte do seu dinheiro, como mercado ou lazer, e acompanhe quanto já usou.",
+      "seusOrcamentos": "Seus orçamentos",
+      "orcamentos": "Orçamentos",
+      "quantoVoceJaUsou": "Quanto você já usou do limite de cada gasto",
+      "mesAnterior": "Mês anterior",
+      "proximoMes": "Próximo mês",
+      "mesAtual": "Mês atual",
+      "mostrarArquivados": "Mostrar arquivados",
+      "excluirOrcamento": "Excluir orçamento",
+      "osLancamentosLigadosA": "Os lançamentos ligados a ele continuam, só ficam sem orçamento."
+    },
+    "envelopes": {
+      "novoEnvelope": "Novo envelope",
+      "carregandoEnvelopes": "Carregando envelopes...",
+      "nenhumEnvelopeAinda": "Nenhum envelope ainda",
+      "noEnvelopeVoceDistribui": "No envelope você distribui o dinheiro que já tem, mês a mês. O que sobra passa para o mês seguinte; o que estoura sai do que ainda falta orçar.",
+      "moverDinheiro": "Mover dinheiro",
+      "envelopes": "Envelopes",
+      "distribuaODinheiroQue": "Distribua o dinheiro que você tem, mês a mês",
+      "mesAnterior": "Mês anterior",
+      "proximoMes": "Próximo mês",
+      "mesAtual": "Mês atual",
+      "aplicarTemplates": "Aplicar templates",
+      "excluirEnvelope": "Excluir envelope",
+      "oQueFoiDistribuido": "O que foi distribuído para ele some e volta para o A orçar. Os lançamentos ligados ficam sem envelope."
+    },
+    "bills": {
+      "novaContaAPagar": "Nova conta a pagar",
+      "carregandoContasAPagar": "Carregando contas a pagar...",
+      "nenhumaContaAPagar": "Nenhuma conta a pagar ainda",
+      "cadastreOQueVence": "Cadastre o que vence sempre, como aluguel, internet ou uma assinatura, e veja o que já foi pago e o que está atrasado.",
+      "suasContasAPagar": "Suas contas a pagar",
+      "contasAPagar": "Contas a pagar",
+      "oQueVenceSempre": "O que vence sempre e se já foi pago",
+      "mostrarArquivadas": "Mostrar arquivadas",
+      "excluirContaAPagar": "Excluir conta a pagar",
+      "osLancamentosLigadosA": "Os lançamentos ligados a ela continuam, só deixam de estar ligados."
+    },
+    "recurrences": {
+      "novaRecorrente": "Nova recorrente",
+      "carregandoRecorrentes": "Carregando recorrentes...",
+      "nenhumaRecorrenteAinda": "Nenhuma recorrente ainda",
+      "cadastreOQueSe": "Cadastre o que se repete sozinho, como aluguel ou salário, e o app cria os lançamentos por você, inclusive os dias em que ele esteve desligado.",
+      "seusLancamentosRecorrentes": "Seus lançamentos recorrentes",
+      "recorrentes": "Recorrentes",
+      "lancamentosQueSeRepetem": "Lançamentos que se repetem sozinhos",
+      "mostrarPausadas": "Mostrar pausadas",
+      "excluirRecorrente": "Excluir recorrente",
+      "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
+    },
+    "piggyBanks": {
+      "novoCofrinho": "Novo cofrinho",
+      "carregandoCofrinhos": "Carregando cofrinhos...",
+      "nenhumCofrinhoAinda": "Nenhum cofrinho ainda",
+      "separeUmValorDe": "Separe um valor de uma conta para uma meta, como viagem ou reserva de emergência. O dinheiro continua na conta; só deixa de aparecer como disponível.",
+      "seusCofrinhos": "Seus cofrinhos",
+      "cofrinhos": "Cofrinhos",
+      "metasGuardadasDentroDas": "Metas guardadas dentro das suas contas",
+      "mostrarArquivados": "Mostrar arquivados",
+      "excluirCofrinho": "Excluir cofrinho",
+      "oValorGuardadoVolta": "O valor guardado volta a ficar disponível na conta; nenhum dinheiro some."
     }
   },
   "common": {
@@ -128,7 +194,15 @@
     "escolha": "Escolha...",
     "descricao": "Descrição",
     "orcamento": "Orçamento",
-    "dividedIn": "Dividida em {{count}}"
+    "dividedIn": "Dividida em {{count}}",
+    "periodo": "Período",
+    "escolhaAConta": "Escolha a conta",
+    "relativeDays": {
+      "today": "hoje",
+      "tomorrow": "amanhã",
+      "inDays_one": "em {{count}} dia",
+      "inDays_other": "em {{count}} dias"
+    }
   },
   "components": {
     "appShell": {
@@ -687,6 +761,298 @@
       "editDescription": "Altere os dados da tag.",
       "deleteTitle": "Excluir tag",
       "deleteConsequence": "Ela será removida das transações que a usam."
+    }
+  },
+  "budgets": {
+    "budgetCard": {
+      "arquivado": "Arquivado",
+      "arquivar": "Arquivar",
+      "restaurar": "Restaurar",
+      "acoesDoOrcamento": "Ações do orçamento {{name}}",
+      "gastoDe": "Gasto de {{name}}",
+      "percentDoLimite": "{{percent}}% do limite",
+      "de": "de"
+    },
+    "budgetFormDialog": {
+      "editarEnvelope": "Editar envelope",
+      "editarOrcamento": "Editar orçamento",
+      "novoEnvelope": "Novo envelope",
+      "novoOrcamento": "Novo orçamento",
+      "voceDistribuiUmValor": "Você distribui um valor por mês e o que sobra passa para o mês seguinte.",
+      "mudarOValorOu": "Mudar o valor ou o período vale também para os períodos anteriores. A moeda não pode mudar.",
+      "umLimiteDeGasto": "Um limite de gasto que se repete a cada período, por exemplo Mercado: R$ 800 por mês.",
+      "limitePorPeriodo": "Limite por período",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarOrcamento": "Criar orçamento",
+      "informeONome": "Informe o nome do orçamento.",
+      "informeOValorDoLimite": "Informe o valor do limite.",
+      "informeUmValorMaior": "Informe um valor maior que zero.",
+      "limiteFixo": "Limite fixo",
+      "umTetoDeGasto": "Um teto de gasto que se repete a cada período.",
+      "envelope": "Envelope",
+      "voceDistribuiDinheiroPorMes": "Você distribui dinheiro por mês e a sobra passa para o mês seguinte."
+    },
+    "presentation": {
+      "period": {
+        "weekly": "Semanal",
+        "monthly": "Mensal",
+        "yearly": "Anual"
+      },
+      "state": {
+        "warning": "Perto do limite",
+        "over": "Limite atingido"
+      },
+      "passedLimit": "Passou {{amount}} do limite",
+      "remaining": "Restam {{amount}}"
+    }
+  },
+  "envelopes": {
+    "applyTemplatesDialog": {
+      "calculandoAPrevia": "Calculando a prévia...",
+      "nenhumEnvelopeTemTemplate": "Nenhum envelope tem template ainda. Escolha um no menu da linha do envelope.",
+      "osTemplatesSomamMais": "Os templates somam mais do que você tem. Dá para aplicar mesmo assim: o A orçar fica negativo até você ajustar.",
+      "envelope": "Envelope",
+      "hoje": "Hoje",
+      "fica": "Fica",
+      "vaiMudar": "Vai mudar",
+      "semMudanca": "Sem mudança",
+      "vejaOQueCada": "Veja o que cada template faria. Só grava quando você confirmar.",
+      "sobrescreverOsEnvelopesQue": "Sobrescrever os envelopes que já têm valor",
+      "aplicando": "Aplicando...",
+      "nadaParaAplicar": "Nada para aplicar",
+      "aplicar": "Aplicar",
+      "previaEm": "Prévia em {{code}}",
+      "aOrcarDepoisDeAplicar": "A orçar ({{code}}): {{before}} depois de aplicar fica",
+      "aplicarTemplatesEm": "Aplicar templates em {{month}}"
+    },
+    "envelopeGroupTable": {
+      "envelope": "Envelope",
+      "passouDoMesAnterior": "Passou do mês anterior",
+      "distribuido": "Distribuído",
+      "gasto": "Gasto",
+      "disponivel": "Disponível",
+      "acoes": "Ações",
+      "mudarTemplate": "Mudar template",
+      "definirTemplate": "Definir template",
+      "envelopesEm": "Envelopes em {{code}}",
+      "aOrcar": "A orçar ({{code}})",
+      "aOrcarEm": "A orçar em {{code}}",
+      "dinheiroNasContas": "Dinheiro nas contas: {{money}} · Nos envelopes: {{inEnvelopes}}",
+      "distribuidoPara": "Distribuído para {{name}}",
+      "cobrir": "Cobrir {{amount}}",
+      "acoesDoEnvelope": "Ações do envelope {{name}}"
+    },
+    "moveMoneyDialog": {
+      "moverDinheiro": "Mover dinheiro",
+      "passaDinheiroDeUm": "Passa dinheiro de um envelope para outro neste mês. É assim que você cobre um estouro.",
+      "tirarDe": "Tirar de",
+      "escolhaOEnvelope": "Escolha o envelope",
+      "levarPara": "Levar para",
+      "movendo": "Movendo...",
+      "mover": "Mover",
+      "escolhaDeOnde": "Escolha de onde tirar.",
+      "escolhaParaOnde": "Escolha para onde levar.",
+      "escolhaUmEnvelopeDiferente": "Escolha um envelope diferente do de origem.",
+      "informeUmValorMaior": "Informe um valor maior que zero.",
+      "oEnvelopeSoTem": "O envelope {{name}} só tem {{amount}} disponível.",
+      "itemDisponivel": "{{name}} ({{amount}} disponível)",
+      "valor": "Valor ({{currency}})"
+    },
+    "templateDialog": {
+      "dizQuantoDistribuirA": "Diz quanto distribuir a este envelope por mês. Nada muda sozinho: você aplica os templates pela página, vendo antes o que vai acontecer.",
+      "metaProntaAteO": "Meta pronta até o mês",
+      "contaAPagar": "Conta a pagar",
+      "tirarTemplate": "Tirar template",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "templateDe": "Template de {{name}}",
+      "informeUmValorMaior": "Informe um valor maior que zero.",
+      "escolhaOMes": "Escolha o mês em que a meta precisa estar pronta.",
+      "escolhaAConta2": "Escolha a conta a pagar.",
+      "valorPorMes": "Valor por mês ({{currency}})",
+      "meta": "Meta ({{currency}})",
+      "voceNaoTemConta": "Você não tem conta a pagar em {{currency}}.",
+      "billOption": "{{name}} (até {{amount}})"
+    },
+    "templatePresentation": {
+      "kind": {
+        "fixed": { "label": "Valor fixo por mês", "description": "Distribui o mesmo valor todo mês." },
+        "by_date": { "label": "Juntar até uma data", "description": "Divide o que falta pelos meses que restam até a meta." },
+        "bill": { "label": "Ligado a uma conta a pagar", "description": "Distribui o valor máximo da conta nos meses em que ela vence." },
+        "remainder": { "label": "O que sobrar", "description": "Fica com a sua parte do que sobrou do A orçar, depois dos outros templates." }
+      },
+      "summary": {
+        "fixed": "{{amount}} por mês",
+        "byDate": "{{amount}} até {{month}}",
+        "billNamed": "Conta: {{name}}",
+        "billPlain": "Conta a pagar",
+        "remainder": "O que sobrar"
+      },
+      "goal": {
+        "met": "Meta batida",
+        "partial": "Falta pouco",
+        "short": "Longe da meta"
+      },
+      "reason": {
+        "already_has": "Já tem valor",
+        "goal_met": "Meta já atingida",
+        "date_passed": "A data passou",
+        "no_due_date": "A conta não vence neste mês",
+        "no_money_left": "Não sobrou dinheiro"
+      },
+      "applyCount_zero": "Nenhum envelope vai mudar.",
+      "applyCount_one": "1 envelope vai mudar.",
+      "applyCount_other": "{{count}} envelopes vão mudar."
+    }
+  },
+  "bills": {
+    "billCard": {
+      "arquivada": "Arquivada",
+      "arquivar": "Arquivar",
+      "restaurar": "Restaurar",
+      "jaPago": "· já pago",
+      "acoesDaConta": "Ações da conta a pagar {{name}}"
+    },
+    "billFormDialog": {
+      "editarContaAPagar": "Editar conta a pagar",
+      "novaContaAPagar": "Nova conta a pagar",
+      "mudarADataOu": "Mudar a data ou a frequência recalcula todos os vencimentos. A moeda não pode mudar.",
+      "algoQueVenceSempre": "Algo que vence sempre, como aluguel ou uma assinatura. O app liga sozinho os lançamentos que combinam.",
+      "frequencia": "Frequência",
+      "valorMinimo": "Valor mínimo",
+      "valorMaximo": "Valor máximo",
+      "deixeEmBrancoSe": "Deixe em branco se o valor é sempre o mesmo.",
+      "primeiroVencimento": "Primeiro vencimento",
+      "textoParaLigarSozinho": "Texto para ligar sozinho",
+      "quandoUmaSaidaTiver": "Quando uma saída tiver este texto na descrição ou no nome de quem recebeu, e o valor estiver na faixa, ela é ligada a esta conta. Deixe em branco para ligar só à mão.",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarContaAPagar": "Criar conta a pagar",
+      "informeONome": "Informe o nome da conta.",
+      "informeOValor": "Informe o valor.",
+      "valorMaximoNaoPode": "O valor máximo não pode ser menor que o mínimo.",
+      "informeUmaData": "Informe uma data válida.",
+      "informeUmValorMaior": "Informe um valor maior que zero."
+    },
+    "presentation": {
+      "frequency": {
+        "weekly": "Semanal",
+        "monthly": "Mensal",
+        "quarterly": "Trimestral",
+        "half_yearly": "Semestral",
+        "yearly": "Anual"
+      },
+      "nextDue": "Próximo vencimento: {{date}}",
+      "nextDueWithRelative": "Próximo vencimento: {{date}} ({{relative}})",
+      "amountRange": "{{min}} a {{max}}",
+      "status": {
+        "paid": "Pago",
+        "overdueMultiple": "Atrasada · {{count}} vencimentos atrasados, o mais antigo em {{date}}",
+        "overdueSingle": "Atrasada · venceu em {{date}}",
+        "upcoming": "A vencer"
+      },
+      "matchText": "Liga sozinha quando contém “{{text}}”",
+      "noMatchText": "Sem ligação automática"
+    }
+  },
+  "recurrences": {
+    "recurrenceCard": {
+      "pausada": "Pausada",
+      "terminou": "Terminou",
+      "pausar": "Pausar",
+      "retomar": "Retomar",
+      "aoRetomarOPeriodo": "Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.",
+      "acoesDaRecorrente": "Ações da recorrente {{name}}",
+      "naoFoiPossivelCriar": "Não foi possível criar o próximo lançamento: {{error}}"
+    },
+    "presentation": {
+      "frequency": {
+        "daily": "Diária",
+        "weekly": "Semanal",
+        "monthly": "Mensal",
+        "quarterly": "Trimestral",
+        "half_yearly": "Semestral",
+        "yearly": "Anual"
+      },
+      "created_one": "{{count}} criada",
+      "created_other": "{{count}} criadas",
+      "until": "Até {{date}}",
+      "times_one": "{{count}} vez ({{created}})",
+      "times_other": "{{count}} vezes ({{created}})",
+      "noEndDate": "Sem data final",
+      "ended": "Terminou",
+      "paused": "Pausada",
+      "next": "Próximo: {{date}}",
+      "nextWithRelative": "Próximo: {{date}} ({{relative}})"
+    }
+  },
+  "piggy-banks": {
+    "piggyBankCard": {
+      "arquivado": "Arquivado",
+      "guardar": "Guardar",
+      "retirar": "Retirar",
+      "historico": "Histórico",
+      "desarquivar": "Desarquivar",
+      "arquivar": "Arquivar",
+      "arquivadoOValorGuardado": "Arquivado: o valor guardado continua reservado na conta. Retire para liberar.",
+      "acoesDoCofrinho": "Ações do cofrinho {{name}}",
+      "progressoDe": "Progresso de {{name}}",
+      "percentDaMeta": "{{percent}}% da meta",
+      "de": "de"
+    },
+    "piggyBankFormDialog": {
+      "editarCofrinho": "Editar cofrinho",
+      "novoCofrinho": "Novo cofrinho",
+      "aContaNaoPode": "A conta não pode mudar: o valor guardado está reservado nela.",
+      "separeUmValorDe": "Separe um valor de uma conta para uma meta. O dinheiro continua na conta; só deixa de aparecer como disponível.",
+      "dataAlvoOpcional": "Data alvo (opcional)",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarCofrinho": "Criar cofrinho",
+      "informeONome": "Informe o nome do cofrinho.",
+      "escolhaAConta": "Escolha a conta.",
+      "informeOValorDaMeta": "Informe o valor da meta.",
+      "informeUmValorMaior": "Informe um valor maior que zero.",
+      "informeUmaData": "Informe uma data válida.",
+      "valorDaMeta": "Valor da meta ({{currency}})"
+    },
+    "piggyBankHistoryDialog": {
+      "quandoVoceGuardouE": "Quando você guardou e retirou dinheiro, do mais recente para o mais antigo.",
+      "aindaNaoHaMovimentos": "Ainda não há movimentos neste cofrinho.",
+      "movimentos": "Movimentos",
+      "guardou": "Guardou",
+      "retirou": "Retirou",
+      "historicoDe": "Histórico de {{name}}",
+      "mostrandoOsMaisRecentes": "Mostrando os {{limit}} mais recentes de {{total}}."
+    },
+    "piggyBankMoneyDialog": {
+      "guardarDinheiro": "Guardar dinheiro",
+      "retirarDinheiro": "Retirar dinheiro",
+      "notaOpcional": "Nota (opcional)",
+      "salvando": "Salvando...",
+      "guardar": "Guardar",
+      "retirar": "Retirar",
+      "informeOValor": "Informe o valor.",
+      "informeUmValorMaior": "Informe um valor maior que zero.",
+      "informeUmaData": "Informe uma data válida.",
+      "dataNaoPodeSerFutura": "A data não pode ser no futuro.",
+      "reservaUmValor": "Reserva um valor de {{account}} para {{name}}. Disponível agora: {{available}}.",
+      "devolveUmValor": "Devolve um valor de {{name}} ao disponível de {{account}}. Guardado agora: {{saved}}.",
+      "valor": "Valor ({{currency}})"
+    },
+    "presentation": {
+      "metaAtingida": "Meta atingida",
+      "faltam": "Faltam {{amount}}",
+      "target": {
+        "reached": "Até {{date}}",
+        "passed": "A data alvo passou ({{date}})",
+        "withSuggestion": "Até {{date}} · guarde {{amount}} por mês"
+      },
+      "available": {
+        "warning": "O saldo de {{account}} está {{amount}} abaixo do que está guardado em cofrinhos",
+        "ok": "Disponível em {{account}}: {{amount}}"
+      }
     }
   }
 }

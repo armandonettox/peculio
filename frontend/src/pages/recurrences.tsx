@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { RecurrenceCard } from "@/features/recurrences/recurrence-card";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { appToday } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
 type DialogState =
   | { kind: "create" }
@@ -24,6 +25,7 @@ type DialogState =
   | null;
 
 export default function RecurrencesPage() {
+  const { t } = useTranslation();
   const today = appToday();
   const [includePaused, setIncludePaused] = useState(false);
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -46,7 +48,7 @@ export default function RecurrencesPage() {
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Nova recorrente
+      {t("pages.recurrences.novaRecorrente")}
     </Button>
   );
 
@@ -58,7 +60,7 @@ export default function RecurrencesPage() {
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando recorrentes...
+          {t("pages.recurrences.carregandoRecorrentes")}
         </p>
       </div>
     );
@@ -69,7 +71,7 @@ export default function RecurrencesPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -77,15 +79,15 @@ export default function RecurrencesPage() {
     content = (
       <EmptyState
         icon={Repeat}
-        title="Nenhuma recorrente ainda"
-        description="Cadastre o que se repete sozinho, como aluguel ou salário, e o app cria os lançamentos por você, inclusive os dias em que ele esteve desligado."
+        title={t("pages.recurrences.nenhumaRecorrenteAinda")}
+        description={t("pages.recurrences.cadastreOQueSe")}
         action={newButton}
       />
     );
   } else {
     content = (
       <>
-        <h2 className="sr-only">Seus lançamentos recorrentes</h2>
+        <h2 className="sr-only">{t("pages.recurrences.seusLancamentosRecorrentes")}</h2>
         <ul className="flex flex-col gap-3">
         {items.map((recurrence) => (
           <RecurrenceCard
@@ -104,7 +106,7 @@ export default function RecurrencesPage() {
 
   return (
     <>
-      <PageHeader title="Recorrentes" description="Lançamentos que se repetem sozinhos" actions={newButton} />
+      <PageHeader title={t("pages.recurrences.recorrentes")} description={t("pages.recurrences.lancamentosQueSeRepetem")} actions={newButton} />
 
       <div className="mb-4 flex justify-end">
         <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -114,7 +116,7 @@ export default function RecurrencesPage() {
             onChange={(event) => setIncludePaused(event.target.checked)}
             className="accent-[var(--primary)]"
           />
-          Mostrar pausadas
+          {t("pages.recurrences.mostrarPausadas")}
         </label>
       </div>
 
@@ -132,9 +134,9 @@ export default function RecurrencesPage() {
       )}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir recorrente"
+          title={t("pages.recurrences.excluirRecorrente")}
           itemName={dialog.recurrence.name}
-          consequence="Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
+          consequence={t("pages.recurrences.osLancamentosQueEla")}
           onConfirm={() => remove.mutateAsync(dialog.recurrence.id)}
           onClose={() => setDialog(null)}
         />

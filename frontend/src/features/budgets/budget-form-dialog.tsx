@@ -21,7 +21,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { parseMoneyInput, placesOf } from "@/lib/money";
-import { PERIOD_LABELS, PERIODS } from "./presentation";
+import { periodLabel, PERIODS } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "amount";
 type Errors = Partial<Record<Field, string>>;
@@ -40,6 +41,7 @@ type Props = {
 };
 
 export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Props) {
+  const { t } = useTranslation();
   const editing = budget !== undefined;
   const { user } = useAuth();
   const currencies = useCurrencies();
@@ -87,15 +89,15 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, "Informe o nome do orçamento.") };
+    const found: Errors = { name: requiredError(name, t("budgets.budgetFormDialog.informeONome")) };
     let amountValue = "";
     // Envelope nao tem limite: o valor de cada mes e a distribuicao
     if (!envelope) {
       const parsed = parseMoneyInput(amount, places);
-      if (amount.trim() === "") found.amount = "Informe o valor do limite.";
+      if (amount.trim() === "") found.amount = t("budgets.budgetFormDialog.informeOValorDoLimite");
       else if (!parsed.ok) found.amount = parsed.error;
       else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-        found.amount = "Informe um valor maior que zero.";
+        found.amount = t("budgets.budgetFormDialog.informeUmValorMaior");
       } else amountValue = parsed.value;
     }
 
@@ -131,14 +133,14 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {editing ? (envelope ? "Editar envelope" : "Editar orçamento") : envelope ? "Novo envelope" : "Novo orçamento"}
+            {editing ? (envelope ? t("budgets.budgetFormDialog.editarEnvelope") : t("budgets.budgetFormDialog.editarOrcamento")) : envelope ? t("budgets.budgetFormDialog.novoEnvelope") : t("budgets.budgetFormDialog.novoOrcamento")}
           </DialogTitle>
           <DialogDescription>
             {envelope
-              ? "Você distribui um valor por mês e o que sobra passa para o mês seguinte."
+              ? t("budgets.budgetFormDialog.voceDistribuiUmValor")
               : editing
-                ? "Mudar o valor ou o período vale também para os períodos anteriores. A moeda não pode mudar."
-                : "Um limite de gasto que se repete a cada período, por exemplo Mercado: R$ 800 por mês."}
+                ? t("budgets.budgetFormDialog.mudarOValorOu")
+                : t("budgets.budgetFormDialog.umLimiteDeGasto")}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,11 +149,11 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
           {!editing && (
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium">Tipo</legend>
+              <legend className="mb-1 text-sm font-medium">{t("common.tipo")}</legend>
               {(
                 [
-                  ["fixed", "Limite fixo", "Um teto de gasto que se repete a cada período."],
-                  ["envelope", "Envelope", "Você distribui dinheiro por mês e a sobra passa para o mês seguinte."],
+                  ["fixed", t("budgets.budgetFormDialog.limiteFixo"), t("budgets.budgetFormDialog.umTetoDeGasto")],
+                  ["envelope", t("budgets.budgetFormDialog.envelope"), t("budgets.budgetFormDialog.voceDistribuiDinheiroPorMes")],
                 ] as [BudgetMode, string, string][]
               ).map(([value, label, hint]) => (
                 <label key={value} className="flex cursor-pointer items-start gap-2 text-sm">
@@ -171,7 +173,7 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
             </fieldset>
           )}
 
-          <FormField id="budget-name" label="Nome" error={errors.name}>
+          <FormField id="budget-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -186,7 +188,7 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="budget-currency" label="Moeda">
+            <FormField id="budget-currency" label={t("common.moeda")}>
               {(props) => (
                 <Select {...props} value={currency} disabled={editing} onChange={(event) => setCurrency(event.target.value)}>
                   {/* Enquanto a lista carrega, mostra so a moeda atual */}
@@ -200,12 +202,12 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
             </FormField>
 
             {!envelope && (
-              <FormField id="budget-period" label="Período">
+              <FormField id="budget-period" label={t("common.periodo")}>
                 {(props) => (
                   <Select {...props} value={period} onChange={(event) => setPeriod(event.target.value as BudgetPeriod)}>
                     {PERIODS.map((option) => (
                       <option key={option} value={option}>
-                        {PERIOD_LABELS[option]}
+                        {periodLabel(option)}
                       </option>
                     ))}
                   </Select>
@@ -215,7 +217,7 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
           </div>
 
           {!envelope && (
-            <FormField id="budget-amount" label="Limite por período" error={errors.amount}>
+            <FormField id="budget-amount" label={t("budgets.budgetFormDialog.limitePorPeriodo")} error={errors.amount}>
               {(props) => (
                 <Input
                   {...props}
@@ -234,10 +236,10 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar orçamento"}
+              {submitting ? t("budgets.budgetFormDialog.salvando") : editing ? t("budgets.budgetFormDialog.salvar") : t("budgets.budgetFormDialog.criarOrcamento")}
             </Button>
           </DialogFooter>
         </form>

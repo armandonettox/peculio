@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { appToday } from "@/lib/dates";
 import { formatMoney, parseMoneyInput, placesOf } from "@/lib/money";
+import { useTranslation } from "react-i18next";
 
 type Field = "amount" | "date";
 type Errors = Partial<Record<Field, string>>;
@@ -25,6 +26,7 @@ type Props = {
 
 /** Guardar ou retirar dinheiro de um cofrinho. */
 export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
+  const { t } = useTranslation();
   const adding = kind === "add";
   const currencies = useCurrencies();
   const addEvent = useAddPiggyBankEvent();
@@ -51,16 +53,16 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
 
     const found: Errors = {};
     let amountValue = "";
-    if (amount.trim() === "") found.amount = "Informe o valor.";
+    if (amount.trim() === "") found.amount = t("piggy-banks.piggyBankMoneyDialog.informeOValor");
     else {
       const parsed = parseMoneyInput(amount, places);
       if (!parsed.ok) found.amount = parsed.error;
       else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-        found.amount = "Informe um valor maior que zero.";
+        found.amount = t("piggy-banks.piggyBankMoneyDialog.informeUmValorMaior");
       } else amountValue = parsed.value;
     }
-    if (!DATE_PATTERN.test(date)) found.date = "Informe uma data válida.";
-    else if (date > today) found.date = "A data não pode ser no futuro.";
+    if (!DATE_PATTERN.test(date)) found.date = t("piggy-banks.piggyBankMoneyDialog.informeUmaData");
+    else if (date > today) found.date = t("piggy-banks.piggyBankMoneyDialog.dataNaoPodeSerFutura");
 
     setErrors(found);
     const firstInvalid = (["amount", "date"] as const).find((field) => found[field]);
@@ -92,11 +94,19 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{adding ? "Guardar dinheiro" : "Retirar dinheiro"}</DialogTitle>
+          <DialogTitle>{adding ? t("piggy-banks.piggyBankMoneyDialog.guardarDinheiro") : t("piggy-banks.piggyBankMoneyDialog.retirarDinheiro")}</DialogTitle>
           <DialogDescription>
             {adding
-              ? `Reserva um valor de ${piggy.account_name} para ${piggy.name}. Disponível agora: ${formatMoney(piggy.account_available, piggy.currency_code)}.`
-              : `Devolve um valor de ${piggy.name} ao disponível de ${piggy.account_name}. Guardado agora: ${formatMoney(piggy.saved, piggy.currency_code)}.`}
+              ? t("piggy-banks.piggyBankMoneyDialog.reservaUmValor", {
+                  account: piggy.account_name,
+                  name: piggy.name,
+                  available: formatMoney(piggy.account_available, piggy.currency_code),
+                })
+              : t("piggy-banks.piggyBankMoneyDialog.devolveUmValor", {
+                  name: piggy.name,
+                  account: piggy.account_name,
+                  saved: formatMoney(piggy.saved, piggy.currency_code),
+                })}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +114,7 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="money-amount" label={`Valor (${piggy.currency_code})`} error={errors.amount}>
+            <FormField id="money-amount" label={t("piggy-banks.piggyBankMoneyDialog.valor", { currency: piggy.currency_code })} error={errors.amount}>
               {(props) => (
                 <Input
                   {...props}
@@ -120,7 +130,7 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
               )}
             </FormField>
 
-            <FormField id="money-date" label="Data" error={errors.date}>
+            <FormField id="money-date" label={t("common.data")} error={errors.date}>
               {(props) => (
                 <Input
                   {...props}
@@ -136,7 +146,7 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
             </FormField>
           </div>
 
-          <FormField id="money-note" label="Nota (opcional)">
+          <FormField id="money-note" label={t("piggy-banks.piggyBankMoneyDialog.notaOpcional")}>
             {(props) => (
               <Input {...props} autoComplete="off" maxLength={200} value={note} onChange={(event) => setNote(event.target.value)} />
             )}
@@ -144,10 +154,10 @@ export function PiggyBankMoneyDialog({ piggy, kind, onClose }: Props) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : adding ? "Guardar" : "Retirar"}
+              {submitting ? t("piggy-banks.piggyBankMoneyDialog.salvando") : adding ? t("piggy-banks.piggyBankMoneyDialog.guardar") : t("piggy-banks.piggyBankMoneyDialog.retirar")}
             </Button>
           </DialogFooter>
         </form>

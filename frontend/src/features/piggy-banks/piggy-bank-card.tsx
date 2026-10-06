@@ -11,6 +11,7 @@ import {
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { availableText, isReached, remainingText, targetText } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 export type PiggyAction = "add" | "remove" | "history" | "edit" | "archive" | "delete";
 
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function PiggyBankCard({ piggy, today, onAction }: Props) {
+  const { t } = useTranslation();
   const reached = isReached(piggy);
   // A barra enche ate 100%; o que passou da meta aparece no percentual
   const filled = Math.min(piggy.percent, 100);
@@ -35,7 +37,7 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{piggy.name}</h3>
             {archived && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivado</span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("piggy-banks.piggyBankCard.arquivado")}</span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
@@ -48,7 +50,7 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações do cofrinho ${piggy.name}`}
+              aria-label={t("piggy-banks.piggyBankCard.acoesDoCofrinho", { name: piggy.name })}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -58,29 +60,29 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
             {!archived && (
               <DropdownMenuItem onSelect={() => onAction("add", piggy)}>
                 <PlusCircle />
-                Guardar
+                {t("piggy-banks.piggyBankCard.guardar")}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onSelect={() => onAction("remove", piggy)}>
               <MinusCircle />
-              Retirar
+              {t("piggy-banks.piggyBankCard.retirar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onAction("history", piggy)}>
               <History />
-              Histórico
+              {t("piggy-banks.piggyBankCard.historico")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onAction("edit", piggy)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onAction("archive", piggy)}>
               {archived ? <ArchiveRestore /> : <Archive />}
-              {archived ? "Desarquivar" : "Arquivar"}
+              {archived ? t("piggy-banks.piggyBankCard.desarquivar") : t("piggy-banks.piggyBankCard.arquivar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onAction("delete", piggy)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -88,11 +90,11 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
 
       <div
         role="progressbar"
-        aria-label={`Progresso de ${piggy.name}`}
+        aria-label={t("piggy-banks.piggyBankCard.progressoDe", { name: piggy.name })}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={filled}
-        aria-valuetext={`${piggy.percent}% da meta`}
+        aria-valuetext={t("piggy-banks.piggyBankCard.percentDaMeta", { percent: piggy.percent })}
         className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted"
       >
         <div
@@ -104,7 +106,7 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm">
           <span className="font-semibold tabular-nums">{formatMoney(piggy.saved, piggy.currency_code)}</span>
-          <span className="text-muted-foreground"> de {formatMoney(piggy.target_amount, piggy.currency_code)}</span>
+          <span className="text-muted-foreground"> {t("piggy-banks.piggyBankCard.de")} {formatMoney(piggy.target_amount, piggy.currency_code)}</span>
         </p>
         <p className={cn("text-sm", reached ? "font-medium text-positive" : "text-muted-foreground")}>
           {remainingText(piggy)}
@@ -115,7 +117,7 @@ export function PiggyBankCard({ piggy, today, onAction }: Props) {
 
       {archived && (
         <p className="mt-1 text-xs text-muted-foreground">
-          Arquivado: o valor guardado continua reservado na conta. Retire para liberar.
+          {t("piggy-banks.piggyBankCard.arquivadoOValorGuardado")}
         </p>
       )}
 

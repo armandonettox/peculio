@@ -11,6 +11,7 @@ import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { kindLabel, applyCountText, reasonLabel } from "./template-presentation";
 import { signOf } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   month: string;
@@ -19,6 +20,7 @@ type Props = {
 
 /** Mostra o que aplicar os templates faria neste mes e so grava quando a pessoa confirma. */
 export function ApplyTemplatesDialog({ month, onClose }: Props) {
+  const { t } = useTranslation();
   const [overwrite, setOverwrite] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const preview = useTemplatePreview({ month, overwrite, enabled: true });
@@ -42,7 +44,7 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
   if (preview.isPending) {
     body = (
       <p className="text-sm text-muted-foreground" role="status">
-        Calculando a prévia...
+        {t("envelopes.applyTemplatesDialog.calculandoAPrevia")}
       </p>
     );
   } else if (preview.isError) {
@@ -52,14 +54,14 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
           {getErrorMessage(preview.error)}
         </Alert>
         <Button variant="outline" onClick={() => void preview.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
   } else if (groups.length === 0) {
     body = (
       <p className="text-sm text-muted-foreground">
-        Nenhum envelope tem template ainda. Escolha um no menu da linha do envelope.
+        {t("envelopes.applyTemplatesDialog.nenhumEnvelopeTemTemplate")}
       </p>
     );
   } else {
@@ -68,30 +70,33 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
         {groups.map((group) => {
           const negative = signOf(group.to_budget_after) < 0;
           return (
-            <section key={group.currency_code} aria-label={`Prévia em ${group.currency_code}`} className="flex flex-col gap-2">
+            <section key={group.currency_code} aria-label={t("envelopes.applyTemplatesDialog.previaEm", { code: group.currency_code })} className="flex flex-col gap-2">
               <p className={cn("text-sm", negative && "font-medium text-destructive")}>
-                A orçar ({group.currency_code}): {formatMoney(group.to_budget_before, group.currency_code)} depois de aplicar fica{" "}
+                {t("envelopes.applyTemplatesDialog.aOrcarDepoisDeAplicar", {
+                  code: group.currency_code,
+                  before: formatMoney(group.to_budget_before, group.currency_code),
+                })}{" "}
                 <strong>{formatMoney(group.to_budget_after, group.currency_code)}</strong>
               </p>
               {negative && (
                 <p className="flex items-start gap-1.5 text-xs text-destructive" role="alert">
                   <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                  Os templates somam mais do que você tem. Dá para aplicar mesmo assim: o A orçar fica negativo até você ajustar.
+                  {t("envelopes.applyTemplatesDialog.osTemplatesSomamMais")}
                 </p>
               )}
               <div className="overflow-x-auto rounded-md border">
                 <table className="w-full text-left text-sm">
-                  <caption className="sr-only">Prévia em {group.currency_code}</caption>
+                  <caption className="sr-only">{t("envelopes.applyTemplatesDialog.previaEm", { code: group.currency_code })}</caption>
                   <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
                     <tr>
                       <th scope="col" className="px-2 py-2 font-medium">
-                        Envelope
+                        {t("envelopes.applyTemplatesDialog.envelope")}
                       </th>
                       <th scope="col" className="px-2 py-2 text-right font-medium">
-                        Hoje
+                        {t("envelopes.applyTemplatesDialog.hoje")}
                       </th>
                       <th scope="col" className="px-2 py-2 text-right font-medium">
-                        Fica
+                        {t("envelopes.applyTemplatesDialog.fica")}
                       </th>
                     </tr>
                   </thead>
@@ -117,7 +122,7 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
                               row.applies ? "font-medium text-primary-text" : "text-muted-foreground",
                             )}
                           >
-                            {row.applies ? "Vai mudar" : row.reason ? reasonLabel(row.reason) : "Sem mudança"}
+                            {row.applies ? t("envelopes.applyTemplatesDialog.vaiMudar") : row.reason ? reasonLabel(row.reason) : t("envelopes.applyTemplatesDialog.semMudanca")}
                           </span>
                         </td>
                       </tr>
@@ -136,9 +141,9 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Aplicar templates em {formatMonthYear(month).toLowerCase()}</DialogTitle>
+          <DialogTitle>{t("envelopes.applyTemplatesDialog.aplicarTemplatesEm", { month: formatMonthYear(month).toLowerCase() })}</DialogTitle>
           <DialogDescription>
-            Veja o que cada template faria. Só grava quando você confirmar.
+            {t("envelopes.applyTemplatesDialog.vejaOQueCada")}
           </DialogDescription>
         </DialogHeader>
 
@@ -151,7 +156,7 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
             onChange={(event) => setOverwrite(event.target.checked)}
             className="accent-[var(--primary)]"
           />
-          Sobrescrever os envelopes que já têm valor
+          {t("envelopes.applyTemplatesDialog.sobrescreverOsEnvelopesQue")}
         </label>
 
         {body}
@@ -161,10 +166,10 @@ export function ApplyTemplatesDialog({ month, onClose }: Props) {
             {preview.data ? applyCountText(changes) : ""}
           </p>
           <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t("common.cancelar")}
           </Button>
           <Button onClick={() => void confirm()} disabled={busy || preview.isPending || changes === 0}>
-            {busy ? "Aplicando..." : changes === 0 ? "Nada para aplicar" : "Aplicar"}
+            {busy ? t("envelopes.applyTemplatesDialog.aplicando") : changes === 0 ? t("envelopes.applyTemplatesDialog.nadaParaAplicar") : t("envelopes.applyTemplatesDialog.aplicar")}
           </Button>
         </DialogFooter>
       </DialogContent>

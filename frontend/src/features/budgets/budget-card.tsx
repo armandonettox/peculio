@@ -11,7 +11,8 @@ import {
 import { formatDateRange } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { PERIOD_LABELS, progressState, remainingText, STATE_LABELS, type ProgressState } from "./presentation";
+import { periodLabel, progressState, remainingText, stateLabel, type ProgressState } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   budget: BudgetProgress;
@@ -34,8 +35,9 @@ const TEXT_CLASS: Record<ProgressState, string> = {
 };
 
 export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props) {
+  const { t } = useTranslation();
   const state = progressState(budget.percent);
-  const stateLabel = STATE_LABELS[state];
+  const label = stateLabel(state);
   // A barra enche ate 100%; o excesso aparece no texto ("Passou R$ 30,00 do limite")
   const filled = Math.min(budget.percent, 100);
 
@@ -46,11 +48,11 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{budget.name}</h3>
             {!budget.active && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivado</span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.arquivado")}</span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {PERIOD_LABELS[budget.period]} · {formatDateRange(budget.period_start, budget.period_end)}
+            {periodLabel(budget.period)} · {formatDateRange(budget.period_start, budget.period_end)}
             {budget.currency_code !== "BRL" ? ` · ${budget.currency_code}` : ""}
           </p>
         </div>
@@ -59,7 +61,7 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações do orçamento ${budget.name}`}
+              aria-label={t("budgets.budgetCard.acoesDoOrcamento", { name: budget.name })}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -68,16 +70,16 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
           <DropdownMenuContent align="end" className="min-w-44">
             <DropdownMenuItem onSelect={() => onEdit(budget)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onToggleArchive(budget)}>
               {budget.active ? <Archive /> : <ArchiveRestore />}
-              {budget.active ? "Arquivar" : "Restaurar"}
+              {budget.active ? t("budgets.budgetCard.arquivar") : t("budgets.budgetCard.restaurar")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onDelete(budget)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -85,11 +87,11 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
 
       <div
         role="progressbar"
-        aria-label={`Gasto de ${budget.name}`}
+        aria-label={t("budgets.budgetCard.gastoDe", { name: budget.name })}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={filled}
-        aria-valuetext={`${budget.percent}% do limite`}
+        aria-valuetext={t("budgets.budgetCard.percentDoLimite", { percent: budget.percent })}
         className="mt-4 h-2.5 overflow-hidden rounded-full bg-muted"
       >
         <div className={cn("h-full rounded-full transition-[width]", FILL_CLASS[state])} style={{ width: `${filled}%` }} />
@@ -98,10 +100,10 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm">
           <span className="font-semibold tabular-nums">{formatMoney(budget.spent, budget.currency_code)}</span>
-          <span className="text-muted-foreground"> de {formatMoney(budget.amount ?? "0", budget.currency_code)}</span>
+          <span className="text-muted-foreground"> {t("budgets.budgetCard.de")} {formatMoney(budget.amount ?? "0", budget.currency_code)}</span>
         </p>
         <p className={cn("text-sm", TEXT_CLASS[state])}>
-          {stateLabel && <span className="font-medium">{stateLabel} · </span>}
+          {label && <span className="font-medium">{label} · </span>}
           {remainingText(budget)}
         </p>
       </div>

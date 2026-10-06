@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { formatMoney, isNegativeMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
 import { signOf } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Field = "from" | "to" | "amount";
 type Errors = Partial<Record<Field, string>>;
@@ -26,6 +27,7 @@ type Props = {
 
 /** Passa dinheiro de um envelope para outro no mes. E assim que se cobre um estouro. */
 export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props) {
+  const { t } = useTranslation();
   const currencies = useCurrencies();
   const move = useMoveMoney(month);
   const [from, setFrom] = useState("");
@@ -49,15 +51,18 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
     setFormError(null);
 
     const found: Errors = {};
-    if (!from) found.from = "Escolha de onde tirar.";
-    if (!to) found.to = "Escolha para onde levar.";
-    else if (to === from) found.to = "Escolha um envelope diferente do de origem.";
+    if (!from) found.from = t("envelopes.moveMoneyDialog.escolhaDeOnde");
+    if (!to) found.to = t("envelopes.moveMoneyDialog.escolhaParaOnde");
+    else if (to === from) found.to = t("envelopes.moveMoneyDialog.escolhaUmEnvelopeDiferente");
     let value = "";
     const parsed = parseMoneyInput(amount, places);
     if (!parsed.ok) found.amount = parsed.error;
-    else if (signOf(parsed.value) <= 0) found.amount = "Informe um valor maior que zero.";
+    else if (signOf(parsed.value) <= 0) found.amount = t("envelopes.moveMoneyDialog.informeUmValorMaior");
     else if (source && isNegativeMoney(sumMoney([source.available, negateMoney(parsed.value)], places))) {
-      found.amount = `O envelope ${source.name} só tem ${formatMoney(source.available, group.currency_code)} disponível.`;
+      found.amount = t("envelopes.moveMoneyDialog.oEnvelopeSoTem", {
+        name: source.name,
+        amount: formatMoney(source.available, group.currency_code),
+      });
     } else value = parsed.value;
 
     setErrors(found);
@@ -85,14 +90,14 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mover dinheiro</DialogTitle>
-          <DialogDescription>Passa dinheiro de um envelope para outro neste mês. É assim que você cobre um estouro.</DialogDescription>
+          <DialogTitle>{t("envelopes.moveMoneyDialog.moverDinheiro")}</DialogTitle>
+          <DialogDescription>{t("envelopes.moveMoneyDialog.passaDinheiroDeUm")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="move-from" label="Tirar de" error={errors.from}>
+          <FormField id="move-from" label={t("envelopes.moveMoneyDialog.tirarDe")} error={errors.from}>
             {(props) => (
               <Select
                 {...props}
@@ -102,17 +107,17 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
                   clearError("from");
                 }}
               >
-                <option value="">Escolha o envelope</option>
+                <option value="">{t("envelopes.moveMoneyDialog.escolhaOEnvelope")}</option>
                 {group.envelopes.map((item) => (
                   <option key={item.budget_id} value={item.budget_id}>
-                    {item.name} ({formatMoney(item.available, group.currency_code)} disponível)
+                    {t("envelopes.moveMoneyDialog.itemDisponivel", { name: item.name, amount: formatMoney(item.available, group.currency_code) })}
                   </option>
                 ))}
               </Select>
             )}
           </FormField>
 
-          <FormField id="move-to" label="Levar para" error={errors.to}>
+          <FormField id="move-to" label={t("envelopes.moveMoneyDialog.levarPara")} error={errors.to}>
             {(props) => (
               <Select
                 {...props}
@@ -122,7 +127,7 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
                   clearError("to");
                 }}
               >
-                <option value="">Escolha o envelope</option>
+                <option value="">{t("envelopes.moveMoneyDialog.escolhaOEnvelope")}</option>
                 {group.envelopes.map((item) => (
                   <option key={item.budget_id} value={item.budget_id}>
                     {item.name}
@@ -132,7 +137,7 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
             )}
           </FormField>
 
-          <FormField id="move-amount" label={`Valor (${group.currency_code})`} error={errors.amount}>
+          <FormField id="move-amount" label={t("envelopes.moveMoneyDialog.valor", { currency: group.currency_code })} error={errors.amount}>
             {(props) => (
               <Input
                 {...props}
@@ -150,10 +155,10 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Movendo..." : "Mover"}
+              {submitting ? t("envelopes.moveMoneyDialog.movendo") : t("envelopes.moveMoneyDialog.mover")}
             </Button>
           </DialogFooter>
         </form>

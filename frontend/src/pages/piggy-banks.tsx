@@ -13,10 +13,12 @@ import { PiggyBankFormDialog } from "@/features/piggy-banks/piggy-bank-form-dial
 import { PiggyBankHistoryDialog } from "@/features/piggy-banks/piggy-bank-history-dialog";
 import { PiggyBankMoneyDialog } from "@/features/piggy-banks/piggy-bank-money-dialog";
 import { appToday } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
 type DialogState = { kind: "create" } | { kind: Exclude<PiggyAction, "archive">; piggy: PiggyBank } | null;
 
 export default function PiggyBanksPage() {
+  const { t } = useTranslation();
   const today = appToday();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -42,7 +44,7 @@ export default function PiggyBanksPage() {
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Novo cofrinho
+      {t("pages.piggyBanks.novoCofrinho")}
     </Button>
   );
 
@@ -54,7 +56,7 @@ export default function PiggyBanksPage() {
           <div key={index} className="h-32 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando cofrinhos...
+          {t("pages.piggyBanks.carregandoCofrinhos")}
         </p>
       </div>
     );
@@ -65,7 +67,7 @@ export default function PiggyBanksPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -73,15 +75,15 @@ export default function PiggyBanksPage() {
     content = (
       <EmptyState
         icon={Coins}
-        title="Nenhum cofrinho ainda"
-        description="Separe um valor de uma conta para uma meta, como viagem ou reserva de emergência. O dinheiro continua na conta; só deixa de aparecer como disponível."
+        title={t("pages.piggyBanks.nenhumCofrinhoAinda")}
+        description={t("pages.piggyBanks.separeUmValorDe")}
         action={newButton}
       />
     );
   } else {
     content = (
       <>
-        <h2 className="sr-only">Seus cofrinhos</h2>
+        <h2 className="sr-only">{t("pages.piggyBanks.seusCofrinhos")}</h2>
         <ul className="flex flex-col gap-3">
         {items.map((piggy) => (
           <PiggyBankCard
@@ -98,7 +100,7 @@ export default function PiggyBanksPage() {
 
   return (
     <>
-      <PageHeader title="Cofrinhos" description="Metas guardadas dentro das suas contas" actions={newButton} />
+      <PageHeader title={t("pages.piggyBanks.cofrinhos")} description={t("pages.piggyBanks.metasGuardadasDentroDas")} actions={newButton} />
 
       <div className="mb-4 flex justify-end">
         <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -108,7 +110,7 @@ export default function PiggyBanksPage() {
             onChange={(event) => setIncludeArchived(event.target.checked)}
             className="accent-[var(--primary)]"
           />
-          Mostrar arquivados
+          {t("pages.piggyBanks.mostrarArquivados")}
         </label>
       </div>
 
@@ -128,9 +130,9 @@ export default function PiggyBanksPage() {
       {dialog?.kind === "history" && <PiggyBankHistoryDialog piggy={dialog.piggy} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir cofrinho"
+          title={t("pages.piggyBanks.excluirCofrinho")}
           itemName={dialog.piggy.name}
-          consequence="O valor guardado volta a ficar disponível na conta; nenhum dinheiro some."
+          consequence={t("pages.piggyBanks.oValorGuardadoVolta")}
           onConfirm={() => remove.mutateAsync(dialog.piggy.id)}
           onClose={() => setDialog(null)}
         />

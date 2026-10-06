@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { Template } from "@/api/envelopes";
 import {
-  KIND_OPTIONS,
   applyCountText,
   goalLabel,
   kindLabel,
+  kindOptions,
   reasonLabel,
   templateSummary,
 } from "./template-presentation";
@@ -21,8 +21,8 @@ const template = (overrides: Partial<Template>): Template => ({
 
 describe("tipos", () => {
   it("sao quatro, com rotulo e explicacao", () => {
-    expect(KIND_OPTIONS.map((option) => option.value)).toEqual(["fixed", "by_date", "bill", "remainder"]);
-    expect(KIND_OPTIONS.every((option) => option.label && option.description)).toBe(true);
+    expect(kindOptions().map((option) => option.value)).toEqual(["fixed", "by_date", "bill", "remainder"]);
+    expect(kindOptions().every((option) => option.label && option.description)).toBe(true);
     expect(kindLabel("by_date")).toBe("Juntar até uma data");
   });
 });

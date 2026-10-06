@@ -9,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { amountRangeText, FREQUENCY_LABELS, matchText, nextDueText, statusText } from "./presentation";
+import { amountRangeText, frequencyLabel, matchText, nextDueText, statusText } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   bill: BillStatus;
@@ -26,6 +27,7 @@ const STATUS_STYLE = {
 } as const;
 
 export function BillCard({ bill, today, onEdit, onToggleArchive, onDelete }: Props) {
+  const { t } = useTranslation();
   const { icon: StatusIcon, className } = STATUS_STYLE[bill.status];
 
   return (
@@ -35,11 +37,11 @@ export function BillCard({ bill, today, onEdit, onToggleArchive, onDelete }: Pro
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{bill.name}</h3>
             {!bill.active && (
-              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivada</span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("bills.billCard.arquivada")}</span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {FREQUENCY_LABELS[bill.frequency]} · {amountRangeText(bill)}
+            {frequencyLabel(bill.frequency)} · {amountRangeText(bill)}
             {bill.currency_code !== "BRL" ? ` · ${bill.currency_code}` : ""}
           </p>
         </div>
@@ -48,7 +50,7 @@ export function BillCard({ bill, today, onEdit, onToggleArchive, onDelete }: Pro
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações da conta a pagar ${bill.name}`}
+              aria-label={t("bills.billCard.acoesDaConta", { name: bill.name })}
               className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -57,16 +59,16 @@ export function BillCard({ bill, today, onEdit, onToggleArchive, onDelete }: Pro
           <DropdownMenuContent align="end" className="min-w-44">
             <DropdownMenuItem onSelect={() => onEdit(bill)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onToggleArchive(bill)}>
               {bill.active ? <Archive /> : <ArchiveRestore />}
-              {bill.active ? "Arquivar" : "Restaurar"}
+              {bill.active ? t("bills.billCard.arquivar") : t("bills.billCard.restaurar")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onDelete(bill)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -79,7 +81,7 @@ export function BillCard({ bill, today, onEdit, onToggleArchive, onDelete }: Pro
         </p>
         <p className="text-sm text-muted-foreground">
           {nextDueText(bill, today)}
-          {bill.next_due_paid && <span className="font-medium text-positive"> · já pago</span>}
+          {bill.next_due_paid && <span className="font-medium text-positive"> {t("bills.billCard.jaPago")}</span>}
         </p>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{matchText(bill)}</p>

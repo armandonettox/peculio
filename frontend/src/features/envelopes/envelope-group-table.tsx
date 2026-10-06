@@ -23,6 +23,7 @@ import {
   toInputText,
 } from "./presentation";
 import { goalLabel, templateSummary } from "./template-presentation";
+import { useTranslation } from "react-i18next";
 
 export type EnvelopeAction = "edit" | "template" | "delete";
 
@@ -39,21 +40,22 @@ type Props = {
 
 /** Um grupo (uma moeda): o "A orcar" no topo e a tabela dos envelopes do mes. */
 export function EnvelopeGroupTable({ month, group, onAction, onError, onCover, billNames = {} }: Props) {
+  const { t } = useTranslation();
   const state = toBudgetState(group);
   const code = group.currency_code;
 
   return (
-    <section aria-label={`Envelopes em ${code}`} className="flex flex-col gap-3">
+    <section aria-label={t("envelopes.envelopeGroupTable.envelopesEm", { code })} className="flex flex-col gap-3">
       <div
         className={cn(
           "rounded-lg border p-4",
           state === "negative" ? "border-destructive bg-destructive/5" : "bg-card",
         )}
       >
-        <p className="text-sm text-muted-foreground">A orçar ({code})</p>
+        <p className="text-sm text-muted-foreground">{t("envelopes.envelopeGroupTable.aOrcar", { code })}</p>
         <p
           className={cn("text-2xl font-semibold tabular-nums", state === "negative" && "text-destructive")}
-          aria-label={`A orçar em ${code}`}
+          aria-label={t("envelopes.envelopeGroupTable.aOrcarEm", { code })}
         >
           {formatMoney(group.to_budget, code)}
         </p>
@@ -61,32 +63,35 @@ export function EnvelopeGroupTable({ month, group, onAction, onError, onCover, b
           {toBudgetHint(state)}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          Dinheiro nas contas: {formatMoney(group.money, code)} · Nos envelopes: {formatMoney(group.in_envelopes, code)}
+          {t("envelopes.envelopeGroupTable.dinheiroNasContas", {
+            money: formatMoney(group.money, code),
+            inEnvelopes: formatMoney(group.in_envelopes, code),
+          })}
         </p>
       </div>
 
       <div className="relative overflow-x-auto rounded-lg border bg-card">
         <table className="w-full text-left text-sm">
-          <caption className="sr-only">Envelopes em {code}</caption>
+          <caption className="sr-only">{t("envelopes.envelopeGroupTable.envelopesEm", { code })}</caption>
           <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
             <tr>
               <th scope="col" className="px-2 py-2 sm:px-3 font-medium">
-                Envelope
+                {t("envelopes.envelopeGroupTable.envelope")}
               </th>
               <th scope="col" className="hidden px-2 py-2 sm:px-3 text-right font-medium sm:table-cell">
-                Passou do mês anterior
+                {t("envelopes.envelopeGroupTable.passouDoMesAnterior")}
               </th>
               <th scope="col" className="px-2 py-2 sm:px-3 text-right font-medium">
-                Distribuído
+                {t("envelopes.envelopeGroupTable.distribuido")}
               </th>
               <th scope="col" className="hidden px-2 py-2 sm:px-3 text-right font-medium sm:table-cell">
-                Gasto
+                {t("envelopes.envelopeGroupTable.gasto")}
               </th>
               <th scope="col" className="px-2 py-2 sm:px-3 text-right font-medium">
-                Disponível
+                {t("envelopes.envelopeGroupTable.disponivel")}
               </th>
               <th scope="col" className="w-10 px-2 py-2">
-                <span className="sr-only">Ações</span>
+                <span className="sr-only">{t("envelopes.envelopeGroupTable.acoes")}</span>
               </th>
             </tr>
           </thead>
@@ -127,6 +132,7 @@ function EnvelopeRow({
   onCover: Props["onCover"];
   billNames: Record<string, string>;
 }) {
+  const { t } = useTranslation();
   const currencies = useCurrencies();
   const set = useSetAllocation(month);
   const places = placesOf(code, Object.fromEntries((currencies.data ?? []).map((c) => [c.code, c.decimal_places])));
@@ -189,7 +195,7 @@ function EnvelopeRow({
       </td>
       <td className="px-2 py-2 sm:px-3 text-right">
         <Input
-          aria-label={`Distribuído para ${envelope.name}`}
+          aria-label={t("envelopes.envelopeGroupTable.distribuidoPara", { name: envelope.name })}
           aria-invalid={invalid !== null}
           inputMode="decimal"
           autoComplete="off"
@@ -238,7 +244,7 @@ function EnvelopeRow({
             className="mt-1 block w-full text-right text-xs text-primary-text underline-offset-4 hover:underline"
             onClick={() => onCover(envelope)}
           >
-            Cobrir {formatMoney(envelope.overspent, code)}
+            {t("envelopes.envelopeGroupTable.cobrir", { amount: formatMoney(envelope.overspent, code) })}
           </button>
         )}
       </td>
@@ -247,7 +253,7 @@ function EnvelopeRow({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label={`Ações do envelope ${envelope.name}`}
+              aria-label={t("envelopes.envelopeGroupTable.acoesDoEnvelope", { name: envelope.name })}
               className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <MoreVertical className="size-4" />
@@ -256,16 +262,16 @@ function EnvelopeRow({
           <DropdownMenuContent align="end" className="min-w-40">
             <DropdownMenuItem onSelect={() => onAction("edit", envelope)}>
               <Pencil />
-              Editar
+              {t("common.editar")}
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onAction("template", envelope)}>
               <Target />
-              {envelope.template ? "Mudar template" : "Definir template"}
+              {envelope.template ? t("envelopes.envelopeGroupTable.mudarTemplate") : t("envelopes.envelopeGroupTable.definirTemplate")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => onAction("delete", envelope)} className="text-destructive">
               <Trash2 />
-              Excluir
+              {t("common.excluir")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

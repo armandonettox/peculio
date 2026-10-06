@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 import { useBudgetsProgress } from "@/api/budgets";
-import { PERIOD_LABELS, progressState, remainingText, STATE_LABELS, type ProgressState } from "@/features/budgets/presentation";
+import { periodLabel, progressState, remainingText, stateLabel, type ProgressState } from "@/features/budgets/presentation";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { DashboardBlock } from "./dashboard-block";
@@ -33,13 +33,13 @@ export function BudgetsBlock({ today }: { today: string }) {
       <ul className="flex flex-col gap-4">
         {items.map((budget) => {
           const state = progressState(budget.percent);
-          const stateLabel = STATE_LABELS[state];
+          const label = stateLabel(state);
           const filled = Math.min(budget.percent, 100);
           return (
             <li key={budget.id} className="min-w-0">
               <div className="flex items-baseline justify-between gap-2">
                 <p className="truncate text-sm font-medium">{budget.name}</p>
-                <p className="shrink-0 text-xs text-muted-foreground">{PERIOD_LABELS[budget.period]}</p>
+                <p className="shrink-0 text-xs text-muted-foreground">{periodLabel(budget.period)}</p>
               </div>
               <div
                 role="progressbar"
@@ -57,7 +57,7 @@ export function BudgetsBlock({ today }: { today: string }) {
                   spent: formatMoney(budget.spent, budget.currency_code),
                   amount: formatMoney(budget.amount ?? "0", budget.currency_code),
                 })}
-                {` · ${stateLabel ?? remainingText(budget)}`}
+                {` · ${label ?? remainingText(budget)}`}
               </p>
             </li>
           );

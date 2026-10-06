@@ -16,6 +16,7 @@ import { ApplyTemplatesDialog } from "@/features/envelopes/apply-templates-dialo
 import { MoveMoneyDialog } from "@/features/envelopes/move-money-dialog";
 import { TemplateDialog } from "@/features/envelopes/template-dialog";
 import { appToday, firstOfMonth, formatMonthYear, shiftMonth } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
 type DialogState =
   | { kind: "create" }
@@ -27,6 +28,7 @@ type DialogState =
   | null;
 
 export default function EnvelopesPage() {
+  const { t } = useTranslation();
   const currentMonth = firstOfMonth(appToday());
   const [month, setMonth] = useState(currentMonth);
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -46,7 +48,7 @@ export default function EnvelopesPage() {
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Novo envelope
+      {t("pages.envelopes.novoEnvelope")}
     </Button>
   );
 
@@ -57,7 +59,7 @@ export default function EnvelopesPage() {
         <div className="h-24 animate-pulse rounded-lg border bg-muted" />
         <div className="h-40 animate-pulse rounded-lg border bg-muted" />
         <p className="sr-only" role="status">
-          Carregando envelopes...
+          {t("pages.envelopes.carregandoEnvelopes")}
         </p>
       </div>
     );
@@ -68,7 +70,7 @@ export default function EnvelopesPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -76,8 +78,8 @@ export default function EnvelopesPage() {
     content = (
       <EmptyState
         icon={Mail}
-        title="Nenhum envelope ainda"
-        description="No envelope você distribui o dinheiro que já tem, mês a mês. O que sobra passa para o mês seguinte; o que estoura sai do que ainda falta orçar."
+        title={t("pages.envelopes.nenhumEnvelopeAinda")}
+        description={t("pages.envelopes.noEnvelopeVoceDistribui")}
         action={newButton}
       />
     );
@@ -97,7 +99,7 @@ export default function EnvelopesPage() {
             {group.envelopes.length > 1 && (
               <div>
                 <Button variant="outline" onClick={() => setDialog({ kind: "move", currency: group.currency_code })}>
-                  Mover dinheiro
+                  {t("pages.envelopes.moverDinheiro")}
                 </Button>
               </div>
             )}
@@ -111,26 +113,26 @@ export default function EnvelopesPage() {
 
   return (
     <>
-      <PageHeader title="Envelopes" description="Distribua o dinheiro que você tem, mês a mês" actions={newButton} />
+      <PageHeader title={t("pages.envelopes.envelopes")} description={t("pages.envelopes.distribuaODinheiroQue")} actions={newButton} />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="icon" className="shrink-0" aria-label="Mês anterior" onClick={() => setMonth(shiftMonth(month, -1))}>
+        <Button variant="outline" size="icon" className="shrink-0" aria-label={t("pages.envelopes.mesAnterior")} onClick={() => setMonth(shiftMonth(month, -1))}>
           <ChevronLeft />
         </Button>
         <p className="min-w-36 text-center text-sm font-medium first-letter:uppercase" aria-live="polite">
           {formatMonthYear(month)}
         </p>
-        <Button variant="outline" size="icon" className="shrink-0" aria-label="Próximo mês" onClick={() => setMonth(shiftMonth(month, 1))}>
+        <Button variant="outline" size="icon" className="shrink-0" aria-label={t("pages.envelopes.proximoMes")} onClick={() => setMonth(shiftMonth(month, 1))}>
           <ChevronRight />
         </Button>
         {month !== currentMonth && (
           <Button variant="ghost" size="sm" onClick={() => setMonth(currentMonth)}>
-            Mês atual
+            {t("pages.envelopes.mesAtual")}
           </Button>
         )}
         {groups.length > 0 && (
           <Button variant="outline" className="sm:ml-auto" onClick={() => setDialog({ kind: "apply" })}>
-            Aplicar templates
+            {t("pages.envelopes.aplicarTemplates")}
           </Button>
         )}
       </div>
@@ -156,9 +158,9 @@ export default function EnvelopesPage() {
       )}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir envelope"
+          title={t("pages.envelopes.excluirEnvelope")}
           itemName={dialog.envelope.name}
-          consequence="O que foi distribuído para ele some e volta para o A orçar. Os lançamentos ligados ficam sem envelope."
+          consequence={t("pages.envelopes.oQueFoiDistribuido")}
           onConfirm={() => remove.mutateAsync(dialog.envelope.budget_id)}
           onClose={() => setDialog(null)}
         />

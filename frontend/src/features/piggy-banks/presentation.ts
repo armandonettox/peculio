@@ -1,4 +1,5 @@
 import type { PiggyBank } from "@/api/piggy-banks";
+import { i18n } from "@/i18n";
 import { formatDate } from "@/lib/dates";
 import { formatMoney, isNegativeMoney, negateMoney } from "@/lib/money";
 
@@ -7,8 +8,8 @@ export const isReached = (piggy: Pick<PiggyBank, "percent">) => piggy.percent >=
 
 /** "Faltam R$ 450,00" ou "Meta atingida". */
 export function remainingText(piggy: Pick<PiggyBank, "percent" | "remaining" | "currency_code">): string {
-  if (isReached(piggy)) return "Meta atingida";
-  return `Faltam ${formatMoney(piggy.remaining, piggy.currency_code)}`;
+  if (isReached(piggy)) return i18n.t("piggy-banks.presentation.metaAtingida");
+  return i18n.t("piggy-banks.presentation.faltam", { amount: formatMoney(piggy.remaining, piggy.currency_code) });
 }
 
 /**
@@ -21,12 +22,15 @@ export function targetText(
 ): string | null {
   if (!piggy.target_date) return null;
   const date = formatDate(piggy.target_date);
-  if (isReached(piggy)) return `Até ${date}`;
-  if (piggy.target_date < today) return `A data alvo passou (${date})`;
+  if (isReached(piggy)) return i18n.t("piggy-banks.presentation.target.reached", { date });
+  if (piggy.target_date < today) return i18n.t("piggy-banks.presentation.target.passed", { date });
   if (piggy.suggested_per_month) {
-    return `Até ${date} · guarde ${formatMoney(piggy.suggested_per_month, piggy.currency_code)} por mês`;
+    return i18n.t("piggy-banks.presentation.target.withSuggestion", {
+      date,
+      amount: formatMoney(piggy.suggested_per_month, piggy.currency_code),
+    });
   }
-  return `Até ${date}`;
+  return i18n.t("piggy-banks.presentation.target.reached", { date });
 }
 
 /** Quanto da conta ainda esta livre; avisa quando o saldo caiu abaixo do reservado. */
@@ -36,12 +40,18 @@ export function availableText(piggy: Pick<PiggyBank, "account_name" | "account_a
 } {
   if (isNegativeMoney(piggy.account_available)) {
     return {
-      text: `O saldo de ${piggy.account_name} está ${formatMoney(negateMoney(piggy.account_available), piggy.currency_code)} abaixo do que está guardado em cofrinhos`,
+      text: i18n.t("piggy-banks.presentation.available.warning", {
+        account: piggy.account_name,
+        amount: formatMoney(negateMoney(piggy.account_available), piggy.currency_code),
+      }),
       warning: true,
     };
   }
   return {
-    text: `Disponível em ${piggy.account_name}: ${formatMoney(piggy.account_available, piggy.currency_code)}`,
+    text: i18n.t("piggy-banks.presentation.available.ok", {
+      account: piggy.account_name,
+      amount: formatMoney(piggy.account_available, piggy.currency_code),
+    }),
     warning: false,
   };
 }

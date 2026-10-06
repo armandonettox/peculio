@@ -1,11 +1,11 @@
 import type { BudgetPeriod, BudgetProgress } from "@/api/budgets";
+import { i18n } from "@/i18n";
 import { formatMoney, isNegativeMoney, negateMoney } from "@/lib/money";
 
-export const PERIOD_LABELS: Record<BudgetPeriod, string> = {
-  weekly: "Semanal",
-  monthly: "Mensal",
-  yearly: "Anual",
-};
+/** Rotulo do periodo do orcamento, no idioma atual. */
+export function periodLabel(period: BudgetPeriod): string {
+  return i18n.t(`budgets.presentation.period.${period}`);
+}
 
 export const PERIODS: BudgetPeriod[] = ["weekly", "monthly", "yearly"];
 
@@ -24,13 +24,13 @@ export function progressState(percent: number): ProgressState {
 /** "Restam R$ 449,50" ou, se passou do limite, "Passou R$ 30,00 do limite". */
 export function remainingText(item: Pick<BudgetProgress, "remaining" | "currency_code">): string {
   if (isNegativeMoney(item.remaining)) {
-    return `Passou ${formatMoney(negateMoney(item.remaining), item.currency_code)} do limite`;
+    return i18n.t("budgets.presentation.passedLimit", { amount: formatMoney(negateMoney(item.remaining), item.currency_code) });
   }
-  return `Restam ${formatMoney(item.remaining, item.currency_code)}`;
+  return i18n.t("budgets.presentation.remaining", { amount: formatMoney(item.remaining, item.currency_code) });
 }
 
-export const STATE_LABELS: Record<ProgressState, string | null> = {
-  ok: null,
-  warning: "Perto do limite",
-  over: "Limite atingido",
-};
+/** Rotulo do selo de situacao; null quando esta ok (sem selo). */
+export function stateLabel(state: ProgressState): string | null {
+  if (state === "ok") return null;
+  return i18n.t(`budgets.presentation.state.${state}`);
+}
