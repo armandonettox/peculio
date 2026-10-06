@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { navAction, nextIndex, SHORTCUT_GROUPS, tabStop, type KeyInfo, type NavAction } from "./table-nav";
+import { navAction, nextIndex, shortcutGroups, tabStop, type KeyInfo, type NavAction } from "./table-nav";
 
 const key = (name: string, overrides: Partial<KeyInfo> = {}): KeyInfo => ({
   key: name,
@@ -100,7 +100,7 @@ describe("tabStop", () => {
 });
 
 describe("a lista de atalhos", () => {
-  const listed = SHORTCUT_GROUPS.flatMap((group) => group.items.flatMap((item) => item.keys));
+  const listed = shortcutGroups().flatMap((group) => group.items.flatMap((item) => item.keys));
 
   it("cada tecla que a tabela trata aparece na lista", () => {
     const handled = ["ArrowDown", "j", "ArrowUp", "k", "Home", "End", "t", "Enter"];
@@ -117,7 +117,7 @@ describe("a lista de atalhos", () => {
   });
 
   it("nao repete a mesma explicacao", () => {
-    const texts = SHORTCUT_GROUPS.flatMap((group) => group.items.map((item) => item.text));
+    const texts = shortcutGroups().flatMap((group) => group.items.map((item) => item.text));
     expect(new Set(texts).size).toBe(texts.length);
   });
 });

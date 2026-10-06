@@ -6,10 +6,12 @@ import { ApiError } from "@/api/errors";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trans, useTranslation } from "react-i18next";
 
 type Props = { account: Account; onClose: () => void };
 
 export function DeleteAccountDialog({ account, onClose }: Props) {
+  const { t } = useTranslation();
   const remove = useDeleteAccount();
   const update = useUpdateAccount();
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +44,9 @@ export function DeleteAccountDialog({ account, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Excluir conta</DialogTitle>
+          <DialogTitle>{t("accounts.deleteAccountDialog.excluirConta")}</DialogTitle>
           <DialogDescription>
-            Excluir a conta <strong>{account.name}</strong> não pode ser desfeito. Se você só quer tirá-la da lista,
-            arquive.
+            <Trans i18nKey="accounts.deleteAccountDialog.description" values={{ name: account.name }} components={{ strong: <strong /> }} />
           </DialogDescription>
         </DialogHeader>
 
@@ -53,15 +54,15 @@ export function DeleteAccountDialog({ account, onClose }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t("common.cancelar")}
           </Button>
           {hasMovement ? (
             <Button onClick={archiveInstead} disabled={busy}>
-              Arquivar em vez disso
+              {t("accounts.deleteAccountDialog.arquivarEmVezDisso")}
             </Button>
           ) : (
             <Button variant="destructive" onClick={confirmDelete} disabled={busy}>
-              {remove.isPending ? "Excluindo..." : "Excluir"}
+              {remove.isPending ? t("accounts.deleteAccountDialog.excluindo") : t("common.excluir")}
             </Button>
           )}
         </DialogFooter>

@@ -12,6 +12,7 @@ import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
 import { formatMoney, negateMoney } from "@/lib/money";
+import { useTranslation } from "react-i18next";
 
 type DialogState = { kind: "create" } | { kind: "edit"; account: Account } | { kind: "delete"; account: Account } | null;
 
@@ -31,6 +32,7 @@ function Totals({ label, totals }: { label: string; totals: { currency: string; 
 }
 
 export default function AccountsPage() {
+  const { t } = useTranslation();
   const [showArchived, setShowArchived] = useState(false);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -55,7 +57,7 @@ export default function AccountsPage() {
   const newAccountButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      Nova conta
+      {t("pages.accounts.novaConta")}
     </Button>
   );
 
@@ -83,7 +85,7 @@ export default function AccountsPage() {
           <div key={index} className="h-28 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando contas...
+          {t("common.carregandoContas")}
         </p>
       </div>
     );
@@ -94,7 +96,7 @@ export default function AccountsPage() {
           {getErrorMessage(accounts.error)}
         </Alert>
         <Button variant="outline" onClick={() => void accounts.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -102,11 +104,11 @@ export default function AccountsPage() {
     content = (
       <EmptyState
         icon={Landmark}
-        title={showArchived ? "Nenhuma conta ainda" : "Nenhuma conta ativa"}
+        title={showArchived ? t("pages.accounts.nenhumaContaAinda") : t("pages.accounts.nenhumaContaAtiva")}
         description={
           showArchived
-            ? "Cadastre sua primeira conta para começar."
-            : "Cadastre sua primeira conta ou ative a opção para ver as arquivadas."
+            ? t("pages.accounts.cadastreSuaPrimeiraConta")
+            : t("pages.accounts.cadastreSuaPrimeiraConta2")
         }
         action={newAccountButton}
       />
@@ -115,15 +117,15 @@ export default function AccountsPage() {
     const netTotals = totalsByCurrency(items, places);
     content = (
       <div className="flex flex-col gap-8">
-        {liabilities.length > 0 && <Totals label="Patrimônio líquido" totals={netTotals} />}
+        {liabilities.length > 0 && <Totals label={t("pages.accounts.patrimonioLiquido")} totals={netTotals} />}
 
         {assets.length > 0 && (
           <section aria-labelledby="accounts-heading" className="flex flex-col gap-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="accounts-heading" className="text-lg font-semibold">
-                Contas
+                {t("pages.accounts.contas")}
               </h2>
-              <Totals label="Total" totals={totalsByCurrency(assets, places)} />
+              <Totals label={t("pages.accounts.total")} totals={totalsByCurrency(assets, places)} />
             </div>
             {renderList(assets)}
           </section>
@@ -133,10 +135,10 @@ export default function AccountsPage() {
           <section aria-labelledby="debts-heading" className="flex flex-col gap-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="debts-heading" className="text-lg font-semibold">
-                Dívidas
+                {t("pages.accounts.dividas")}
               </h2>
               <Totals
-                label="Total devido"
+                label={t("pages.accounts.totalDevido")}
                 totals={totalsByCurrency(liabilities, places).map((t) => ({
                   currency: t.currency,
                   total: negateMoney(t.total),
@@ -152,7 +154,7 @@ export default function AccountsPage() {
 
   return (
     <>
-      <PageHeader title="Contas" description="Onde está o seu dinheiro e o que você deve" actions={newAccountButton} />
+      <PageHeader title={t("pages.accounts.contas")} description={t("pages.accounts.ondeEstaOSeu")} actions={newAccountButton} />
 
       <label className="mb-6 flex w-fit cursor-pointer items-center gap-2 text-sm">
         <input
@@ -161,7 +163,7 @@ export default function AccountsPage() {
           onChange={(event) => setShowArchived(event.target.checked)}
           className="size-4 accent-[var(--primary)]"
         />
-        Mostrar arquivadas
+        {t("pages.accounts.mostrarArquivadas")}
       </label>
 
       {actionError && (

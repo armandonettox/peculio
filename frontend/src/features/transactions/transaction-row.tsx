@@ -21,6 +21,7 @@ import {
   reconciliationState,
   transactionTitle,
 } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 type Lookups = {
   categories: Map<string, Category>;
@@ -54,6 +55,7 @@ type RowProps = {
 } & Lookups;
 
 export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments }: RowProps) {
+  const { t } = useTranslation();
   const splits = transaction.splits;
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
@@ -69,7 +71,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
           {reconciliation && (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
               {reconciliation === "locked" && <Lock className="size-3" aria-hidden="true" />}
-              {reconciliation === "locked" ? "Conciliado" : "Conferido"}
+              {reconciliation === "locked" ? t("transactions.transactionRow.conciliado") : t("transactions.transactionRow.conferido")}
             </p>
           )}
           {!isSplit && first && (
@@ -84,7 +86,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
           )}
           {isSplit && (
             <p className="text-sm text-muted-foreground">
-              Dividida em {splits.length}
+              {t("common.dividedIn", { count: splits.length })}
               {ownAccountName(first) ? ` · ${ownAccountName(first)}` : ""}
             </p>
           )}
@@ -94,7 +96,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
             <button
               type="button"
               onClick={() => onAttachments(transaction)}
-              aria-label={`${transaction.attachment_count} ${transaction.attachment_count === 1 ? "anexo" : "anexos"}, abrir anexos de ${transactionTitle(transaction)}`}
+              aria-label={t("transactions.row.attachments", { count: transaction.attachment_count, title: transactionTitle(transaction) })}
               className="flex h-6 items-center gap-1 rounded-md px-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Paperclip className="size-3.5" aria-hidden="true" />
@@ -108,7 +110,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label={`Ações do lançamento ${transactionTitle(transaction)}`}
+                aria-label={t("transactions.row.actions", { title: transactionTitle(transaction) })}
                 className="-mr-2 -mt-1 flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <MoreVertical className="size-4" />
@@ -117,16 +119,16 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
             <DropdownMenuContent align="end" className="min-w-40">
               <DropdownMenuItem onSelect={() => onEdit(transaction)}>
                 <Pencil />
-                Editar
+                {t("common.editar")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => onAttachments(transaction)}>
                 <Paperclip />
-                Anexos
+                {t("transactions.transactionRow.anexos")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => onRemove(transaction)} className="text-destructive">
                 <Trash2 />
-                Excluir
+                {t("common.excluir")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

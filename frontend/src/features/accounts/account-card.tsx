@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatMoney, isNegativeMoney, negateMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { ROLE_LABELS } from "./labels";
+import { roleLabel } from "./labels";
+import { useTranslation } from "react-i18next";
 
 type AccountCardProps = {
   account: Account;
@@ -20,6 +21,7 @@ type AccountCardProps = {
 };
 
 export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: AccountCardProps) {
+  const { t } = useTranslation();
   const isLiability = account.type === "liability";
   // No livro-caixa a divida e saldo negativo; na tela mostramos o valor devido, positivo
   const shown = isLiability ? negateMoney(account.balance) : account.balance;
@@ -36,24 +38,24 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{account.name}</h3>
           {!account.active && (
-            <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">Arquivada</span>
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("accounts.accountCard.arquivada")}</span>
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          {account.role ? ROLE_LABELS[account.role] : ""}
+          {account.role ? roleLabel(account.role) : ""}
           {account.currency_code !== "BRL" ? ` · ${account.currency_code}` : ""}
         </p>
         <p className={cn("mt-2 text-2xl font-semibold tracking-tight", negative && "text-destructive")}>
           {formatMoney(shown, account.currency_code)}
         </p>
-        {isLiability && <p className="text-xs text-muted-foreground">Valor devido</p>}
+        {isLiability && <p className="text-xs text-muted-foreground">{t("accounts.accountCard.valorDevido")}</p>}
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label={`Ações da conta ${account.name}`}
+            aria-label={t("accounts.accountCard.actionsFor", { name: account.name })}
             className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <MoreVertical className="size-4" />
@@ -62,16 +64,16 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
         <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuItem onSelect={() => onEdit(account)}>
             <Pencil />
-            Editar
+            {t("common.editar")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onToggleArchive(account)}>
             {account.active ? <Archive /> : <ArchiveRestore />}
-            {account.active ? "Arquivar" : "Restaurar"}
+            {account.active ? t("accounts.accountCard.arquivar") : t("accounts.accountCard.restaurar")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => onDelete(account)} className="text-destructive">
             <Trash2 />
-            Excluir
+            {t("common.excluir")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

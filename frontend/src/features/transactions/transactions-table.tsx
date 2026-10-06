@@ -39,6 +39,7 @@ import {
 } from "./selection";
 import { ShortcutsDialog } from "./shortcuts-dialog";
 import { navAction, nextIndex, tabStop } from "./table-nav";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   items: Transaction[];
@@ -67,6 +68,7 @@ const iconButton =
  * nao mostra (dividir, outra moeda, tags, orcamento...) fica no formulario completo.
  */
 export function TransactionsTable({ items, total, categories, accounts, onOpen, onRemove }: Props) {
+  const { t } = useTranslation();
   const currencies = useCurrencies();
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
@@ -176,32 +178,32 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
     <div className="relative overflow-x-auto rounded-lg border bg-card">
       <div className="flex items-center justify-between gap-3 border-b px-3 py-2">
         <p className="text-xs text-muted-foreground">
-          Com o foco numa linha: setas ou J e K andam, Enter edita, T cria, Espaço marca.
+          {t("transactions.transactionsTable.comOFocoNuma")}
         </p>
         <div className="flex gap-2">
           <Button type="button" size="sm" variant="outline" onClick={() => setShowShortcuts(true)}>
             <Keyboard />
-            Atalhos
+            {t("transactions.transactionsTable.atalhos")}
           </Button>
           <Button ref={newButton} type="button" size="sm" variant="outline" onClick={startNew}>
             <Plus />
-            Nova linha
+            {t("transactions.transactionsTable.novaLinha")}
           </Button>
         </div>
       </div>
       {showShortcuts && <ShortcutsDialog onClose={() => setShowShortcuts(false)} />}
 
       {count > 0 && (
-        <div role="region" aria-label="Ações em massa" className="flex flex-wrap items-center gap-2 border-b bg-accent/50 px-3 py-2">
+        <div role="region" aria-label={t("transactions.transactionsTable.acoesEmMassa")} className="flex flex-wrap items-center gap-2 border-b bg-accent/50 px-3 py-2">
           <p role="status" className="mr-auto text-sm font-medium">
             {selectionSummary(count, items.length, total)}
           </p>
           {limitMessage(count) && <p className="text-xs text-destructive">{limitMessage(count)}</p>}
           <Button type="button" size="sm" variant="outline" disabled={bulk.isPending || tooMany} onClick={() => setBulkDialog("category")}>
-            Mudar categoria
+            {t("transactions.transactionsTable.mudarCategoria")}
           </Button>
           <Button type="button" size="sm" variant="outline" disabled={bulk.isPending || tooMany} onClick={() => setBulkDialog("date")}>
-            Mudar data
+            {t("transactions.transactionsTable.mudarData")}
           </Button>
           <Button
             type="button"
@@ -210,13 +212,13 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
             disabled={bulk.isPending || tooMany}
             onClick={() => void runBulk({ ids: selectedIds(), action: "duplicate" })}
           >
-            Duplicar
+            {t("transactions.transactionsTable.duplicar")}
           </Button>
           <Button type="button" size="sm" variant="destructive" disabled={bulk.isPending || tooMany} onClick={() => setBulkDialog("delete")}>
-            Excluir
+            {t("common.excluir")}
           </Button>
           <Button type="button" size="sm" variant="outline" disabled={bulk.isPending} onClick={() => setSelection(EMPTY_SELECTION)}>
-            Limpar seleção
+            {t("transactions.transactionsTable.limparSelecao")}
           </Button>
         </div>
       )}
@@ -230,11 +232,11 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
         <div role="alert" className="flex flex-wrap items-center gap-2 border-b bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <p className="mr-auto">
             {bulkError.message}
-            {bulkError.lockedIds.length > 0 && <> Travados: {lockedSummary(bulkError.lockedIds.map(titleOf))}.</>}
+            {bulkError.lockedIds.length > 0 && <> {t("transactions.table.locked", { list: lockedSummary(bulkError.lockedIds.map(titleOf)) })}</>}
           </p>
           {bulkError.lockedIds.length > 0 && (
             <Button type="button" size="sm" variant="outline" onClick={unselectLocked}>
-              Desmarcar os travados
+              {t("transactions.transactionsTable.desmarcarOsTravados")}
             </Button>
           )}
         </div>
@@ -242,8 +244,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
 
       <table className="w-full min-w-[60rem] text-left text-sm">
         <caption className="sr-only">
-          Lançamentos em tabela. Use as setas, J e K para andar entre as linhas, Enter para editar a linha, T para um lançamento novo,
-          Espaço para marcar e Ctrl+A para marcar todos os carregados.
+          {t("transactions.transactionsTable.lancamentosEmTabelaUse")}
         </caption>
         <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
           <tr>
@@ -256,30 +257,30 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                 }}
                 onChange={() => setSelection((current) => toggleAll(current, order))}
                 disabled={items.length === 0}
-                aria-label="Selecionar todos os carregados"
+                aria-label={t("transactions.transactionsTable.selecionarTodosOsCarregados")}
                 className="accent-[var(--primary)]"
               />
             </th>
             <th scope="col" className="px-3 py-2 font-medium">
-              Data
+              {t("common.data")}
             </th>
             <th scope="col" className="px-3 py-2 font-medium">
-              Descrição
+              {t("common.descricao")}
             </th>
             <th scope="col" className="px-3 py-2 font-medium">
-              Contraparte
+              {t("transactions.transactionsTable.contraparte")}
             </th>
             <th scope="col" className="px-3 py-2 font-medium">
-              Conta
+              {t("common.conta")}
             </th>
             <th scope="col" className="px-3 py-2 font-medium">
-              Categoria
+              {t("common.categoria")}
             </th>
             <th scope="col" className="px-3 py-2 text-right font-medium">
-              Valor
+              {t("common.valor")}
             </th>
             <th scope="col" className="w-28 px-3 py-2 font-medium">
-              <span className="sr-only">Ações</span>
+              <span className="sr-only">{t("transactions.transactionsTable.acoes")}</span>
             </th>
           </tr>
         </thead>
@@ -359,7 +360,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                     type="checkbox"
                     checked={selected}
                     onChange={(event) => handleCheck(event, transaction.id)}
-                    aria-label={`Selecionar ${title}`}
+                    aria-label={t("transactions.table.select", { title })}
                     className="accent-[var(--primary)]"
                   />
                 </td>
@@ -371,13 +372,13 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                   {state && (
                     <p className="flex items-center gap-1 text-xs text-muted-foreground">
                       {state === "locked" && <Lock className="size-3" aria-hidden="true" />}
-                      {state === "locked" ? "Conciliado" : "Conferido"}
+                      {state === "locked" ? t("transactions.transactionsTable.conciliado") : t("transactions.transactionsTable.conferido")}
                     </p>
                   )}
                 </td>
                 <td className="px-3 py-2 text-muted-foreground sm:max-w-48">
                   <p className="break-words sm:truncate">
-                    {split ? `Dividida em ${transaction.splits.length}` : first ? counterpartyLabel(first) : ""}
+                    {split ? t("common.dividedIn", { count: transaction.splits.length }) : first ? counterpartyLabel(first) : ""}
                   </p>
                 </td>
                 <td className="px-3 py-2 text-muted-foreground">{first ? (ownAccountName(first) ?? "") : ""}</td>
@@ -395,7 +396,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                     <button
                       type="button"
                       onClick={() => startEdit(transaction)}
-                      aria-label={`Editar ${title}`}
+                      aria-label={t("transactions.table.edit", { title })}
                       className={cn(iconButton, "text-muted-foreground hover:text-foreground")}
                     >
                       <Pencil className="size-4" aria-hidden="true" />
@@ -403,7 +404,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                     <button
                       type="button"
                       onClick={() => onOpen(transaction)}
-                      aria-label={`Editar completo ${title}`}
+                      aria-label={t("transactions.table.editFull", { title })}
                       className={cn(iconButton, "text-muted-foreground hover:text-foreground")}
                     >
                       <Maximize2 className="size-4" aria-hidden="true" />
@@ -411,7 +412,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                     <button
                       type="button"
                       onClick={() => onRemove(transaction)}
-                      aria-label={`Excluir ${title}`}
+                      aria-label={t("transactions.table.delete", { title })}
                       className={cn(iconButton, "text-destructive")}
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
@@ -441,9 +442,9 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
       )}
       {bulkDialog === "delete" && (
         <ConfirmDeleteDialog
-          title="Excluir lançamentos"
+          title={t("transactions.transactionsTable.excluirLancamentos")}
           itemName={entriesText(count)}
-          consequence="O saldo das contas envolvidas volta ao que era antes deles, e os anexos também são apagados."
+          consequence={t("transactions.transactionsTable.oSaldoDasContas")}
           onConfirm={() => runBulk({ ids: selectedIds(), action: "delete" })}
           onClose={() => setBulkDialog(null)}
         />

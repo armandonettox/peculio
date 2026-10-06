@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { Account } from "@/api/accounts";
 import type { Transaction, TransactionCreate, TransactionSplitCreate } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
@@ -179,10 +180,10 @@ const isPositive = (value: string) => !/^-?0+(\.0+)?$/.test(value) && !value.sta
 
 type Parsed = { value: string } | { error: string };
 
-function parsePositive(text: string, places: number, label = "o valor"): Parsed {
+function parsePositive(text: string, places: number): Parsed {
   const parsed = parseMoneyInput(text, places);
   if (!parsed.ok) return { error: parsed.error };
-  if (!isPositive(parsed.value)) return { error: `Informe ${label} maior que zero.` };
+  if (!isPositive(parsed.value)) return { error: i18n.t("transactions.form.amountPositive") };
   return { value: parsed.value };
 }
 
@@ -207,6 +208,12 @@ export function formatRemainder(value: string, currency: string): string {
   return formatMoney(value.startsWith("-") ? value.slice(1) : value, currency);
 }
 
+/** "As linhas passam do total em R$ 5,00" ou "Falta distribuir R$ 5,00" (o sinal de `left` diz qual). */
+export function splitRemainderText(left: string, currency: string): string {
+  const amount = formatRemainder(left, currency);
+  return i18n.t(left.startsWith("-") ? "transactions.form.splitOver" : "transactions.form.splitMissing", { amount });
+}
+
 // ---------- Validacao ----------
 
 export function validateForm(state: FormState, ctx: FormContext): FormErrors {
@@ -215,28 +222,28 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
   const currency = currencyOf(state, ctx);
   const places = placesOf(currency, ctx.places);
 
-  if (!state.date || !/^\d{4}-\d{2}-\d{2}$/.test(state.date)) errors.date = "Informe uma data válida.";
-  if (!state.accountId || !source) errors.accountId = "Escolha a conta.";
+  if (!state.date || !/^\d{4}-\d{2}-\d{2}$/.test(state.date)) errors.date = i18n.t("validation.dateInvalid");
+  if (!state.accountId || !source) errors.accountId = i18n.t("transactions.form.accountRequired");
 
   // Sem divisao a descricao e obrigatoria; com divisao ela e o titulo e cada linha tem a sua
-  if (!state.splits && state.description.trim() === "") errors.description = "Informe a descrição.";
+  if (!state.splits && state.description.trim() === "") errors.description = i18n.t("transactions.form.descriptionRequired");
 
   // A outra ponta
   if (state.kind === "transfer") {
-    if (!state.counterpartyAccountId) errors.counterparty = "Escolha a conta de destino.";
+    if (!state.counterpartyAccountId) errors.counterparty = i18n.t("transactions.form.destinationRequired");
     else if (state.counterpartyAccountId === state.accountId) {
-      errors.counterparty = "A conta de destino precisa ser diferente da conta de origem.";
+      errors.counterparty = i18n.t("transactions.form.destinationDifferent");
     }
   } else if (state.ownCounterparty) {
-    if (!state.counterpartyAccountId) errors.counterparty = "Escolha a dívida.";
+    if (!state.counterpartyAccountId) errors.counterparty = i18n.t("transactions.form.debtRequired");
     else if (state.kind === "deposit") {
       const debt = accountOf(ctx, state.counterpartyAccountId);
       if (debt && source && debt.currency_code !== source.currency_code) {
-        errors.counterparty = "Para receber de uma dívida, as duas contas precisam ter a mesma moeda.";
+        errors.counterparty = i18n.t("transactions.form.debtSameCurrency");
       }
     }
   } else if (state.counterpartyName.trim() === "") {
-    errors.counterparty = state.kind === "withdrawal" ? "Informe para quem foi." : "Informe de quem veio.";
+    errors.counterparty = state.kind === "withdrawal" ? i18n.t("transactions.form.toWhomRequired") : i18n.t("transactions.form.fromWhomRequired");
   }
 
   // Valor
@@ -245,13 +252,13 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
 
   const other = foreignAccount(state, ctx);
   if (other) {
-    const foreign = parsePositive(state.foreignAmount, placesOf(other.currency_code, ctx.places), "o valor");
+    const foreign = parsePositive(state.foreignAmount, placesOf(other.currency_code, ctx.places));
     if ("error" in foreign) errors.foreignAmount = foreign.error;
   }
 
   const originalCurrency = activeOriginalCurrency(state, ctx);
   if (originalCurrency) {
-    const original = parsePositive(state.originalAmount, placesOf(originalCurrency, ctx.places), "o valor");
+    const original = parsePositive(state.originalAmount, placesOf(originalCurrency, ctx.places));
     if ("error" in original) errors.originalAmount = original.error;
   }
 
@@ -260,7 +267,7 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
     const rowErrors: NonNullable<FormErrors["splits"]> = {};
     for (const row of state.splits) {
       const rowError: { description?: string; amount?: string } = {};
-      if (row.description.trim() === "") rowError.description = "Informe a descrição.";
+      if (row.description.trim() === "") rowError.description = i18n.t("transactions.form.descriptionRequired");
       const parsed = parsePositive(row.amount, places);
       if ("error" in parsed) rowError.amount = parsed.error;
       if (rowError.description || rowError.amount) rowErrors[row.key] = rowError;
@@ -270,8 +277,7 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
     if (!errors.amount && !errors.splits) {
       const left = remainder(state, ctx);
       if (left !== null && !/^0+(\.0+)?$/.test(left)) {
-        errors.splitTotal =
-          (left.startsWith("-") ? "As linhas passam do total em " : "Falta distribuir ") + formatRemainder(left, currency);
+        errors.splitTotal = splitRemainderText(left, currency);
       }
     }
   }
@@ -375,9 +381,9 @@ function billOf(billId: string | null, kind: Kind, ownCounterparty: boolean): st
  */
 export function formFromTransaction(transaction: Transaction, ctx: FormContext): Loaded {
   const [first] = transaction.splits;
-  if (!first) return { ok: false, reason: "Este lançamento não tem linhas." };
+  if (!first) return { ok: false, reason: i18n.t("transactions.form.reasonNoLines") };
   if (!KINDS.includes(first.type as Kind)) {
-    return { ok: false, reason: "Este tipo de lançamento não pode ser editado por aqui." };
+    return { ok: false, reason: i18n.t("transactions.form.reasonTypeNotEditable") };
   }
   const kind = first.type as Kind;
 
@@ -392,7 +398,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
   if (!uniform) {
     return {
       ok: false,
-      reason: "As linhas deste lançamento têm tipos, datas ou contas diferentes. Ele só pode ser editado pela API.",
+      reason: i18n.t("transactions.form.reasonMixed"),
     };
   }
 
@@ -418,7 +424,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
   if (!informativeOk && !needsForeign && transaction.splits.some((split) => split.foreign_amount)) {
     return {
       ok: false,
-      reason: "Este lançamento guarda o valor original em outra moeda de um jeito que o formulário não edita.",
+      reason: i18n.t("transactions.form.reasonForeign"),
     };
   }
   const foreignAmount = needsForeign && first.foreign_amount ? toDraft(first.foreign_amount) : "";
@@ -482,7 +488,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
  */
 export function formFromTemplate(template: TransactionCreate, ctx: FormContext, date: string): Loaded {
   const [first] = template.splits;
-  if (!first) return { ok: false, reason: "Este modelo não tem linhas." };
+  if (!first) return { ok: false, reason: i18n.t("transactions.form.templateNoLines") };
   const kind = first.type as Kind;
 
   const uniform = template.splits.every(
@@ -494,7 +500,7 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
       split.currency_code === first.currency_code,
   );
   if (!uniform) {
-    return { ok: false, reason: "As linhas deste modelo têm tipos ou contas diferentes. Ele só pode ser editado pela API." };
+    return { ok: false, reason: i18n.t("transactions.form.templateMixed") };
   }
 
   const ownCounterparty = kind !== "transfer" && first.counterparty_account_id != null;
@@ -512,7 +518,7 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
   if (!informativeOk && !needsForeign && template.splits.some((split) => split.foreign_amount != null)) {
     return {
       ok: false,
-      reason: "Este modelo guarda o valor original em outra moeda de um jeito que o formulário não edita.",
+      reason: i18n.t("transactions.form.templateForeign"),
     };
   }
   const originalOf = (split: TransactionSplitCreate) =>

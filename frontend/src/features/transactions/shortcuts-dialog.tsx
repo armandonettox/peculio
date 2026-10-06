@@ -1,21 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SHORTCUT_GROUPS } from "./table-nav";
+import { shortcutGroups } from "./table-nav";
+import { useTranslation } from "react-i18next";
 
 /** As teclas da tabela de lancamentos, para ninguem precisar decorar. */
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Atalhos da tabela</DialogTitle>
+          <DialogTitle>{t("transactions.shortcutsDialog.atalhosDaTabela")}</DialogTitle>
           <DialogDescription>
-            As teclas de uma letra só funcionam com o foco numa linha da tabela; dentro de um campo você digita normalmente. O valor com
-            menos na frente é saída e sem sinal é entrada.
+            {t("transactions.shortcutsDialog.asTeclasDeUma")}
           </DialogDescription>
         </DialogHeader>
 
-        {SHORTCUT_GROUPS.map((group) => (
+        {shortcutGroups().map((group) => (
           <section key={group.title} aria-label={group.title} className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">{group.title}</h3>
             <dl className="flex flex-col gap-1.5 text-sm">
@@ -36,7 +37,7 @@ export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
         ))}
 
         <DialogFooter>
-          <Button onClick={onClose}>Fechar</Button>
+          <Button onClick={onClose}>{t("common.fechar")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { colorError, normalizeHex } from "@/lib/color";
+import { useTranslation } from "react-i18next";
 
 export type LabelValues = { name: string; color: string | null };
 
@@ -40,6 +41,7 @@ export function LabelFormDialog({
   onSubmit,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [color, setColor] = useState(initial.color ?? "");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
@@ -60,7 +62,7 @@ export function LabelFormDialog({
     setFormError(null);
 
     const found: Partial<Record<Field, string>> = {
-      name: requiredError(name, "Informe o nome."),
+      name: requiredError(name, t("labels.labelFormDialog.nameRequired")),
       ...(withColor ? { color: colorError(color) } : {}),
     };
     setErrors(found);
@@ -105,7 +107,7 @@ export function LabelFormDialog({
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          <FormField id="label-name" label="Nome" error={errors.name}>
+          <FormField id="label-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -121,7 +123,7 @@ export function LabelFormDialog({
           </FormField>
 
           {withColor && (
-            <FormField id="label-color" label="Cor" error={errors.color} hint="Escolha qualquer cor ou deixe sem cor.">
+            <FormField id="label-color" label={t("labels.labelFormDialog.cor")} error={errors.color} hint={t("labels.labelFormDialog.escolhaQualquerCorOu")}>
               {(props) => (
                 <ColorPicker
                   {...props}
@@ -137,17 +139,17 @@ export function LabelFormDialog({
 
           {withColor && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
-              Como vai aparecer:
-              <LabelChip name={name.trim() || "Nome da categoria"} color={previewColor} />
+              {t("labels.labelFormDialog.comoVaiAparecer")}
+              <LabelChip name={name.trim() || t("labels.labelFormDialog.namePreview")} color={previewColor} />
             </div>
           )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : submitLabel}
+              {submitting ? t("labels.labelFormDialog.salvando") : submitLabel}
             </Button>
           </DialogFooter>
         </form>

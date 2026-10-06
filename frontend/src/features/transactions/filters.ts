@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { TransactionFilters } from "@/api/transactions";
 
 // Os filtros ficam na URL (/transacoes?conta=...&de=2026-03-01): o botao Voltar, o link
@@ -43,7 +44,7 @@ export function countActiveFilters(filters: TransactionFilters): number {
 /** A data inicial nao pode ser depois da final (texto AAAA-MM-DD compara certo como string). */
 export function dateRangeError(filters: TransactionFilters): string | undefined {
   if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
-    return "A data inicial é depois da data final.";
+    return i18n.t("transactions.filters.dateRangeInvalid");
   }
   return undefined;
 }

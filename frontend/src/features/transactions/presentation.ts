@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
 import { formatDayHeading, appToday } from "@/lib/dates";
 import { formatMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
@@ -45,11 +46,11 @@ export function formatSplitAmount(split: TransactionSplit): string {
 /** Valor original quando a compra foi feita em outra moeda e paga na moeda da conta. */
 export function foreignNote(split: TransactionSplit): string | null {
   if (split.type === "transfer" || !split.foreign_amount || !split.foreign_currency_code) return null;
-  return `Valor original: ${formatMoney(split.foreign_amount, split.foreign_currency_code)}`;
+  return i18n.t("transactions.presentation.originalAmount", { amount: formatMoney(split.foreign_amount, split.foreign_currency_code) });
 }
 
 export function transactionTitle(transaction: Transaction): string {
-  return transaction.title || transaction.splits[0]?.description || "Sem descrição";
+  return transaction.title || transaction.splits[0]?.description || i18n.t("transactions.presentation.noDescription");
 }
 
 /** A data do lancamento: a mais recente entre os splits (a mesma usada na ordem da lista). */

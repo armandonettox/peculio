@@ -21,7 +21,8 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { appToday } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
-import { DEFAULT_ROLE, KIND_LABELS, ROLE_LABELS, ROLES_BY_KIND, type AccountKind } from "./labels";
+import { DEFAULT_ROLE, kindLabel, roleLabel, ROLES_BY_KIND, type AccountKind } from "./labels";
+import { useTranslation } from "react-i18next";
 
 type Field = "name" | "opening" | "openingDate";
 type Errors = Partial<Record<Field, string>>;
@@ -45,6 +46,7 @@ type Props = {
 };
 
 export function AccountFormDialog({ account, onClose }: Props) {
+  const { t } = useTranslation();
   const editing = account !== undefined;
   const { user } = useAuth();
   const currencies = useCurrencies();
@@ -68,7 +70,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
   const placesMap = Object.fromEntries((currencies.data ?? []).map((c) => [c.code, c.decimal_places]));
   const places = placesOf(currency, placesMap);
   const submitting = create.isPending || update.isPending;
-  const openingLabel = kind === "liability" ? "Quanto você deve" : "Saldo inicial";
+  const openingLabel = kind === "liability" ? t("accounts.accountFormDialog.openingDebt") : t("accounts.accountFormDialog.openingBalance");
 
   function clearError(field: Field) {
     setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
@@ -103,15 +105,15 @@ export function AccountFormDialog({ account, onClose }: Props) {
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, "Informe o nome da conta.") };
+    const found: Errors = { name: requiredError(name, t("accounts.accountFormDialog.nameRequired")) };
     let openingValue: string | null = null;
     if (opening.trim()) {
       const parsed = parseMoneyInput(opening, places);
       if (!parsed.ok) found.opening = parsed.error;
       else if (kind === "liability" && parsed.value.startsWith("-")) {
-        found.opening = "Informe quanto você deve como um valor positivo.";
+        found.opening = t("accounts.accountFormDialog.debtPositive");
       } else openingValue = parsed.value;
-      if (!found.opening && !DATE_PATTERN.test(openingDate)) found.openingDate = "Informe uma data válida.";
+      if (!found.opening && !DATE_PATTERN.test(openingDate)) found.openingDate = t("validation.dateInvalid");
     }
     setErrors(found);
     const firstInvalid = (["name", "opening", "openingDate"] as const).find((field) => found[field]);
@@ -163,11 +165,11 @@ export function AccountFormDialog({ account, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar conta" : "Nova conta"}</DialogTitle>
+          <DialogTitle>{editing ? t("accounts.accountFormDialog.editarConta") : t("accounts.accountFormDialog.novaConta")}</DialogTitle>
           <DialogDescription>
             {editing
-              ? "Altere os dados da conta. O tipo e a moeda não podem mudar."
-              : "Cadastre uma conta (onde você guarda dinheiro) ou uma dívida (o que você deve)."}
+              ? t("accounts.accountFormDialog.altereOsDadosDa")
+              : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +178,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
 
           {!editing && (
             <fieldset className="flex flex-col gap-2">
-              <legend className="mb-2 text-sm font-medium">Tipo</legend>
+              <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
               <div className="grid grid-cols-2 gap-2">
                 {(["asset", "liability"] as const).map((option) => (
                   <label
@@ -191,14 +193,14 @@ export function AccountFormDialog({ account, onClose }: Props) {
                       onChange={() => chooseKind(option)}
                       className="accent-[var(--primary)]"
                     />
-                    {KIND_LABELS[option]}
+                    {kindLabel(option)}
                   </label>
                 ))}
               </div>
             </fieldset>
           )}
 
-          <FormField id="account-name" label="Nome" error={errors.name}>
+          <FormField id="account-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -213,19 +215,19 @@ export function AccountFormDialog({ account, onClose }: Props) {
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="account-role" label="Categoria da conta">
+            <FormField id="account-role" label={t("accounts.accountFormDialog.categoriaDaConta")}>
               {(props) => (
                 <Select {...props} value={role} onChange={(event) => setRole(event.target.value as Role)}>
                   {ROLES_BY_KIND[kind].map((option) => (
                     <option key={option} value={option}>
-                      {ROLE_LABELS[option]}
+                      {roleLabel(option)}
                     </option>
                   ))}
                 </Select>
               )}
             </FormField>
 
-            <FormField id="account-currency" label="Moeda">
+            <FormField id="account-currency" label={t("common.moeda")}>
               {(props) => (
                 <Select
                   {...props}
@@ -250,8 +252,8 @@ export function AccountFormDialog({ account, onClose }: Props) {
             error={errors.opening}
             hint={
               kind === "liability"
-                ? "Valor que você ainda deve hoje. Deixe em branco se não quiser informar."
-                : "Quanto você tem hoje nesta conta. Deixe em branco para começar do zero."
+                ? t("accounts.accountFormDialog.valorQueVoceAinda")
+                : t("accounts.accountFormDialog.quantoVoceTemHoje")
             }
           >
             {(props) => (
@@ -270,7 +272,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
           </FormField>
 
           {opening.trim() !== "" && (
-            <FormField id="account-openingDate" label="Data do saldo" error={errors.openingDate}>
+            <FormField id="account-openingDate" label={t("accounts.accountFormDialog.dataDoSaldo")} error={errors.openingDate}>
               {(props) => (
                 <Input
                   {...props}
@@ -285,7 +287,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
             </FormField>
           )}
 
-          <FormField id="account-notes" label="Notas">
+          <FormField id="account-notes" label={t("accounts.accountFormDialog.notas")}>
             {(props) => <Textarea {...props} value={notes} onChange={(event) => setNotes(event.target.value)} />}
           </FormField>
 
@@ -298,9 +300,9 @@ export function AccountFormDialog({ account, onClose }: Props) {
                 className="mt-0.5 accent-[var(--primary)]"
               />
               <span>
-                Entra nos envelopes
+                {t("accounts.accountFormDialog.inEnvelopes")}
                 <span className="block text-xs text-muted-foreground">
-                  O dinheiro desta conta conta como "A orçar". Desmarque para uma reserva de longo prazo que você não quer misturar com o mês.
+                  {t("accounts.accountFormDialog.oDinheiroDestaConta")}
                 </span>
               </span>
             </label>
@@ -308,10 +310,10 @@ export function AccountFormDialog({ account, onClose }: Props) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Salvando..." : editing ? "Salvar" : "Criar conta"}
+              {submitting ? t("accounts.accountFormDialog.salvando") : editing ? t("accounts.accountFormDialog.salvar") : t("accounts.accountFormDialog.criarConta")}
             </Button>
           </DialogFooter>
         </form>

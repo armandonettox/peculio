@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { appToday } from "@/lib/dates";
 import { entriesText } from "./bulk-presentation";
+import { useTranslation } from "react-i18next";
 
 // Valor do seletor para "tirar a categoria"; vazio e "ainda nao escolhi"
 const NONE = "none";
@@ -22,6 +23,7 @@ type CategoryProps = {
 
 /** Escolhe a categoria nova (ou nenhuma) para os lancamentos selecionados. */
 export function BulkCategoryDialog({ count, categories, onConfirm, onClose }: CategoryProps) {
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,7 +32,7 @@ export function BulkCategoryDialog({ count, categories, onConfirm, onClose }: Ca
     event.preventDefault();
     if (busy) return;
     if (!value) {
-      setError("Escolha uma categoria, ou “Sem categoria” para tirar.");
+      setError(t("transactions.bulk.categoryRequired"));
       return;
     }
     setBusy(true);
@@ -42,13 +44,13 @@ export function BulkCategoryDialog({ count, categories, onConfirm, onClose }: Ca
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mudar a categoria</DialogTitle>
+          <DialogTitle>{t("transactions.bulkDialogs.mudarACategoria")}</DialogTitle>
           <DialogDescription>
-            A categoria nova vale para {entriesText(count)}, em todas as divisões de cada um.
+            {t("transactions.bulk.categoryAppliesTo", { entries: entriesText(count) })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-4">
-          <FormField id="bulk-category" label="Categoria" error={error ?? undefined}>
+          <FormField id="bulk-category" label={t("common.categoria")} error={error ?? undefined}>
             {(props) => (
               <Select
                 {...props}
@@ -59,8 +61,8 @@ export function BulkCategoryDialog({ count, categories, onConfirm, onClose }: Ca
                   setError(null);
                 }}
               >
-                <option value="">Escolha a categoria</option>
-                <option value={NONE}>Sem categoria (tirar a categoria)</option>
+                <option value="">{t("transactions.bulkDialogs.escolhaACategoria")}</option>
+                <option value={NONE}>{t("transactions.bulkDialogs.semCategoriaTirarA")}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -71,10 +73,10 @@ export function BulkCategoryDialog({ count, categories, onConfirm, onClose }: Ca
           </FormField>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={busy}>
-              {busy ? "Mudando..." : "Mudar categoria"}
+              {busy ? t("transactions.bulkDialogs.mudando") : t("transactions.bulkDialogs.mudarCategoria")}
             </Button>
           </DialogFooter>
         </form>
@@ -91,6 +93,7 @@ type DateProps = {
 
 /** Escolhe a data nova para os lancamentos selecionados. */
 export function BulkDateDialog({ count, onConfirm, onClose }: DateProps) {
+  const { t } = useTranslation();
   const [date, setDate] = useState(appToday());
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -99,7 +102,7 @@ export function BulkDateDialog({ count, onConfirm, onClose }: DateProps) {
     event.preventDefault();
     if (busy) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      setError("Informe uma data válida.");
+      setError(t("validation.dateInvalid"));
       return;
     }
     setBusy(true);
@@ -111,11 +114,11 @@ export function BulkDateDialog({ count, onConfirm, onClose }: DateProps) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Mudar a data</DialogTitle>
-          <DialogDescription>A data nova vale para {entriesText(count)}, em todas as divisões de cada um.</DialogDescription>
+          <DialogTitle>{t("transactions.bulkDialogs.mudarAData")}</DialogTitle>
+          <DialogDescription>{t("transactions.bulk.dateAppliesTo", { entries: entriesText(count) })}</DialogDescription>
         </DialogHeader>
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-4">
-          <FormField id="bulk-date" label="Data" error={error ?? undefined}>
+          <FormField id="bulk-date" label={t("common.data")} error={error ?? undefined}>
             {(props) => (
               <Input
                 {...props}
@@ -131,10 +134,10 @@ export function BulkDateDialog({ count, onConfirm, onClose }: DateProps) {
           </FormField>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={busy}>
-              {busy ? "Mudando..." : "Mudar data"}
+              {busy ? t("transactions.bulkDialogs.mudando") : t("transactions.bulkDialogs.mudarData")}
             </Button>
           </DialogFooter>
         </form>

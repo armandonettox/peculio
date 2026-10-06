@@ -66,6 +66,39 @@
       "quandoVoceCadastrarSuas": "Quando você cadastrar suas contas, o resumo delas aparece aqui.",
       "cadastrarConta": "Cadastrar conta",
       "greeting": "Olá, {{name}}. Este é o resumo das suas finanças."
+    },
+    "accounts": {
+      "novaConta": "Nova conta",
+      "nenhumaContaAinda": "Nenhuma conta ainda",
+      "nenhumaContaAtiva": "Nenhuma conta ativa",
+      "cadastreSuaPrimeiraConta": "Cadastre sua primeira conta para começar.",
+      "cadastreSuaPrimeiraConta2": "Cadastre sua primeira conta ou ative a opção para ver as arquivadas.",
+      "patrimonioLiquido": "Patrimônio líquido",
+      "contas": "Contas",
+      "total": "Total",
+      "dividas": "Dívidas",
+      "totalDevido": "Total devido",
+      "ondeEstaOSeu": "Onde está o seu dinheiro e o que você deve",
+      "mostrarArquivadas": "Mostrar arquivadas"
+    },
+    "transactions": {
+      "carregandoLancamentos": "Carregando lançamentos...",
+      "nadaEncontrado": "Nada encontrado",
+      "nenhumLancamentoAtendeAos": "Nenhum lançamento atende aos filtros escolhidos.",
+      "nenhumLancamentoAinda": "Nenhum lançamento ainda",
+      "osLancamentosQueVoce": "Os lançamentos que você registrar aparecem aqui, agrupados por dia.",
+      "novoLancamento": "Novo lançamento",
+      "lancamento": "lançamento",
+      "lancamentos": "lançamentos",
+      "comOsFiltrosEscolhidos": "com os filtros escolhidos",
+      "comoMostrarOsLancamentos": "Como mostrar os lançamentos",
+      "lista": "Lista",
+      "tabela": "Tabela",
+      "carregarMais": "Carregar mais",
+      "transacoes": "Transações",
+      "tudoOQueEntrou": "Tudo o que entrou, saiu ou mudou de conta",
+      "excluirLancamento": "Excluir lançamento",
+      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele."
     }
   },
   "common": {
@@ -75,7 +108,27 @@
     "nome": "Nome",
     "seguranca": "Segurança",
     "moeda": "Moeda",
-    "valor": "Valor"
+    "valor": "Valor",
+    "carregandoContas": "Carregando contas...",
+    "editar": "Editar",
+    "excluir": "Excluir",
+    "tipo": "Tipo",
+    "cancelar": "Cancelar",
+    "limparFiltros": "Limpar filtros",
+    "carregando": "Carregando...",
+    "categoria": "Categoria",
+    "data": "Data",
+    "conta": "Conta",
+    "todas": "Todas",
+    "tag": "Tag",
+    "dataInicial": "Data inicial",
+    "dataFinal": "Data final",
+    "semCategoria": "Sem categoria",
+    "fechar": "Fechar",
+    "escolha": "Escolha...",
+    "descricao": "Descrição",
+    "orcamento": "Orçamento",
+    "dividedIn": "Dividida em {{count}}"
   },
   "components": {
     "appShell": {
@@ -133,7 +186,8 @@
     "emailRequired": "Informe o e-mail.",
     "emailInvalid": "Informe um e-mail válido.",
     "passwordShort": "A senha precisa ter pelo menos {{min}} caracteres.",
-    "passwordLong": "A senha é muito longa (máximo de 72 bytes)."
+    "passwordLong": "A senha é muito longa (máximo de 72 bytes).",
+    "dateInvalid": "Informe uma data válida."
   },
   "errors": {
     "token_missing": "Sua sessão expirou. Entre novamente.",
@@ -303,8 +357,7 @@
       "overBudget_one": "{{count}} orçamento no limite",
       "overBudget_other": "{{count}} orçamentos no limite",
       "nearLimit_one": "{{count}} orçamento perto do limite (acima de {{percent}}%)",
-      "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)",
-      "dividedIn": "Dividida em {{count}}"
+      "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)"
     }
   },
   "money": {
@@ -318,5 +371,322 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "range": "{{start}} a {{end}}"
+  },
+  "accounts": {
+    "accountCard": {
+      "arquivada": "Arquivada",
+      "valorDevido": "Valor devido",
+      "arquivar": "Arquivar",
+      "restaurar": "Restaurar",
+      "actionsFor": "Ações da conta {{name}}"
+    },
+    "accountFormDialog": {
+      "editarConta": "Editar conta",
+      "novaConta": "Nova conta",
+      "altereOsDadosDa": "Altere os dados da conta. O tipo e a moeda não podem mudar.",
+      "cadastreUmaContaOnde": "Cadastre uma conta (onde você guarda dinheiro) ou uma dívida (o que você deve).",
+      "categoriaDaConta": "Categoria da conta",
+      "valorQueVoceAinda": "Valor que você ainda deve hoje. Deixe em branco se não quiser informar.",
+      "quantoVoceTemHoje": "Quanto você tem hoje nesta conta. Deixe em branco para começar do zero.",
+      "dataDoSaldo": "Data do saldo",
+      "notas": "Notas",
+      "oDinheiroDestaConta": "O dinheiro desta conta conta como \"A orçar\". Desmarque para uma reserva de longo prazo que você não quer misturar com o mês.",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarConta": "Criar conta",
+      "openingDebt": "Quanto você deve",
+      "openingBalance": "Saldo inicial",
+      "nameRequired": "Informe o nome da conta.",
+      "debtPositive": "Informe quanto você deve como um valor positivo.",
+      "inEnvelopes": "Entra nos envelopes"
+    },
+    "deleteAccountDialog": {
+      "excluirConta": "Excluir conta",
+      "arquivarEmVezDisso": "Arquivar em vez disso",
+      "excluindo": "Excluindo...",
+      "description": "Excluir a conta <strong>{{name}}</strong> não pode ser desfeito. Se você só quer tirá-la da lista, arquive."
+    },
+    "role": {
+      "checking": "Conta corrente",
+      "savings": "Poupança",
+      "cash": "Dinheiro",
+      "credit_card": "Cartão de crédito",
+      "other": "Outra",
+      "loan": "Empréstimo",
+      "debt": "Dívida",
+      "mortgage": "Financiamento"
+    },
+    "kind": {
+      "asset": "Conta",
+      "liability": "Dívida"
+    }
+  },
+  "transactions": {
+    "bulkDialogs": {
+      "mudarACategoria": "Mudar a categoria",
+      "escolhaACategoria": "Escolha a categoria",
+      "semCategoriaTirarA": "Sem categoria (tirar a categoria)",
+      "mudando": "Mudando...",
+      "mudarCategoria": "Mudar categoria",
+      "mudarAData": "Mudar a data",
+      "mudarData": "Mudar data"
+    },
+    "filterBar": {
+      "filtros": "Filtros",
+      "buscarLancamentos": "Buscar lançamentos",
+      "arquivada": "(arquivada)",
+      "valorMinimo": "Valor mínimo",
+      "valorMaximo": "Valor máximo",
+      "filters": "Filtros"
+    },
+    "quickRowEditor": {
+      "novoLancamento": "Novo lançamento",
+      "escolha": "Escolha",
+      "arquivada": "(arquivada)",
+      "saida": "Saída",
+      "salvando": "Salvando...",
+      "adicionar": "Adicionar",
+      "salvar": "Salvar",
+      "editing": "Editando {{description}}"
+    },
+    "shortcutsDialog": {
+      "atalhosDaTabela": "Atalhos da tabela",
+      "asTeclasDeUma": "As teclas de uma letra só funcionam com o foco numa linha da tabela; dentro de um campo você digita normalmente. O valor com menos na frente é saída e sem sinal é entrada."
+    },
+    "transactionFormDialog": {
+      "editarRecorrente": "Editar recorrente",
+      "novaRecorrente": "Nova recorrente",
+      "editarLancamento": "Editar lançamento",
+      "novoLancamento": "Novo lançamento",
+      "umLancamentoQueSe": "Um lançamento que se repete sozinho. O app cria também os que já deveriam ter acontecido desde a primeira data.",
+      "altereOsDadosDo": "Altere os dados do lançamento.",
+      "registreUmaSaidaUma": "Registre uma saída, uma entrada ou uma transferência.",
+      "nomeDaRecorrente": "Nome da recorrente",
+      "frequencia": "Frequência",
+      "termina": "Termina",
+      "nunca": "Nunca",
+      "numaData": "Numa data",
+      "depoisDeNVezes": "Depois de N vezes",
+      "quantasVezes": "Quantas vezes",
+      "primeiraData": "Primeira data",
+      "osLancamentosDesdeEsta": "Os lançamentos desde esta data até hoje serão criados agora.",
+      "aPrimeiraDataE": "A primeira data e a frequência não mudam depois de criada.",
+      "contaQueRecebe": "Conta que recebe",
+      "arquivada": "(arquivada)",
+      "tituloOpcional": "Título (opcional)",
+      "pagarParaUmNome": "Pagar para um nome",
+      "receberDeUmNome": "Receber de um nome",
+      "pagarUmaDivida": "Pagar uma dívida",
+      "receberDeUmaDivida": "Receber de uma dívida",
+      "moedaOriginalOpcional": "Moeda original (opcional)",
+      "seACompraFoi": "Se a compra foi em outra moeda, diga qual. É só um registro: o saldo usa o valor acima.",
+      "nenhuma": "Nenhuma",
+      "divisao": "Divisão",
+      "desfazerDivisao": "Desfazer divisão",
+      "semOrcamento": "Sem orçamento",
+      "arquivado": "(arquivado)",
+      "ligarAutomaticamente": "Ligar automaticamente",
+      "naoLigarANenhuma": "Não ligar a nenhuma",
+      "adicionarLinha": "Adicionar linha",
+      "tudoDistribuido": "Tudo distribuído.",
+      "contaAPagar": "Conta a pagar",
+      "tags": "Tags",
+      "dividirLancamento": "Dividir lançamento",
+      "notas": "Notas",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarRecorrente": "Criar recorrente",
+      "criarLancamento": "Criar lançamento"
+    },
+    "transactionRow": {
+      "conciliado": "Conciliado",
+      "conferido": "Conferido",
+      "anexos": "Anexos"
+    },
+    "transactionsTable": {
+      "comOFocoNuma": "Com o foco numa linha: setas ou J e K andam, Enter edita, T cria, Espaço marca.",
+      "atalhos": "Atalhos",
+      "novaLinha": "Nova linha",
+      "acoesEmMassa": "Ações em massa",
+      "mudarCategoria": "Mudar categoria",
+      "mudarData": "Mudar data",
+      "duplicar": "Duplicar",
+      "limparSelecao": "Limpar seleção",
+      "desmarcarOsTravados": "Desmarcar os travados",
+      "lancamentosEmTabelaUse": "Lançamentos em tabela. Use as setas, J e K para andar entre as linhas, Enter para editar a linha, T para um lançamento novo, Espaço para marcar e Ctrl+A para marcar todos os carregados.",
+      "selecionarTodosOsCarregados": "Selecionar todos os carregados",
+      "contraparte": "Contraparte",
+      "acoes": "Ações",
+      "conciliado": "Conciliado",
+      "conferido": "Conferido",
+      "excluirLancamentos": "Excluir lançamentos",
+      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes deles, e os anexos também são apagados."
+    },
+    "form": {
+      "kind": {
+        "withdrawal": "Saída",
+        "deposit": "Entrada",
+        "transfer": "Transferência"
+      },
+      "amountPositive": "Informe o valor maior que zero.",
+      "accountRequired": "Escolha a conta.",
+      "descriptionRequired": "Informe a descrição.",
+      "destinationRequired": "Escolha a conta de destino.",
+      "destinationDifferent": "A conta de destino precisa ser diferente da conta de origem.",
+      "debtRequired": "Escolha a dívida.",
+      "debtSameCurrency": "Para receber de uma dívida, as duas contas precisam ter a mesma moeda.",
+      "toWhomRequired": "Informe para quem foi.",
+      "fromWhomRequired": "Informe de quem veio.",
+      "splitOver": "As linhas passam do total em {{amount}}",
+      "splitMissing": "Falta distribuir {{amount}}",
+      "reasonNoLines": "Este lançamento não tem linhas.",
+      "reasonTypeNotEditable": "Este tipo de lançamento não pode ser editado por aqui.",
+      "reasonMixed": "As linhas deste lançamento têm tipos, datas ou contas diferentes. Ele só pode ser editado pela API.",
+      "reasonForeign": "Este lançamento guarda o valor original em outra moeda de um jeito que o formulário não edita.",
+      "templateNoLines": "Este modelo não tem linhas.",
+      "templateMixed": "As linhas deste modelo têm tipos ou contas diferentes. Ele só pode ser editado pela API.",
+      "templateForeign": "Este modelo guarda o valor original em outra moeda de um jeito que o formulário não edita.",
+      "recurrenceNameRequired": "Informe o nome da recorrente.",
+      "endBeforeStart": "A data final não pode ser antes da primeira.",
+      "endCountInvalid": "Informe quantas vezes, de 1 a 99999.",
+      "toAccount": "Para a conta",
+      "debtLabel": "Dívida",
+      "toWhom": "Para quem",
+      "fromWhom": "De quem",
+      "totalAmount": "Valor total ({{currency}})",
+      "amount": "Valor ({{currency}})",
+      "arrivingAmount": "Valor que chega em {{currency}}",
+      "originalAmount": "Valor original ({{currency}})",
+      "row": "Linha {{n}}",
+      "removeRow": "Remover linha {{n}}",
+      "rowDescription": "Descrição da linha {{n}}",
+      "rowAmount": "Valor da linha {{n}}",
+      "rowCategory": "Categoria da linha {{n}}",
+      "rowBudget": "Orçamento da linha {{n}}",
+      "rowBill": "Conta a pagar da linha {{n}}",
+      "rowTags": "Tags da linha {{n}}"
+    },
+    "presentation": {
+      "originalAmount": "Valor original: {{amount}}",
+      "noDescription": "Sem descrição"
+    },
+    "quickRow": {
+      "expense": "Saída",
+      "income": "Entrada",
+      "counterpartyRequired": "Informe a contraparte.",
+      "reasonSplit": "Lançamento dividido: edite no formulário completo.",
+      "reasonTransfer": "Transferência: edite no formulário completo.",
+      "reasonDebt": "Lançamento ligado a uma dívida: edite no formulário completo."
+    },
+    "selection": {
+      "selected_one": "{{count}} selecionado",
+      "selected_other": "{{count}} selecionados",
+      "selectedPartial": "{{marked}} (só os {{loaded}} carregados; há mais {{more}} por carregar)",
+      "limit": "Selecione no máximo {{max}} lançamentos por vez (há {{count}} marcados).",
+      "selected_zero": "0 selecionados"
+    },
+    "bulk": {
+      "entries_one": "{{count}} lançamento",
+      "entries_other": "{{count}} lançamentos",
+      "categoryRemoved": "Categoria removida de {{entries}}.",
+      "categoryChanged": "Categoria mudada em {{entries}}.",
+      "dateChanged": "Data mudada em {{entries}}.",
+      "duplicated_one": "{{count}} lançamento duplicado com a data de hoje.",
+      "duplicated_other": "{{count}} lançamentos duplicados com a data de hoje.",
+      "deleted_one": "{{count}} lançamento excluído.",
+      "deleted_other": "{{count}} lançamentos excluídos.",
+      "andMore": "{{shown}} e mais {{count}}",
+      "categoryRequired": "Escolha uma categoria, ou “Sem categoria” para tirar.",
+      "categoryAppliesTo": "A categoria nova vale para {{entries}}, em todas as divisões de cada um.",
+      "dateAppliesTo": "A data nova vale para {{entries}}, em todas as divisões de cada um."
+    },
+    "filters": {
+      "dateRangeInvalid": "A data inicial é depois da data final."
+    },
+    "table": {
+      "locked": "Travados: {{list}}.",
+      "select": "Selecionar {{title}}",
+      "edit": "Editar {{title}}",
+      "editFull": "Editar completo {{title}}",
+      "delete": "Excluir {{title}}"
+    },
+    "row": {
+      "attachments_one": "{{count}} anexo, abrir anexos de {{title}}",
+      "attachments_other": "{{count}} anexos, abrir anexos de {{title}}",
+      "actions": "Ações do lançamento {{title}}"
+    },
+    "shortcuts": {
+      "keySpace": "Espaço",
+      "focusedRow": "Com o foco numa linha da tabela",
+      "nextRow": "Próxima linha",
+      "previousRow": "Linha anterior",
+      "firstLastRow": "Primeira e última linha",
+      "editRow": "Editar a linha",
+      "newRow": "Nova linha de lançamento",
+      "selecting": "Selecionar vários lançamentos",
+      "toggleRow": "Marcar ou desmarcar a linha",
+      "markRange": "Marcar do último marcado até a linha",
+      "markAll": "Marcar todos os carregados (de novo, desmarca)",
+      "clearSelection": "Limpar a seleção",
+      "inRow": "Na linha de entrada ou de edição",
+      "nextField": "Próximo campo e campo anterior",
+      "saveRow": "Gravar a linha",
+      "saveClose": "Gravar e fechar a linha nova",
+      "cancel": "Cancelar sem gravar"
+    }
+  },
+  "labels": {
+    "labelFormDialog": {
+      "cor": "Cor",
+      "escolhaQualquerCorOu": "Escolha qualquer cor ou deixe sem cor.",
+      "comoVaiAparecer": "Como vai aparecer:",
+      "salvando": "Salvando...",
+      "nameRequired": "Informe o nome.",
+      "namePreview": "Nome da categoria"
+    },
+    "labelsPage": {
+      "nadaEncontrado": "Nada encontrado",
+      "criar": "Criar",
+      "salvar": "Salvar",
+      "actionsFor": "Ações de {{name}}"
+    },
+    "category": {
+      "title": "Categorias",
+      "description": "Agrupe suas transações por assunto: mercado, moradia, lazer...",
+      "newLabel": "Nova categoria",
+      "loading": "Carregando categorias...",
+      "noResultsFor": "Nenhuma categoria tem “{{search}}” no nome.",
+      "emptyTitle": "Nenhuma categoria ainda",
+      "emptyDescription": "Crie a sua primeira categoria para começar a organizar.",
+      "count_one": "{{count}} categoria",
+      "count_other": "{{count}} categorias",
+      "countWithSearch_one": "{{count}} categoria com “{{search}}”",
+      "countWithSearch_other": "{{count}} categorias com “{{search}}”",
+      "searchLabel": "Buscar categoria",
+      "createDescription": "Dê um nome e uma cor para a categoria.",
+      "editTitle": "Editar categoria",
+      "editDescription": "Altere os dados da categoria.",
+      "deleteTitle": "Excluir categoria",
+      "deleteConsequence": "As transações dela ficarão sem categoria."
+    },
+    "tag": {
+      "title": "Tags",
+      "description": "Marque transações com palavras livres para achá-las depois: viagem, reembolso...",
+      "newLabel": "Nova tag",
+      "loading": "Carregando tags...",
+      "noResultsFor": "Nenhuma tag tem “{{search}}” no nome.",
+      "emptyTitle": "Nenhuma tag ainda",
+      "emptyDescription": "Crie a sua primeira tag para começar a organizar.",
+      "count_one": "{{count}} tag",
+      "count_other": "{{count}} tags",
+      "countWithSearch_one": "{{count}} tag com “{{search}}”",
+      "countWithSearch_other": "{{count}} tags com “{{search}}”",
+      "searchLabel": "Buscar tag",
+      "createDescription": "Dê um nome para a tag.",
+      "editTitle": "Editar tag",
+      "editDescription": "Altere os dados da tag.",
+      "deleteTitle": "Excluir tag",
+      "deleteConsequence": "Ela será removida das transações que a usam."
+    }
   }
 }

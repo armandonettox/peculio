@@ -36,7 +36,7 @@ import {
   originalAllowed,
   formFromTemplate,
   formFromTransaction,
-  formatRemainder,
+  splitRemainderText,
   hasErrors,
   isLiability,
   remainder,
@@ -52,12 +52,9 @@ import {
 
 import { FREQUENCIES, FREQUENCY_LABELS } from "@/features/recurrences/presentation";
 import { appToday } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
-const KIND_LABELS: Record<Kind, string> = {
-  withdrawal: "Saída",
-  deposit: "Entrada",
-  transfer: "Transferência",
-};
+const KIND_OPTIONS: Kind[] = ["withdrawal", "deposit", "transfer"];
 
 type Props = {
   // Sem `transaction` o dialogo cria; com `transaction` edita
@@ -108,6 +105,7 @@ function TagPicker({
 }
 
 export function TransactionFormDialog({ transaction, repeating = false, recurrence, onClose }: Props) {
+  const { t } = useTranslation();
   const recurring = repeating || recurrence !== undefined;
   const editing = transaction !== undefined || recurrence !== undefined;
   const accountsQuery = useAccounts({ includeArchived: true });
@@ -140,21 +138,21 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            {recurring ? (editing ? "Editar recorrente" : "Nova recorrente") : editing ? "Editar lançamento" : "Novo lançamento"}
+            {recurring ? (editing ? t("transactions.transactionFormDialog.editarRecorrente") : t("transactions.transactionFormDialog.novaRecorrente")) : editing ? t("transactions.transactionFormDialog.editarLancamento") : t("transactions.transactionFormDialog.novoLancamento")}
           </DialogTitle>
           <DialogDescription>
             {recurring
-              ? "Um lançamento que se repete sozinho. O app cria também os que já deveriam ter acontecido desde a primeira data."
+              ? t("transactions.transactionFormDialog.umLancamentoQueSe")
               : editing
-                ? "Altere os dados do lançamento."
-                : "Registre uma saída, uma entrada ou uma transferência."}
+                ? t("transactions.transactionFormDialog.altereOsDadosDo")
+                : t("transactions.transactionFormDialog.registreUmaSaidaUma")}
           </DialogDescription>
         </DialogHeader>
 
         {loadError && <Alert variant="destructive">{loadError}</Alert>}
         {!ready && !loadError && (
           <p role="status" className="text-sm text-muted-foreground">
-            Carregando...
+            {t("common.carregando")}
           </p>
         )}
         {ready && (
@@ -214,6 +212,7 @@ function FormBody({
   updateRecurrence,
   onClose,
 }: BodyProps) {
+  const { t } = useTranslation();
   const editing = transaction !== undefined || recurrence !== undefined;
 
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
@@ -271,7 +270,7 @@ function FormBody({
         <Alert variant="destructive">{initial.reason}</Alert>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
+            {t("common.cancelar")}
           </Button>
         </DialogFooter>
       </>
@@ -361,13 +360,13 @@ function FormBody({
 
   function validateRepeat(): RepeatErrors {
     const found: RepeatErrors = {};
-    if (name.trim() === "") found.name = "Informe o nome da recorrente.";
+    if (name.trim() === "") found.name = t("transactions.form.recurrenceNameRequired");
     if (endMode === "date") {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) found.endDate = "Informe uma data válida.";
-      else if (state.date && endDate < state.date) found.endDate = "A data final não pode ser antes da primeira.";
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) found.endDate = t("validation.dateInvalid");
+      else if (state.date && endDate < state.date) found.endDate = t("transactions.form.endBeforeStart");
     }
     if (endMode === "count" && !/^[1-9]\d{0,4}$/.test(endCount.trim())) {
-      found.endCount = "Informe quantas vezes, de 1 a 99999.";
+      found.endCount = t("transactions.form.endCountInvalid");
     }
     return found;
   }
@@ -426,12 +425,12 @@ function FormBody({
 
   const counterpartyLabel =
     state.kind === "transfer"
-      ? "Para a conta"
+      ? t("transactions.form.toAccount")
       : state.ownCounterparty
-        ? "Dívida"
+        ? t("transactions.form.debtLabel")
         : state.kind === "withdrawal"
-          ? "Para quem"
-          : "De quem";
+          ? t("transactions.form.toWhom")
+          : t("transactions.form.fromWhom");
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -439,7 +438,7 @@ function FormBody({
 
       {recurring && (
         <div className="flex flex-col gap-4 rounded-md border p-3">
-          <FormField id="rec-name" label="Nome da recorrente" error={repeatErrors.name}>
+          <FormField id="rec-name" label={t("transactions.transactionFormDialog.nomeDaRecorrente")} error={repeatErrors.name}>
             {(props) => (
               <Input
                 {...props}
@@ -454,7 +453,7 @@ function FormBody({
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="rec-frequency" label="Frequência">
+            <FormField id="rec-frequency" label={t("transactions.transactionFormDialog.frequencia")}>
               {(props) => (
                 <Select
                   {...props}
@@ -471,19 +470,19 @@ function FormBody({
               )}
             </FormField>
 
-            <FormField id="rec-end" label="Termina">
+            <FormField id="rec-end" label={t("transactions.transactionFormDialog.termina")}>
               {(props) => (
                 <Select {...props} value={endMode} onChange={(e) => setEndMode(e.target.value as EndMode)}>
-                  <option value="never">Nunca</option>
-                  <option value="date">Numa data</option>
-                  <option value="count">Depois de N vezes</option>
+                  <option value="never">{t("transactions.transactionFormDialog.nunca")}</option>
+                  <option value="date">{t("transactions.transactionFormDialog.numaData")}</option>
+                  <option value="count">{t("transactions.transactionFormDialog.depoisDeNVezes")}</option>
                 </Select>
               )}
             </FormField>
           </div>
 
           {endMode === "date" && (
-            <FormField id="rec-end-date" label="Data final" error={repeatErrors.endDate}>
+            <FormField id="rec-end-date" label={t("common.dataFinal")} error={repeatErrors.endDate}>
               {(props) => (
                 <Input
                   {...props}
@@ -498,7 +497,7 @@ function FormBody({
             </FormField>
           )}
           {endMode === "count" && (
-            <FormField id="rec-end-count" label="Quantas vezes" error={repeatErrors.endCount}>
+            <FormField id="rec-end-count" label={t("transactions.transactionFormDialog.quantasVezes")} error={repeatErrors.endCount}>
               {(props) => (
                 <Input
                   {...props}
@@ -517,9 +516,9 @@ function FormBody({
       )}
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">Tipo</legend>
+        <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
         <div className="grid grid-cols-3 gap-2">
-          {(Object.keys(KIND_LABELS) as Kind[]).map((option) => (
+          {KIND_OPTIONS.map((option) => (
             <label
               key={option}
               className="flex cursor-pointer items-center justify-center gap-2 rounded-md border px-2 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
@@ -532,7 +531,7 @@ function FormBody({
                 onChange={() => chooseKind(option)}
                 className="accent-[var(--primary)]"
               />
-              {KIND_LABELS[option]}
+              {t(`transactions.form.kind.${option}`)}
             </label>
           ))}
         </div>
@@ -541,13 +540,13 @@ function FormBody({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           id="tx-date"
-          label={recurring ? "Primeira data" : "Data"}
+          label={recurring ? t("transactions.transactionFormDialog.primeiraData") : t("common.data")}
           error={errors.date}
           hint={
             recurring && !editing && state.date && state.date <= appToday()
-              ? "Os lançamentos desde esta data até hoje serão criados agora."
+              ? t("transactions.transactionFormDialog.osLancamentosDesdeEsta")
               : recurring && editing
-                ? "A primeira data e a frequência não mudam depois de criada."
+                ? t("transactions.transactionFormDialog.aPrimeiraDataE")
                 : undefined
           }
         >
@@ -562,7 +561,7 @@ function FormBody({
           )}
         </FormField>
 
-        <FormField id="tx-account" label={state.kind === "deposit" ? "Conta que recebe" : "Conta"} error={errors.accountId}>
+        <FormField id="tx-account" label={state.kind === "deposit" ? t("transactions.transactionFormDialog.contaQueRecebe") : t("common.conta")} error={errors.accountId}>
           {(props) => (
             <Select
               {...props}
@@ -587,11 +586,11 @@ function FormBody({
                 );
               }}
             >
-              <option value="">Escolha...</option>
+              <option value="">{t("common.escolha")}</option>
               {selectable.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.name}
-                  {option.active ? "" : " (arquivada)"}
+                  {option.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                   {option.currency_code !== "BRL" ? ` - ${option.currency_code}` : ""}
                 </option>
               ))}
@@ -602,7 +601,7 @@ function FormBody({
 
       <FormField
         id="tx-description"
-        label={state.splits ? "Título (opcional)" : "Descrição"}
+        label={state.splits ? t("transactions.transactionFormDialog.tituloOpcional") : t("common.descricao")}
         error={errors.description}
       >
         {(props) => (
@@ -626,7 +625,7 @@ function FormBody({
                 patch({ counterpartyAccountId: e.target.value, foreignAmount: "" }, "counterparty", "foreignAmount")
               }
             >
-              <option value="">Escolha...</option>
+              <option value="">{t("common.escolha")}</option>
               {selectable
                 .filter((a) => a.id !== state.accountId)
                 .map((option) => (
@@ -649,7 +648,7 @@ function FormBody({
                   patch({ counterpartyAccountId: e.target.value, foreignAmount: "" }, "counterparty", "foreignAmount")
                 }
               >
-                <option value="">Escolha...</option>
+                <option value="">{t("common.escolha")}</option>
                 {debts.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.name}
@@ -666,7 +665,7 @@ function FormBody({
               patch({ ownCounterparty: false, counterpartyAccountId: "", foreignAmount: "" }, "counterparty", "foreignAmount")
             }
           >
-            {state.kind === "withdrawal" ? "Pagar para um nome" : "Receber de um nome"}
+            {state.kind === "withdrawal" ? t("transactions.transactionFormDialog.pagarParaUmNome") : t("transactions.transactionFormDialog.receberDeUmNome")}
           </button>
         </div>
       ) : (
@@ -706,7 +705,7 @@ function FormBody({
                 )
               }
             >
-              {state.kind === "withdrawal" ? "Pagar uma dívida" : "Receber de uma dívida"}
+              {state.kind === "withdrawal" ? t("transactions.transactionFormDialog.pagarUmaDivida") : t("transactions.transactionFormDialog.receberDeUmaDivida")}
             </button>
           )}
         </div>
@@ -715,7 +714,7 @@ function FormBody({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           id="tx-amount"
-          label={state.splits ? `Valor total (${currency})` : `Valor (${currency})`}
+          label={state.splits ? t("transactions.form.totalAmount", { currency }) : t("transactions.form.amount", { currency })}
           error={errors.amount}
         >
           {(props) => (
@@ -731,7 +730,7 @@ function FormBody({
         </FormField>
 
         {other && (
-          <FormField id="tx-foreign-amount" label={`Valor que chega em ${other.currency_code}`} error={errors.foreignAmount}>
+          <FormField id="tx-foreign-amount" label={t("transactions.form.arrivingAmount", { currency: other.currency_code })} error={errors.foreignAmount}>
             {(props) => (
               <Input
                 {...props}
@@ -750,8 +749,8 @@ function FormBody({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             id="tx-original-currency"
-            label="Moeda original (opcional)"
-            hint="Se a compra foi em outra moeda, diga qual. É só um registro: o saldo usa o valor acima."
+            label={t("transactions.transactionFormDialog.moedaOriginalOpcional")}
+            hint={t("transactions.transactionFormDialog.seACompraFoi")}
           >
             {(props) => (
               <Select
@@ -759,7 +758,7 @@ function FormBody({
                 value={originalChosen ? state.originalCurrency : ""}
                 onChange={(e) => patch({ originalCurrency: e.target.value, originalAmount: "" }, "originalAmount")}
               >
-                <option value="">Nenhuma</option>
+                <option value="">{t("transactions.transactionFormDialog.nenhuma")}</option>
                 {originalChosen && !originalCurrencies.some((item) => item.code === state.originalCurrency) && (
                   <option value={state.originalCurrency}>{state.originalCurrency}</option>
                 )}
@@ -773,7 +772,7 @@ function FormBody({
           </FormField>
 
           {originalChosen && (
-            <FormField id="tx-original-amount" label={`Valor original (${state.originalCurrency})`} error={errors.originalAmount}>
+            <FormField id="tx-original-amount" label={t("transactions.form.originalAmount", { currency: state.originalCurrency })} error={errors.originalAmount}>
               {(props) => (
                 <Input
                   {...props}
@@ -793,9 +792,9 @@ function FormBody({
       {state.splits ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium">Divisão</h3>
+            <h3 className="text-sm font-medium">{t("transactions.transactionFormDialog.divisao")}</h3>
             <Button type="button" variant="ghost" size="sm" onClick={stopSplit}>
-              Desfazer divisão
+              {t("transactions.transactionFormDialog.desfazerDivisao")}
             </Button>
           </div>
 
@@ -804,11 +803,11 @@ function FormBody({
             return (
               <div key={row.key} className="flex flex-col gap-3 rounded-md border p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">Linha {index + 1}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("transactions.form.row", { n: index + 1 })}</p>
                   {state.splits && state.splits.length > 1 && (
                     <button
                       type="button"
-                      aria-label={`Remover linha ${index + 1}`}
+                      aria-label={t("transactions.form.removeRow", { n: index + 1 })}
                       onClick={() =>
                         setState((current) => ({
                           ...current,
@@ -822,7 +821,7 @@ function FormBody({
                   )}
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_9rem]">
-                  <FormField id={`${row.key}-description`} label={`Descrição da linha ${index + 1}`} error={rowErrors?.description}>
+                  <FormField id={`${row.key}-description`} label={t("transactions.form.rowDescription", { n: index + 1 })} error={rowErrors?.description}>
                     {(props) => (
                       <Input
                         {...props}
@@ -832,7 +831,7 @@ function FormBody({
                       />
                     )}
                   </FormField>
-                  <FormField id={`${row.key}-amount`} label={`Valor da linha ${index + 1}`} error={rowErrors?.amount}>
+                  <FormField id={`${row.key}-amount`} label={t("transactions.form.rowAmount", { n: index + 1 })} error={rowErrors?.amount}>
                     {(props) => (
                       <Input
                         {...props}
@@ -845,14 +844,14 @@ function FormBody({
                     )}
                   </FormField>
                 </div>
-                <FormField id={`${row.key}-category`} label={`Categoria da linha ${index + 1}`}>
+                <FormField id={`${row.key}-category`} label={t("transactions.form.rowCategory", { n: index + 1 })}>
                   {(props) => (
                     <Select
                       {...props}
                       value={row.categoryId}
                       onChange={(e) => changeSplit(row.key, { categoryId: e.target.value })}
                     >
-                      <option value="">Sem categoria</option>
+                      <option value="">{t("common.semCategoria")}</option>
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
                           {category.name}
@@ -862,18 +861,18 @@ function FormBody({
                   )}
                 </FormField>
                 {budgetAllowed(state) && budgetOptions(row.budgetId).length > 0 && (
-                  <FormField id={`${row.key}-budget`} label={`Orçamento da linha ${index + 1}`}>
+                  <FormField id={`${row.key}-budget`} label={t("transactions.form.rowBudget", { n: index + 1 })}>
                     {(props) => (
                       <Select
                         {...props}
                         value={row.budgetId}
                         onChange={(e) => changeSplit(row.key, { budgetId: e.target.value })}
                       >
-                        <option value="">Sem orçamento</option>
+                        <option value="">{t("transactions.transactionFormDialog.semOrcamento")}</option>
                         {budgetOptions(row.budgetId).map((budget) => (
                           <option key={budget.id} value={budget.id}>
                             {budget.name}
-                            {budget.active ? "" : " (arquivado)"}
+                            {budget.active ? "" : ` ${t("transactions.transactionFormDialog.arquivado")}`}
                           </option>
                         ))}
                       </Select>
@@ -881,19 +880,19 @@ function FormBody({
                   </FormField>
                 )}
                 {budgetAllowed(state) && billOptions(row.billId).length > 0 && (
-                  <FormField id={`${row.key}-bill`} label={`Conta a pagar da linha ${index + 1}`}>
+                  <FormField id={`${row.key}-bill`} label={t("transactions.form.rowBill", { n: index + 1 })}>
                     {(props) => (
                       <Select
                         {...props}
                         value={row.billId}
                         onChange={(e) => changeSplit(row.key, { billId: e.target.value })}
                       >
-                        <option value="">Ligar automaticamente</option>
-                        <option value="none">Não ligar a nenhuma</option>
+                        <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
+                        <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
                         {billOptions(row.billId).map((bill) => (
                           <option key={bill.id} value={bill.id}>
                             {bill.name}
-                            {bill.active ? "" : " (arquivada)"}
+                            {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                           </option>
                         ))}
                       </Select>
@@ -903,7 +902,7 @@ function FormBody({
                 <TagPicker
                   tags={tags}
                   selected={row.tagIds}
-                  label={`Tags da linha ${index + 1}`}
+                  label={t("transactions.form.rowTags", { n: index + 1 })}
                   onChange={(next) => changeSplit(row.key, { tagIds: next })}
                 />
               </div>
@@ -920,7 +919,7 @@ function FormBody({
             }
           >
             <Plus />
-            Adicionar linha
+            {t("transactions.transactionFormDialog.adicionarLinha")}
           </Button>
 
           {errors.splitTotal ? (
@@ -931,18 +930,18 @@ function FormBody({
             left !== null && (
               <p role="status" className="text-sm text-muted-foreground">
                 {/^-?0+(\.0+)?$/.test(left)
-                  ? "Tudo distribuído."
-                  : `${left.startsWith("-") ? "As linhas passam do total em" : "Falta distribuir"} ${formatRemainder(left, currency)}`}
+                  ? t("transactions.transactionFormDialog.tudoDistribuido")
+                  : splitRemainderText(left, currency)}
               </p>
             )
           )}
         </div>
       ) : (
         <>
-          <FormField id="tx-category" label="Categoria">
+          <FormField id="tx-category" label={t("common.categoria")}>
             {(props) => (
               <Select {...props} value={state.categoryId} onChange={(e) => patch({ categoryId: e.target.value })}>
-                <option value="">Sem categoria</option>
+                <option value="">{t("common.semCategoria")}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -952,14 +951,14 @@ function FormBody({
             )}
           </FormField>
           {budgetAllowed(state) && budgetOptions(state.budgetId).length > 0 && (
-            <FormField id="tx-budget" label="Orçamento">
+            <FormField id="tx-budget" label={t("common.orcamento")}>
               {(props) => (
                 <Select {...props} value={state.budgetId} onChange={(e) => patch({ budgetId: e.target.value })}>
-                  <option value="">Sem orçamento</option>
+                  <option value="">{t("transactions.transactionFormDialog.semOrcamento")}</option>
                   {budgetOptions(state.budgetId).map((budget) => (
                     <option key={budget.id} value={budget.id}>
                       {budget.name}
-                      {budget.active ? "" : " (arquivado)"}
+                      {budget.active ? "" : ` ${t("transactions.transactionFormDialog.arquivado")}`}
                     </option>
                   ))}
                 </Select>
@@ -967,40 +966,40 @@ function FormBody({
             </FormField>
           )}
           {budgetAllowed(state) && billOptions(state.billId).length > 0 && (
-            <FormField id="tx-bill" label="Conta a pagar">
+            <FormField id="tx-bill" label={t("transactions.transactionFormDialog.contaAPagar")}>
               {(props) => (
                 <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
-                  <option value="">Ligar automaticamente</option>
-                  <option value="none">Não ligar a nenhuma</option>
+                  <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
+                  <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
                   {billOptions(state.billId).map((bill) => (
                     <option key={bill.id} value={bill.id}>
                       {bill.name}
-                      {bill.active ? "" : " (arquivada)"}
+                      {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                     </option>
                   ))}
                 </Select>
               )}
             </FormField>
           )}
-          <TagPicker tags={tags} selected={state.tagIds} label="Tags" onChange={(next) => patch({ tagIds: next })} />
+          <TagPicker tags={tags} selected={state.tagIds} label={t("transactions.transactionFormDialog.tags")} onChange={(next) => patch({ tagIds: next })} />
           {splittable && (
             <Button type="button" variant="outline" size="sm" className="self-start" onClick={startSplit}>
-              Dividir lançamento
+              {t("transactions.transactionFormDialog.dividirLancamento")}
             </Button>
           )}
         </>
       )}
 
-      <FormField id="tx-notes" label="Notas">
+      <FormField id="tx-notes" label={t("transactions.transactionFormDialog.notas")}>
         {(props) => <Textarea {...props} value={state.notes} onChange={(e) => patch({ notes: e.target.value })} />}
       </FormField>
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-          Cancelar
+          {t("common.cancelar")}
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Salvando..." : editing ? "Salvar" : recurring ? "Criar recorrente" : "Criar lançamento"}
+          {submitting ? t("transactions.transactionFormDialog.salvando") : editing ? t("transactions.transactionFormDialog.salvar") : recurring ? t("transactions.transactionFormDialog.criarRecorrente") : t("transactions.transactionFormDialog.criarLancamento")}
         </Button>
       </DialogFooter>
     </form>

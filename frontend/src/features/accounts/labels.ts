@@ -1,18 +1,10 @@
 import type { Account } from "@/api/accounts";
+import { i18n } from "@/i18n";
 
 type Role = NonNullable<Account["role"]>;
 export type AccountKind = "asset" | "liability";
 
-export const ROLE_LABELS: Record<Role, string> = {
-  checking: "Conta corrente",
-  savings: "Poupança",
-  cash: "Dinheiro",
-  credit_card: "Cartão de crédito",
-  other: "Outra",
-  loan: "Empréstimo",
-  debt: "Dívida",
-  mortgage: "Financiamento",
-};
+export const roleLabel = (role: Role): string => i18n.t(`accounts.role.${role}`);
 
 // Papeis que cada tipo aceita (espelha o backend: ASSET_ROLES e LIABILITY_ROLES)
 export const ROLES_BY_KIND: Record<AccountKind, Role[]> = {
@@ -22,4 +14,4 @@ export const ROLES_BY_KIND: Record<AccountKind, Role[]> = {
 
 export const DEFAULT_ROLE: Record<AccountKind, Role> = { asset: "checking", liability: "debt" };
 
-export const KIND_LABELS: Record<AccountKind, string> = { asset: "Conta", liability: "Dívida" };
+export const kindLabel = (kind: AccountKind): string => i18n.t(`accounts.kind.${kind}`);

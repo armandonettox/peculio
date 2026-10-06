@@ -21,6 +21,7 @@ import { TransactionsTable } from "@/features/transactions/transactions-table";
 import { useDraftFilter } from "@/features/transactions/use-draft-filter";
 import { readViewMode, saveViewMode, type ViewMode } from "@/features/transactions/view-mode";
 import { parseMoneyInput } from "@/lib/money";
+import { useTranslation } from "react-i18next";
 
 // Os filtros de valor valem para qualquer moeda; a API aceita ate 2 casas
 const FILTER_PLACES = 2;
@@ -44,6 +45,7 @@ function amountError(draft: string): string | undefined {
 }
 
 export default function TransactionsPage() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   // "new": dialogo de criar; um lancamento: dialogo de editar
   const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
@@ -118,7 +120,7 @@ export default function TransactionsPage() {
           <div key={index} className="h-20 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando lançamentos...
+          {t("pages.transactions.carregandoLancamentos")}
         </p>
       </div>
     );
@@ -129,7 +131,7 @@ export default function TransactionsPage() {
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -138,23 +140,23 @@ export default function TransactionsPage() {
       activeCount > 0 ? (
         <EmptyState
           icon={Search}
-          title="Nada encontrado"
-          description="Nenhum lançamento atende aos filtros escolhidos."
+          title={t("pages.transactions.nadaEncontrado")}
+          description={t("pages.transactions.nenhumLancamentoAtendeAos")}
           action={
             <Button variant="outline" onClick={clearFilters}>
-              Limpar filtros
+              {t("common.limparFiltros")}
             </Button>
           }
         />
       ) : (
         <EmptyState
           icon={ArrowLeftRight}
-          title="Nenhum lançamento ainda"
-          description="Os lançamentos que você registrar aparecem aqui, agrupados por dia."
+          title={t("pages.transactions.nenhumLancamentoAinda")}
+          description={t("pages.transactions.osLancamentosQueVoce")}
           action={
             <Button onClick={() => setDialog("new")}>
               <Plus />
-              Novo lançamento
+              {t("pages.transactions.novoLancamento")}
             </Button>
           }
         />
@@ -164,17 +166,17 @@ export default function TransactionsPage() {
       <>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-muted-foreground">
-            {total} {total === 1 ? "lançamento" : "lançamentos"}
-            {activeCount > 0 ? " com os filtros escolhidos" : ""}
+            {total} {total === 1 ? t("pages.transactions.lancamento") : t("pages.transactions.lancamentos")}
+            {activeCount > 0 ? ` ${t("pages.transactions.comOsFiltrosEscolhidos")}` : ""}
           </p>
-          <div role="group" aria-label="Como mostrar os lançamentos" className="flex gap-1">
+          <div role="group" aria-label={t("pages.transactions.comoMostrarOsLancamentos")} className="flex gap-1">
             <Button size="sm" variant={view === "list" ? "default" : "outline"} aria-pressed={view === "list"} onClick={() => chooseView("list")}>
               <LayoutList />
-              Lista
+              {t("pages.transactions.lista")}
             </Button>
             <Button size="sm" variant={view === "table" ? "default" : "outline"} aria-pressed={view === "table"} onClick={() => chooseView("table")}>
               <Table2 />
-              Tabela
+              {t("pages.transactions.tabela")}
             </Button>
           </div>
         </div>
@@ -222,7 +224,7 @@ export default function TransactionsPage() {
               disabled={query.isFetchingNextPage}
               onClick={() => void query.fetchNextPage()}
             >
-              {query.isFetchingNextPage ? "Carregando..." : "Carregar mais"}
+              {query.isFetchingNextPage ? t("common.carregando") : t("pages.transactions.carregarMais")}
             </Button>
           </div>
         )}
@@ -233,12 +235,12 @@ export default function TransactionsPage() {
   return (
     <>
       <PageHeader
-        title="Transações"
-        description="Tudo o que entrou, saiu ou mudou de conta"
+        title={t("pages.transactions.transacoes")}
+        description={t("pages.transactions.tudoOQueEntrou")}
         actions={
           <Button onClick={() => setDialog("new")}>
             <Plus />
-            Novo lançamento
+            {t("pages.transactions.novoLancamento")}
           </Button>
         }
       />
@@ -266,9 +268,9 @@ export default function TransactionsPage() {
 
       {removing && (
         <ConfirmDeleteDialog
-          title="Excluir lançamento"
+          title={t("pages.transactions.excluirLancamento")}
           itemName={transactionTitle(removing)}
-          consequence="O saldo das contas envolvidas volta ao que era antes dele."
+          consequence={t("pages.transactions.oSaldoDasContas")}
           onConfirm={() => remove.mutateAsync(removing.id)}
           onClose={() => setRemoving(null)}
         />

@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 // A selecao de lancamentos da tabela, sem tela: quais estao marcados, o ancora do intervalo e os textos do contador. Fica
 // aqui, com testes, e a tabela so a usa. A selecao vale so para o que esta carregado na tela.
 
@@ -54,12 +55,12 @@ export const overLimit = (count: number) => count > BULK_MAX;
 
 /** O contador: quantos marcados e, se ha mais por carregar, um aviso de que a selecao so pega o que esta na tela. */
 export function selectionSummary(count: number, loaded: number, total: number): string {
-  const marked = count === 1 ? "1 selecionado" : `${count} selecionados`;
-  if (total > loaded) return `${marked} (só os ${loaded} carregados; há mais ${total - loaded} por carregar)`;
+  const marked = i18n.t("transactions.selection.selected", { count });
+  if (total > loaded) return i18n.t("transactions.selection.selectedPartial", { marked, loaded, more: total - loaded });
   return marked;
 }
 
 /** Aviso quando a selecao passa do teto de uma acao; null se esta dentro. */
 export function limitMessage(count: number): string | null {
-  return overLimit(count) ? `Selecione no máximo ${BULK_MAX} lançamentos por vez (há ${count} marcados).` : null;
+  return overLimit(count) ? i18n.t("transactions.selection.limit", { max: BULK_MAX, count }) : null;
 }

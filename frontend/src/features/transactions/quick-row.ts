@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import type { Transaction, TransactionCreate } from "@/api/transactions";
 import {
   buildPayload,
@@ -70,9 +71,9 @@ export function amountWithoutSign(text: string): string {
 }
 
 /** O que a pessoa esta lancando, em palavras, enquanto digita o valor. null com o campo vazio. */
-export function kindHint(text: string): "Saída" | "Entrada" | null {
+export function kindHint(text: string): string | null {
   if (amountWithoutSign(text) === "") return null;
-  return kindOfAmount(text) === "withdrawal" ? "Saída" : "Entrada";
+  return i18n.t(kindOfAmount(text) === "withdrawal" ? "transactions.quickRow.expense" : "transactions.quickRow.income");
 }
 
 // ---------- Linha -> formulario ----------
@@ -102,7 +103,7 @@ export function validateQuick(row: QuickRow, base: FormState, ctx: FormContext):
   if (found.description) errors.description = found.description;
   // Sem valor ainda o tipo nao esta definido: a mensagem de "para quem foi" ou "de quem veio" confundiria
   if (found.counterparty) {
-    errors.counterparty = amountWithoutSign(row.amount) === "" ? "Informe a contraparte." : found.counterparty;
+    errors.counterparty = amountWithoutSign(row.amount) === "" ? i18n.t("transactions.quickRow.counterpartyRequired") : found.counterparty;
   }
   if (found.accountId) errors.account = found.accountId;
   if (found.amount) errors.amount = found.amount;
@@ -133,9 +134,9 @@ export function quickFromTransaction(transaction: Transaction, ctx: FormContext)
   const loaded = formFromTransaction(transaction, ctx);
   if (!loaded.ok) return { ok: false, reason: loaded.reason };
   const state = loaded.state;
-  if (state.splits) return { ok: false, reason: "Lançamento dividido: edite no formulário completo." };
-  if (state.kind === "transfer") return { ok: false, reason: "Transferência: edite no formulário completo." };
-  if (state.ownCounterparty) return { ok: false, reason: "Lançamento ligado a uma dívida: edite no formulário completo." };
+  if (state.splits) return { ok: false, reason: i18n.t("transactions.quickRow.reasonSplit") };
+  if (state.kind === "transfer") return { ok: false, reason: i18n.t("transactions.quickRow.reasonTransfer") };
+  if (state.ownCounterparty) return { ok: false, reason: i18n.t("transactions.quickRow.reasonDebt") };
   return {
     ok: true,
     base: state,

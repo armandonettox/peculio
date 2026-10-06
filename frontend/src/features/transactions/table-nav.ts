@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 // O teclado da tabela, sem tela: que tecla faz o que e para qual linha o foco vai. Fica aqui, com testes, e a tabela so
 // aplica o resultado. As teclas de uma letra so valem com o foco na propria linha da tabela (nunca dentro de um campo
 // de texto nem de um botao), para nao atrapalhar quem digita ou usa leitor de tela.
@@ -63,33 +64,37 @@ export function tabStop(active: number, count: number): number {
 
 export type ShortcutGroup = { title: string; items: { keys: string[]; text: string }[] };
 
-export const SHORTCUT_GROUPS: ShortcutGroup[] = [
-  {
-    title: "Com o foco numa linha da tabela",
-    items: [
-      { keys: ["↓", "J"], text: "Próxima linha" },
-      { keys: ["↑", "K"], text: "Linha anterior" },
-      { keys: ["Home", "End"], text: "Primeira e última linha" },
-      { keys: ["Enter"], text: "Editar a linha" },
-      { keys: ["T"], text: "Nova linha de lançamento" },
-    ],
-  },
-  {
-    title: "Selecionar vários lançamentos",
-    items: [
-      { keys: ["Espaço"], text: "Marcar ou desmarcar a linha" },
-      { keys: ["Shift+Espaço"], text: "Marcar do último marcado até a linha" },
-      { keys: ["Ctrl+A"], text: "Marcar todos os carregados (de novo, desmarca)" },
-      { keys: ["Esc"], text: "Limpar a seleção" },
-    ],
-  },
-  {
-    title: "Na linha de entrada ou de edição",
-    items: [
-      { keys: ["Tab", "Shift+Tab"], text: "Próximo campo e campo anterior" },
-      { keys: ["Enter"], text: "Gravar a linha" },
-      { keys: ["Ctrl+Enter"], text: "Gravar e fechar a linha nova" },
-      { keys: ["Esc"], text: "Cancelar sem gravar" },
-    ],
-  },
-];
+/** Os grupos de atalhos, no idioma em uso (chamar na hora de mostrar, nao guardar). */
+export function shortcutGroups(): ShortcutGroup[] {
+  const space = i18n.t("transactions.shortcuts.keySpace");
+  return [
+    {
+      title: i18n.t("transactions.shortcuts.focusedRow"),
+      items: [
+        { keys: ["↓", "J"], text: i18n.t("transactions.shortcuts.nextRow") },
+        { keys: ["↑", "K"], text: i18n.t("transactions.shortcuts.previousRow") },
+        { keys: ["Home", "End"], text: i18n.t("transactions.shortcuts.firstLastRow") },
+        { keys: ["Enter"], text: i18n.t("transactions.shortcuts.editRow") },
+        { keys: ["T"], text: i18n.t("transactions.shortcuts.newRow") },
+      ],
+    },
+    {
+      title: i18n.t("transactions.shortcuts.selecting"),
+      items: [
+        { keys: [space], text: i18n.t("transactions.shortcuts.toggleRow") },
+        { keys: [`Shift+${space}`], text: i18n.t("transactions.shortcuts.markRange") },
+        { keys: ["Ctrl+A"], text: i18n.t("transactions.shortcuts.markAll") },
+        { keys: ["Esc"], text: i18n.t("transactions.shortcuts.clearSelection") },
+      ],
+    },
+    {
+      title: i18n.t("transactions.shortcuts.inRow"),
+      items: [
+        { keys: ["Tab", "Shift+Tab"], text: i18n.t("transactions.shortcuts.nextField") },
+        { keys: ["Enter"], text: i18n.t("transactions.shortcuts.saveRow") },
+        { keys: ["Ctrl+Enter"], text: i18n.t("transactions.shortcuts.saveClose") },
+        { keys: ["Esc"], text: i18n.t("transactions.shortcuts.cancel") },
+      ],
+    },
+  ];
+}

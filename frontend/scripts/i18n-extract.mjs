@@ -32,7 +32,18 @@ const IGNORED_ATTRS = new Set([
   "align", "side", "as", "asChild", "aria-keyshortcuts", "aria-controls", "aria-describedby", "aria-labelledby", "autoCapitalize", "mode", "kind", "tone", "color", "icon", "format",
 ]);
 
+// Qualquer atributo terminado em Label, Text, Title, Description ou Hint (submitLabel, centerLabel...) tambem e texto
+const isTextAttr = (name) => TEXT_ATTRS.has(name) || /(Label|Text|Title|Description|Hint)$/.test(name);
 const norm = (text) => text.replace(/\s+/g, " ").trim();
+
+// Um literal como " (arquivada)" tem um espaco que faz parte do texto na tela: ele fica fora da chave, como template literal
+// (`${" "}...`), senao "Conta velha" e "(arquivada)" se colariam.
+function withEdgeSpaces(text, key) {
+  const lead = text.match(/^\s*/)[0];
+  const trail = text.match(/\s*$/)[0];
+  if (!lead && !trail) return `t("${key}")`;
+  return "`" + lead + "${t(\"" + key + "\")}" + trail + "`";
+}
 const hasLetters = (text) => /\p{L}{2,}/u.test(text);
 
 function listFiles(target) {
@@ -59,7 +70,7 @@ function collectTexts(sf) {
       const text = norm(node.getText(sf));
       if (hasLetters(text) && !text.includes("&")) found.push(text);
     }
-    if (ts.isJsxAttribute(node) && TEXT_ATTRS.has(node.name.getText(sf)) && node.initializer && ts.isStringLiteral(node.initializer)) {
+    if (ts.isJsxAttribute(node) && isTextAttr(node.name.getText(sf)) && node.initializer && ts.isStringLiteral(node.initializer)) {
       const text = norm(node.initializer.text);
       if (hasLetters(text)) found.push(text);
     }
@@ -200,13 +211,13 @@ function processFile(file) {
         const key = register(node, value);
         if (key) {
           handled.add(lit);
-          edits.push({ start: lit.getStart(sf), end: lit.getEnd(), text: `t("${key}")` });
+          edits.push({ start: lit.getStart(sf), end: lit.getEnd(), text: withEdgeSpaces(lit.text, key) });
         }
       }
     } else if (ts.isJsxAttribute(node)) {
       const name = node.name.getText(sf);
       const init = node.initializer;
-      if (TEXT_ATTRS.has(name) && init) {
+      if (isTextAttr(name) && init) {
         if (ts.isStringLiteral(init)) {
           const value = norm(init.text);
           if (hasLetters(value)) {
@@ -223,7 +234,7 @@ function processFile(file) {
             const key = register(node, value);
             if (key) {
           handled.add(lit);
-          edits.push({ start: lit.getStart(sf), end: lit.getEnd(), text: `t("${key}")` });
+          edits.push({ start: lit.getStart(sf), end: lit.getEnd(), text: withEdgeSpaces(lit.text, key) });
         }
           }
         }

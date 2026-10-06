@@ -66,6 +66,39 @@
       "quandoVoceCadastrarSuas": "When you add your accounts, their summary will show up here.",
       "cadastrarConta": "Add account",
       "greeting": "Hi, {{name}}. Here's a summary of your finances."
+    },
+    "accounts": {
+      "novaConta": "New account",
+      "nenhumaContaAinda": "No accounts yet",
+      "nenhumaContaAtiva": "No active accounts",
+      "cadastreSuaPrimeiraConta": "Add your first account to get started.",
+      "cadastreSuaPrimeiraConta2": "Add your first account or turn on the option to see archived ones.",
+      "patrimonioLiquido": "Net worth",
+      "contas": "Accounts",
+      "total": "Total",
+      "dividas": "Debts",
+      "totalDevido": "Total owed",
+      "ondeEstaOSeu": "Where your money is and what you owe",
+      "mostrarArquivadas": "Show archived"
+    },
+    "transactions": {
+      "carregandoLancamentos": "Loading transactions...",
+      "nadaEncontrado": "Nothing found",
+      "nenhumLancamentoAtendeAos": "No transaction matches the chosen filters.",
+      "nenhumLancamentoAinda": "No transactions yet",
+      "osLancamentosQueVoce": "The transactions you record show up here, grouped by day.",
+      "novoLancamento": "New transaction",
+      "lancamento": "transaction",
+      "lancamentos": "transactions",
+      "comOsFiltrosEscolhidos": "with the chosen filters",
+      "comoMostrarOsLancamentos": "How to show transactions",
+      "lista": "List",
+      "tabela": "Table",
+      "carregarMais": "Load more",
+      "transacoes": "Transactions",
+      "tudoOQueEntrou": "Everything that came in, went out or moved between accounts",
+      "excluirLancamento": "Delete transaction",
+      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it."
     }
   },
   "common": {
@@ -75,7 +108,27 @@
     "nome": "Name",
     "seguranca": "Security",
     "moeda": "Currency",
-    "valor": "Amount"
+    "valor": "Amount",
+    "carregandoContas": "Loading accounts...",
+    "editar": "Edit",
+    "excluir": "Delete",
+    "tipo": "Type",
+    "cancelar": "Cancel",
+    "limparFiltros": "Clear filters",
+    "carregando": "Loading...",
+    "categoria": "Category",
+    "data": "Date",
+    "conta": "Account",
+    "todas": "All",
+    "tag": "Tag",
+    "dataInicial": "Start date",
+    "dataFinal": "End date",
+    "semCategoria": "No category",
+    "fechar": "Close",
+    "escolha": "Choose...",
+    "descricao": "Description",
+    "orcamento": "Budget",
+    "dividedIn": "Split into {{count}}"
   },
   "components": {
     "appShell": {
@@ -133,7 +186,8 @@
     "emailRequired": "Enter your email.",
     "emailInvalid": "Enter a valid email.",
     "passwordShort": "Password must be at least {{min}} characters.",
-    "passwordLong": "Password is too long (maximum 72 bytes)."
+    "passwordLong": "Password is too long (maximum 72 bytes).",
+    "dateInvalid": "Enter a valid date."
   },
   "errors": {
     "token_missing": "Your session has expired. Sign in again.",
@@ -303,8 +357,7 @@
       "overBudget_one": "{{count}} budget at its limit",
       "overBudget_other": "{{count}} budgets at their limit",
       "nearLimit_one": "{{count}} budget near its limit (above {{percent}}%)",
-      "nearLimit_other": "{{count}} budgets near their limit (above {{percent}}%)",
-      "dividedIn": "Split into {{count}}"
+      "nearLimit_other": "{{count}} budgets near their limit (above {{percent}}%)"
     }
   },
   "money": {
@@ -318,5 +371,322 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "range": "{{start}} to {{end}}"
+  },
+  "accounts": {
+    "accountCard": {
+      "arquivada": "Archived",
+      "valorDevido": "Amount owed",
+      "arquivar": "Archive",
+      "restaurar": "Restore",
+      "actionsFor": "Actions for account {{name}}"
+    },
+    "accountFormDialog": {
+      "editarConta": "Edit account",
+      "novaConta": "New account",
+      "altereOsDadosDa": "Change the account's details. The type and currency can't change.",
+      "cadastreUmaContaOnde": "Add an account (where you keep money) or a debt (what you owe).",
+      "categoriaDaConta": "Account category",
+      "valorQueVoceAinda": "The amount you still owe today. Leave blank if you'd rather not say.",
+      "quantoVoceTemHoje": "How much you have in this account today. Leave blank to start from zero.",
+      "dataDoSaldo": "Balance date",
+      "notas": "Notes",
+      "oDinheiroDestaConta": "The money in this account counts as \"To budget\". Uncheck it for a long-term reserve you don't want to mix with the month.",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarConta": "Create account",
+      "openingDebt": "How much you owe",
+      "openingBalance": "Opening balance",
+      "nameRequired": "Enter the account name.",
+      "debtPositive": "Enter how much you owe as a positive amount.",
+      "inEnvelopes": "Goes into envelopes"
+    },
+    "deleteAccountDialog": {
+      "excluirConta": "Delete account",
+      "arquivarEmVezDisso": "Archive instead",
+      "excluindo": "Deleting...",
+      "description": "Deleting the account <strong>{{name}}</strong> can't be undone. If you just want to remove it from the list, archive it."
+    },
+    "role": {
+      "checking": "Checking account",
+      "savings": "Savings",
+      "cash": "Cash",
+      "credit_card": "Credit card",
+      "other": "Other",
+      "loan": "Loan",
+      "debt": "Debt",
+      "mortgage": "Mortgage"
+    },
+    "kind": {
+      "asset": "Account",
+      "liability": "Debt"
+    }
+  },
+  "transactions": {
+    "bulkDialogs": {
+      "mudarACategoria": "Change the category",
+      "escolhaACategoria": "Choose the category",
+      "semCategoriaTirarA": "No category (remove the category)",
+      "mudando": "Changing...",
+      "mudarCategoria": "Change category",
+      "mudarAData": "Change the date",
+      "mudarData": "Change date"
+    },
+    "filterBar": {
+      "filtros": "Filters",
+      "buscarLancamentos": "Search transactions",
+      "arquivada": "(archived)",
+      "valorMinimo": "Minimum amount",
+      "valorMaximo": "Maximum amount",
+      "filters": "Filters"
+    },
+    "quickRowEditor": {
+      "novoLancamento": "New transaction",
+      "escolha": "Choose",
+      "arquivada": "(archived)",
+      "saida": "Expense",
+      "salvando": "Saving...",
+      "adicionar": "Add",
+      "salvar": "Save",
+      "editing": "Editing {{description}}"
+    },
+    "shortcutsDialog": {
+      "atalhosDaTabela": "Table shortcuts",
+      "asTeclasDeUma": "Single-letter keys only work with focus on a table row; inside a field you type normally. An amount with a minus sign in front is an expense, and without a sign it is income."
+    },
+    "transactionFormDialog": {
+      "editarRecorrente": "Edit recurring transaction",
+      "novaRecorrente": "New recurring transaction",
+      "editarLancamento": "Edit transaction",
+      "novoLancamento": "New transaction",
+      "umLancamentoQueSe": "A transaction that repeats on its own. The app also creates the ones that should already have happened since the first date.",
+      "altereOsDadosDo": "Change the transaction's details.",
+      "registreUmaSaidaUma": "Record an expense, an income or a transfer.",
+      "nomeDaRecorrente": "Name of the recurring transaction",
+      "frequencia": "Frequency",
+      "termina": "Ends",
+      "nunca": "Never",
+      "numaData": "On a date",
+      "depoisDeNVezes": "After N times",
+      "quantasVezes": "How many times",
+      "primeiraData": "First date",
+      "osLancamentosDesdeEsta": "Transactions from this date until today will be created now.",
+      "aPrimeiraDataE": "The first date and the frequency don't change after it is created.",
+      "contaQueRecebe": "Receiving account",
+      "arquivada": "(archived)",
+      "tituloOpcional": "Title (optional)",
+      "pagarParaUmNome": "Pay a name",
+      "receberDeUmNome": "Receive from a name",
+      "pagarUmaDivida": "Pay a debt",
+      "receberDeUmaDivida": "Receive from a debt",
+      "moedaOriginalOpcional": "Original currency (optional)",
+      "seACompraFoi": "If the purchase was in another currency, say which. It's only a record: the balance uses the amount above.",
+      "nenhuma": "None",
+      "divisao": "Split",
+      "desfazerDivisao": "Undo split",
+      "semOrcamento": "No budget",
+      "arquivado": "(archived)",
+      "ligarAutomaticamente": "Link automatically",
+      "naoLigarANenhuma": "Don't link to any",
+      "adicionarLinha": "Add line",
+      "tudoDistribuido": "Everything distributed.",
+      "contaAPagar": "Bill",
+      "tags": "Tags",
+      "dividirLancamento": "Split transaction",
+      "notas": "Notes",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarRecorrente": "Create recurring transaction",
+      "criarLancamento": "Create transaction"
+    },
+    "transactionRow": {
+      "conciliado": "Reconciled",
+      "conferido": "Cleared",
+      "anexos": "Attachments"
+    },
+    "transactionsTable": {
+      "comOFocoNuma": "With focus on a row: arrows or J and K move, Enter edits, T creates, Space selects.",
+      "atalhos": "Shortcuts",
+      "novaLinha": "New row",
+      "acoesEmMassa": "Bulk actions",
+      "mudarCategoria": "Change category",
+      "mudarData": "Change date",
+      "duplicar": "Duplicate",
+      "limparSelecao": "Clear selection",
+      "desmarcarOsTravados": "Unselect the locked ones",
+      "lancamentosEmTabelaUse": "Transactions in a table. Use the arrows, J and K to move between rows, Enter to edit the row, T for a new transaction, Space to select and Ctrl+A to select all loaded ones.",
+      "selecionarTodosOsCarregados": "Select all loaded",
+      "contraparte": "Counterparty",
+      "acoes": "Actions",
+      "conciliado": "Reconciled",
+      "conferido": "Cleared",
+      "excluirLancamentos": "Delete transactions",
+      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before them, and the attachments are deleted too."
+    },
+    "form": {
+      "kind": {
+        "withdrawal": "Expense",
+        "deposit": "Income",
+        "transfer": "Transfer"
+      },
+      "amountPositive": "Enter an amount greater than zero.",
+      "accountRequired": "Choose the account.",
+      "descriptionRequired": "Enter the description.",
+      "destinationRequired": "Choose the destination account.",
+      "destinationDifferent": "The destination account must be different from the source account.",
+      "debtRequired": "Choose the debt.",
+      "debtSameCurrency": "To receive from a debt, both accounts must have the same currency.",
+      "toWhomRequired": "Enter who it was for.",
+      "fromWhomRequired": "Enter who it came from.",
+      "splitOver": "The lines exceed the total by {{amount}}",
+      "splitMissing": "{{amount}} still to distribute",
+      "reasonNoLines": "This transaction has no lines.",
+      "reasonTypeNotEditable": "This type of transaction can't be edited here.",
+      "reasonMixed": "This transaction's lines have different types, dates or accounts. It can only be edited through the API.",
+      "reasonForeign": "This transaction stores the original amount in another currency in a way the form can't edit.",
+      "templateNoLines": "This template has no lines.",
+      "templateMixed": "This template's lines have different types or accounts. It can only be edited through the API.",
+      "templateForeign": "This template stores the original amount in another currency in a way the form can't edit.",
+      "recurrenceNameRequired": "Enter the name of the recurring transaction.",
+      "endBeforeStart": "The end date can't be before the first one.",
+      "endCountInvalid": "Enter how many times, from 1 to 99999.",
+      "toAccount": "To account",
+      "debtLabel": "Debt",
+      "toWhom": "To whom",
+      "fromWhom": "From whom",
+      "totalAmount": "Total amount ({{currency}})",
+      "amount": "Amount ({{currency}})",
+      "arrivingAmount": "Amount arriving in {{currency}}",
+      "originalAmount": "Original amount ({{currency}})",
+      "row": "Line {{n}}",
+      "removeRow": "Remove line {{n}}",
+      "rowDescription": "Description of line {{n}}",
+      "rowAmount": "Amount of line {{n}}",
+      "rowCategory": "Category of line {{n}}",
+      "rowBudget": "Budget of line {{n}}",
+      "rowBill": "Bill of line {{n}}",
+      "rowTags": "Tags of line {{n}}"
+    },
+    "presentation": {
+      "originalAmount": "Original amount: {{amount}}",
+      "noDescription": "No description"
+    },
+    "quickRow": {
+      "expense": "Expense",
+      "income": "Income",
+      "counterpartyRequired": "Enter the counterparty.",
+      "reasonSplit": "Split transaction: edit it in the full form.",
+      "reasonTransfer": "Transfer: edit it in the full form.",
+      "reasonDebt": "Transaction linked to a debt: edit it in the full form."
+    },
+    "selection": {
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "selectedPartial": "{{marked}} (only the {{loaded}} loaded; {{more}} more to load)",
+      "limit": "Select at most {{max}} transactions at a time ({{count}} are selected).",
+      "selected_zero": "0 selected"
+    },
+    "bulk": {
+      "entries_one": "{{count}} transaction",
+      "entries_other": "{{count}} transactions",
+      "categoryRemoved": "Category removed from {{entries}}.",
+      "categoryChanged": "Category changed on {{entries}}.",
+      "dateChanged": "Date changed on {{entries}}.",
+      "duplicated_one": "{{count}} transaction duplicated with today's date.",
+      "duplicated_other": "{{count}} transactions duplicated with today's date.",
+      "deleted_one": "{{count}} transaction deleted.",
+      "deleted_other": "{{count}} transactions deleted.",
+      "andMore": "{{shown}} and {{count}} more",
+      "categoryRequired": "Choose a category, or “No category” to remove it.",
+      "categoryAppliesTo": "The new category applies to {{entries}}, in every split of each one.",
+      "dateAppliesTo": "The new date applies to {{entries}}, in every split of each one."
+    },
+    "filters": {
+      "dateRangeInvalid": "The start date is after the end date."
+    },
+    "table": {
+      "locked": "Locked: {{list}}.",
+      "select": "Select {{title}}",
+      "edit": "Edit {{title}}",
+      "editFull": "Edit {{title}} in the full form",
+      "delete": "Delete {{title}}"
+    },
+    "row": {
+      "attachments_one": "{{count}} attachment, open the attachments of {{title}}",
+      "attachments_other": "{{count}} attachments, open the attachments of {{title}}",
+      "actions": "Actions for transaction {{title}}"
+    },
+    "shortcuts": {
+      "keySpace": "Space",
+      "focusedRow": "With focus on a table row",
+      "nextRow": "Next row",
+      "previousRow": "Previous row",
+      "firstLastRow": "First and last row",
+      "editRow": "Edit the row",
+      "newRow": "New transaction row",
+      "selecting": "Select several transactions",
+      "toggleRow": "Select or unselect the row",
+      "markRange": "Select from the last selected up to the row",
+      "markAll": "Select all loaded (again, unselects)",
+      "clearSelection": "Clear the selection",
+      "inRow": "In the entry or edit row",
+      "nextField": "Next field and previous field",
+      "saveRow": "Save the row",
+      "saveClose": "Save and close the new row",
+      "cancel": "Cancel without saving"
+    }
+  },
+  "labels": {
+    "labelFormDialog": {
+      "cor": "Color",
+      "escolhaQualquerCorOu": "Choose any color or leave it without one.",
+      "comoVaiAparecer": "How it will look:",
+      "salvando": "Saving...",
+      "nameRequired": "Enter the name.",
+      "namePreview": "Category name"
+    },
+    "labelsPage": {
+      "nadaEncontrado": "Nothing found",
+      "criar": "Create",
+      "salvar": "Save",
+      "actionsFor": "Actions for {{name}}"
+    },
+    "category": {
+      "title": "Categories",
+      "description": "Group your transactions by subject: groceries, housing, leisure...",
+      "newLabel": "New category",
+      "loading": "Loading categories...",
+      "noResultsFor": "No category has “{{search}}” in its name.",
+      "emptyTitle": "No categories yet",
+      "emptyDescription": "Create your first category to start organizing.",
+      "count_one": "{{count}} category",
+      "count_other": "{{count}} categories",
+      "countWithSearch_one": "{{count}} category matching “{{search}}”",
+      "countWithSearch_other": "{{count}} categories matching “{{search}}”",
+      "searchLabel": "Search categories",
+      "createDescription": "Give the category a name and a color.",
+      "editTitle": "Edit category",
+      "editDescription": "Change the category's details.",
+      "deleteTitle": "Delete category",
+      "deleteConsequence": "Its transactions will have no category."
+    },
+    "tag": {
+      "title": "Tags",
+      "description": "Mark transactions with free-form words to find them later: trip, reimbursement...",
+      "newLabel": "New tag",
+      "loading": "Loading tags...",
+      "noResultsFor": "No tag has “{{search}}” in its name.",
+      "emptyTitle": "No tags yet",
+      "emptyDescription": "Create your first tag to start organizing.",
+      "count_one": "{{count}} tag",
+      "count_other": "{{count}} tags",
+      "countWithSearch_one": "{{count}} tag matching “{{search}}”",
+      "countWithSearch_other": "{{count}} tags matching “{{search}}”",
+      "searchLabel": "Search tags",
+      "createDescription": "Give the tag a name.",
+      "editTitle": "Edit tag",
+      "editDescription": "Change the tag's details.",
+      "deleteTitle": "Delete tag",
+      "deleteConsequence": "It will be removed from the transactions that use it."
+    }
   }
 }

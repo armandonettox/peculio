@@ -4,17 +4,12 @@ import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory,
 import { LabelsPage } from "@/features/labels/labels-page";
 
 const CONFIG = {
-  title: "Categorias",
-  description: "Agrupe suas transações por assunto: mercado, moradia, lazer...",
+  kind: "category",
   icon: Tags,
-  noun: "categoria",
-  newLabel: "Nova categoria",
-  plural: "categorias",
   withColor: true,
   nameMaxLength: 100,
   takenCode: "category_name_taken",
-  deleteConsequence: "As transações dela ficarão sem categoria.",
-};
+} as const;
 
 export default function CategoriesPage() {
   const create = useCreateCategory();

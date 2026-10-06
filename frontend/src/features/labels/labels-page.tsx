@@ -19,23 +19,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { LabelFormDialog, type LabelValues } from "./label-form-dialog";
+import { useTranslation } from "react-i18next";
 
 export type LabelItem = { id: string; name: string; color?: string | null };
 
 type Config = {
-  title: string;
-  description: string;
+  // Cada tipo tem as suas frases completas em labels.<tipo>.* (nada de montar frase juntando o nome do tipo)
+  kind: "category" | "tag";
   icon: LucideIcon;
-  // "categoria" / "tag": entra nos textos
-  noun: string;
-  // "Nova categoria" / "Nova tag"
-  newLabel: string;
-  plural: string;
-  // Genero dos textos: categoria e feminino, tag tambem
   withColor: boolean;
   nameMaxLength: number;
   takenCode: string;
-  deleteConsequence: string;
 };
 
 type Props = {
@@ -49,6 +43,7 @@ type Props = {
 type DialogState = { kind: "create" } | { kind: "edit"; item: LabelItem } | { kind: "delete"; item: LabelItem } | null;
 
 export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Props) {
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState("");
   const search = useDebouncedValue(searchText.trim());
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -59,7 +54,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
   const newButton = (
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
-      {config.newLabel}
+      {t(`labels.${config.kind}.newLabel`)}
     </Button>
   );
 
@@ -71,7 +66,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
           <div key={index} className="h-14 animate-pulse rounded-lg border bg-muted" />
         ))}
         <p className="sr-only" role="status">
-          Carregando {config.plural}...
+          {t(`labels.${config.kind}.loading`)}
         </p>
       </div>
     );
@@ -82,7 +77,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
           {getErrorMessage(query.error)}
         </Alert>
         <Button variant="outline" onClick={() => void query.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -90,14 +85,14 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
     content = searching ? (
       <EmptyState
         icon={Search}
-        title="Nada encontrado"
-        description={`Nenhuma ${config.noun} tem “${search}” no nome.`}
+        title={t("labels.labelsPage.nadaEncontrado")}
+        description={t(`labels.${config.kind}.noResultsFor`, { search })}
       />
     ) : (
       <EmptyState
         icon={config.icon}
-        title={`Nenhuma ${config.noun} ainda`}
-        description={`Crie a sua primeira ${config.noun} para começar a organizar.`}
+        title={t(`labels.${config.kind}.emptyTitle`)}
+        description={t(`labels.${config.kind}.emptyDescription`)}
         action={newButton}
       />
     );
@@ -105,8 +100,9 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
     content = (
       <>
         <p className="mb-3 text-sm text-muted-foreground">
-          {query.data!.total} {query.data!.total === 1 ? config.noun : config.plural}
-          {searching ? ` com “${search}”` : ""}
+          {searching
+            ? t(`labels.${config.kind}.countWithSearch`, { count: query.data!.total, search })
+            : t(`labels.${config.kind}.count`, { count: query.data!.total })}
         </p>
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
@@ -119,7 +115,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    aria-label={`Ações de ${item.name}`}
+                    aria-label={t("labels.labelsPage.actionsFor", { name: item.name })}
                     className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <MoreVertical className="size-4" />
@@ -128,12 +124,12 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
                 <DropdownMenuContent align="end" className="min-w-40">
                   <DropdownMenuItem onSelect={() => setDialog({ kind: "edit", item })}>
                     <Pencil />
-                    Editar
+                    {t("common.editar")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => setDialog({ kind: "delete", item })} className="text-destructive">
                     <Trash2 />
-                    Excluir
+                    {t("common.excluir")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -153,14 +149,14 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
 
   return (
     <>
-      <PageHeader title={config.title} description={config.description} actions={newButton} />
+      <PageHeader title={t(`labels.${config.kind}.title`)} description={t(`labels.${config.kind}.description`)} actions={newButton} />
 
       <div className="relative mb-6 max-w-sm">
         <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
-          aria-label={`Buscar ${config.noun}`}
-          placeholder={`Buscar ${config.noun}`}
+          aria-label={t(`labels.${config.kind}.searchLabel`)}
+          placeholder={t(`labels.${config.kind}.searchLabel`)}
           value={searchText}
           onChange={(event) => setSearchText(event.target.value)}
           className="pl-9"
@@ -172,28 +168,28 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
       {dialog?.kind === "create" && (
         <LabelFormDialog
           {...shared}
-          title={config.newLabel}
-          description={`Dê um nome${config.withColor ? " e uma cor" : ""} para a ${config.noun}.`}
+          title={t(`labels.${config.kind}.newLabel`)}
+          description={t(`labels.${config.kind}.createDescription`)}
           initial={{ name: "", color: null }}
-          submitLabel="Criar"
+          submitLabel={t("labels.labelsPage.criar")}
           onSubmit={onCreate}
         />
       )}
       {dialog?.kind === "edit" && (
         <LabelFormDialog
           {...shared}
-          title={`Editar ${config.noun}`}
-          description={`Altere os dados da ${config.noun}.`}
+          title={t(`labels.${config.kind}.editTitle`)}
+          description={t(`labels.${config.kind}.editDescription`)}
           initial={{ name: dialog.item.name, color: dialog.item.color ?? null }}
-          submitLabel="Salvar"
+          submitLabel={t("labels.labelsPage.salvar")}
           onSubmit={(values) => onUpdate(dialog.item, values)}
         />
       )}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
-          title={`Excluir ${config.noun}`}
+          title={t(`labels.${config.kind}.deleteTitle`)}
           itemName={dialog.item.name}
-          consequence={config.deleteConsequence}
+          consequence={t(`labels.${config.kind}.deleteConsequence`)}
           onConfirm={() => onDelete(dialog.item)}
           onClose={() => setDialog(null)}
         />

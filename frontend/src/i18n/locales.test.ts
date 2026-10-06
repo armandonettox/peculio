@@ -45,7 +45,18 @@ describe("arquivos de traducao", () => {
   });
 
   // Textos iguais nos dois idiomas por serem a mesma palavra (nome de funcao, termo tecnico), nao por esquecimento
-  const SAME_IN_BOTH = new Set(["components.appShell.menu", "nav.tags", "nav.webhooks", "nav.envelopes"]);
+  const SAME_IN_BOTH = new Set([
+    "components.appShell.menu",
+    "nav.tags",
+    "nav.webhooks",
+    "nav.envelopes",
+    "pages.accounts.total",
+    "common.tag",
+    "transactions.transactionFormDialog.tags",
+    "labels.tag.title",
+    "labels.tag.count_one",
+    "labels.tag.count_other",
+  ]);
 
   it("o ingles nao e uma copia do portugues: texto igual so na lista de excecoes", () => {
     const copies = Object.keys(pt).filter((key) => english[key] === pt[key] && !SAME_IN_BOTH.has(key));

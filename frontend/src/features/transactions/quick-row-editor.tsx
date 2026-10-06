@@ -23,6 +23,7 @@ import {
   type QuickErrors,
   type QuickRow,
 } from "./quick-row";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   mode: "new" | "edit";
@@ -39,14 +40,15 @@ type Props = {
   onCancel: () => void;
 };
 
-const LABELS: Record<QuickColumn, string> = {
-  date: "Data",
-  description: "Descrição",
-  counterparty: "Contraparte",
-  account: "Conta",
-  category: "Categoria",
-  amount: "Valor",
-};
+// Chave do rotulo (nome acessivel) de cada coluna da linha rapida
+const LABEL_KEYS = {
+  date: "common.data",
+  description: "common.descricao",
+  counterparty: "transactions.transactionsTable.contraparte",
+  account: "common.conta",
+  category: "common.categoria",
+  amount: "common.valor",
+} as const satisfies Record<QuickColumn, string>;
 
 type Field = HTMLInputElement | HTMLSelectElement;
 
@@ -56,6 +58,7 @@ type Field = HTMLInputElement | HTMLSelectElement;
  * dele aparece embaixo da linha sem fecha-la.
  */
 export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColumn, save, onDone, onCancel }: Props) {
+  const { t } = useTranslation();
   const [row, setRow] = useState(initial);
   const [errors, setErrors] = useState<QuickErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -123,7 +126,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
 
   const errorId = (column: keyof QuickErrors) => `quick-${mode}-${column}-error`;
   const fieldProps = (column: QuickColumn) => ({
-    "aria-label": LABELS[column],
+    "aria-label": t(LABEL_KEYS[column]),
     "aria-invalid": Boolean(errors[column as keyof QuickErrors]),
     "aria-describedby": errors[column as keyof QuickErrors] ? errorId(column as keyof QuickErrors) : undefined,
     disabled: busy,
@@ -142,7 +145,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
   return (
     <>
       <tr
-        aria-label={mode === "new" ? "Novo lançamento" : `Editando ${initial.description}`}
+        aria-label={mode === "new" ? t("transactions.quickRowEditor.novoLancamento") : t("transactions.quickRowEditor.editing", { description: initial.description })}
         onKeyDown={handleKeyDown}
         className="bg-accent/40 align-top"
       >
@@ -203,11 +206,11 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
             onChange={(event) => patch({ accountId: event.target.value }, "account")}
             className="min-w-32"
           >
-            <option value="">Escolha</option>
+            <option value="">{t("transactions.quickRowEditor.escolha")}</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name}
-                {account.active ? "" : " (arquivada)"}
+                {account.active ? "" : ` ${t("transactions.quickRowEditor.arquivada")}`}
               </option>
             ))}
           </Select>
@@ -223,7 +226,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
             onChange={(event) => patch({ categoryId: event.target.value })}
             className="min-w-32"
           >
-            <option value="">Sem categoria</option>
+            <option value="">{t("common.semCategoria")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -245,17 +248,17 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
             className="min-w-28 text-right tabular-nums"
           />
           <p className={cn("mt-1 text-right text-xs text-muted-foreground", !hint && "invisible")} aria-live="polite">
-            {hint ?? "Saída"}
+            {hint ?? t("transactions.quickRowEditor.saida")}
           </p>
           {errorText("amount")}
         </td>
         <td className="px-2 py-2">
           <div className="flex justify-end gap-1">
             <Button type="button" size="sm" onClick={() => void submit(false)} disabled={busy}>
-              {busy ? "Salvando..." : mode === "new" ? "Adicionar" : "Salvar"}
+              {busy ? t("transactions.quickRowEditor.salvando") : mode === "new" ? t("transactions.quickRowEditor.adicionar") : t("transactions.quickRowEditor.salvar")}
             </Button>
             <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={busy}>
-              Cancelar
+              {t("common.cancelar")}
             </Button>
           </div>
         </td>

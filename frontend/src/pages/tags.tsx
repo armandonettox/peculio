@@ -4,17 +4,12 @@ import { useCreateTag, useDeleteTag, useTags, useUpdateTag } from "@/api/labels"
 import { LabelsPage } from "@/features/labels/labels-page";
 
 const CONFIG = {
-  title: "Tags",
-  description: "Marque transações com palavras livres para achá-las depois: viagem, reembolso...",
+  kind: "tag",
   icon: Tag,
-  noun: "tag",
-  newLabel: "Nova tag",
-  plural: "tags",
   withColor: false,
   nameMaxLength: 50,
   takenCode: "tag_name_taken",
-  deleteConsequence: "Ela será removida das transações que a usam.",
-};
+} as const;
 
 export default function TagsPage() {
   const create = useCreateTag();

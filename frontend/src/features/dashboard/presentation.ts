@@ -208,7 +208,7 @@ export function recentLine(
     id: transaction.id,
     date: shortDayLabel(transactionDate(transaction), today),
     title: transactionTitle(transaction),
-    detail: divided ? i18n.t("dashboard.presentation.dividedIn", { count: transaction.splits.length }) : (category?.name ?? null),
+    detail: divided ? i18n.t("common.dividedIn", { count: transaction.splits.length }) : (category?.name ?? null),
     amount: formatTransactionAmount(transaction),
     direction: first ? directionOf(first) : "neutral",
   };
