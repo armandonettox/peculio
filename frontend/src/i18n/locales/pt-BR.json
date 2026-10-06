@@ -248,6 +248,26 @@
       "avisosAutomaticosParaOutros": "Avisos automáticos para outros sistemas",
       "excluirWebhook": "Excluir webhook",
       "oHistoricoDeEntregas": "O histórico de entregas dele também é apagado e os avisos pendentes não são enviados."
+    },
+    "settings": {
+      "configuracoes": "Configurações",
+      "seuPerfilSenhaAparencia": "Seu perfil, senha, aparência e, para o administrador, os convites e o contato de segurança"
+    },
+    "security": {
+      "desativada": "Desativada",
+      "comAVerificacaoEm": "Com a verificação em duas etapas, além da senha você digita um código do seu celular. Mesmo que alguém descubra sua senha, não consegue entrar.",
+      "ativarVerificacaoEmDuas": "Ativar verificação em duas etapas",
+      "ativada": "Ativada",
+      "codigoDeRecuperacaoRestante": "código de recuperação restante",
+      "codigosDeRecuperacaoRestantes": "códigos de recuperação restantes",
+      "voceNaoTemMais": "Você não tem mais códigos de recuperação. Gere novos para não ficar sem acesso se perder o celular.",
+      "restamPoucosCodigosDe": "Restam poucos códigos de recuperação. Gere novos para não ficar sem acesso se perder o celular.",
+      "gerarNovosCodigos": "Gerar novos códigos",
+      "desativar": "Desativar",
+      "protejaOAcessoA": "Proteja o acesso à sua conta",
+      "verificacaoEmDuasEtapas": "Verificação em duas etapas",
+      "umSegundoCodigoAlem": "Um segundo código, além da senha, ao entrar.",
+      "paraRelatarUmProblema": "Para relatar um problema de segurança nesta instalação, fale com <wk>{{contact}}</wk>."
     }
   },
   "common": {
@@ -289,7 +309,8 @@
     "receita": "Receita",
     "despesa": "Despesa",
     "resultado": "Resultado",
-    "concluir": "Concluir"
+    "concluir": "Concluir",
+    "revogar": "Revogar"
   },
   "components": {
     "appShell": {
@@ -1642,6 +1663,141 @@
     },
     "maskUrl": {
       "enderecoInvalido": "Endereço inválido"
+    }
+  },
+  "settings": {
+    "invitesSection": {
+      "carregandoConvites": "Carregando convites...",
+      "nenhumConviteCriadoAinda": "Nenhum convite criado ainda.",
+      "usuariosEConvites": "Usuários e convites",
+      "soQuemRecebeUm": "Só quem recebe um convite consegue criar conta. Cada convite vale para um e-mail.",
+      "eMailDaPessoa": "E-mail da pessoa",
+      "criando": "Criando...",
+      "criarConvite": "Criar convite",
+      "copiado": "Copiado",
+      "copiarLink": "Copiar link",
+      "revogarConvite": "Revogar convite",
+      "oLinkDeixaDe": "O link deixa de funcionar.",
+      "criadoEm": "Criado em {{date}}",
+      "revogarOConviteDe": "Revogar o convite de {{email}}",
+      "conviteCriadoPara": "Convite criado para <strong>{{email}}</strong>. Envie este link: ele só aparece agora, depois só existe o convite na lista.",
+      "oConviteDe": "o convite de {{email}}"
+    },
+    "passwordSection": {
+      "aoTrocarVoceContinua": "Ao trocar, você continua conectado aqui e as outras sessões precisam entrar de novo.",
+      "senhaAtual": "Senha atual",
+      "novaSenha": "Nova senha",
+      "peloMenos8Caracteres": "Pelo menos 8 caracteres.",
+      "repitaANovaSenha": "Repita a nova senha",
+      "trocando": "Trocando...",
+      "trocarSenha": "Trocar senha",
+      "senhaAlterada": "Senha alterada. As outras sessões foram encerradas.",
+      "senhaAtualIncorreta": "Senha atual incorreta."
+    },
+    "profileSection": {
+      "perfil": "Perfil",
+      "comoVoceApareceNo": "Como você aparece no app e a moeda que ele sugere nas contas novas.",
+      "oEMailNao": "O e-mail não pode ser trocado por aqui.",
+      "moedaPadrao": "Moeda padrão",
+      "salvando": "Salvando...",
+      "salvarPerfil": "Salvar perfil",
+      "perfilSalvo": "Perfil salvo."
+    },
+    "securityContactSection": {
+      "contatoDeSeguranca": "Contato de segurança",
+      "umEMailOu": "Um e-mail ou um endereço que comece com https://. Deixe vazio para não publicar nenhum.",
+      "salvando": "Salvando...",
+      "salvarContato": "Salvar contato",
+      "removerContato": "Remover contato",
+      "aQuemAsPessoas": "A quem as pessoas desta instalação devem relatar um problema de segurança. Aparece na página Segurança para todos.",
+      "contatoSalvo": "Contato salvo.",
+      "contatoRemovido": "Contato removido.",
+      "publicadoEm": "Publicado em <wk>/.well-known/security.txt</wk>, o endereço padrão que pesquisadores de segurança procuram."
+    },
+    "securitySection": {
+      "verificacaoEmDuasEtapas": "Verificação em duas etapas e tokens de API para scripts.",
+      "abrirAPaginaDe": "Abrir a página de Segurança"
+    },
+    "model": {
+      "informeONome": "Informe o nome.",
+      "useNoMaximoLetras": "Use no máximo {{max}} letras.",
+      "escolhaAMoeda": "Escolha a moeda.",
+      "informeASenhaAtual": "Informe a senha atual.",
+      "novaSenhaDiferente": "A nova senha precisa ser diferente da atual.",
+      "senhasNaoConferem": "As senhas não conferem.",
+      "usado": "Usado",
+      "vencido": "Vencido",
+      "venceEmDias_one": "Vence em {{count}} dia",
+      "venceEmDias_other": "Vence em {{count}} dias",
+      "useNoMaximoCaracteres": "Use no máximo {{max}} caracteres.",
+      "enderecoInvalido": "O endereço https:// não é válido.",
+      "informeUmEmailValido": "Informe um e-mail válido ou um endereço que comece com https://."
+    }
+  },
+  "security": {
+    "confirmTwoFactorDialog": {
+      "novosCodigosDeRecuperacao": "Novos códigos de recuperação",
+      "osCodigosAntigosNao": "Os códigos antigos não valem mais.",
+      "codigoDeVerificacao": "Código de verificação",
+      "codigoDe6Digitos": "Código de 6 dígitos do app ou um código de recuperação.",
+      "desativarVerificacao": "Desativar verificação em duas etapas",
+      "suaContaVolta": "Sua conta volta a pedir só a senha para entrar. Os códigos de recuperação atuais deixam de valer.",
+      "desativar": "Desativar",
+      "desativando": "Desativando...",
+      "gerarNovosCodigosDe": "Gerar novos códigos de recuperação",
+      "osCodigosAtuaisDeixam": "Os códigos atuais deixam de valer e você recebe 10 novos.",
+      "gerarNovosCodigos": "Gerar novos códigos",
+      "gerando": "Gerando...",
+      "informeASenha": "Informe a senha.",
+      "informeUmCodigo": "Informe um código do app ou de recuperação."
+    },
+    "devicesSection": {
+      "esteAparelho": "Este aparelho",
+      "manterConectado": "Manter conectado",
+      "encerrar": "Encerrar",
+      "encerrarOOutroAparelho": "Encerrar o outro aparelho",
+      "aparelhosConectados": "Aparelhos conectados",
+      "ondeASuaConta": "Onde a sua conta está aberta. Encerrar um aparelho acaba com o acesso dele na hora. Trocar a senha encerra todos os outros.",
+      "foiEncerrado": "{{device}} foi encerrado.",
+      "entrouEmUsado": "Entrou em {{date}} · usado {{lastUsed}}",
+      "encerrarDeviceUsado": "Encerrar {{device}}, usado {{lastUsed}}",
+      "encerrarOsOutrosAparelhos": "Encerrar os outros {{count}} aparelhos",
+      "encerradoResultado_one": "{{devices}} encerrado.",
+      "encerradoResultado_other": "{{devices}} encerrados."
+    },
+    "devicesModel": {
+      "agora": "agora",
+      "haMinutos": "há {{count}} min",
+      "haHoras": "há {{count}} h",
+      "haDias_one": "há {{count}} dia",
+      "haDias_other": "há {{count}} dias",
+      "devices_zero": "{{count}} aparelhos",
+      "devices_one": "{{count}} aparelho",
+      "devices_other": "{{count}} aparelhos"
+    },
+    "enableTwoFactorDialog": {
+      "codigosDeRecuperacao": "Códigos de recuperação",
+      "ativarVerificacaoEmDuas": "Ativar verificação em duas etapas",
+      "aVerificacaoEmDuas": "A verificação em duas etapas está ativada.",
+      "useUmAppAutenticador": "Use um app autenticador para gerar um código toda vez que entrar.",
+      "gerandoOSegredo": "Gerando o segredo...",
+      "qrCodeParaO": "QR code para o app autenticador",
+      "naoConsegueEscanearDigite": "Não consegue escanear? Digite este segredo no app:",
+      "segredo": "Segredo",
+      "codigoDeVerificacao": "Código de verificação",
+      "ativando": "Ativando...",
+      "ativar": "Ativar",
+      "informeOCodigo": "Informe o código de 6 dígitos.",
+      "abraOAppAutenticador": "Abra o app autenticador (Google Authenticator, Authy, 1Password ou outro) e escaneie o QR code.",
+      "digiteOCodigo": "Digite o código de 6 dígitos que o app mostra."
+    },
+    "recoveryCodesView": {
+      "guardeEstesCodigosEm": "Guarde estes códigos em um lugar seguro. Cada um entra uma vez, caso você perca o acesso ao app autenticador. Eles não aparecem de novo.",
+      "codigosDeRecuperacao": "Códigos de recuperação",
+      "copiarCodigos": "Copiar códigos",
+      "codigosCopiados": "Códigos copiados.",
+      "naoFoiPossivelCopiar": "Não foi possível copiar. Selecione e copie à mão.",
+      "guardeiMeusCodigosEm": "Guardei meus códigos em um lugar seguro"
     }
   }
 }

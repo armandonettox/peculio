@@ -6,12 +6,14 @@ import { PasswordSection } from "@/features/settings/password-section";
 import { ProfileSection } from "@/features/settings/profile-section";
 import { SecurityContactSection } from "@/features/settings/security-contact-section";
 import { SecuritySection } from "@/features/settings/security-section";
+import { useTranslation } from "react-i18next";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   return (
     <>
-      <PageHeader title="Configurações" description="Seu perfil, senha, aparência e, para o administrador, os convites e o contato de segurança" />
+      <PageHeader title={t("pages.settings.configuracoes")} description={t("pages.settings.seuPerfilSenhaAparencia")} />
       {/* Colunas que se enchem de cima para baixo, cada bloco do proprio tamanho (sem buraco ao lado do bloco curto) */}
       <div className="columns-1 gap-6 xl:columns-2 [&>*]:mb-6 [&>*]:break-inside-avoid">
         <ProfileSection />

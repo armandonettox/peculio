@@ -248,6 +248,26 @@
       "avisosAutomaticosParaOutros": "Automatic notices for other systems",
       "excluirWebhook": "Delete webhook",
       "oHistoricoDeEntregas": "Its delivery history is also deleted and pending notices aren't sent."
+    },
+    "settings": {
+      "configuracoes": "Settings",
+      "seuPerfilSenhaAparencia": "Your profile, password, appearance and, for the administrator, invites and the security contact"
+    },
+    "security": {
+      "desativada": "Disabled",
+      "comAVerificacaoEm": "With two-step verification, besides the password you enter a code from your phone. Even if someone discovers your password, they can't log in.",
+      "ativarVerificacaoEmDuas": "Enable two-step verification",
+      "ativada": "Enabled",
+      "codigoDeRecuperacaoRestante": "recovery code left",
+      "codigosDeRecuperacaoRestantes": "recovery codes left",
+      "voceNaoTemMais": "You don't have any recovery codes left. Generate new ones so you don't lose access if you lose your phone.",
+      "restamPoucosCodigosDe": "Few recovery codes left. Generate new ones so you don't lose access if you lose your phone.",
+      "gerarNovosCodigos": "Generate new codes",
+      "desativar": "Disable",
+      "protejaOAcessoA": "Protect access to your account",
+      "verificacaoEmDuasEtapas": "Two-step verification",
+      "umSegundoCodigoAlem": "A second code, besides the password, when logging in.",
+      "paraRelatarUmProblema": "To report a security issue on this installation, contact <wk>{{contact}}</wk>."
     }
   },
   "common": {
@@ -289,7 +309,8 @@
     "receita": "Income",
     "despesa": "Expense",
     "resultado": "Net",
-    "concluir": "Done"
+    "concluir": "Done",
+    "revogar": "Revoke"
   },
   "components": {
     "appShell": {
@@ -1642,6 +1663,141 @@
     },
     "maskUrl": {
       "enderecoInvalido": "Invalid address"
+    }
+  },
+  "settings": {
+    "invitesSection": {
+      "carregandoConvites": "Loading invites...",
+      "nenhumConviteCriadoAinda": "No invites created yet.",
+      "usuariosEConvites": "Users and invites",
+      "soQuemRecebeUm": "Only someone who receives an invite can create an account. Each invite is good for one email.",
+      "eMailDaPessoa": "Person's email",
+      "criando": "Creating...",
+      "criarConvite": "Create invite",
+      "copiado": "Copied",
+      "copiarLink": "Copy link",
+      "revogarConvite": "Revoke invite",
+      "oLinkDeixaDe": "The link stops working.",
+      "criadoEm": "Created on {{date}}",
+      "revogarOConviteDe": "Revoke the invite for {{email}}",
+      "conviteCriadoPara": "Invite created for <strong>{{email}}</strong>. Send this link: it only appears now, afterward only the invite remains in the list.",
+      "oConviteDe": "the invite for {{email}}"
+    },
+    "passwordSection": {
+      "aoTrocarVoceContinua": "When you change it, you stay signed in here and other sessions need to sign in again.",
+      "senhaAtual": "Current password",
+      "novaSenha": "New password",
+      "peloMenos8Caracteres": "At least 8 characters.",
+      "repitaANovaSenha": "Repeat the new password",
+      "trocando": "Changing...",
+      "trocarSenha": "Change password",
+      "senhaAlterada": "Password changed. The other sessions were ended.",
+      "senhaAtualIncorreta": "Current password is incorrect."
+    },
+    "profileSection": {
+      "perfil": "Profile",
+      "comoVoceApareceNo": "How you appear in the app and the currency it suggests for new accounts.",
+      "oEMailNao": "The email can't be changed here.",
+      "moedaPadrao": "Default currency",
+      "salvando": "Saving...",
+      "salvarPerfil": "Save profile",
+      "perfilSalvo": "Profile saved."
+    },
+    "securityContactSection": {
+      "contatoDeSeguranca": "Security contact",
+      "umEMailOu": "An email or an address starting with https://. Leave it blank to not publish one.",
+      "salvando": "Saving...",
+      "salvarContato": "Save contact",
+      "removerContato": "Remove contact",
+      "aQuemAsPessoas": "Who people on this installation should report a security issue to. Shown on the Security page for everyone.",
+      "contatoSalvo": "Contact saved.",
+      "contatoRemovido": "Contact removed.",
+      "publicadoEm": "Published at <wk>/.well-known/security.txt</wk>, the default address security researchers look for."
+    },
+    "securitySection": {
+      "verificacaoEmDuasEtapas": "Two-step verification and API tokens for scripts.",
+      "abrirAPaginaDe": "Open the Security page"
+    },
+    "model": {
+      "informeONome": "Enter the name.",
+      "useNoMaximoLetras": "Use at most {{max}} characters.",
+      "escolhaAMoeda": "Choose the currency.",
+      "informeASenhaAtual": "Enter the current password.",
+      "novaSenhaDiferente": "The new password needs to be different from the current one.",
+      "senhasNaoConferem": "The passwords don't match.",
+      "usado": "Used",
+      "vencido": "Expired",
+      "venceEmDias_one": "Expires in {{count}} day",
+      "venceEmDias_other": "Expires in {{count}} days",
+      "useNoMaximoCaracteres": "Use at most {{max}} characters.",
+      "enderecoInvalido": "The https:// address isn't valid.",
+      "informeUmEmailValido": "Enter a valid email or an address starting with https://."
+    }
+  },
+  "security": {
+    "confirmTwoFactorDialog": {
+      "novosCodigosDeRecuperacao": "New recovery codes",
+      "osCodigosAntigosNao": "The old codes no longer work.",
+      "codigoDeVerificacao": "Verification code",
+      "codigoDe6Digitos": "6-digit code from the app or a recovery code.",
+      "desativarVerificacao": "Disable two-step verification",
+      "suaContaVolta": "Your account goes back to only asking for the password to log in. The current recovery codes stop working.",
+      "desativar": "Disable",
+      "desativando": "Disabling...",
+      "gerarNovosCodigosDe": "Generate new recovery codes",
+      "osCodigosAtuaisDeixam": "The current codes stop working and you get 10 new ones.",
+      "gerarNovosCodigos": "Generate new codes",
+      "gerando": "Generating...",
+      "informeASenha": "Enter the password.",
+      "informeUmCodigo": "Enter a code from the app or a recovery code."
+    },
+    "devicesSection": {
+      "esteAparelho": "This device",
+      "manterConectado": "Stay signed in",
+      "encerrar": "End",
+      "encerrarOOutroAparelho": "End the other device",
+      "aparelhosConectados": "Connected devices",
+      "ondeASuaConta": "Where your account is open. Ending a device ends its access right away. Changing the password ends all the others.",
+      "foiEncerrado": "{{device}} was ended.",
+      "entrouEmUsado": "Signed in on {{date}} · used {{lastUsed}}",
+      "encerrarDeviceUsado": "End {{device}}, used {{lastUsed}}",
+      "encerrarOsOutrosAparelhos": "End the other {{count}} devices",
+      "encerradoResultado_one": "{{devices}} ended.",
+      "encerradoResultado_other": "{{devices}} ended."
+    },
+    "devicesModel": {
+      "agora": "now",
+      "haMinutos": "{{count}} min ago",
+      "haHoras": "{{count}} h ago",
+      "haDias_one": "{{count}} day ago",
+      "haDias_other": "{{count}} days ago",
+      "devices_zero": "{{count}} devices",
+      "devices_one": "{{count}} device",
+      "devices_other": "{{count}} devices"
+    },
+    "enableTwoFactorDialog": {
+      "codigosDeRecuperacao": "Recovery codes",
+      "ativarVerificacaoEmDuas": "Enable two-step verification",
+      "aVerificacaoEmDuas": "Two-step verification is enabled.",
+      "useUmAppAutenticador": "Use an authenticator app to generate a code every time you log in.",
+      "gerandoOSegredo": "Generating the secret...",
+      "qrCodeParaO": "QR code for the authenticator app",
+      "naoConsegueEscanearDigite": "Can't scan it? Type this secret into the app:",
+      "segredo": "Secret",
+      "codigoDeVerificacao": "Verification code",
+      "ativando": "Enabling...",
+      "ativar": "Enable",
+      "informeOCodigo": "Enter the 6-digit code.",
+      "abraOAppAutenticador": "Open the authenticator app (Google Authenticator, Authy, 1Password or another) and scan the QR code.",
+      "digiteOCodigo": "Type the 6-digit code the app shows."
+    },
+    "recoveryCodesView": {
+      "guardeEstesCodigosEm": "Keep these codes somewhere safe. Each one works once, in case you lose access to the authenticator app. They won't appear again.",
+      "codigosDeRecuperacao": "Recovery codes",
+      "copiarCodigos": "Copy codes",
+      "codigosCopiados": "Codes copied.",
+      "naoFoiPossivelCopiar": "Couldn't copy. Select and copy by hand.",
+      "guardeiMeusCodigosEm": "I saved my codes somewhere safe"
     }
   }
 }

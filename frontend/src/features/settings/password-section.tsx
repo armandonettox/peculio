@@ -9,12 +9,14 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { passwordFormErrors, type PasswordErrors } from "./model";
+import { useTranslation } from "react-i18next";
 
 type Field = "current" | "next" | "confirm";
 const IDS: Record<Field, string> = { current: "settings-password-current", next: "settings-password-new", confirm: "settings-password-confirm" };
 
 /** Trocar a senha. Pede a atual e, ao trocar, as outras sessoes deixam de valer. */
 export function PasswordSection() {
+  const { t } = useTranslation();
   const change = useChangePassword();
   const [form, setForm] = useState({ current: "", next: "", confirm: "" });
   const [errors, setErrors] = useState<PasswordErrors>({});
@@ -49,11 +51,11 @@ export function PasswordSection() {
     try {
       await change.mutateAsync({ current_password: form.current, new_password: form.next });
       setForm({ current: "", next: "", confirm: "" });
-      setNotice("Senha alterada. As outras sessões foram encerradas.");
+      setNotice(t("settings.passwordSection.senhaAlterada"));
     } catch (failure) {
       // A senha atual errada e do campo; o resto (limite de tentativas, rede) e do formulario
       if (failure instanceof ApiError && failure.code === "invalid_password") {
-        setErrors({ current: "Senha atual incorreta." });
+        setErrors({ current: t("settings.passwordSection.senhaAtualIncorreta") });
         setFocusId(IDS.current);
       } else {
         setServerError(getErrorMessage(failure));
@@ -65,8 +67,8 @@ export function PasswordSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h2">Senha</CardTitle>
-        <CardDescription>Ao trocar, você continua conectado aqui e as outras sessões precisam entrar de novo.</CardDescription>
+        <CardTitle as="h2">{t("common.senha")}</CardTitle>
+        <CardDescription>{t("settings.passwordSection.aoTrocarVoceContinua")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-4">
@@ -77,19 +79,19 @@ export function PasswordSection() {
             </p>
           )}
 
-          <FormField id={IDS.current} label="Senha atual" error={errors.current}>
+          <FormField id={IDS.current} label={t("settings.passwordSection.senhaAtual")} error={errors.current}>
             {(field) => <PasswordInput {...field} autoComplete="current-password" value={form.current} disabled={busy} onChange={(event) => patch("current", event.target.value)} />}
           </FormField>
-          <FormField id={IDS.next} label="Nova senha" error={errors.next} hint="Pelo menos 8 caracteres.">
+          <FormField id={IDS.next} label={t("settings.passwordSection.novaSenha")} error={errors.next} hint={t("settings.passwordSection.peloMenos8Caracteres")}>
             {(field) => <PasswordInput {...field} autoComplete="new-password" value={form.next} disabled={busy} onChange={(event) => patch("next", event.target.value)} />}
           </FormField>
-          <FormField id={IDS.confirm} label="Repita a nova senha" error={errors.confirm}>
+          <FormField id={IDS.confirm} label={t("settings.passwordSection.repitaANovaSenha")} error={errors.confirm}>
             {(field) => <PasswordInput {...field} autoComplete="new-password" value={form.confirm} disabled={busy} onChange={(event) => patch("confirm", event.target.value)} />}
           </FormField>
 
           <div>
             <Button type="submit" disabled={busy}>
-              {busy ? "Trocando..." : "Trocar senha"}
+              {busy ? t("settings.passwordSection.trocando") : t("settings.passwordSection.trocarSenha")}
             </Button>
           </div>
         </form>

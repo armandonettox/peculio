@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { securityContactError } from "./model";
+import { Trans, useTranslation } from "react-i18next";
 
 const FIELD_ID = "settings-security-contact";
 
 /** A quem as pessoas desta instalacao devem relatar um problema de seguranca (so o administrador edita). */
 export function SecurityContactSection() {
+  const { t } = useTranslation();
   const current = useSecurityContact();
   const update = useUpdateSecurityContact();
   // null = o campo ainda nao foi mexido: mostra o que esta salvo
@@ -43,14 +45,14 @@ export function SecurityContactSection() {
     setProblem(found);
     if (found) return document.getElementById(FIELD_ID)?.focus();
     if (!changed) return;
-    void save(value, value.trim() ? "Contato salvo." : "Contato removido.");
+    void save(value, value.trim() ? t("settings.securityContactSection.contatoSalvo") : t("settings.securityContactSection.contatoRemovido"));
   }
 
   let body;
   if (current.isPending) {
     body = (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando...
+        {t("common.carregando")}
       </p>
     );
   } else if (current.isError) {
@@ -60,7 +62,7 @@ export function SecurityContactSection() {
           {getErrorMessage(current.error)}
         </Alert>
         <Button variant="outline" size="sm" onClick={() => void current.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -75,9 +77,9 @@ export function SecurityContactSection() {
         )}
         <FormField
           id={FIELD_ID}
-          label="Contato de segurança"
+          label={t("settings.securityContactSection.contatoDeSeguranca")}
           error={problem}
-          hint="Um e-mail ou um endereço que comece com https://. Deixe vazio para não publicar nenhum."
+          hint={t("settings.securityContactSection.umEMailOu")}
         >
           {(field) => (
             <Input
@@ -95,21 +97,20 @@ export function SecurityContactSection() {
         </FormField>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="submit" disabled={update.isPending || !changed}>
-            {update.isPending ? "Salvando..." : "Salvar contato"}
+            {update.isPending ? t("settings.securityContactSection.salvando") : t("settings.securityContactSection.salvarContato")}
           </Button>
           {saved && (
-            <Button type="button" variant="outline" disabled={update.isPending} onClick={() => void save("", "Contato removido.")}>
-              Remover contato
+            <Button type="button" variant="outline" disabled={update.isPending} onClick={() => void save("", t("settings.securityContactSection.contatoRemovido"))}>
+              {t("settings.securityContactSection.removerContato")}
             </Button>
           )}
         </div>
         {saved && (
           <p className="text-xs text-muted-foreground">
-            Publicado em{" "}
-            <a className="underline" href="/.well-known/security.txt">
-              /.well-known/security.txt
-            </a>
-            , o endereço padrão que pesquisadores de segurança procuram.
+            <Trans
+              i18nKey="settings.securityContactSection.publicadoEm"
+              components={{ wk: <a className="underline" href="/.well-known/security.txt" /> }}
+            />
           </p>
         )}
       </form>
@@ -119,9 +120,9 @@ export function SecurityContactSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h2">Contato de segurança</CardTitle>
+        <CardTitle as="h2">{t("settings.securityContactSection.contatoDeSeguranca")}</CardTitle>
         <CardDescription>
-          A quem as pessoas desta instalação devem relatar um problema de segurança. Aparece na página Segurança para todos.
+          {t("settings.securityContactSection.aQuemAsPessoas")}
         </CardDescription>
       </CardHeader>
       <CardContent>{body}</CardContent>

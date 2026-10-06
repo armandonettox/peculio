@@ -10,28 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RecoveryCodesView } from "./recovery-codes-view";
+import { useTranslation } from "react-i18next";
 
 export type ConfirmMode = "disable" | "regenerate";
-
-const COPY: Record<ConfirmMode, { title: string; description: string; submit: string; busy: string }> = {
-  disable: {
-    title: "Desativar verificação em duas etapas",
-    description: "Sua conta volta a pedir só a senha para entrar. Os códigos de recuperação atuais deixam de valer.",
-    submit: "Desativar",
-    busy: "Desativando...",
-  },
-  regenerate: {
-    title: "Gerar novos códigos de recuperação",
-    description: "Os códigos atuais deixam de valer e você recebe 10 novos.",
-    submit: "Gerar novos códigos",
-    busy: "Gerando...",
-  },
-};
 
 type Props = { mode: ConfirmMode; onClose: () => void };
 
 /** Desligar o 2FA ou trocar os codigos pede senha e um codigo: sessao aberta sozinha nao basta. */
 export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
+  const { t } = useTranslation();
   const disable = useDisableTwoFactor();
   const regenerate = useRegenerateRecoveryCodes();
   const [password, setPassword] = useState("");
@@ -40,7 +27,20 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
   const [newCodes, setNewCodes] = useState<string[] | null>(null);
 
-  const copy = COPY[mode];
+  const copy =
+    mode === "disable"
+      ? {
+          title: t("security.confirmTwoFactorDialog.desativarVerificacao"),
+          description: t("security.confirmTwoFactorDialog.suaContaVolta"),
+          submit: t("security.confirmTwoFactorDialog.desativar"),
+          busy: t("security.confirmTwoFactorDialog.desativando"),
+        }
+      : {
+          title: t("security.confirmTwoFactorDialog.gerarNovosCodigosDe"),
+          description: t("security.confirmTwoFactorDialog.osCodigosAtuaisDeixam"),
+          submit: t("security.confirmTwoFactorDialog.gerarNovosCodigos"),
+          busy: t("security.confirmTwoFactorDialog.gerando"),
+        };
   const busy = disable.isPending || regenerate.isPending;
   const showingCodes = newCodes !== null;
 
@@ -50,8 +50,8 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
     setFormError(null);
 
     const found = {
-      password: password === "" ? "Informe a senha." : undefined,
-      code: code.trim() === "" ? "Informe um código do app ou de recuperação." : undefined,
+      password: password === "" ? t("security.confirmTwoFactorDialog.informeASenha") : undefined,
+      code: code.trim() === "" ? t("security.confirmTwoFactorDialog.informeUmCodigo") : undefined,
     };
     setErrors(found);
     const first = (["password", "code"] as const).find((field) => found[field]);
@@ -87,8 +87,8 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && !showingCodes && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{showingCodes ? "Novos códigos de recuperação" : copy.title}</DialogTitle>
-          <DialogDescription>{showingCodes ? "Os códigos antigos não valem mais." : copy.description}</DialogDescription>
+          <DialogTitle>{showingCodes ? t("security.confirmTwoFactorDialog.novosCodigosDeRecuperacao") : copy.title}</DialogTitle>
+          <DialogDescription>{showingCodes ? t("security.confirmTwoFactorDialog.osCodigosAntigosNao") : copy.description}</DialogDescription>
         </DialogHeader>
 
         {showingCodes ? (
@@ -97,7 +97,7 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
             {formError && <Alert variant="destructive">{formError}</Alert>}
 
-            <FormField id="confirm-password" label="Senha" error={errors.password}>
+            <FormField id="confirm-password" label={t("common.senha")} error={errors.password}>
               {(props) => (
                 <PasswordInput
                   {...props}
@@ -113,9 +113,9 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
 
             <FormField
               id="confirm-code"
-              label="Código de verificação"
+              label={t("security.confirmTwoFactorDialog.codigoDeVerificacao")}
               error={errors.code}
-              hint="Código de 6 dígitos do app ou um código de recuperação."
+              hint={t("security.confirmTwoFactorDialog.codigoDe6Digitos")}
             >
               {(props) => (
                 <Input
@@ -132,7 +132,7 @@ export function ConfirmTwoFactorDialog({ mode, onClose }: Props) {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-                Cancelar
+                {t("common.cancelar")}
               </Button>
               <Button type="submit" variant={mode === "disable" ? "destructive" : "default"} disabled={busy}>
                 {busy ? copy.busy : copy.submit}

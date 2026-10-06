@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/dates";
 import { devicesText, lastUsedLabel, otherDevicesCount, sortDevices } from "./devices-model";
+import { useTranslation } from "react-i18next";
 
 /** Onde a conta esta aberta. Cada aparelho pode ser encerrado: o acesso dele acaba na hora. */
 export function DevicesSection() {
+  const { t } = useTranslation();
   const sessions = useSessions();
   const revoke = useRevokeSession();
   const revokeOthers = useRevokeOtherSessions();
@@ -22,7 +24,7 @@ export function DevicesSection() {
     setError(null);
     try {
       await revoke.mutateAsync(session.id);
-      setNotice(`${session.device_label} foi encerrado.`);
+      setNotice(t("security.devicesSection.foiEncerrado", { device: session.device_label }));
     } catch (failure) {
       setError(getErrorMessage(failure));
     }
@@ -33,7 +35,7 @@ export function DevicesSection() {
     setError(null);
     try {
       const result = await revokeOthers.mutateAsync();
-      setNotice(`${devicesText(result.revoked)} encerrado${result.revoked === 1 ? "" : "s"}.`);
+      setNotice(t("security.devicesSection.encerradoResultado", { count: result.revoked, devices: devicesText(result.revoked) }));
     } catch (failure) {
       setError(getErrorMessage(failure));
     }
@@ -43,7 +45,7 @@ export function DevicesSection() {
   if (sessions.isPending) {
     body = (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando...
+        {t("common.carregando")}
       </p>
     );
   } else if (sessions.isError) {
@@ -53,7 +55,7 @@ export function DevicesSection() {
           {getErrorMessage(sessions.error)}
         </Alert>
         <Button variant="outline" size="sm" onClick={() => void sessions.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -75,11 +77,14 @@ export function DevicesSection() {
               <span className="min-w-0 flex-1">
                 <span className="font-medium">{session.device_label}</span>
                 {session.current && (
-                  <span className="ml-2 rounded-md bg-accent px-1.5 py-0.5 text-xs">Este aparelho</span>
+                  <span className="ml-2 rounded-md bg-accent px-1.5 py-0.5 text-xs">{t("security.devicesSection.esteAparelho")}</span>
                 )}
-                {session.remember && <span className="ml-2 text-xs text-muted-foreground">Manter conectado</span>}
+                {session.remember && <span className="ml-2 text-xs text-muted-foreground">{t("security.devicesSection.manterConectado")}</span>}
                 <span className="block text-xs text-muted-foreground">
-                  Entrou em {formatDate(session.created_at.slice(0, 10))} · usado {lastUsedLabel(session.last_used_at, now)}
+                  {t("security.devicesSection.entrouEmUsado", {
+                    date: formatDate(session.created_at.slice(0, 10)),
+                    lastUsed: lastUsedLabel(session.last_used_at, now),
+                  })}
                 </span>
               </span>
               {!session.current && (
@@ -88,9 +93,12 @@ export function DevicesSection() {
                   variant="outline"
                   disabled={busy}
                   onClick={() => void endOne(session)}
-                  aria-label={`Encerrar ${session.device_label}, usado ${lastUsedLabel(session.last_used_at, now)}`}
+                  aria-label={t("security.devicesSection.encerrarDeviceUsado", {
+                    device: session.device_label,
+                    lastUsed: lastUsedLabel(session.last_used_at, now),
+                  })}
                 >
-                  Encerrar
+                  {t("security.devicesSection.encerrar")}
                 </Button>
               )}
             </li>
@@ -99,7 +107,9 @@ export function DevicesSection() {
         {others > 0 && (
           <div>
             <Button variant="outline" disabled={busy} onClick={() => void endOthers()}>
-              {others === 1 ? "Encerrar o outro aparelho" : `Encerrar os outros ${others} aparelhos`}
+              {others === 1
+                ? t("security.devicesSection.encerrarOOutroAparelho")
+                : t("security.devicesSection.encerrarOsOutrosAparelhos", { count: others })}
             </Button>
           </div>
         )}
@@ -110,10 +120,9 @@ export function DevicesSection() {
   return (
     <Card className="mt-6 max-w-2xl">
       <CardHeader>
-        <CardTitle as="h2">Aparelhos conectados</CardTitle>
+        <CardTitle as="h2">{t("security.devicesSection.aparelhosConectados")}</CardTitle>
         <CardDescription>
-          Onde a sua conta está aberta. Encerrar um aparelho acaba com o acesso dele na hora. Trocar a senha encerra todos
-          os outros.
+          {t("security.devicesSection.ondeASuaConta")}
         </CardDescription>
       </CardHeader>
       <CardContent>{body}</CardContent>

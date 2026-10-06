@@ -13,9 +13,11 @@ import { emailError } from "@/auth/validation";
 import { formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { inviteLink, inviteState } from "./model";
+import { Trans, useTranslation } from "react-i18next";
 
 /** Convites para outras pessoas entrarem (so o administrador ve). O codigo do convite aparece uma vez, ao criar. */
 export function InvitesSection() {
+  const { t } = useTranslation();
   const invites = useInvites();
   const create = useCreateInvite();
   const revoke = useRevokeInvite();
@@ -55,7 +57,7 @@ export function InvitesSection() {
   if (invites.isPending) {
     list = (
       <p className="text-sm text-muted-foreground" role="status">
-        Carregando convites...
+        {t("settings.invitesSection.carregandoConvites")}
       </p>
     );
   } else if (invites.isError) {
@@ -65,12 +67,12 @@ export function InvitesSection() {
           {getErrorMessage(invites.error)}
         </Alert>
         <Button variant="outline" size="sm" onClick={() => void invites.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
   } else if (invites.data.length === 0) {
-    list = <p className="text-sm text-muted-foreground">Nenhum convite criado ainda.</p>;
+    list = <p className="text-sm text-muted-foreground">{t("settings.invitesSection.nenhumConviteCriadoAinda")}</p>;
   } else {
     list = (
       <ul className="flex flex-col divide-y rounded-lg border">
@@ -87,10 +89,10 @@ export function InvitesSection() {
               >
                 {state.label}
               </span>
-              <span className="text-xs text-muted-foreground">Criado em {formatDate(invite.created_at.slice(0, 10))}</span>
+              <span className="text-xs text-muted-foreground">{t("settings.invitesSection.criadoEm", { date: formatDate(invite.created_at.slice(0, 10)) })}</span>
               {state.kind === "pending" && (
-                <Button size="sm" variant="outline" onClick={() => setRemoving(invite)} aria-label={`Revogar o convite de ${invite.email}`}>
-                  Revogar
+                <Button size="sm" variant="outline" onClick={() => setRemoving(invite)} aria-label={t("settings.invitesSection.revogarOConviteDe", { email: invite.email })}>
+                  {t("common.revogar")}
                 </Button>
               )}
             </li>
@@ -103,13 +105,13 @@ export function InvitesSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h2">Usuários e convites</CardTitle>
-        <CardDescription>Só quem recebe um convite consegue criar conta. Cada convite vale para um e-mail.</CardDescription>
+        <CardTitle as="h2">{t("settings.invitesSection.usuariosEConvites")}</CardTitle>
+        <CardDescription>{t("settings.invitesSection.soQuemRecebeUm")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <FormField id="settings-invite-email" label="E-mail da pessoa" error={emailProblem}>
+            <FormField id="settings-invite-email" label={t("settings.invitesSection.eMailDaPessoa")} error={emailProblem}>
               {(field) => (
                 <Input
                   {...field}
@@ -126,7 +128,7 @@ export function InvitesSection() {
             </FormField>
           </div>
           <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? "Criando..." : "Criar convite"}
+            {create.isPending ? t("settings.invitesSection.criando") : t("settings.invitesSection.criarConvite")}
           </Button>
         </form>
 
@@ -135,13 +137,17 @@ export function InvitesSection() {
         {created && (
           <div role="status" className="flex flex-col gap-2 rounded-md border bg-accent/30 p-3 text-sm">
             <p>
-              Convite criado para <strong>{created.email}</strong>. Envie este link: ele só aparece agora, depois só existe o convite na lista.
+              <Trans
+                i18nKey="settings.invitesSection.conviteCriadoPara"
+                values={{ email: created.email }}
+                components={{ strong: <strong /> }}
+              />
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <code className="min-w-0 flex-1 break-all rounded bg-muted px-2 py-1 text-xs">{inviteLink(window.location.origin, created.token)}</code>
               <Button size="sm" variant="outline" onClick={() => void copy(inviteLink(window.location.origin, created.token))}>
                 <Copy />
-                {copied ? "Copiado" : "Copiar link"}
+                {copied ? t("settings.invitesSection.copiado") : t("settings.invitesSection.copiarLink")}
               </Button>
             </div>
           </div>
@@ -152,9 +158,9 @@ export function InvitesSection() {
 
       {removing && (
         <ConfirmDeleteDialog
-          title="Revogar convite"
-          itemName={`o convite de ${removing.email}`}
-          consequence="O link deixa de funcionar."
+          title={t("settings.invitesSection.revogarConvite")}
+          itemName={t("settings.invitesSection.oConviteDe", { email: removing.email })}
+          consequence={t("settings.invitesSection.oLinkDeixaDe")}
           onConfirm={() => revoke.mutateAsync(removing.id)}
           onClose={() => setRemoving(null)}
         />

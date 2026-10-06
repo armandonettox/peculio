@@ -11,9 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { profileChanges, profileErrors, type ProfileErrors } from "./model";
+import { useTranslation } from "react-i18next";
 
 /** Nome e moeda padrao da conta. O e-mail aparece mas nao se troca: trocar exigiria confirmar por e-mail. */
 export function ProfileSection() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const currencies = useCurrencies();
   const update = useUpdateProfile();
@@ -44,7 +46,7 @@ export function ProfileSection() {
       setSaved({ name: result.name, default_currency: result.default_currency });
       setName(result.name);
       setCurrency(result.default_currency);
-      setNotice("Perfil salvo.");
+      setNotice(t("settings.profileSection.perfilSalvo"));
     } catch (failure) {
       setServerError(getErrorMessage(failure));
     }
@@ -53,8 +55,8 @@ export function ProfileSection() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle as="h2">Perfil</CardTitle>
-        <CardDescription>Como você aparece no app e a moeda que ele sugere nas contas novas.</CardDescription>
+        <CardTitle as="h2">{t("settings.profileSection.perfil")}</CardTitle>
+        <CardDescription>{t("settings.profileSection.comoVoceApareceNo")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-4">
@@ -65,7 +67,7 @@ export function ProfileSection() {
             </p>
           )}
 
-          <FormField id="settings-name" label="Nome" error={errors.name}>
+          <FormField id="settings-name" label={t("common.nome")} error={errors.name}>
             {(field) => (
               <Input
                 {...field}
@@ -81,11 +83,11 @@ export function ProfileSection() {
             )}
           </FormField>
 
-          <FormField id="settings-email" label="E-mail" hint="O e-mail não pode ser trocado por aqui.">
+          <FormField id="settings-email" label={t("common.eMail")} hint={t("settings.profileSection.oEMailNao")}>
             {(field) => <Input {...field} value={user.email} readOnly />}
           </FormField>
 
-          <FormField id="settings-currency" label="Moeda padrão" error={errors.currency}>
+          <FormField id="settings-currency" label={t("settings.profileSection.moedaPadrao")} error={errors.currency}>
             {(field) => (
               <Select
                 {...field}
@@ -108,7 +110,7 @@ export function ProfileSection() {
 
           <div>
             <Button type="submit" disabled={update.isPending || !changes}>
-              {update.isPending ? "Salvando..." : "Salvar perfil"}
+              {update.isPending ? t("settings.profileSection.salvando") : t("settings.profileSection.salvarPerfil")}
             </Button>
           </div>
         </form>

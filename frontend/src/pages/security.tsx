@@ -13,11 +13,13 @@ import { ConfirmTwoFactorDialog, type ConfirmMode } from "@/features/security/co
 import { DevicesSection } from "@/features/security/devices-section";
 import { EnableTwoFactorDialog } from "@/features/security/enable-two-factor-dialog";
 import { securityContactHref } from "@/features/settings/model";
+import { Trans, useTranslation } from "react-i18next";
 
 // Abaixo disso o aviso de "poucos codigos" aparece
 const LOW_CODES = 3;
 
 export default function SecurityPage() {
+  const { t } = useTranslation();
   const status = useTwoFactorStatus();
   const contact = useSecurityContact().data?.contact;
   const [dialog, setDialog] = useState<"enable" | ConfirmMode | null>(null);
@@ -27,7 +29,7 @@ export default function SecurityPage() {
     body = (
       <div aria-busy="true" className="h-24 animate-pulse rounded-md border bg-muted">
         <p className="sr-only" role="status">
-          Carregando...
+          {t("common.carregando")}
         </p>
       </div>
     );
@@ -38,7 +40,7 @@ export default function SecurityPage() {
           {getErrorMessage(status.error)}
         </Alert>
         <Button variant="outline" onClick={() => void status.refetch()}>
-          Tentar de novo
+          {t("common.tentarDeNovo")}
         </Button>
       </div>
     );
@@ -47,13 +49,12 @@ export default function SecurityPage() {
       <div className="flex flex-col items-start gap-4">
         <p className="flex items-center gap-2 text-sm">
           <ShieldOff className="size-4 text-muted-foreground" />
-          Desativada
+          {t("pages.security.desativada")}
         </p>
         <p className="text-sm text-muted-foreground">
-          Com a verificação em duas etapas, além da senha você digita um código do seu celular. Mesmo que alguém
-          descubra sua senha, não consegue entrar.
+          {t("pages.security.comAVerificacaoEm")}
         </p>
-        <Button onClick={() => setDialog("enable")}>Ativar verificação em duas etapas</Button>
+        <Button onClick={() => setDialog("enable")}>{t("pages.security.ativarVerificacaoEmDuas")}</Button>
       </div>
     );
   } else {
@@ -62,25 +63,25 @@ export default function SecurityPage() {
       <div className="flex flex-col items-start gap-4">
         <p className="flex items-center gap-2 text-sm font-medium text-positive">
           <ShieldCheck className="size-4" />
-          Ativada
+          {t("pages.security.ativada")}
         </p>
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <KeyRound className="size-4" />
-          {remaining} {remaining === 1 ? "código de recuperação restante" : "códigos de recuperação restantes"}
+          {remaining} {remaining === 1 ? t("pages.security.codigoDeRecuperacaoRestante") : t("pages.security.codigosDeRecuperacaoRestantes")}
         </p>
         {remaining < LOW_CODES && (
           <Alert variant="destructive" className="w-full">
             {remaining === 0
-              ? "Você não tem mais códigos de recuperação. Gere novos para não ficar sem acesso se perder o celular."
-              : "Restam poucos códigos de recuperação. Gere novos para não ficar sem acesso se perder o celular."}
+              ? t("pages.security.voceNaoTemMais")
+              : t("pages.security.restamPoucosCodigosDe")}
           </Alert>
         )}
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => setDialog("regenerate")}>
-            Gerar novos códigos
+            {t("pages.security.gerarNovosCodigos")}
           </Button>
           <Button variant="outline" className="text-destructive" onClick={() => setDialog("disable")}>
-            Desativar
+            {t("pages.security.desativar")}
           </Button>
         </div>
       </div>
@@ -89,22 +90,24 @@ export default function SecurityPage() {
 
   return (
     <>
-      <PageHeader title="Segurança" description="Proteja o acesso à sua conta" />
+      <PageHeader title={t("common.seguranca")} description={t("pages.security.protejaOAcessoA")} />
 
       {contact && (
         <p className="mb-6 max-w-2xl text-sm text-muted-foreground">
-          Para relatar um problema de segurança nesta instalação, fale com{" "}
-          <a className="font-medium text-foreground underline" href={securityContactHref(contact)} rel="noopener noreferrer">
-            {contact}
-          </a>
-          .
+          <Trans
+            i18nKey="pages.security.paraRelatarUmProblema"
+            values={{ contact }}
+            components={{
+              wk: <a className="font-medium text-foreground underline" href={securityContactHref(contact)} rel="noopener noreferrer" />,
+            }}
+          />
         </p>
       )}
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle as="h2">Verificação em duas etapas</CardTitle>
-          <CardDescription>Um segundo código, além da senha, ao entrar.</CardDescription>
+          <CardTitle as="h2">{t("pages.security.verificacaoEmDuasEtapas")}</CardTitle>
+          <CardDescription>{t("pages.security.umSegundoCodigoAlem")}</CardDescription>
         </CardHeader>
         <CardContent>{body}</CardContent>
       </Card>

@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   codes: string[];
@@ -14,6 +15,7 @@ type Props = {
  * que guardou: o servidor guarda apenas o hash e nao consegue mostrar de novo.
  */
 export function RecoveryCodesView({ codes, onDone }: Props) {
+  const { t } = useTranslation();
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState<"ok" | "fail" | null>(null);
 
@@ -29,11 +31,10 @@ export function RecoveryCodesView({ codes, onDone }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        Guarde estes códigos em um lugar seguro. Cada um entra uma vez, caso você perca o acesso ao app
-        autenticador. Eles não aparecem de novo.
+        {t("security.recoveryCodesView.guardeEstesCodigosEm")}
       </p>
 
-      <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-2 rounded-md border bg-muted p-3 font-mono text-sm">
+      <ul aria-label={t("security.recoveryCodesView.codigosDeRecuperacao")} className="grid grid-cols-2 gap-2 rounded-md border bg-muted p-3 font-mono text-sm">
         {codes.map((code) => (
           <li key={code}>{code}</li>
         ))}
@@ -42,11 +43,11 @@ export function RecoveryCodesView({ codes, onDone }: Props) {
       <div className="flex items-center gap-3">
         <Button type="button" variant="outline" size="sm" onClick={() => void copy()}>
           <Copy />
-          Copiar códigos
+          {t("security.recoveryCodesView.copiarCodigos")}
         </Button>
         <p role="status" className="text-xs text-muted-foreground">
-          {copied === "ok" && "Códigos copiados."}
-          {copied === "fail" && "Não foi possível copiar. Selecione e copie à mão."}
+          {copied === "ok" && t("security.recoveryCodesView.codigosCopiados")}
+          {copied === "fail" && t("security.recoveryCodesView.naoFoiPossivelCopiar")}
         </p>
       </div>
 
@@ -57,12 +58,12 @@ export function RecoveryCodesView({ codes, onDone }: Props) {
           onChange={(event) => setSaved(event.target.checked)}
           className="mt-0.5 accent-[var(--primary)]"
         />
-        Guardei meus códigos em um lugar seguro
+        {t("security.recoveryCodesView.guardeiMeusCodigosEm")}
       </label>
 
       <DialogFooter>
         <Button type="button" onClick={onDone} disabled={!saved}>
-          Concluir
+          {t("common.concluir")}
         </Button>
       </DialogFooter>
     </div>

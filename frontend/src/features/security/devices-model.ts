@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+
 // Regras da lista "Aparelhos conectados", sem tela: como dizer ha quanto tempo o aparelho foi usado e em que ordem
 // mostrar. Ficam aqui, com testes, e a tela so as usa.
 
@@ -8,11 +10,10 @@ const DAY = 24 * HOUR;
 /** "agora", "há 5 min", "há 3 h", "há 1 dia", "há 12 dias". Relógio atrasado (data no futuro) conta como "agora". */
 export function lastUsedLabel(iso: string, now: Date): string {
   const elapsed = now.getTime() - new Date(iso).getTime();
-  if (elapsed < MINUTE) return "agora";
-  if (elapsed < HOUR) return `há ${Math.floor(elapsed / MINUTE)} min`;
-  if (elapsed < DAY) return `há ${Math.floor(elapsed / HOUR)} h`;
-  const days = Math.floor(elapsed / DAY);
-  return days === 1 ? "há 1 dia" : `há ${days} dias`;
+  if (elapsed < MINUTE) return i18n.t("security.devicesModel.agora");
+  if (elapsed < HOUR) return i18n.t("security.devicesModel.haMinutos", { count: Math.floor(elapsed / MINUTE) });
+  if (elapsed < DAY) return i18n.t("security.devicesModel.haHoras", { count: Math.floor(elapsed / HOUR) });
+  return i18n.t("security.devicesModel.haDias", { count: Math.floor(elapsed / DAY) });
 }
 
 type Row = { current: boolean; last_used_at: string };
@@ -32,5 +33,5 @@ export function otherDevicesCount(sessions: readonly Row[]): number {
 
 /** "1 aparelho" / "3 aparelhos" */
 export function devicesText(count: number): string {
-  return count === 1 ? "1 aparelho" : `${count} aparelhos`;
+  return i18n.t("security.devicesModel.devices", { count });
 }

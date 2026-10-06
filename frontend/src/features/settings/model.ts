@@ -1,3 +1,4 @@
+import { i18n } from "@/i18n";
 import { emailError, passwordError } from "@/auth/validation";
 
 // As regras das telas de Configuracoes, sem tela: validar os formularios, montar o link do convite e dizer em que pé ele
@@ -15,9 +16,9 @@ export type ProfileErrors = { name?: string; currency?: string };
 export function profileErrors(form: ProfileForm): ProfileErrors {
   const errors: ProfileErrors = {};
   const name = form.name.trim();
-  if (!name) errors.name = "Informe o nome.";
-  else if (name.length > MAX_NAME_LENGTH) errors.name = `Use no máximo ${MAX_NAME_LENGTH} letras.`;
-  if (!form.currency) errors.currency = "Escolha a moeda.";
+  if (!name) errors.name = i18n.t("settings.model.informeONome");
+  else if (name.length > MAX_NAME_LENGTH) errors.name = i18n.t("settings.model.useNoMaximoLetras", { max: MAX_NAME_LENGTH });
+  if (!form.currency) errors.currency = i18n.t("settings.model.escolhaAMoeda");
   return errors;
 }
 
@@ -38,11 +39,11 @@ export type PasswordErrors = { current?: string; next?: string; confirm?: string
 
 export function passwordFormErrors(form: PasswordForm): PasswordErrors {
   const errors: PasswordErrors = {};
-  if (!form.current) errors.current = "Informe a senha atual.";
+  if (!form.current) errors.current = i18n.t("settings.model.informeASenhaAtual");
   const rule = passwordError(form.next);
   if (rule) errors.next = rule;
-  else if (form.next === form.current) errors.next = "A nova senha precisa ser diferente da atual.";
-  if (!errors.next && form.confirm !== form.next) errors.confirm = "As senhas não conferem.";
+  else if (form.next === form.current) errors.next = i18n.t("settings.model.novaSenhaDiferente");
+  if (!errors.next && form.confirm !== form.next) errors.confirm = i18n.t("settings.model.senhasNaoConferem");
   return errors;
 }
 
@@ -59,11 +60,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Em que pe esta o convite: ja usado, vencido ou esperando (com os dias que faltam). */
 export function inviteState(invite: { used_at: string | null; expires_at: string }, now: Date): InviteState {
-  if (invite.used_at) return { kind: "used", label: "Usado" };
+  if (invite.used_at) return { kind: "used", label: i18n.t("settings.model.usado") };
   const left = new Date(invite.expires_at).getTime() - now.getTime();
-  if (left <= 0) return { kind: "expired", label: "Vencido" };
+  if (left <= 0) return { kind: "expired", label: i18n.t("settings.model.vencido") };
   const days = Math.ceil(left / DAY_MS);
-  return { kind: "pending", label: days === 1 ? "Vence em 1 dia" : `Vence em ${days} dias` };
+  return { kind: "pending", label: i18n.t("settings.model.venceEmDias", { count: days }) };
 }
 
 // ---------- Contato de seguranca ----------
@@ -74,20 +75,20 @@ export const MAX_CONTACT_LENGTH = 200;
 export function securityContactError(value: string): string | undefined {
   const contact = value.trim();
   if (!contact) return undefined;
-  if (contact.length > MAX_CONTACT_LENGTH) return `Use no máximo ${MAX_CONTACT_LENGTH} caracteres.`;
+  if (contact.length > MAX_CONTACT_LENGTH) return i18n.t("settings.model.useNoMaximoCaracteres", { max: MAX_CONTACT_LENGTH });
   if (contact.toLowerCase().startsWith("https://")) {
     let url: URL;
     try {
       url = new URL(contact);
     } catch {
-      return "O endereço https:// não é válido.";
+      return i18n.t("settings.model.enderecoInvalido");
     }
-    if (!url.host || url.username || url.password || /\s/.test(contact)) return "O endereço https:// não é válido.";
+    if (!url.host || url.username || url.password || /\s/.test(contact)) return i18n.t("settings.model.enderecoInvalido");
     return undefined;
   }
   // Dois pontos nao existem num e-mail comum e denunciam "mailto:" ou "javascript:" colado no campo
   if (contact.includes(":") || emailError(contact)) {
-    return "Informe um e-mail válido ou um endereço que comece com https://.";
+    return i18n.t("settings.model.informeUmEmailValido");
   }
   return undefined;
 }

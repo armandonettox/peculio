@@ -9,10 +9,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { QrCode } from "./qr-code";
 import { RecoveryCodesView } from "./recovery-codes-view";
+import { useTranslation } from "react-i18next";
 
 type Props = { onClose: () => void };
 
 export function EnableTwoFactorDialog({ onClose }: Props) {
+  const { t } = useTranslation();
   const setup = useSetupTwoFactor();
   const enable = useEnableTwoFactor();
   const [code, setCode] = useState("");
@@ -38,7 +40,7 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
     if (busy) return;
     setFormError(null);
     if (code.trim() === "") {
-      setCodeError("Informe o código de 6 dígitos.");
+      setCodeError(t("security.enableTwoFactorDialog.informeOCodigo"));
       document.getElementById("enable-code")?.focus();
       return;
     }
@@ -61,11 +63,11 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && !showingCodes && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{showingCodes ? "Códigos de recuperação" : "Ativar verificação em duas etapas"}</DialogTitle>
+          <DialogTitle>{showingCodes ? t("security.enableTwoFactorDialog.codigosDeRecuperacao") : t("security.enableTwoFactorDialog.ativarVerificacaoEmDuas")}</DialogTitle>
           <DialogDescription>
             {showingCodes
-              ? "A verificação em duas etapas está ativada."
-              : "Use um app autenticador para gerar um código toda vez que entrar."}
+              ? t("security.enableTwoFactorDialog.aVerificacaoEmDuas")
+              : t("security.enableTwoFactorDialog.useUmAppAutenticador")}
           </DialogDescription>
         </DialogHeader>
 
@@ -77,7 +79,7 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
 
             {setup.isPending && (
               <p role="status" className="text-sm text-muted-foreground">
-                Gerando o segredo...
+                {t("security.enableTwoFactorDialog.gerandoOSegredo")}
               </p>
             )}
             {setup.isError && (
@@ -86,7 +88,7 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
                   {getErrorMessage(setup.error)}
                 </Alert>
                 <Button type="button" variant="outline" onClick={() => setup.mutate()}>
-                  Tentar de novo
+                  {t("common.tentarDeNovo")}
                 </Button>
               </div>
             )}
@@ -95,25 +97,24 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
               <>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm">
-                    <strong>1.</strong> Abra o app autenticador (Google Authenticator, Authy, 1Password ou outro) e
-                    escaneie o QR code.
+                    <strong>1.</strong> {t("security.enableTwoFactorDialog.abraOAppAutenticador")}
                   </p>
                   <div className="flex justify-center">
-                    <QrCode value={setup.data.otpauth_url} label="QR code para o app autenticador" />
+                    <QrCode value={setup.data.otpauth_url} label={t("security.enableTwoFactorDialog.qrCodeParaO")} />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Não consegue escanear? Digite este segredo no app:
+                    {t("security.enableTwoFactorDialog.naoConsegueEscanearDigite")}
                   </p>
-                  <p className="select-all break-all rounded-md border bg-muted px-3 py-2 font-mono text-sm" aria-label="Segredo">
+                  <p className="select-all break-all rounded-md border bg-muted px-3 py-2 font-mono text-sm" aria-label={t("security.enableTwoFactorDialog.segredo")}>
                     {setup.data.secret}
                   </p>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <p className="text-sm">
-                    <strong>2.</strong> Digite o código de 6 dígitos que o app mostra.
+                    <strong>2.</strong> {t("security.enableTwoFactorDialog.digiteOCodigo")}
                   </p>
-                  <FormField id="enable-code" label="Código de verificação" error={codeError}>
+                  <FormField id="enable-code" label={t("security.enableTwoFactorDialog.codigoDeVerificacao")} error={codeError}>
                     {(props) => (
                       <Input
                         {...props}
@@ -133,10 +134,10 @@ export function EnableTwoFactorDialog({ onClose }: Props) {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
-                Cancelar
+                {t("common.cancelar")}
               </Button>
               <Button type="submit" disabled={busy || !setup.data}>
-                {busy ? "Ativando..." : "Ativar"}
+                {busy ? t("security.enableTwoFactorDialog.ativando") : t("security.enableTwoFactorDialog.ativar")}
               </Button>
             </DialogFooter>
           </form>
