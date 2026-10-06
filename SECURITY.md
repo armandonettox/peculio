@@ -41,7 +41,8 @@ Fora: ataque que exige acesso físico ao servidor, instalação com a senha do b
 - **Senhas** guardadas com bcrypt. O tempo de resposta do login não revela se um e-mail existe.
 - **Limite de tentativas:** o login e o cadastro têm limite de requisições, e a conta é bloqueada por 15 minutos depois de 5 erros seguidos de senha ou de código.
 - **Verificação em duas etapas (2FA)** por aplicativo autenticador, com códigos de recuperação guardados só como hash. O segredo do 2FA fica cifrado no banco.
-- **Sessão:** o token de acesso vale 60 minutos e é renovado enquanto a pessoa usa o app, com um teto de 168 horas. Trocar a senha encerra na hora todas as outras sessões. Hoje o token fica só na memória da aba.
+- **Sessão:** o token de acesso vale 60 minutos e fica só na memória da aba. Quem renova o acesso é uma sessão guardada no servidor, ligada a um cookie `HttpOnly` e `SameSite=Strict` que o JavaScript da página não consegue ler. Com "Manter conectado" marcado o cookie dura 30 dias, renovados a cada uso; sem marcar, ele some ao fechar o navegador e a sessão vence em 12 horas sem uso.
+- **Chave de renovação trocada a cada uso.** Se uma chave já trocada aparecer de novo (cookie copiado por alguém), a sessão inteira é encerrada. Os aparelhos conectados aparecem na página Segurança, e cada um pode ser encerrado: o acesso acaba na hora. Sair de verdade avisa o servidor, e trocar a senha encerra todos os outros aparelhos. A lista guarda só o navegador e o sistema ("Chrome no Windows"), sem endereço IP.
 - **Cadastro só por convite.** O primeiro usuário vira administrador; os demais entram com um convite de uso único, para um e-mail específico, que vence em 7 dias.
 - **Tokens de API** (`fin_...`) guardados só como hash, com escopo de leitura ou de escrita. Ações sensíveis (criar tokens, mexer em 2FA, trocar a senha, editar o contato de segurança, criar convites) só valem pelo login da tela, nunca por token de API.
 - **Webhooks** só para endereços `https` públicos por padrão, para não servirem de ponte para a rede interna (SSRF).
@@ -53,7 +54,7 @@ Fora: ataque que exige acesso físico ao servidor, instalação com a senha do b
 
 1. **Gere segredos próprios** no `.env` (`JWT_SECRET` e `ENCRYPTION_KEY`, com `python -c "import secrets; print(secrets.token_urlsafe(48))"`) e troque a senha do banco. Nunca commite o `.env`.
 2. **Use HTTPS.** O app não termina TLS sozinho: ponha um proxy reverso (Caddy, Traefik, nginx) na frente, com certificado. Sem HTTPS a senha e o token passam em texto aberto, e o app instalado (PWA) só funciona fora de `localhost` com HTTPS.
-3. **Ligue o HSTS no proxy** depois que o HTTPS estiver funcionando (`Strict-Transport-Security`). O Pecúlio não o envia, porque quem sabe se há HTTPS é o proxy.
+3. **Ligue `COOKIE_SECURE=true` no `.env`** assim que houver HTTPS, para o cookie de "Manter conectado" só viajar criptografado (em `http://localhost` deixe `false`, senão o navegador não o guarda). **Ligue o HSTS no proxy** depois que o HTTPS estiver funcionando (`Strict-Transport-Security`). O Pecúlio não o envia, porque quem sabe se há HTTPS é o proxy.
 4. **Repasse o IP real.** O limite de tentativas usa o IP de quem conectou. Se houver um proxy na frente do nginx do Pecúlio, ajuste `proxy_set_header X-Forwarded-For` no `frontend/nginx.conf` para repassar o IP do proxy, senão todo mundo parece vir do mesmo endereço.
 5. **Faça backup** do banco e do volume de anexos (`attachments_data`), e teste restaurar.
 6. **Mantenha tudo atualizado:** as imagens base (`python:3.13-slim`, `nginx:alpine`, `postgres:17-alpine`) e o próprio Pecúlio. Reconstrua as imagens de tempos em tempos (`docker compose build --pull`).
