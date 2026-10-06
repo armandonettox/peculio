@@ -17,8 +17,10 @@ import { ThisMonthBlock } from "@/features/dashboard/this-month-block";
 import { TransactionsBlock } from "@/features/dashboard/transactions-block";
 import { UpcomingBlock } from "@/features/dashboard/upcoming-block";
 import { appToday } from "@/lib/dates";
+import { useTranslation } from "react-i18next";
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const firstName = user?.name.trim().split(/\s+/)[0];
   const today = appToday();
@@ -31,8 +33,8 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Painel"
-        description={firstName ? `Olá, ${firstName}. Este é o resumo das suas finanças.` : "Resumo das suas finanças"}
+        title={t("pages.dashboard.painel")}
+        description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
       />
 
       {accounts.isPending ? (
@@ -43,17 +45,17 @@ export default function DashboardPage() {
             {getErrorMessage(accounts.error)}
           </Alert>
           <Button variant="outline" size="sm" onClick={() => accounts.refetch()}>
-            Tentar de novo
+            {t("common.tentarDeNovo")}
           </Button>
         </div>
       ) : !hasAccounts ? (
         <EmptyState
           icon={Landmark}
-          title="Nenhuma conta ainda"
-          description="Quando você cadastrar suas contas, o resumo delas aparece aqui."
+          title={t("pages.dashboard.nenhumaContaAinda")}
+          description={t("pages.dashboard.quandoVoceCadastrarSuas")}
           action={
             <Button asChild>
-              <Link to="/contas">Cadastrar conta</Link>
+              <Link to="/contas">{t("pages.dashboard.cadastrarConta")}</Link>
             </Button>
           }
         />

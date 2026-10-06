@@ -12,6 +12,7 @@ import {
   transactionTitle,
   type Direction,
 } from "@/features/transactions/presentation";
+import { i18n, currentIntlLocale } from "@/i18n";
 import { shiftDay } from "@/lib/dates";
 import { formatMoney, isNegativeMoney, negateMoney, sumMoney } from "@/lib/money";
 
@@ -27,7 +28,7 @@ function isZeroMoney(value: string): boolean {
 export function netWorthSeries(currency: NetWorthCurrency): LineSeries {
   return {
     key: currency.currency_code,
-    label: "Líquido",
+    label: i18n.t("dashboard.presentation.net"),
     points: currency.series.map((point) => ({ x: point.month, value: point.net })),
   };
 }
@@ -63,18 +64,18 @@ export function trendFor(metric: MonthMetric, diff: string): Trend {
 
 /** "R$ 120,00 a mais", "R$ 50,00 a menos" ou "Igual ao mês passado". */
 export function formatDiff(diff: string, currencyCode: string): string {
-  if (isZeroMoney(diff)) return "Igual ao mês passado";
+  if (isZeroMoney(diff)) return i18n.t("dashboard.presentation.sameAsLastMonth");
   const negative = isNegativeMoney(diff);
   const amount = formatMoney(negative ? negateMoney(diff) : diff, currencyCode);
-  return negative ? `${amount} a menos` : `${amount} a mais`;
+  return i18n.t(negative ? "dashboard.presentation.less" : "dashboard.presentation.more", { amount });
 }
 
 /** "+12,3%", "-5,0%" ou "Sem base de comparação" (mes passado zerado). */
 export function formatPercent(percent: number | null): string {
-  if (percent === null) return "Sem base de comparação";
+  if (percent === null) return i18n.t("dashboard.presentation.noBase");
   const rounded = Math.round(percent * 10) / 10;
   const sign = rounded > 0 ? "+" : "";
-  return `${sign}${rounded.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+  return `${sign}${rounded.toLocaleString(currentIntlLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
 /** Acha os totais da mesma moeda num outro periodo (o mes passado pode nao ter tido lancamentos nela). */
@@ -115,13 +116,16 @@ export function closestToLimit(items: BudgetProgress[], limit = 4): BudgetProgre
 /** "R$ 49,90" quando min e max sao iguais; senao "R$ 40,00 a R$ 60,00". */
 export function upcomingAmountText(item: Pick<UpcomingItem, "amount_min" | "amount_max" | "currency_code">): string {
   if (item.amount_min === item.amount_max) return formatMoney(item.amount_min, item.currency_code);
-  return `${formatMoney(item.amount_min, item.currency_code)} a ${formatMoney(item.amount_max, item.currency_code)}`;
+  return i18n.t("dashboard.presentation.range", {
+    min: formatMoney(item.amount_min, item.currency_code),
+    max: formatMoney(item.amount_max, item.currency_code),
+  });
 }
 
 export function directionText(direction: UpcomingItem["direction"]): string {
-  if (direction === "in") return "Entra";
-  if (direction === "out") return "Sai";
-  return "Transferência";
+  if (direction === "in") return i18n.t("dashboard.presentation.directionIn");
+  if (direction === "out") return i18n.t("dashboard.presentation.directionOut");
+  return i18n.t("dashboard.presentation.directionTransfer");
 }
 
 // ---------- Alertas ----------
@@ -138,7 +142,7 @@ export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[])
   if (overdue > 0) {
     alerts.push({
       key: "overdue",
-      text: `${overdue} ${overdue === 1 ? "conta atrasada" : "contas atrasadas"}`,
+      text: i18n.t("dashboard.presentation.overdue", { count: overdue }),
       href: "/contas-a-pagar",
       level: "destructive",
     });
@@ -146,7 +150,7 @@ export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[])
   if (over > 0) {
     alerts.push({
       key: "over",
-      text: `${over} ${over === 1 ? "orçamento no limite" : "orçamentos no limite"}`,
+      text: i18n.t("dashboard.presentation.overBudget", { count: over }),
       href: "/orcamentos",
       level: "destructive",
     });
@@ -154,7 +158,7 @@ export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[])
   if (warning > 0) {
     alerts.push({
       key: "warning",
-      text: `${warning} ${warning === 1 ? "orçamento perto do limite" : "orçamentos perto do limite"} (acima de ${WARNING_AT_PERCENT}%)`,
+      text: i18n.t("dashboard.presentation.nearLimit", { count: warning, percent: WARNING_AT_PERCENT }),
       href: "/orcamentos",
       level: "warning",
     });
@@ -166,10 +170,17 @@ export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[])
 
 /** "Hoje", "Ontem", "13/03" (mesmo ano) ou "31/12/25" (outro ano): cabe numa coluna estreita. */
 export function shortDayLabel(date: string, today: string): string {
-  if (date === today) return "Hoje";
-  if (date === shiftDay(today, -1)) return "Ontem";
-  const [year, month, day] = date.split("-");
-  return year === today.slice(0, 4) ? `${day}/${month}` : `${day}/${month}/${year.slice(2)}`;
+  if (date === today) return i18n.t("dates.today");
+  if (date === shiftDay(today, -1)) return i18n.t("dates.yesterday");
+  const [year, month, day] = date.split("-").map(Number);
+  // Dia e mes na ordem do idioma (13/03 em portugues, 03/13 em ingles); o ano so aparece quando e outro ano
+  const sameYear = String(year) === today.slice(0, 4);
+  return new Intl.DateTimeFormat(currentIntlLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    ...(sameYear ? {} : { year: "2-digit" }),
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 export type RecentLine = {
@@ -197,7 +208,7 @@ export function recentLine(
     id: transaction.id,
     date: shortDayLabel(transactionDate(transaction), today),
     title: transactionTitle(transaction),
-    detail: divided ? `Dividida em ${transaction.splits.length}` : (category?.name ?? null),
+    detail: divided ? i18n.t("dashboard.presentation.dividedIn", { count: transaction.splits.length }) : (category?.name ?? null),
     amount: formatTransactionAmount(transaction),
     direction: first ? directionOf(first) : "neutral",
   };

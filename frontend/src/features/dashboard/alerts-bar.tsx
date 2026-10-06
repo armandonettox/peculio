@@ -5,6 +5,7 @@ import { useBudgetsProgress } from "@/api/budgets";
 import { useUpcoming } from "@/api/dashboard";
 import { appToday } from "@/lib/dates";
 import { buildAlerts } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 const LEVEL_CLASS = {
   destructive: "border-destructive/30 bg-destructive/10 text-destructive",
@@ -16,6 +17,7 @@ const LEVEL_CLASS = {
  * Some por completo quando nao ha nada para avisar.
  */
 export function AlertsBar() {
+  const { t } = useTranslation();
   const upcoming = useUpcoming({ days: 30 });
   const budgets = useBudgetsProgress({ on: appToday(), includeArchived: false });
 
@@ -27,7 +29,7 @@ export function AlertsBar() {
   if (alerts.length === 0) return null;
 
   return (
-    <section aria-label="Alertas" className="mb-6 flex flex-col gap-2">
+    <section aria-label={t("dashboard.alertsBar.alertas")} className="mb-6 flex flex-col gap-2">
       {alerts.map((alert) => (
         <Link
           key={alert.key}

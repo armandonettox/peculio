@@ -58,6 +58,14 @@
       "esseEnderecoNaoExiste": "Esse endereço não existe",
       "oLinkPodeEstar": "O link pode estar errado ou a página foi movida.",
       "voltarAoPainel": "Voltar ao painel"
+    },
+    "dashboard": {
+      "painel": "Painel",
+      "resumoDasSuasFinancas": "Resumo das suas finanças",
+      "nenhumaContaAinda": "Nenhuma conta ainda",
+      "quandoVoceCadastrarSuas": "Quando você cadastrar suas contas, o resumo delas aparece aqui.",
+      "cadastrarConta": "Cadastrar conta",
+      "greeting": "Olá, {{name}}. Este é o resumo das suas finanças."
     }
   },
   "common": {
@@ -65,7 +73,9 @@
     "senha": "Senha",
     "tentarDeNovo": "Tentar de novo",
     "nome": "Nome",
-    "seguranca": "Segurança"
+    "seguranca": "Segurança",
+    "moeda": "Moeda",
+    "valor": "Valor"
   },
   "components": {
     "appShell": {
@@ -222,5 +232,91 @@
     "internal_error": "Algo deu errado do nosso lado. Tente novamente.",
     "network_error": "Não foi possível conectar ao servidor. Verifique sua conexão.",
     "fallback": "Algo deu errado. Tente novamente."
+  },
+  "dashboard": {
+    "alertsBar": {
+      "alertas": "Alertas"
+    },
+    "budgetsBlock": {
+      "orcamentos": "Orçamentos",
+      "nenhumOrcamentoAtivoAinda": "Nenhum orçamento ativo ainda.",
+      "verOrcamentos": "Ver orçamentos",
+      "spentOf": "Gasto de {{name}}",
+      "percentOfLimit": "{{percent}}% do limite",
+      "spentOfAmount": "{{spent}} de {{amount}}"
+    },
+    "categoryBlock": {
+      "gastosPorCategoria": "Gastos por categoria",
+      "nenhumaDespesaComCategoria": "Nenhuma despesa com categoria neste mês ainda.",
+      "verRelatorios": "Ver relatórios",
+      "noCategory": "Sem categoria",
+      "spendingByCategoryIn": "Gastos por categoria em {{currency}}"
+    },
+    "netWorthBlock": {
+      "patrimonio": "Patrimônio",
+      "semContasParaCalcular": "Sem contas para calcular o patrimônio ainda.",
+      "liquido": "Líquido",
+      "ativos": "Ativos",
+      "dividas": "Dívidas",
+      "netWorthIn": "Patrimônio em {{currency}}",
+      "netWorthLiquidIn": "Patrimônio líquido em {{currency}}"
+    },
+    "piggyBanksBlock": {
+      "cofrinhos": "Cofrinhos",
+      "nenhumCofrinhoAinda": "Nenhum cofrinho ainda.",
+      "verCofrinhos": "Ver cofrinhos",
+      "ofTarget": "de {{target}}"
+    },
+    "thisMonthBlock": {
+      "esteMes": "Este mês",
+      "nenhumaReceitaOuDespesa": "Nenhuma receita ou despesa neste mês ainda.",
+      "diferenca": "Diferença",
+      "thisMonthIn": "Este mês em {{currency}}",
+      "caption": "Receita, despesa e resultado deste mês em {{currency}}, comparados com o mês passado"
+    },
+    "transactionsBlock": {
+      "ultimasTransacoes": "Últimas transações",
+      "nenhumLancamentoAinda": "Nenhum lançamento ainda.",
+      "verTodas": "Ver todas"
+    },
+    "upcomingBlock": {
+      "proximosVencimentos": "Próximos vencimentos",
+      "nadaVencendoNosProximos": "Nada vencendo nos próximos 30 dias.",
+      "atrasada": "Atrasada",
+      "verContasAPagar": "Ver contas a pagar"
+    },
+    "dashboardBlock": {
+      "loading": "Carregando {{title}}..."
+    },
+    "presentation": {
+      "net": "Líquido",
+      "sameAsLastMonth": "Igual ao mês passado",
+      "less": "{{amount}} a menos",
+      "more": "{{amount}} a mais",
+      "noBase": "Sem base de comparação",
+      "range": "{{min}} a {{max}}",
+      "directionIn": "Entra",
+      "directionOut": "Sai",
+      "directionTransfer": "Transferência",
+      "overdue_one": "{{count}} conta atrasada",
+      "overdue_other": "{{count}} contas atrasadas",
+      "overBudget_one": "{{count}} orçamento no limite",
+      "overBudget_other": "{{count}} orçamentos no limite",
+      "nearLimit_one": "{{count}} orçamento perto do limite (acima de {{percent}}%)",
+      "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)",
+      "dividedIn": "Dividida em {{count}}"
+    }
+  },
+  "money": {
+    "required": "Informe o valor.",
+    "invalid": "Valor inválido.",
+    "noCents": "Esta moeda não tem centavos.",
+    "maxDecimals": "Use no máximo {{places}} casas decimais.",
+    "tooLarge": "Valor muito grande."
+  },
+  "dates": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "range": "{{start}} a {{end}}"
   }
 }

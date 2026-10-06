@@ -3,6 +3,7 @@ import { useReportSummary } from "@/api/reports";
 import { formatMoney, placesOf } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
 import { compareToLastMonth, findByCurrency, formatDiff, formatPercent, trendFor, type MonthMetric } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 const METRICS: { key: MonthMetric; label: string }[] = [
   { key: "income", label: "Receita" },
@@ -14,6 +15,7 @@ const TREND_CLASS = { good: "text-positive", bad: "text-destructive", neutral: "
 
 /** Receita, despesa e resultado deste mes, comparados com o mes passado. */
 export function ThisMonthBlock() {
+  const { t } = useTranslation();
   const thisMonth = useReportSummary({ period: "this-month" });
   const lastMonth = useReportSummary({ period: "last-month" });
   // Casas decimais de cada moeda (JPY tem 0, algumas tem 3): a diferenca nao pode truncar nem inventar casas
@@ -26,7 +28,7 @@ export function ThisMonthBlock() {
 
   return (
     <DashboardBlock
-      title="Este mês"
+      title={t("dashboard.thisMonthBlock.esteMes")}
       isLoading={isLoading}
       isError={isError}
       error={thisMonth.error ?? lastMonth.error}
@@ -35,28 +37,28 @@ export function ThisMonthBlock() {
         void lastMonth.refetch();
       }}
       isEmpty={currencies.length === 0}
-      empty={<p className="text-sm text-muted-foreground">Nenhuma receita ou despesa neste mês ainda.</p>}
+      empty={<p className="text-sm text-muted-foreground">{t("dashboard.thisMonthBlock.nenhumaReceitaOuDespesa")}</p>}
     >
       <div className="flex flex-col gap-6">
         {currencies.map((totals) => {
           const previous = findByCurrency(lastMonth.data?.currencies ?? [], totals.currency_code);
           return (
-            <section key={totals.currency_code} aria-label={`Este mês em ${totals.currency_code}`} className="min-w-0">
+            <section key={totals.currency_code} aria-label={t("dashboard.thisMonthBlock.thisMonthIn", { currency: totals.currency_code })} className="min-w-0">
               {currencies.length > 1 && <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{totals.currency_code}</h3>}
               <table className="w-full min-w-0 border-collapse text-sm">
                 <caption className="sr-only">
-                  Receita, despesa e resultado deste mês em {totals.currency_code}, comparados com o mês passado
+                  {t("dashboard.thisMonthBlock.caption", { currency: totals.currency_code })}
                 </caption>
                 <thead>
                   <tr className="text-left text-xs text-muted-foreground">
                     <th scope="col" className="py-1 font-normal">
-                      Valor
+                      {t("common.valor")}
                     </th>
                     <th scope="col" className="py-1 font-normal">
-                      Este mês
+                      {t("dashboard.thisMonthBlock.esteMes")}
                     </th>
                     <th scope="col" className="py-1 font-normal">
-                      Diferença
+                      {t("dashboard.thisMonthBlock.diferenca")}
                     </th>
                   </tr>
                 </thead>

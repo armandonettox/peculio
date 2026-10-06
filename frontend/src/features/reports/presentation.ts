@@ -1,3 +1,4 @@
+import { currentIntlLocale } from "@/i18n";
 import type { GroupedDimension, ReportRow } from "@/api/reports";
 import { isNegativeMoney } from "@/lib/money";
 
@@ -41,7 +42,7 @@ export function netClass(net: string): string {
 /** "2026-03" -> "mar/26". */
 export function shortMonthLabel(month: string): string {
   const [year, number] = month.split("-").map(Number);
-  const text = new Intl.DateTimeFormat("pt-BR", { month: "short", timeZone: "UTC" })
+  const text = new Intl.DateTimeFormat(currentIntlLocale(), { month: "short", timeZone: "UTC" })
     .format(new Date(Date.UTC(year, number - 1, 1)))
     .replace(".", "");
   return `${text}/${String(year).slice(2)}`;
@@ -50,7 +51,7 @@ export function shortMonthLabel(month: string): string {
 /** "2026-03" -> "março de 2026", para leitor de tela e tabela. */
 export function longMonthLabel(month: string): string {
   const [year, number] = month.split("-").map(Number);
-  return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+  return new Intl.DateTimeFormat(currentIntlLocale(), { month: "long", year: "numeric", timeZone: "UTC" }).format(
     new Date(Date.UTC(year, number - 1, 1)),
   );
 }

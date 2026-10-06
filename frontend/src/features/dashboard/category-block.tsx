@@ -7,29 +7,31 @@ import { Select } from "@/components/ui/select";
 import { formatMoney } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
 import { categorySlices, pickCurrency } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 /** Para onde vai o dinheiro neste mes, por categoria (so despesas; as 6 maiores e "Outras"). */
 export function CategoryBlock() {
+  const { t } = useTranslation();
   const query = useReportGrouped("category", { period: "this-month" });
   const [selected, setSelected] = useState<string | null>(null);
   const blocks = query.data?.currencies ?? [];
   const currency = pickCurrency(blocks, selected);
   const block = blocks.find((item) => item.currency_code === currency);
-  const slices = block ? categorySlices(block.rows, "Sem categoria") : [];
+  const slices = block ? categorySlices(block.rows, t("dashboard.categoryBlock.noCategory")) : [];
 
   return (
     <DashboardBlock
-      title="Gastos por categoria"
+      title={t("dashboard.categoryBlock.gastosPorCategoria")}
       isLoading={query.isPending}
       isError={query.isError}
       error={query.error}
       onRetry={() => void query.refetch()}
       isEmpty={slices.length === 0}
-      empty={<p className="text-sm text-muted-foreground">Nenhuma despesa com categoria neste mês ainda.</p>}
+      empty={<p className="text-sm text-muted-foreground">{t("dashboard.categoryBlock.nenhumaDespesaComCategoria")}</p>}
       actions={
         blocks.length > 1 ? (
           <Select
-            aria-label="Moeda"
+            aria-label={t("common.moeda")}
             value={currency ?? ""}
             onChange={(event) => setSelected(event.target.value)}
             className="w-auto"
@@ -45,7 +47,7 @@ export function CategoryBlock() {
     >
       <div className="flex flex-col gap-3">
         <DonutChart
-          title={`Gastos por categoria em ${currency}`}
+          title={t("dashboard.categoryBlock.spendingByCategoryIn", { currency })}
           slices={slices}
           formatValue={(value) => formatMoney(value, currency ?? "BRL")}
           centerLabel="Total"
@@ -54,7 +56,7 @@ export function CategoryBlock() {
           otherLabel="Outras"
         />
         <Link to="/relatorios" className="text-sm font-medium text-primary-text hover:underline">
-          Ver relatórios
+          {t("dashboard.categoryBlock.verRelatorios")}
         </Link>
       </div>
     </DashboardBlock>

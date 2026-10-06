@@ -6,6 +6,7 @@ import { appToday } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { DashboardBlock } from "./dashboard-block";
 import { recentLine } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 const RECENT_COUNT = 8;
 
@@ -14,6 +15,7 @@ const RECENT_COUNT = 8;
  * ou ver anexos, o link leva a tela de transacoes, que e onde essas acoes vivem.
  */
 export function TransactionsBlock() {
+  const { t } = useTranslation();
   const query = useTransactions({});
   const categories = useCategories({ search: "" });
 
@@ -23,13 +25,13 @@ export function TransactionsBlock() {
 
   return (
     <DashboardBlock
-      title="Últimas transações"
+      title={t("dashboard.transactionsBlock.ultimasTransacoes")}
       isLoading={query.isPending}
       isError={query.isError}
       error={query.error}
       onRetry={() => void query.refetch()}
       isEmpty={lines.length === 0}
-      empty={<p className="text-sm text-muted-foreground">Nenhum lançamento ainda.</p>}
+      empty={<p className="text-sm text-muted-foreground">{t("dashboard.transactionsBlock.nenhumLancamentoAinda")}</p>}
     >
       <ul className="flex flex-col divide-y">
         {lines.map((line) => (
@@ -48,7 +50,7 @@ export function TransactionsBlock() {
         ))}
       </ul>
       <Link to="/transacoes" className="mt-4 inline-block text-sm font-medium text-primary-text hover:underline">
-        Ver todas
+        {t("dashboard.transactionsBlock.verTodas")}
       </Link>
     </DashboardBlock>
   );

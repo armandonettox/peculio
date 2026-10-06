@@ -1,3 +1,5 @@
+import { currentIntlLocale, i18n } from "@/i18n";
+
 // Datas do dia a dia. Os lancamentos usam so a data ("2026-03-12"), sem hora nem fuso.
 
 // Hoje: o dia do servidor, no fuso do app (ver app-clock.ts)
@@ -14,12 +16,12 @@ export function shiftDay(date: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-/** "Hoje", "Ontem" ou "Quinta-feira, 12 de marco de 2026". */
+/** "Hoje", "Ontem" ou "Quinta-feira, 12 de março de 2026" (e "Thursday, March 12, 2026" em inglês). */
 export function formatDayHeading(date: string, today: string): string {
-  if (date === today) return "Hoje";
-  if (date === shiftDay(today, -1)) return "Ontem";
+  if (date === today) return i18n.t("dates.today");
+  if (date === shiftDay(today, -1)) return i18n.t("dates.yesterday");
   const [year, month, day] = parts(date);
-  const text = new Intl.DateTimeFormat("pt-BR", {
+  const text = new Intl.DateTimeFormat(currentIntlLocale(), {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -44,28 +46,32 @@ export function shiftMonth(date: string, months: number): string {
 /** "Marco de 2026". */
 export function formatMonthYear(date: string): string {
   const [year, month] = parts(date);
-  const text = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+  const text = new Intl.DateTimeFormat(currentIntlLocale(), { month: "long", year: "numeric", timeZone: "UTC" }).format(
     new Date(Date.UTC(year, month - 1, 1)),
   );
   return text.replace(/^./, (letter) => letter.toUpperCase());
 }
 
-const pad = (value: number) => String(value).padStart(2, "0");
+/** Data numerica na ordem do idioma ("05/03/2026" em portugues, "03/05/2026" em ingles). `withYear` poe o ano. */
+function numericDay(date: string, withYear: boolean): string {
+  const [year, month, day] = parts(date);
+  return new Intl.DateTimeFormat(currentIntlLocale(), {
+    day: "2-digit",
+    month: "2-digit",
+    ...(withYear ? { year: "numeric" } : {}),
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
 
 /** "09/03 a 15/03"; com o ano nas duas pontas quando o periodo muda de ano ("29/12/2025 a 04/01/2026"). */
 export function formatDateRange(start: string, end: string): string {
-  const [startYear, startMonth, startDay] = parts(start);
-  const [endYear, endMonth, endDay] = parts(end);
-  if (startYear !== endYear) {
-    return `${pad(startDay)}/${pad(startMonth)}/${startYear} a ${pad(endDay)}/${pad(endMonth)}/${endYear}`;
-  }
-  return `${pad(startDay)}/${pad(startMonth)} a ${pad(endDay)}/${pad(endMonth)}`;
+  const withYear = parts(start)[0] !== parts(end)[0];
+  return i18n.t("dates.range", { start: numericDay(start, withYear), end: numericDay(end, withYear) });
 }
 
-/** "05/03/2026". */
+/** "05/03/2026" (e "03/05/2026" em ingles). */
 export function formatDate(date: string): string {
-  const [year, month, day] = parts(date);
-  return `${pad(day)}/${pad(month)}/${year}`;
+  return numericDay(date, true);
 }
 
 /** Dias de `from` ate `to` (positivo se `to` e depois; negativo se antes). */

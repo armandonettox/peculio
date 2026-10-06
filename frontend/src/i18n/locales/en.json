@@ -58,6 +58,14 @@
       "esseEnderecoNaoExiste": "This address doesn't exist",
       "oLinkPodeEstar": "The link may be wrong or the page may have moved.",
       "voltarAoPainel": "Back to dashboard"
+    },
+    "dashboard": {
+      "painel": "Dashboard",
+      "resumoDasSuasFinancas": "Summary of your finances",
+      "nenhumaContaAinda": "No accounts yet",
+      "quandoVoceCadastrarSuas": "When you add your accounts, their summary will show up here.",
+      "cadastrarConta": "Add account",
+      "greeting": "Hi, {{name}}. Here's a summary of your finances."
     }
   },
   "common": {
@@ -65,7 +73,9 @@
     "senha": "Password",
     "tentarDeNovo": "Try again",
     "nome": "Name",
-    "seguranca": "Security"
+    "seguranca": "Security",
+    "moeda": "Currency",
+    "valor": "Amount"
   },
   "components": {
     "appShell": {
@@ -222,5 +232,91 @@
     "internal_error": "Something went wrong on our side. Try again.",
     "network_error": "Couldn't connect to the server. Check your connection.",
     "fallback": "Something went wrong. Try again."
+  },
+  "dashboard": {
+    "alertsBar": {
+      "alertas": "Alerts"
+    },
+    "budgetsBlock": {
+      "orcamentos": "Budgets",
+      "nenhumOrcamentoAtivoAinda": "No active budgets yet.",
+      "verOrcamentos": "View budgets",
+      "spentOf": "{{name}} spending",
+      "percentOfLimit": "{{percent}}% of the limit",
+      "spentOfAmount": "{{spent}} of {{amount}}"
+    },
+    "categoryBlock": {
+      "gastosPorCategoria": "Spending by category",
+      "nenhumaDespesaComCategoria": "No expenses with a category this month yet.",
+      "verRelatorios": "View reports",
+      "noCategory": "No category",
+      "spendingByCategoryIn": "Spending by category in {{currency}}"
+    },
+    "netWorthBlock": {
+      "patrimonio": "Net worth",
+      "semContasParaCalcular": "No accounts to calculate net worth yet.",
+      "liquido": "Net",
+      "ativos": "Assets",
+      "dividas": "Debts",
+      "netWorthIn": "Net worth in {{currency}}",
+      "netWorthLiquidIn": "Net worth in {{currency}}, net of debts"
+    },
+    "piggyBanksBlock": {
+      "cofrinhos": "Piggy banks",
+      "nenhumCofrinhoAinda": "No piggy banks yet.",
+      "verCofrinhos": "View piggy banks",
+      "ofTarget": "of {{target}}"
+    },
+    "thisMonthBlock": {
+      "esteMes": "This month",
+      "nenhumaReceitaOuDespesa": "No income or expenses this month yet.",
+      "diferenca": "Difference",
+      "thisMonthIn": "This month in {{currency}}",
+      "caption": "Income, expenses and result for this month in {{currency}}, compared with last month"
+    },
+    "transactionsBlock": {
+      "ultimasTransacoes": "Latest transactions",
+      "nenhumLancamentoAinda": "No transactions yet.",
+      "verTodas": "View all"
+    },
+    "upcomingBlock": {
+      "proximosVencimentos": "Upcoming due dates",
+      "nadaVencendoNosProximos": "Nothing due in the next 30 days.",
+      "atrasada": "Overdue",
+      "verContasAPagar": "View bills"
+    },
+    "dashboardBlock": {
+      "loading": "Loading {{title}}..."
+    },
+    "presentation": {
+      "net": "Net",
+      "sameAsLastMonth": "Same as last month",
+      "less": "{{amount}} less",
+      "more": "{{amount}} more",
+      "noBase": "No basis for comparison",
+      "range": "{{min}} to {{max}}",
+      "directionIn": "Incoming",
+      "directionOut": "Outgoing",
+      "directionTransfer": "Transfer",
+      "overdue_one": "{{count}} overdue bill",
+      "overdue_other": "{{count}} overdue bills",
+      "overBudget_one": "{{count}} budget at its limit",
+      "overBudget_other": "{{count}} budgets at their limit",
+      "nearLimit_one": "{{count}} budget near its limit (above {{percent}}%)",
+      "nearLimit_other": "{{count}} budgets near their limit (above {{percent}}%)",
+      "dividedIn": "Split into {{count}}"
+    }
+  },
+  "money": {
+    "required": "Enter the amount.",
+    "invalid": "Invalid amount.",
+    "noCents": "This currency has no cents.",
+    "maxDecimals": "Use at most {{places}} decimal places.",
+    "tooLarge": "Amount too large."
+  },
+  "dates": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "range": "{{start}} to {{end}}"
   }
 }

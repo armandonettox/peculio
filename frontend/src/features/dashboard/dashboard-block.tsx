@@ -3,6 +3,7 @@ import { useId, type ReactNode } from "react";
 import { getErrorMessage } from "@/api/error-messages";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   title: string;
@@ -34,6 +35,7 @@ export function DashboardBlock({
   className,
   children,
 }: Props) {
+  const { t } = useTranslation();
   const headingId = useId();
 
   return (
@@ -49,7 +51,7 @@ export function DashboardBlock({
         <div aria-busy="true" className="flex flex-col gap-2">
           <div className="h-20 animate-pulse rounded-md bg-muted" />
           <p className="sr-only" role="status">
-            Carregando {title.toLowerCase()}...
+            {t("dashboard.dashboardBlock.loading", { title: title.toLowerCase() })}
           </p>
         </div>
       )}
@@ -60,7 +62,7 @@ export function DashboardBlock({
             {getErrorMessage(error)}
           </Alert>
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Tentar de novo
+            {t("common.tentarDeNovo")}
           </Button>
         </div>
       )}

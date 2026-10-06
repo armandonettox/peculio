@@ -1,3 +1,4 @@
+import { currentIntlLocale } from "@/i18n";
 import type { DeliveryStatus, WebhookDelivery, WebhookEventName } from "@/api/webhooks";
 
 export const EVENTS: WebhookEventName[] = ["transaction.created", "transaction.updated", "transaction.deleted"];
@@ -18,7 +19,7 @@ export const STATUS_LABELS: Record<DeliveryStatus, string> = {
 
 /** "02/10/2026 14:30" no fuso de quem esta olhando. */
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  return new Date(iso).toLocaleString(currentIntlLocale(), { dateStyle: "short", timeStyle: "short" });
 }
 
 /** Linha de resumo da ultima entrega no cartao. */

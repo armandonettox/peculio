@@ -6,21 +6,23 @@ import { formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { DashboardBlock } from "./dashboard-block";
 import { directionText, upcomingAmountText } from "./presentation";
+import { useTranslation } from "react-i18next";
 
 /** Contas a pagar e recorrentes dos proximos 30 dias, com as atrasadas em destaque. */
 export function UpcomingBlock() {
+  const { t } = useTranslation();
   const query = useUpcoming({ days: 30 });
   const items = query.data?.items ?? [];
 
   return (
     <DashboardBlock
-      title="Próximos vencimentos"
+      title={t("dashboard.upcomingBlock.proximosVencimentos")}
       isLoading={query.isPending}
       isError={query.isError}
       error={query.error}
       onRetry={() => void query.refetch()}
       isEmpty={items.length === 0}
-      empty={<p className="text-sm text-muted-foreground">Nada vencendo nos próximos 30 dias.</p>}
+      empty={<p className="text-sm text-muted-foreground">{t("dashboard.upcomingBlock.nadaVencendoNosProximos")}</p>}
     >
       <ul className="flex flex-col gap-3">
         {items.map((item) => (
@@ -36,7 +38,7 @@ export function UpcomingBlock() {
                 {item.overdue && (
                   <span className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive">
                     <AlertTriangle className="size-3" aria-hidden="true" />
-                    Atrasada
+                    {t("dashboard.upcomingBlock.atrasada")}
                   </span>
                 )}
               </div>
@@ -48,7 +50,7 @@ export function UpcomingBlock() {
         ))}
       </ul>
       <Link to="/contas-a-pagar" className="mt-4 inline-block text-sm font-medium text-primary-text hover:underline">
-        Ver contas a pagar
+        {t("dashboard.upcomingBlock.verContasAPagar")}
       </Link>
     </DashboardBlock>
   );

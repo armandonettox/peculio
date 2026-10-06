@@ -1,7 +1,7 @@
+import { currentIntlLocale, i18n } from "@/i18n";
+
 // Dinheiro no frontend. A API manda e recebe valores como texto ("1234.50"). Aqui nunca se
 // usa float para somar: a conta e feita em inteiros (BigInt) na menor unidade da moeda.
-
-const LOCALE = "pt-BR";
 
 // Casas decimais por moeda quando a lista de moedas ainda nao chegou. O backend e a fonte.
 const DEFAULT_PLACES: Record<string, number> = { JPY: 0 };
@@ -13,7 +13,7 @@ export function placesOf(currencyCode: string, known?: Record<string, number>): 
 export function formatMoney(value: string, currencyCode: string): string {
   try {
     // O Intl aceita o texto decimal direto, sem passar por float
-    return new Intl.NumberFormat(LOCALE, { style: "currency", currency: currencyCode }).format(
+    return new Intl.NumberFormat(currentIntlLocale(), { style: "currency", currency: currencyCode }).format(
       value as Intl.StringNumericLiteral,
     );
   } catch {
@@ -62,15 +62,24 @@ export function isNegativeMoney(value: string): boolean {
 
 export type ParsedMoney = { ok: true; value: string } | { ok: false; error: string };
 
+const escapeRegex = (char: string) => char.replace(/[.,]/g, "\\$&");
+
 /**
- * Converte o que o usuario digitou ("1.234,50", "1234,5", "12.5") para o texto que a API
- * espera ("1234.50"). No Brasil o ponto separa milhares e a virgula separa os centavos.
- * Um ponto sozinho so vale como centavos quando vem seguido de 1 ou 2 digitos ("12.5"):
- * "1.234" e lido como mil duzentos e trinta e quatro, nunca como 1,234.
+ * Converte o que o usuario digitou para o texto que a API espera ("1234.50"), no padrao do idioma da tela:
+ *   portugues: "1.234,50", "1234,5", "12.5"   (ponto separa milhares, virgula separa os centavos)
+ *   ingles:    "1,234.50", "1234.5", "12,5"   (virgula separa milhares, ponto separa os centavos)
+ * O separador do outro idioma sozinho so vale como centavos quando vem seguido de 1 ou 2 digitos ("12.5" em portugues,
+ * "12,5" em ingles). Um grupo de tres digitos ("1.234" em portugues, "1,234" em ingles) e lido como milhar, nunca como
+ * 1,234.
  */
-export function parseMoneyInput(raw: string, places: number): ParsedMoney {
+export function parseMoneyInput(raw: string, places: number, locale: string = currentIntlLocale()): ParsedMoney {
+  const decimal = locale.toLowerCase().startsWith("pt") ? "," : ".";
+  const group = decimal === "," ? "." : ",";
+  const G = escapeRegex(group);
+  const invalid = { ok: false, error: i18n.t("money.invalid") } as const;
+
   const text = raw.trim().replace(/\s/g, "");
-  if (!text) return { ok: false, error: "Informe o valor." };
+  if (!text) return { ok: false, error: i18n.t("money.required") };
 
   const negative = text.startsWith("-");
   const body = negative ? text.slice(1) : text;
@@ -78,33 +87,31 @@ export function parseMoneyInput(raw: string, places: number): ParsedMoney {
   let integer: string;
   let fraction = "";
 
-  if (body.includes(",")) {
-    const parts = body.split(",");
-    if (parts.length !== 2) return { ok: false, error: "Valor inválido." };
+  if (body.includes(decimal)) {
+    const parts = body.split(decimal);
+    if (parts.length !== 2) return invalid;
     integer = parts[0];
     fraction = parts[1];
-    // Antes da virgula, o ponto so e aceito como separador de milhares (grupos de 3)
-    if (integer.includes(".") && !/^\d{1,3}(\.\d{3})+$/.test(integer)) return { ok: false, error: "Valor inválido." };
-    integer = integer.replaceAll(".", "");
-  } else if (/^\d+\.\d{1,2}$/.test(body)) {
-    [integer, fraction] = body.split(".");
-  } else if (/^\d{1,3}(\.\d{3})+$/.test(body)) {
-    integer = body.replaceAll(".", "");
+    // Antes do separador de centavos, o outro so e aceito como separador de milhares (grupos de 3)
+    if (integer.includes(group) && !new RegExp(`^\\d{1,3}(${G}\\d{3})+$`).test(integer)) return invalid;
+    integer = integer.replaceAll(group, "");
+  } else if (new RegExp(`^\\d+${G}\\d{1,2}$`).test(body)) {
+    [integer, fraction] = body.split(group);
+  } else if (new RegExp(`^\\d{1,3}(${G}\\d{3})+$`).test(body)) {
+    integer = body.replaceAll(group, "");
   } else {
     integer = body;
   }
 
-  if (!/^\d+$/.test(integer) || (fraction !== "" && !/^\d+$/.test(fraction))) {
-    return { ok: false, error: "Valor inválido." };
-  }
+  if (!/^\d+$/.test(integer) || (fraction !== "" && !/^\d+$/.test(fraction))) return invalid;
   if (fraction.length > places) {
     return {
       ok: false,
-      error: places === 0 ? "Esta moeda não tem centavos." : `Use no máximo ${places} casas decimais.`,
+      error: places === 0 ? i18n.t("money.noCents") : i18n.t("money.maxDecimals", { places }),
     };
   }
   integer = integer.replace(/^0+(?=\d)/, "");
-  if (integer.length + places > 18) return { ok: false, error: "Valor muito grande." };
+  if (integer.length + places > 18) return { ok: false, error: i18n.t("money.tooLarge") };
 
   const canonical = `${integer}${places > 0 ? `.${fraction.padEnd(places, "0")}` : ""}`;
   return { ok: true, value: negative && !/^0(\.0+)?$/.test(canonical) ? `-${canonical}` : canonical };
