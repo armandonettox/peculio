@@ -682,3 +682,33 @@ def test_confirm_emits_one_webhook_event_per_created_row(client, headers, accoun
     rows = [{"date": "2026-03-05", "description": f"Item {n}", "amount": "-1.00"} for n in range(3)]
     confirm(client, headers, account_id, rows)
     assert db_session.execute(select(func.count()).select_from(WebhookDelivery)).scalar_one() == 3
+
+
+# ---------- Idioma (Accept-Language) ----------
+
+
+def test_preview_row_reasons_in_english(client, headers, account_id):
+    en_headers = {**headers, "Accept-Language": "en-US"}
+    text = (
+        "Data;Descricao;Valor\n"
+        "31/02/2026;Data ruim;-5,00\n"
+        "05/03/2026;;-5,00\n"
+        "05/03/2026;Valor ruim;abc\n"
+        "05/03/2026;Boa;-5,00\n"
+    )
+    body = upload(client, en_headers, account_id, text).json()
+    assert [r["reason"] for r in body["rows"][:3]] == ["Date doesn't exist", "Description is empty", "Invalid amount"]
+
+
+def test_duplicate_reason_in_english(client, headers, account_id):
+    en_headers = {**headers, "Accept-Language": "en-US"}
+    spend(client, headers, account_id, "Mercado Bom Preco", "50.00", "2026-03-05")
+    body = upload(client, en_headers, account_id, CSV_TEXT).json()
+    assert "matching transaction" in body["rows"][0]["reason"]
+
+
+def test_empty_file_message_in_english(client, headers, account_id):
+    en_headers = {**headers, "Accept-Language": "en-US"}
+    resp = upload(client, en_headers, account_id, "")
+    assert resp.status_code == 422
+    assert resp.json()["detail"] == "The file is empty"

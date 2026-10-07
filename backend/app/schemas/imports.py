@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.core import clock
 from app.core.config import settings
+from app.core.i18n import Lang, pick
 from app.schemas.account import Money
 from app.services.import_parsers import MAX_DESCRIPTION, MIN_YEAR
 
@@ -14,11 +15,11 @@ from app.services.import_parsers import MAX_DESCRIPTION, MIN_YEAR
 MAX_FUTURE_DAYS = 366
 
 
-def check_import_date(value: date) -> date:
+def check_import_date(value: date, lang: Lang = "pt-BR") -> date:
     if value.year < MIN_YEAR:
-        raise ValueError("Data fora do intervalo")
+        raise ValueError(pick(lang, "Data fora do intervalo", "Date out of range"))
     if value > clock.today() + timedelta(days=MAX_FUTURE_DAYS):
-        raise ValueError("Data muito longe no futuro")
+        raise ValueError(pick(lang, "Data muito longe no futuro", "Date too far in the future"))
     return value
 
 

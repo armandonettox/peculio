@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core import clock
 from app.core.database import SessionLocal, get_db
 from app.core.deps import get_current_user
+from app.core.i18n import Lang, get_lang
 from app.core.pagination import Page, PageParams
 from app.models.user import User
 from app.schemas.bulk import BulkIn, BulkOut
@@ -76,11 +77,11 @@ def list_transactions(
     )
 
 
-def _csv_stream(user_id: uuid.UUID, filters: service.TransactionFilters):
+def _csv_stream(user_id: uuid.UUID, filters: service.TransactionFilters, lang: Lang):
     # Sessao propria: o arquivo e gerado aos poucos, depois que a rota ja respondeu, e a sessao da
     # dependencia nao deve ficar presa a esse tempo todo
     with SessionLocal() as db:
-        yield from transactions_csv.export_csv_chunks(db, user_id, filters)
+        yield from transactions_csv.export_csv_chunks(db, user_id, filters, lang=lang)
 
 
 # Precisa vir antes de /{transaction_id}, como /counterparties
@@ -97,6 +98,7 @@ def export_transactions_csv(
     min_amount: AmountFilter = None,
     max_amount: AmountFilter = None,
     user: User = Depends(get_current_user),
+    lang: Lang = Depends(get_lang),
 ):
     filters = service.TransactionFilters(
         account_id=account_id,
@@ -110,9 +112,9 @@ def export_transactions_csv(
         min_amount=min_amount,
         max_amount=max_amount,
     )
-    filename = f"lancamentos-{clock.today().isoformat()}.csv"
+    filename = f"{'lancamentos' if lang == 'pt-BR' else 'transactions'}-{clock.today().isoformat()}.csv"
     return StreamingResponse(
-        _csv_stream(user.id, filters),
+        _csv_stream(user.id, filters, lang),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

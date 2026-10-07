@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.errors import AppError, ErrorCode
+from app.core.i18n import Lang, pick
 from app.models.account import Account, AccountType
 from app.models.transaction import TransactionSplit, TransactionType
 from app.models.user import User
@@ -43,11 +44,15 @@ def _bad_file(error: ImportFileError) -> AppError:
     return AppError(422, ErrorCode.IMPORT_FILE_INVALID, str(error))
 
 
-def _import_account(db: Session, user: User, account_id: uuid.UUID) -> Account:
+def _import_account(db: Session, user: User, account_id: uuid.UUID, lang: Lang = "pt-BR") -> Account:
     """So conta de ativo recebe extrato: divida nao tem entrada nem saida de dinheiro do dia a dia."""
     account = get_owned_account(db, user.id, account_id)
     if account.type != AccountType.asset:
-        raise AppError(400, ErrorCode.IMPORT_ACCOUNT_INVALID, "O extrato so pode ser importado em uma conta de ativo")
+        raise AppError(
+            400,
+            ErrorCode.IMPORT_ACCOUNT_INVALID,
+            pick(lang, "O extrato so pode ser importado em uma conta de ativo", "The statement can only be imported into an asset account"),
+        )
     return account
 
 
@@ -66,12 +71,12 @@ def _from_mapping(mapping: ColumnMapping) -> ImportMapping:
     )
 
 
-def _check_row(row: ParsedRow, places_check) -> None:
+def _check_row(row: ParsedRow, places_check, lang: Lang = "pt-BR") -> None:
     """Confere o que depende da conta (casas da moeda) e do dia (janela de datas) e guarda o motivo."""
     if row.error is not None:
         return
     try:
-        check_import_date(row.date)
+        check_import_date(row.date, lang)
         places_check(abs(row.amount))
     except ValueError as error:
         row.error = str(error)
@@ -117,7 +122,9 @@ def _existing_fingerprints(db: Session, user_id: uuid.UUID, account_id: uuid.UUI
     return counter
 
 
-def _mark_duplicates(db: Session, user: User, account: Account, rows: list[ParsedRow]) -> dict[int, tuple[str, str]]:
+def _mark_duplicates(
+    db: Session, user: User, account: Account, rows: list[ParsedRow], lang: Lang = "pt-BR"
+) -> dict[int, tuple[str, str]]:
     """Para cada linha valida que ja existe: (tipo, motivo). O tipo e same_id (o banco ja mandou esta linha,
     certeza) ou similar (ja ha um igual na conta, suspeita)."""
     valid = [row for row in rows if row.error is None]
@@ -130,33 +137,53 @@ def _mark_duplicates(db: Session, user: User, account: Account, rows: list[Parse
     for row in valid:
         if row.external_id:
             if row.external_id in known_ids or row.external_id in seen_ids:
-                found[row.index] = ("same_id", "Este lancamento ja foi importado antes (mesmo identificador do banco)")
+                found[row.index] = (
+                    "same_id",
+                    pick(
+                        lang,
+                        "Este lancamento ja foi importado antes (mesmo identificador do banco)",
+                        "This transaction was already imported before (same identifier from the bank)",
+                    ),
+                )
                 continue
             seen_ids.add(row.external_id)
         key = _fingerprint(row.date, row.amount, row.description)
         if fingerprints[key] > 0:
             fingerprints[key] -= 1
-            found[row.index] = ("similar", "Ja existe um lancamento igual nesta conta, no mesmo dia e com o mesmo valor")
+            found[row.index] = (
+                "similar",
+                pick(
+                    lang,
+                    "Ja existe um lancamento igual nesta conta, no mesmo dia e com o mesmo valor",
+                    "There's already a matching transaction in this account, on the same day and with the same amount",
+                ),
+            )
     return found
 
 
-def preview(db: Session, user: User, account_id: uuid.UUID, content: bytes, mapping: ImportMapping | None) -> dict:
-    account = _import_account(db, user, account_id)
+def preview(
+    db: Session, user: User, account_id: uuid.UUID, content: bytes, mapping: ImportMapping | None, lang: Lang = "pt-BR"
+) -> dict:
+    account = _import_account(db, user, account_id, lang)
     if not content.strip():
-        raise AppError(422, ErrorCode.IMPORT_FILE_INVALID, "O arquivo esta vazio")
+        raise AppError(422, ErrorCode.IMPORT_FILE_INVALID, pick(lang, "O arquivo esta vazio", "The file is empty"))
     try:
-        text = decode_text(content)
+        text = decode_text(content, lang)
         out: dict = {"account_id": account.id, "columns": None, "sample": None, "mapping": None, "needs_mapping": False}
         if looks_like_ofx(text):
-            statement = parse_ofx(text)
+            statement = parse_ofx(text, lang)
             if statement.currency and statement.currency != account.currency_code:
                 raise ImportFileError(
-                    f"O arquivo esta em {statement.currency} e a conta em {account.currency_code}: escolha uma conta na mesma moeda"
+                    pick(
+                        lang,
+                        f"O arquivo esta em {statement.currency} e a conta em {account.currency_code}: escolha uma conta na mesma moeda",
+                        f"The file is in {statement.currency} and the account is in {account.currency_code}: choose an account in the same currency",
+                    )
                 )
             rows = statement.rows
             out["format"] = "ofx"
         else:
-            table = read_csv(text, has_header=mapping.has_header if mapping else True)
+            table = read_csv(text, has_header=mapping.has_header if mapping else True, lang=lang)
             out["format"] = "csv"
             out["columns"] = table.headers
             out["sample"] = table.rows[:SAMPLE_ROWS]
@@ -165,21 +192,27 @@ def preview(db: Session, user: User, account_id: uuid.UUID, content: bytes, mapp
                 out.update(needs_mapping=True, rows=[], counts={"new": 0, "duplicate": 0, "error": 0})
                 return out
             out["mapping"] = _from_mapping(chosen)
-            rows = rows_from_csv(table, chosen)
+            rows = rows_from_csv(table, chosen, lang)
     except ImportFileError as error:
         raise _bad_file(error) from error
 
     if not rows:
-        raise AppError(422, ErrorCode.IMPORT_FILE_INVALID, "O arquivo nao tem nenhum lancamento")
+        raise AppError(422, ErrorCode.IMPORT_FILE_INVALID, pick(lang, "O arquivo nao tem nenhum lancamento", "The file has no transactions"))
     if len(rows) > settings.import_max_rows:
         raise AppError(
-            422, ErrorCode.IMPORT_TOO_MANY_ROWS, f"O arquivo tem mais de {settings.import_max_rows} linhas: divida em partes"
+            422,
+            ErrorCode.IMPORT_TOO_MANY_ROWS,
+            pick(
+                lang,
+                f"O arquivo tem mais de {settings.import_max_rows} linhas: divida em partes",
+                f"The file has more than {settings.import_max_rows} rows: split it into parts",
+            ),
         )
 
     currency = get_currency(db, account.currency_code)
     for row in rows:
-        _check_row(row, lambda amount: check_amount(currency, amount))
-    duplicates = _mark_duplicates(db, user, account, rows)
+        _check_row(row, lambda amount: check_amount(currency, amount), lang)
+    duplicates = _mark_duplicates(db, user, account, rows, lang)
 
     items = []
     counts = {"new": 0, "duplicate": 0, "error": 0}
@@ -225,8 +258,8 @@ def _create_row(db: Session, user: User, account: Account, row: ImportRowIn) -> 
     mark_cleared(db, user.id, created, account.id)
 
 
-def confirm(db: Session, user: User, data: ImportConfirm) -> dict:
-    account = _import_account(db, user, data.account_id)
+def confirm(db: Session, user: User, data: ImportConfirm, lang: Lang = "pt-BR") -> dict:
+    account = _import_account(db, user, data.account_id, lang)
     currency = get_currency(db, account.currency_code)
     for position, row in enumerate(data.rows, start=1):
         try:

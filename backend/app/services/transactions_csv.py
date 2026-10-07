@@ -7,6 +7,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.i18n import Lang
 from app.models.budget import Budget
 from app.models.category import Category
 from app.models.currency import Currency
@@ -32,12 +33,46 @@ HEADER = [
     "notas",
 ]
 
+HEADER_EN = [
+    "date",
+    "type",
+    "description",
+    "source_account",
+    "destination_account",
+    "amount",
+    "currency",
+    "foreign_amount",
+    "foreign_currency",
+    "category",
+    "budget",
+    "tags",
+    "notes",
+]
+
+
+def header_for(lang: Lang) -> list[str]:
+    return HEADER if lang == "pt-BR" else HEADER_EN
+
+
 TYPE_LABELS = {"withdrawal": "Saída", "deposit": "Entrada", "transfer": "Transferência"}
+TYPE_LABELS_EN = {"withdrawal": "Expense", "deposit": "Income", "transfer": "Transfer"}
+
+
+def type_labels_for(lang: Lang) -> dict[str, str]:
+    return TYPE_LABELS if lang == "pt-BR" else TYPE_LABELS_EN
+
+
+# O separador e a casa decimal seguem o costume de cada idioma: ; e virgula no Brasil (o Excel em
+# portugues usa a virgula do sistema operacional como separador decimal, e trataria uma virgula de
+# milhar como separador de coluna), , e ponto no resto do mundo.
+def delimiter_for(lang: Lang) -> str:
+    return ";" if lang == "pt-BR" else ","
+
 
 # O Excel e o LibreOffice tratam texto que comeca com estes caracteres como formula
 FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
-UTF8_BOM = "\ufeff"
+UTF8_BOM = "﻿"
 
 
 def safe_text(value: str | None) -> str:
@@ -49,17 +84,19 @@ def safe_text(value: str | None) -> str:
     return "'" + value if value.startswith(FORMULA_PREFIXES) else value
 
 
-def format_money(value: Decimal | None, decimal_places: int) -> str:
-    """Valor com as casas da moeda e virgula decimal (formato do Excel em portugues), sem separador de milhar."""
+def format_money(value: Decimal | None, decimal_places: int, lang: Lang = "pt-BR") -> str:
+    """Valor com as casas da moeda, na pontuacao do idioma: virgula decimal em portugues, ponto em ingles,
+    sem separador de milhar nos dois."""
     if value is None:
         return ""
     quantized = value.quantize(Decimal(10) ** -decimal_places)
-    return format(quantized, "f").replace(".", ",")
+    text = format(quantized, "f")
+    return text.replace(".", ",") if lang == "pt-BR" else text
 
 
-def _render(rows: list[list[str]], *, with_bom: bool = False) -> bytes:
+def _render(rows: list[list[str]], delimiter: str, *, with_bom: bool = False) -> bytes:
     buffer = io.StringIO()
-    writer = csv.writer(buffer, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+    writer = csv.writer(buffer, delimiter=delimiter, quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
     writer.writerows(rows)
     text = buffer.getvalue()
     return (UTF8_BOM + text if with_bom else text).encode("utf-8")
@@ -72,11 +109,13 @@ def _names(db: Session, model, ids: set[uuid.UUID], user_id: uuid.UUID) -> dict[
 
 
 def export_csv_chunks(
-    db: Session, user_id: uuid.UUID, filters: TransactionFilters, block_size: int | None = None
+    db: Session, user_id: uuid.UUID, filters: TransactionFilters, block_size: int | None = None, lang: Lang = "pt-BR"
 ) -> Iterator[bytes]:
     """Gera o CSV aos poucos: o cabecalho (com BOM) e depois um pedaco por bloco de transacoes.
     Uma linha por split, na ordem da lista de transacoes."""
-    yield _render([HEADER], with_bom=True)
+    delimiter = delimiter_for(lang)
+    type_labels = type_labels_for(lang)
+    yield _render([header_for(lang)], delimiter, with_bom=True)
 
     places = dict(db.execute(select(Currency.code, Currency.decimal_places)).all())
     for block in iter_transaction_blocks(db, user_id, filters, block_size or BLOCK_SIZE):
@@ -92,13 +131,13 @@ def export_csv_chunks(
             rows.append(
                 [
                     split["date"].isoformat(),
-                    TYPE_LABELS[split["type"]],
+                    type_labels[split["type"]],
                     safe_text(split["description"]),
                     safe_text(split["source_account_name"]),
                     safe_text(split["destination_account_name"]),
-                    format_money(split["amount"], places[split["currency_code"]]),
+                    format_money(split["amount"], places[split["currency_code"]], lang),
                     split["currency_code"],
-                    format_money(split["foreign_amount"], places[foreign_code]) if foreign_code else "",
+                    format_money(split["foreign_amount"], places[foreign_code], lang) if foreign_code else "",
                     foreign_code or "",
                     safe_text(categories.get(split["category_id"])),
                     safe_text(budgets.get(split["budget_id"])),
@@ -106,4 +145,4 @@ def export_csv_chunks(
                     safe_text(split["notes"]),
                 ]
             )
-        yield _render(rows)
+        yield _render(rows, delimiter)

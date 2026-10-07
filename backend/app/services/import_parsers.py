@@ -1,7 +1,8 @@
 """Leitura de extratos (CSV e OFX) sem banco de dados: so texto entra, linhas validadas saem.
 
 Nada aqui conhece contas ou lancamentos. O servico de importacao compara estas linhas com o que ja existe.
-Mensagens de erro de cada linha ficam em portugues claro, porque aparecem na previa para a pessoa.
+Mensagens de erro de cada linha aparecem na previa para a pessoa, por isso seguem o idioma da requisicao
+(`lang`, de app.core.i18n); o padrao e pt-BR, para quem chama sem informar (como os testes antigos).
 """
 
 import csv
@@ -12,6 +13,8 @@ import unicodedata
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal, InvalidOperation
+
+from app.core.i18n import Lang, pick
 
 # Limites que protegem o servidor de um arquivo enorme ou de lixo
 MAX_DESCRIPTION = 255
@@ -70,10 +73,10 @@ class OfxStatement:
 # ---------- Texto ----------
 
 
-def decode_text(content: bytes) -> str:
+def decode_text(content: bytes, lang: Lang = "pt-BR") -> str:
     """UTF-8 (com ou sem BOM); se nao for, Windows-1252, que e o que os bancos brasileiros mais mandam."""
     if b"\x00" in content:
-        raise ImportFileError("O arquivo nao parece ser um extrato em texto")
+        raise ImportFileError(pick(lang, "O arquivo nao parece ser um extrato em texto", "The file doesn't look like a text statement"))
     try:
         return content.decode("utf-8-sig")
     except UnicodeDecodeError:
@@ -92,12 +95,12 @@ def normalize_text(text: str) -> str:
 _AMOUNT_JUNK = re.compile(r"(?i)(r\$|us\$|\$|eur|brl|usd|\s)")
 
 
-def parse_amount(text: str) -> Decimal:
+def parse_amount(text: str, lang: Lang = "pt-BR") -> Decimal:
     """Aceita 1.234,56 e 1234.56, sinal na frente ou atras, parenteses como negativo e simbolo de moeda.
     Mais de 2 casas decimais e recusado (nao arredonda calado)."""
     raw = _AMOUNT_JUNK.sub("", text.strip())
     if not raw:
-        raise ValueError("Valor vazio")
+        raise ValueError(pick(lang, "Valor vazio", "Amount is empty"))
     negative = False
     if raw.startswith("(") and raw.endswith(")"):
         negative, raw = True, raw[1:-1]
@@ -108,7 +111,7 @@ def parse_amount(text: str) -> Decimal:
     elif raw.startswith("+"):
         raw = raw[1:]
     if not raw or not re.fullmatch(r"[0-9.,]+", raw):
-        raise ValueError("Valor invalido")
+        raise ValueError(pick(lang, "Valor invalido", "Invalid amount"))
 
     last_dot, last_comma = raw.rfind("."), raw.rfind(",")
     if last_dot >= 0 and last_comma >= 0:
@@ -121,7 +124,7 @@ def parse_amount(text: str) -> Decimal:
         # primeiro tem de 1 a 3 sem zero na frente ("1.234"); "0,001" e "1234,567" sao decimais (e passam de 2 casas).
         thousands = len(groups[-1]) == 3 and 1 <= len(groups[0]) <= 3 and not groups[0].startswith("0")
         if len(groups) > 2 and not (thousands and all(len(group) == 3 for group in groups[1:])):
-            raise ValueError("Valor invalido")
+            raise ValueError(pick(lang, "Valor invalido", "Invalid amount"))
         decimal_sep = None if thousands else sep
     else:
         decimal_sep = None
@@ -134,9 +137,9 @@ def parse_amount(text: str) -> Decimal:
     try:
         value = Decimal(digits)
     except InvalidOperation as error:
-        raise ValueError("Valor invalido") from error
+        raise ValueError(pick(lang, "Valor invalido", "Invalid amount")) from error
     if value.as_tuple().exponent < -2:
-        raise ValueError("Valor com mais de 2 casas decimais")
+        raise ValueError(pick(lang, "Valor com mais de 2 casas decimais", "Amount with more than 2 decimal places"))
     return -value if negative else value
 
 
@@ -148,7 +151,7 @@ _DATE_PATTERNS = (
 )
 
 
-def parse_date(text: str) -> date:
+def parse_date(text: str, lang: Lang = "pt-BR") -> date:
     """aaaa-mm-dd, dd/mm/aaaa (barra, ponto ou hifen), dd/mm/aa e aaaammdd. Mes antes do dia nao e aceito."""
     raw = text.strip()
     # Data com hora ("2026-03-05 10:30" ou "05/03/2026 10:30"): so o dia importa
@@ -164,11 +167,11 @@ def parse_date(text: str) -> date:
         try:
             result = date(year, parts["m"], parts["d"])
         except ValueError as error:
-            raise ValueError("Data inexistente") from error
+            raise ValueError(pick(lang, "Data inexistente", "Date doesn't exist")) from error
         if result.year < MIN_YEAR:
-            raise ValueError("Data fora do intervalo")
+            raise ValueError(pick(lang, "Data fora do intervalo", "Date out of range"))
         return result
-    raise ValueError("Data invalida")
+    raise ValueError(pick(lang, "Data invalida", "Invalid date"))
 
 
 # ---------- CSV ----------
@@ -184,7 +187,7 @@ def detect_delimiter(text: str) -> str:
     return ","
 
 
-def read_csv(text: str, has_header: bool = True) -> CsvTable:
+def read_csv(text: str, has_header: bool = True, lang: Lang = "pt-BR") -> CsvTable:
     """Le o CSV em linhas de texto, pulando as linhas em branco. Se nao ha cabecalho, as colunas ficam
     com nomes "Coluna 1", "Coluna 2"..."""
     reader = csv.reader(io.StringIO(text), delimiter=detect_delimiter(text))
@@ -197,14 +200,15 @@ def read_csv(text: str, has_header: bool = True) -> CsvTable:
                 # Linha do arquivo em que o registro termina (com quebra de linha entre aspas ocupa varias)
                 numbers.append(reader.line_num)
     except csv.Error as error:
-        raise ImportFileError("O arquivo CSV esta mal formado") from error
+        raise ImportFileError(pick(lang, "O arquivo CSV esta mal formado", "The CSV file is malformed")) from error
     if not rows:
-        raise ImportFileError("O arquivo esta vazio")
+        raise ImportFileError(pick(lang, "O arquivo esta vazio", "The file is empty"))
     width = max(len(row) for row in rows)
     if has_header:
         headers = rows[0] + [""] * (width - len(rows[0]))
         return CsvTable(headers=headers, rows=rows[1:], line_numbers=numbers[1:])
-    return CsvTable(headers=[f"Coluna {n}" for n in range(1, width + 1)], rows=rows, line_numbers=numbers)
+    column_name = pick(lang, "Coluna", "Column")
+    return CsvTable(headers=[f"{column_name} {n}" for n in range(1, width + 1)], rows=rows, line_numbers=numbers)
 
 
 _DATE_NAMES = ("data", "date", "dt", "dia")
@@ -245,18 +249,20 @@ def suggest_mapping(headers: list[str]) -> ColumnMapping | None:
     return None
 
 
-def check_mapping(mapping: ColumnMapping, width: int) -> None:
+def check_mapping(mapping: ColumnMapping, width: int, lang: Lang = "pt-BR") -> None:
     """A escolha de colunas tem que fazer sentido para este arquivo."""
     chosen = [mapping.date_column, mapping.description_column]
     has_single = mapping.amount_column is not None
     has_pair = mapping.debit_column is not None and mapping.credit_column is not None
     if has_single == has_pair or (mapping.debit_column is None) != (mapping.credit_column is None):
-        raise ImportFileError("Escolha uma coluna de valor, ou as colunas de debito e credito")
+        raise ImportFileError(
+            pick(lang, "Escolha uma coluna de valor, ou as colunas de debito e credito", "Choose an amount column, or the debit and credit columns")
+        )
     chosen += [mapping.amount_column] if has_single else [mapping.debit_column, mapping.credit_column]
     if any(column < 0 or column >= width for column in chosen):
-        raise ImportFileError("Uma das colunas escolhidas nao existe no arquivo")
+        raise ImportFileError(pick(lang, "Uma das colunas escolhidas nao existe no arquivo", "One of the chosen columns doesn't exist in the file"))
     if len(set(chosen)) != len(chosen):
-        raise ImportFileError("Cada informacao precisa de uma coluna diferente")
+        raise ImportFileError(pick(lang, "Cada informacao precisa de uma coluna diferente", "Each piece of information needs a different column"))
 
 
 def _cell(row: list[str], column: int | None) -> str:
@@ -265,33 +271,33 @@ def _cell(row: list[str], column: int | None) -> str:
     return row[column].strip()
 
 
-def _row_amount(row: list[str], mapping: ColumnMapping) -> Decimal:
+def _row_amount(row: list[str], mapping: ColumnMapping, lang: Lang = "pt-BR") -> Decimal:
     if mapping.amount_column is not None:
-        value = parse_amount(_cell(row, mapping.amount_column))
+        value = parse_amount(_cell(row, mapping.amount_column), lang)
     else:
         debit, credit = _cell(row, mapping.debit_column), _cell(row, mapping.credit_column)
         if not debit and not credit:
-            raise ValueError("Valor vazio")
+            raise ValueError(pick(lang, "Valor vazio", "Amount is empty"))
         # Debito e saida e credito e entrada, qualquer que seja o sinal escrito no arquivo
-        value = (abs(parse_amount(credit)) if credit else Decimal(0)) - (abs(parse_amount(debit)) if debit else Decimal(0))
+        value = (abs(parse_amount(credit, lang)) if credit else Decimal(0)) - (abs(parse_amount(debit, lang)) if debit else Decimal(0))
     if value == 0:
-        raise ValueError("Valor zero")
+        raise ValueError(pick(lang, "Valor zero", "Amount is zero"))
     return value
 
 
-def rows_from_csv(table: CsvTable, mapping: ColumnMapping) -> list[ParsedRow]:
+def rows_from_csv(table: CsvTable, mapping: ColumnMapping, lang: Lang = "pt-BR") -> list[ParsedRow]:
     """Uma ParsedRow por linha do arquivo, com o motivo no `error` quando a linha nao serve."""
     width = max([len(table.headers), *(len(row) for row in table.rows)])
-    check_mapping(mapping, width)
+    check_mapping(mapping, width, lang)
     parsed = []
     for row, line_number in zip(table.rows, table.line_numbers):
         item = ParsedRow(index=line_number)
         try:
-            item.date = parse_date(_cell(row, mapping.date_column))
+            item.date = parse_date(_cell(row, mapping.date_column), lang)
             item.description = " ".join(_cell(row, mapping.description_column).split())[:MAX_DESCRIPTION]
             if not item.description:
-                raise ValueError("Descricao vazia")
-            item.amount = _row_amount(row, mapping)
+                raise ValueError(pick(lang, "Descricao vazia", "Description is empty"))
+            item.amount = _row_amount(row, mapping, lang)
         except ValueError as error:
             item.error = str(error)
         parsed.append(item)
@@ -318,10 +324,10 @@ def _unescape(text: str) -> str:
     return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&apos;", "'")
 
 
-def parse_ofx(text: str) -> OfxStatement:
+def parse_ofx(text: str, lang: Lang = "pt-BR") -> OfxStatement:
     blocks = _OFX_BLOCK.findall(text)
     if not blocks:
-        raise ImportFileError("Nenhum lancamento encontrado no arquivo OFX")
+        raise ImportFileError(pick(lang, "Nenhum lancamento encontrado no arquivo OFX", "No transaction found in the OFX file"))
     currency = _tag(text, "CURDEF")
     rows = []
     for number, block in enumerate(blocks, start=1):
@@ -329,21 +335,21 @@ def parse_ofx(text: str) -> OfxStatement:
         try:
             posted = _tag(block, "DTPOSTED")
             if not posted:
-                raise ValueError("Data vazia")
+                raise ValueError(pick(lang, "Data vazia", "Date is empty"))
             # A data do OFX e aaaammdd, com hora e fuso depois: so o dia importa
-            item.date = parse_date(posted[:8])
+            item.date = parse_date(posted[:8], lang)
             amount_text = _tag(block, "TRNAMT")
             if not amount_text:
-                raise ValueError("Valor vazio")
-            item.amount = parse_amount(amount_text)
+                raise ValueError(pick(lang, "Valor vazio", "Amount is empty"))
+            item.amount = parse_amount(amount_text, lang)
             if item.amount == 0:
-                raise ValueError("Valor zero")
+                raise ValueError(pick(lang, "Valor zero", "Amount is zero"))
             name, memo = _unescape(_tag(block, "NAME") or ""), _unescape(_tag(block, "MEMO") or "")
             # NAME e MEMO costumam repetir o mesmo texto: so junta quando dizem coisas diferentes
             parts = [name] if not memo or normalize_text(memo) == normalize_text(name) else [name, memo]
             item.description = " ".join(" ".join(part for part in parts if part).split())[:MAX_DESCRIPTION]
             if not item.description:
-                raise ValueError("Descricao vazia")
+                raise ValueError(pick(lang, "Descricao vazia", "Description is empty"))
             fitid = _tag(block, "FITID")
             item.external_id = fitid[:255] if fitid else None
         except ValueError as error:

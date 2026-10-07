@@ -1,7 +1,7 @@
 import type { ChartPoint } from "@/components/charts";
 import type { MonthlyBlock, ReportRow } from "@/api/reports";
 import type { ReportMeasure } from "@/api/saved-reports";
-import { i18n } from "@/i18n";
+import { currentIntlLocale, i18n } from "@/i18n";
 import { isNegativeMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
 import { barPercent, longMonthLabel, rowName, shortMonthLabel } from "./presentation";
 
@@ -38,7 +38,7 @@ export function rankRows(rows: ReportRow[], measure: ReportMeasure, fallback: st
       isOther: false,
     }))
     .filter((item) => !isZero(item.value))
-    .sort((a, b) => Number(abs(b.value)) - Number(abs(a.value)) || a.label.localeCompare(b.label, "pt-BR"));
+    .sort((a, b) => Number(abs(b.value)) - Number(abs(a.value)) || a.label.localeCompare(b.label, currentIntlLocale()));
 }
 
 /**

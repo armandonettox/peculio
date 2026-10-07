@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.i18n import Lang, get_lang
 from app.core.pagination import Page, PageParams
 from app.models.user import User
 from app.models.webhook import DeliveryStatus, Webhook
@@ -75,10 +76,12 @@ def rotate_secret(webhook_id: uuid.UUID, user: User = Depends(get_current_user),
 
 
 @router.post("/{webhook_id}/test", response_model=DeliveryOut)
-def test_webhook(webhook_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def test_webhook(
+    webhook_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db), lang: Lang = Depends(get_lang)
+):
     """Envia o evento webhook.test agora, sem passar pela fila, e devolve o resultado."""
     webhook = service.get_owned_webhook(db, user.id, webhook_id)
-    delivery = webhook_delivery.send_test(db, webhook)
+    delivery = webhook_delivery.send_test(db, webhook, lang=lang)
     db.commit()
     db.refresh(delivery)
     return delivery

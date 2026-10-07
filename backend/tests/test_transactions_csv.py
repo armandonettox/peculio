@@ -391,3 +391,34 @@ def test_invalid_filters_are_422(client, headers):
     assert export(client, headers, date_from="ontem").status_code == 422
     assert export(client, headers, account_id="x").status_code == 422
     assert export(client, headers, min_amount="1.234").status_code == 422
+
+
+# ---------- Idioma (Accept-Language) ----------
+
+
+def test_english_header_delimiter_and_decimal_point(client, headers):
+    account = make_account(client, headers)
+    create(client, headers, account, amount="1234.50", description="Groceries")
+    resp = client.get(URL, headers={**headers, "Accept-Language": "en-US"})
+    text = resp.content.decode("utf-8-sig")
+    lines = text.split("\r\n")
+    assert lines[0] == "date,type,description,source_account,destination_account,amount,currency,foreign_amount,foreign_currency,category,budget,tags,notes"
+    rows = list(csv.reader(io.StringIO(text, newline=""), delimiter=","))
+    assert rows[1][1] == "Expense"
+    assert rows[1][5] == "1234.50"
+
+
+def test_english_filename(client, headers, monkeypatch):
+    monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 3, 9))
+    resp = client.get(URL, headers={**headers, "Accept-Language": "en-US"})
+    assert resp.headers["content-disposition"] == 'attachment; filename="transactions-2026-03-09.csv"'
+
+
+def test_portuguese_still_the_default_without_the_header(client, headers):
+    account = make_account(client, headers)
+    create(client, headers, account, amount="1234.50")
+    resp = export(client, headers)
+    text = resp.content.decode("utf-8-sig")
+    rows = parse(resp)
+    assert rows[0] == HEADER
+    assert rows[1][5] == "1234,50"

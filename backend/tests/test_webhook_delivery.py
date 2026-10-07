@@ -831,3 +831,12 @@ def test_encrypt_helper_is_reused_for_the_secret(client, headers, db_session):
     stored = db_session.execute(select(Webhook)).scalar_one()
     assert stored.secret_encrypted.startswith("gAAAA")  # formato do Fernet
     assert encrypt_secret(made["secret"]) != stored.secret_encrypted  # cada cifra usa um IV novo
+
+
+def test_test_endpoint_message_follows_accept_language(client, headers, db_session, server):
+    made = make_webhook(client, headers)
+    en_headers = {**headers, "Accept-Language": "en-US"}
+    resp = client.post(f"{URL}/{made['id']}/test", headers=en_headers)
+    assert resp.status_code == 200
+    request = server.requests[0]
+    assert json.loads(request.content)["data"]["message"] == "Pecúlio webhook test"

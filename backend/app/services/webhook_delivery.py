@@ -15,6 +15,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.i18n import Lang, pick
 from app.core.two_factor import decrypt_secret
 from app.core.webhook_url import Resolver, WebhookUrlError, validate_webhook_url
 from app.models.webhook import TEST_EVENT, DeliveryStatus, Webhook, WebhookDelivery
@@ -423,14 +424,14 @@ def purge_finished(
             return total
 
 
-def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None) -> WebhookDelivery:
+def send_test(db: Session, webhook: Webhook, resolver: Resolver | None = None, lang: Lang = "pt-BR") -> WebhookDelivery:
     """Envia o evento webhook.test na hora e guarda o resultado no historico. E uma tentativa
     unica: nao entra na fila de retentativas."""
     now = datetime.now(timezone.utc)
     payload = {
         "event": TEST_EVENT,
         "occurred_at": now.isoformat(),
-        "data": {"message": "Teste de webhook do Pecúlio"},
+        "data": {"message": pick(lang, "Teste de webhook do Pecúlio", "Pecúlio webhook test")},
     }
     delivery = WebhookDelivery(
         webhook_id=webhook.id,

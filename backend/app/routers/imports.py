@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.errors import AppError, ErrorCode
+from app.core.i18n import Lang, get_lang
 from app.models.user import User
 from app.schemas.imports import ImportConfirm, ImportMapping, ImportPreviewOut, ImportResultOut
 from app.services import imports as service
@@ -40,15 +41,21 @@ def preview_import(
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
+    lang: Lang = Depends(get_lang),
 ):
     """Le o extrato (CSV ou OFX) e mostra o que entraria na conta, sem gravar nada. No CSV, `mapping` e um JSON
     com as colunas; sem ele o servidor tenta adivinhar pelo cabecalho."""
-    return service.preview(db, user, account_id, _read_limited(file), _parse_mapping(mapping))
+    return service.preview(db, user, account_id, _read_limited(file), _parse_mapping(mapping), lang)
 
 
 @router.post("/confirm", response_model=ImportResultOut, status_code=status.HTTP_201_CREATED)
-def confirm_import(data: ImportConfirm, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def confirm_import(
+    data: ImportConfirm,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    lang: Lang = Depends(get_lang),
+):
     """Cria os lancamentos das linhas enviadas. Tudo ou nada: se uma linha for recusada, nenhuma entra."""
-    result = service.confirm(db, user, data)
+    result = service.confirm(db, user, data, lang)
     db.commit()
     return result
