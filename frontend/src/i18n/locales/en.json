@@ -336,6 +336,10 @@
       "switchToLight": "Switch to light theme",
       "switchToDark": "Switch to dark theme"
     },
+    "languageToggle": {
+      "switchToEnglish": "Switch to English",
+      "switchToPortuguese": "Switch to Portuguese"
+    },
     "passwordInput": {
       "ocultarSenha": "Hide password",
       "mostrarSenha": "Show password"

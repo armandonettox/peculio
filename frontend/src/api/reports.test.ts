@@ -1,7 +1,8 @@
 import { http, HttpResponse } from "msw";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 
 import { tokenStore } from "@/auth/token-store";
+import { i18n } from "@/i18n";
 import { server } from "@/test-utils/msw";
 import { downloadTransactionsCsv } from "./reports";
 
@@ -12,6 +13,23 @@ function csvResponse(filename = "lancamentos-2026-03-15.csv") {
     headers: { "Content-Type": "text/csv", "Content-Disposition": `attachment; filename="${filename}"` },
   });
 }
+
+afterEach(async () => {
+  await i18n.changeLanguage("pt-BR");
+});
+
+it("manda o idioma em uso no cabecalho Accept-Language, como o resto dos pedidos", async () => {
+  await i18n.changeLanguage("en");
+  let seen: Request | null = null;
+  server.use(
+    http.get(URL_PATH, ({ request }) => {
+      seen = request;
+      return csvResponse();
+    }),
+  );
+  await downloadTransactionsCsv({});
+  expect((seen as unknown as Request).headers.get("Accept-Language")).toBe("en");
+});
 
 it("manda o token no cabecalho Authorization e nunca na URL", async () => {
   tokenStore.set("abc123");

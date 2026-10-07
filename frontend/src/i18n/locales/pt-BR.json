@@ -336,6 +336,10 @@
       "switchToLight": "Mudar para o tema claro",
       "switchToDark": "Mudar para o tema escuro"
     },
+    "languageToggle": {
+      "switchToEnglish": "Mudar para inglês",
+      "switchToPortuguese": "Mudar para português"
+    },
     "passwordInput": {
       "ocultarSenha": "Ocultar senha",
       "mostrarSenha": "Mostrar senha"

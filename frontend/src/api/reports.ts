@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { tokenStore } from "@/auth/token-store";
+import { currentLanguage } from "@/i18n";
 import { api, unwrap } from "./client";
 import { ApiError } from "./errors";
 import { reportsKey } from "./query-keys";
@@ -115,7 +116,9 @@ export async function downloadTransactionsCsv(filters: CsvFilters): Promise<CsvF
 
   async function attempt(): Promise<Response> {
     const token = tokenStore.get();
-    return fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    return fetch(url, {
+      headers: { "Accept-Language": currentLanguage(), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
   }
 
   let response: Response;
