@@ -8,6 +8,7 @@ import {
   isCacheable,
   isStaticPath,
   OFFLINE_HTML,
+  offlineHtmlFor,
   shellAssetsFromHtml,
   staleCaches,
 } from "./rules";
@@ -161,5 +162,22 @@ describe("pagina de sem conexao", () => {
     expect(OFFLINE_HTML).toContain("Sem conexão");
     expect(OFFLINE_HTML).toContain("Tentar de novo");
     expect(OFFLINE_HTML).toContain('lang="pt-BR"');
+  });
+
+  it("segue o idioma do Accept-Language da requisicao", () => {
+    expect(offlineHtmlFor("pt-BR,en;q=0.9")).toBe(OFFLINE_HTML);
+    expect(offlineHtmlFor("pt;q=0.9")).toContain('lang="pt-BR"');
+
+    const english = offlineHtmlFor("en-US,en;q=0.9,pt;q=0.8");
+    expect(english).toContain('lang="en"');
+    expect(english).toContain("No connection");
+    expect(english).toContain("Try again");
+
+    const spanish = offlineHtmlFor("es-ES,es;q=0.9");
+    expect(spanish).toContain('lang="en"');
+  });
+
+  it("sem cabecalho nenhum, cai no idioma de origem (pt-BR)", () => {
+    expect(offlineHtmlFor(null)).toBe(OFFLINE_HTML);
   });
 });

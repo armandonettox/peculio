@@ -78,9 +78,10 @@ function setup() {
     return pending;
   }
 
-  function fetchEvent(url: string, { method = "GET", mode = "no-cors" } = {}) {
+  function fetchEvent(url: string, { method = "GET", mode = "no-cors", acceptLanguage = null as string | null } = {}) {
     let answer: Promise<Response> | Response | undefined;
-    const event = { request: { url, method, mode } as unknown as Request, respondWith: (value: Promise<Response> | Response) => (answer = value) };
+    const request = { url, method, mode, headers: { get: (name: string) => (name === "Accept-Language" ? acceptLanguage : null) } };
+    const event = { request: request as unknown as Request, respondWith: (value: Promise<Response> | Response) => (answer = value) };
     (handlers.get("fetch") as (event: unknown) => void)(event);
     return { answered: () => answer !== undefined, response: async () => (await answer) as Response };
   }
@@ -200,6 +201,14 @@ describe("abrir uma pagina", () => {
     const response = await env.fetchEvent(`${ORIGIN}/`, { mode: "navigate" }).response();
     expect(response.status).toBe(503);
     expect(await response.text()).toBe(OFFLINE_HTML);
+  });
+
+  it("a pagina de sem conexao segue o idioma da requisicao (Accept-Language)", async () => {
+    env.network.offline = true;
+    const response = await env.fetchEvent(`${ORIGIN}/`, { mode: "navigate", acceptLanguage: "en-US,en;q=0.9" }).response();
+    const text = await response.text();
+    expect(text).toContain('lang="en"');
+    expect(text).toContain("No connection");
   });
 
   it("a casca de uma versao antiga nao serve para a versao nova", async () => {

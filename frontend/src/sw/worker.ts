@@ -2,7 +2,7 @@ import {
   cacheNameFor,
   classifyRequest,
   isCacheable,
-  OFFLINE_HTML,
+  offlineHtmlFor,
   shellAssetsFromHtml,
   SHELL_URL,
   staleCaches,
@@ -68,7 +68,9 @@ export function registerWorker({ scope, caches, fetch, buildId }: WorkerDeps): v
       return await fetch(request);
     } catch {
       const cached = await (await caches.open(cacheName)).match(SHELL_URL);
-      return cached ?? new Response(OFFLINE_HTML, { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } });
+      if (cached) return cached;
+      const html = offlineHtmlFor(request.headers.get("Accept-Language"));
+      return new Response(html, { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } });
     }
   }
 
