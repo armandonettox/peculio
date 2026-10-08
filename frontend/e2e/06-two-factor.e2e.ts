@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, field, totp } from "./helpers";
+import { ADMIN, apiHeaders, field, openSettings, totp } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Usa um usuario so deste arquivo para nao
 // interferir nos outros: o 2FA muda o login dele. Em ordem: cada passo parte do estado do anterior.
@@ -27,9 +27,8 @@ async function signOut(page: Page) {
 }
 
 async function openSecurity(page: Page) {
-  await page.getByRole("button", { name: "Menu do usuário" }).click();
-  await page.getByRole("menuitem", { name: "Segurança" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Segurança" })).toBeVisible();
+  await openSettings(page, "Segurança");
+  await expect(page.getByRole("heading", { level: 2, name: "Verificação em duas etapas" })).toBeVisible();
 }
 
 async function enterSecondStep(page: Page) {

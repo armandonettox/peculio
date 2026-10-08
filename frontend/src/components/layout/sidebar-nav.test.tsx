@@ -60,13 +60,6 @@ it("todos os itens do menu tem tela: nenhum fica como Em breve", () => {
   expect(screen.queryByText("Em breve")).not.toBeInTheDocument();
 });
 
-it("Configuracoes e um link para /configuracoes", () => {
-  renderNav("/configuracoes");
-  const link = screen.getByRole("link", { name: "Configurações" });
-  expect(link).toHaveAttribute("href", "/configuracoes");
-  expect(link).toHaveAttribute("aria-current", "page");
-});
-
 it("um item sem tela aparece desabilitado e nao e link", () => {
   renderNav("/", undefined, comingSoon);
   expect(screen.queryByRole("link", { name: /Relatórios/ })).not.toBeInTheDocument();

@@ -9,7 +9,7 @@ import { FakeAuth } from "@/test-utils/providers";
 import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { fakeSessionsApi } from "@/test-utils/sessions-api";
 import { fakeTwoFactorApi } from "@/test-utils/two-factor-api";
-import SecurityPage from "./security";
+import { SecuritySection } from "./security-section";
 
 // "Hoje" fixo: a validade e o aviso de "perto de vencer" dependem do dia
 beforeEach(() => {
@@ -24,7 +24,7 @@ function renderPage(tokens: ReturnType<typeof makeApiToken>[] = []) {
   render(
     <FakeAuth>
       <MemoryRouter>
-        <SecurityPage />
+        <SecuritySection />
       </MemoryRouter>
     </FakeAuth>,
   );

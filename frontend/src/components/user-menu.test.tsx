@@ -74,24 +74,24 @@ it("sem usuario nao mostra nada", () => {
   expect(container).toBeEmptyDOMElement();
 });
 
-it("Seguranca leva para a pagina de seguranca", async () => {
+it("Configuracoes leva para a pagina de configuracoes", async () => {
   render(
     <FakeAuth>
       <MemoryRouter initialEntries={["/"]}>
         <UserMenu />
         <Routes>
           <Route path="/" element={<p>Inicio</p>} />
-          <Route path="/seguranca" element={<p>Pagina de seguranca</p>} />
+          <Route path="/configuracoes" element={<p>Pagina de configuracoes</p>} />
         </Routes>
       </MemoryRouter>
     </FakeAuth>,
   );
   await userEvent.click(trigger());
-  const item = screen.getByRole("menuitem", { name: "Segurança" });
-  expect(item).toHaveAttribute("href", "/seguranca");
+  const item = screen.getByRole("menuitem", { name: "Configurações" });
+  expect(item).toHaveAttribute("href", "/configuracoes");
   await userEvent.click(item);
 
-  expect(screen.getByText("Pagina de seguranca")).toBeInTheDocument();
+  expect(screen.getByText("Pagina de configuracoes")).toBeInTheDocument();
   expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 });
 

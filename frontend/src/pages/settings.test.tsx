@@ -56,29 +56,40 @@ function renderPage({
 
 const field = (label: string) => screen.getByLabelText(label, { exact: true }) as HTMLInputElement | HTMLSelectElement;
 
+// A pagina agora e em abas (Perfil, Aparencia, Seguranca e, so para admin, Administracao); so uma fica montada por vez.
+async function openTab(name: string) {
+  await user.click(await screen.findByRole("button", { name }));
+}
+
 // ---------- A pagina ----------
 
-it("mostra as secoes de qualquer usuario", async () => {
+it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
   renderPage({ as: member });
   expect(await screen.findByRole("heading", { level: 1, name: "Configurações" })).toBeInTheDocument();
-  for (const title of ["Perfil", "Senha", "Aparência", "Segurança"]) expect(screen.getByText(title)).toBeInTheDocument();
+  for (const title of ["Perfil", "Aparência", "Segurança"]) expect(screen.getByRole("button", { name: title })).toBeInTheDocument();
+  // Perfil e Senha vem juntas na aba que abre por padrao
+  expect(screen.getByRole("heading", { name: "Perfil" })).toBeInTheDocument();
+  expect(screen.getByText("Senha")).toBeInTheDocument();
 });
 
-it("so o administrador ve Usuarios e convites, e quem nao e nem pede a lista", async () => {
+it("so o administrador ve a aba Administracao, e quem nao e nem pede a lista de convites", async () => {
   const { invitesApi } = renderPage({ as: member });
-  await screen.findByText("Perfil");
-  expect(screen.queryByText("Usuários e convites")).not.toBeInTheDocument();
+  await screen.findByRole("heading", { name: "Perfil" });
+  expect(screen.queryByRole("button", { name: "Administração" })).not.toBeInTheDocument();
   expect(invitesApi.state.requests).toEqual([]);
 });
 
-it("o administrador ve Usuarios e convites", async () => {
+it("o administrador ve a aba Administracao, com convites e contato de seguranca", async () => {
   renderPage({ as: admin });
+  await openTab("Administração");
   expect(await screen.findByText("Usuários e convites")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Contato de segurança" })).toBeInTheDocument();
 });
 
-it("o atalho de Seguranca leva para a pagina de Seguranca", async () => {
+it("a aba Seguranca mostra a verificacao em duas etapas", async () => {
   renderPage();
-  expect(await screen.findByRole("link", { name: /Abrir a página de Segurança/ })).toHaveAttribute("href", "/seguranca");
+  await openTab("Segurança");
+  expect(await screen.findByRole("heading", { level: 2, name: "Verificação em duas etapas" })).toBeInTheDocument();
 });
 
 // ---------- Perfil ----------
@@ -240,6 +251,7 @@ it("os campos de senha tem o preenchimento automatico certo (gerenciador de senh
 it("a escolha do tema reflete o que esta guardado e muda a pagina", async () => {
   window.localStorage.setItem(THEME_STORAGE_KEY, "light");
   renderPage();
+  await openTab("Aparência");
   const group = await screen.findByRole("radiogroup", { name: "Tema" });
   expect(within(group).getByRole("radio", { name: /Claro/ })).toBeChecked();
   await user.click(within(group).getByRole("radio", { name: /Escuro/ }));
@@ -251,6 +263,7 @@ it("a escolha do tema reflete o que esta guardado e muda a pagina", async () => 
 it("o botao do topo acompanha a escolha feita em Configuracoes", async () => {
   window.localStorage.setItem(THEME_STORAGE_KEY, "light");
   renderPage();
+  await openTab("Aparência");
   expect(await screen.findByRole("button", { name: "Mudar para o tema escuro" })).toBeInTheDocument();
   await user.click(screen.getByRole("radio", { name: /Escuro/ }));
   expect(await screen.findByRole("button", { name: "Mudar para o tema claro" })).toBeInTheDocument();
@@ -259,12 +272,14 @@ it("o botao do topo acompanha a escolha feita em Configuracoes", async () => {
 it("e o botao do topo muda a escolha em Configuracoes", async () => {
   window.localStorage.setItem(THEME_STORAGE_KEY, "light");
   renderPage();
+  await openTab("Aparência");
   await user.click(await screen.findByRole("button", { name: "Mudar para o tema escuro" }));
   await waitFor(() => expect(screen.getByRole("radio", { name: /Escuro/ })).toBeChecked());
 });
 
 it("do sistema e a escolha quando nada foi guardado", async () => {
   renderPage();
+  await openTab("Aparência");
   expect(await screen.findByRole("radio", { name: /Do sistema/ })).toBeChecked();
 });
 
@@ -278,6 +293,7 @@ it("lista os convites com a situacao de cada um e so deixa revogar os pendentes"
       makeInvite({ email: "vencido@example.com", expires_at: "2026-03-05T10:00:00Z" }),
     ],
   });
+  await openTab("Administração");
   const list = await screen.findByText("pendente@example.com");
   const rowOf = (email: string) => screen.getByText(email).closest("li") as HTMLElement;
   expect(list).toBeInTheDocument();
@@ -291,11 +307,13 @@ it("lista os convites com a situacao de cada um e so deixa revogar os pendentes"
 
 it("sem convites, diz isso", async () => {
   renderPage();
+  await openTab("Administração");
   expect(await screen.findByText("Nenhum convite criado ainda.")).toBeInTheDocument();
 });
 
 it("e-mail invalido nao cria convite", async () => {
   const { invitesApi } = renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "isso-nao-e-email");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -306,6 +324,7 @@ it("e-mail invalido nao cria convite", async () => {
 
 it("criar um convite mostra o link com o codigo uma vez, e o convite entra na lista", async () => {
   const { invitesApi } = renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "  nova@example.com ");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -321,6 +340,7 @@ it("copiar o link usa a area de transferencia e avisa", async () => {
   const writeText = vi.fn(async () => undefined);
   Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
   const { invitesApi } = renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "nova@example.com");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -339,6 +359,7 @@ it("sem permissao para copiar, o link continua na tela", async () => {
     configurable: true,
   });
   renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "nova@example.com");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -349,6 +370,7 @@ it("sem permissao para copiar, o link continua na tela", async () => {
 
 it("e-mail que ja tem conta mostra o erro do servidor e nao mostra link", async () => {
   const { invitesApi } = renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   invitesApi.state.nextError = { status: 400, code: "email_already_registered" };
   await user.type(field("E-mail da pessoa"), "ja@example.com");
@@ -361,6 +383,7 @@ it("revogar pede confirmacao, apaga so o escolhido e tira da lista", async () =>
   const keep = makeInvite({ email: "fica@example.com", expires_at: "2026-03-13T12:00:00Z" });
   const gone = makeInvite({ email: "sai@example.com", expires_at: "2026-03-13T12:00:00Z" });
   const { invitesApi } = renderPage({ invites: [keep, gone] });
+  await openTab("Administração");
   await user.click(await screen.findByRole("button", { name: "Revogar o convite de sai@example.com" }));
   const dialog = screen.getByRole("dialog");
   expect(dialog).toHaveTextContent("sai@example.com");
@@ -376,6 +399,7 @@ it("revogar pede confirmacao, apaga so o escolhido e tira da lista", async () =>
 
 it("erro ao carregar os convites tem botao de tentar de novo", async () => {
   const { invitesApi } = renderPage();
+  await openTab("Administração");
   await screen.findByText("Nenhum convite criado ainda.");
   invitesApi.state.listError = true;
   // Recarrega a lista criando um convite que falha na listagem seguinte
@@ -396,13 +420,16 @@ const contactField = () => screen.getByLabelText("Contato de segurança", { exac
 
 it("so o administrador ve o contato de seguranca, e quem nao e nem le o contato", async () => {
   const { instance } = renderPage({ as: member });
-  await screen.findByText("Perfil");
+  await screen.findByRole("heading", { name: "Perfil" });
+  // Quem nao e admin nem ve a aba Administracao, onde o contato fica
+  expect(screen.queryByRole("button", { name: "Administração" })).not.toBeInTheDocument();
   expect(screen.queryByText("Contato de segurança")).not.toBeInTheDocument();
   expect(instance.state.reads).toBe(0);
 });
 
 it("o administrador ve o que esta salvo e o endereco onde ele e publicado", async () => {
   renderPage({ contact: "seguranca@example.com" });
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
   expect(screen.getByRole("link", { name: "/.well-known/security.txt" })).toHaveAttribute("href", "/.well-known/security.txt");
   expect(screen.getByRole("button", { name: "Remover contato" })).toBeInTheDocument();
@@ -410,6 +437,7 @@ it("o administrador ve o que esta salvo e o endereco onde ele e publicado", asyn
 
 it("sem contato salvo nao ha Remover nem endereco publicado, e Salvar fica desligado", async () => {
   renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   expect(screen.queryByRole("button", { name: "Remover contato" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "/.well-known/security.txt" })).not.toBeInTheDocument();
@@ -418,6 +446,7 @@ it("sem contato salvo nao ha Remover nem endereco publicado, e Salvar fica desli
 
 it("salvar um e-mail manda o contato sem os espacos das pontas e avisa", async () => {
   const { instance } = renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   await user.type(contactField(), "  seguranca@example.com  ");
   await user.click(screen.getByRole("button", { name: "Salvar contato" }));
@@ -433,6 +462,7 @@ it("salvar um e-mail manda o contato sem os espacos das pontas e avisa", async (
 
 it("Enter no campo sem nenhuma mudanca nao chama o servidor", async () => {
   const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
   await user.click(contactField());
   await user.keyboard("{Enter}");
@@ -442,6 +472,7 @@ it("Enter no campo sem nenhuma mudanca nao chama o servidor", async () => {
 
 it("um endereco https tambem e aceito", async () => {
   const { instance } = renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   await user.type(contactField(), "https://exemplo.com/contato");
   await user.click(screen.getByRole("button", { name: "Salvar contato" }));
@@ -450,6 +481,7 @@ it("um endereco https tambem e aceito", async () => {
 
 it("contato invalido mostra o erro, foca o campo e nao chama o servidor", async () => {
   const { instance } = renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   await user.type(contactField(), "isto nao e um contato");
   await user.click(screen.getByRole("button", { name: "Salvar contato" }));
@@ -460,6 +492,7 @@ it("contato invalido mostra o erro, foca o campo e nao chama o servidor", async 
 
 it("o erro some quando a pessoa volta a digitar", async () => {
   renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   await user.type(contactField(), "nada");
   await user.click(screen.getByRole("button", { name: "Salvar contato" }));
@@ -470,6 +503,7 @@ it("o erro some quando a pessoa volta a digitar", async () => {
 
 it("Remover contato apaga no servidor e esconde o endereco publicado", async () => {
   const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
   await user.click(screen.getByRole("button", { name: "Remover contato" }));
   await waitFor(() => expect(instance.state.saves).toEqual([{ contact: null }]));
@@ -481,6 +515,7 @@ it("Remover contato apaga no servidor e esconde o endereco publicado", async () 
 
 it("apagar o texto e salvar tambem remove o contato", async () => {
   const { instance } = renderPage({ contact: "seguranca@example.com" });
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue("seguranca@example.com"));
   await user.clear(contactField());
   await user.click(screen.getByRole("button", { name: "Salvar contato" }));
@@ -490,6 +525,7 @@ it("apagar o texto e salvar tambem remove o contato", async () => {
 
 it("trocar o contato por outro manda so o novo", async () => {
   const { instance } = renderPage({ contact: "um@example.com" });
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue("um@example.com"));
   await user.clear(contactField());
   await user.type(contactField(), "dois@example.com");
@@ -500,6 +536,7 @@ it("trocar o contato por outro manda so o novo", async () => {
 
 it("o erro do servidor aparece e o campo continua editavel com o que foi digitado", async () => {
   const { instance } = renderPage();
+  await openTab("Administração");
   await waitFor(() => expect(contactField()).toHaveValue(""));
   instance.state.nextError = { status: 403, code: "admin_required" };
   await user.type(contactField(), "seguranca@example.com");
@@ -512,6 +549,7 @@ it("o erro do servidor aparece e o campo continua editavel com o que foi digitad
 
 it("falha ao ler o contato mostra o erro e deixa tentar de novo", async () => {
   const { instance } = renderPage({ contact: "seguranca@example.com", readError: true });
+  await openTab("Administração");
   expect(await screen.findByRole("alert")).toBeVisible();
   expect(screen.queryByLabelText("Contato de segurança", { exact: true })).not.toBeInTheDocument();
   instance.state.readError = false;

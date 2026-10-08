@@ -23,7 +23,9 @@ const ROUTES = [
   "/webhooks",
   "/relatorios",
   "/configuracoes",
-  "/seguranca",
+  "/configuracoes?aba=aparencia",
+  "/configuracoes?aba=seguranca",
+  "/configuracoes?aba=administracao",
   "/rota-que-nao-existe",
 ];
 
@@ -108,8 +110,8 @@ const DIALOGS: { route: string; opener: string; optional?: boolean }[] = [
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
   { route: "/webhooks", opener: "Novo webhook" },
-  { route: "/seguranca", opener: "Criar token" },
-  { route: "/seguranca", opener: "Ativar verificação em duas etapas", optional: true },
+  { route: "/configuracoes?aba=seguranca", opener: "Criar token" },
+  { route: "/configuracoes?aba=seguranca", opener: "Ativar verificação em duas etapas", optional: true },
 ];
 
 for (const theme of ["light", "dark"] as const) {

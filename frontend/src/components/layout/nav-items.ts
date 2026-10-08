@@ -9,7 +9,6 @@ import {
   PiggyBank,
   Repeat,
   Receipt,
-  Settings,
   Tag,
   Tags,
   Upload,
@@ -44,5 +43,4 @@ export const navItems: NavItem[] = [
   { labelKey: "nav.rules", icon: Workflow, to: "/regras" },
   { labelKey: "nav.webhooks", icon: Webhook, to: "/webhooks" },
   { labelKey: "nav.reports", icon: BarChart3, to: "/relatorios" },
-  { labelKey: "nav.settings", icon: Settings, to: "/configuracoes" },
 ];

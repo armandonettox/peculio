@@ -251,7 +251,11 @@
     },
     "settings": {
       "configuracoes": "Settings",
-      "seuPerfilSenhaAparencia": "Your profile, password, appearance and, for the administrator, invites and the security contact"
+      "seuPerfilSenhaAparencia": "Your profile, password, appearance and security",
+      "secaoDeConfiguracoes": "Settings section",
+      "perfil": "Profile",
+      "aparencia": "Appearance",
+      "administracao": "Administration"
     },
     "security": {
       "desativada": "Disabled",
@@ -264,7 +268,6 @@
       "restamPoucosCodigosDe": "Few recovery codes left. Generate new ones so you don't lose access if you lose your phone.",
       "gerarNovosCodigos": "Generate new codes",
       "desativar": "Disable",
-      "protejaOAcessoA": "Protect access to your account",
       "verificacaoEmDuasEtapas": "Two-step verification",
       "umSegundoCodigoAlem": "A second code, besides the password, when logging in.",
       "paraRelatarUmProblema": "To report a security issue on this installation, contact <wk>{{contact}}</wk>."
@@ -365,8 +368,7 @@
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
     "webhooks": "Webhooks",
-    "reports": "Reports",
-    "settings": "Settings"
+    "reports": "Reports"
   },
   "validation": {
     "emailRequired": "Enter your email.",
@@ -1718,10 +1720,6 @@
       "contatoSalvo": "Contact saved.",
       "contatoRemovido": "Contact removed.",
       "publicadoEm": "Published at <wk>/.well-known/security.txt</wk>, the default address security researchers look for."
-    },
-    "securitySection": {
-      "verificacaoEmDuasEtapas": "Two-step verification and API tokens for scripts.",
-      "abrirAPaginaDe": "Open the Security page"
     },
     "model": {
       "informeONome": "Enter the name.",

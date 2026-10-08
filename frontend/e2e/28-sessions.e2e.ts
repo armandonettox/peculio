@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
-import { ADMIN, field, login, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, field, login, loginAndWaitForDashboard, openSettings } from "./helpers";
 
 // Manter conectado: cookie de renovacao HttpOnly, restaurar a sessao ao abrir, lista de aparelhos e sair de verdade.
 // Em ordem: cada passo parte do anterior.
@@ -21,9 +21,8 @@ async function refreshCookie(page: Page) {
 }
 
 async function openSecurity(page: Page) {
-  await nav(page).getByRole("link", { name: "Configurações" }).click();
-  await page.getByRole("link", { name: /Abrir a página de Segurança/ }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Segurança" })).toBeVisible();
+  await openSettings(page, "Segurança");
+  await expect(page.getByRole("heading", { level: 2, name: "Verificação em duas etapas" })).toBeVisible();
 }
 
 // Um navegador de verdade e novo: cookies proprios, como um segundo aparelho
@@ -113,7 +112,7 @@ test("trocar a senha encerra os outros aparelhos e mantem este", async ({ page, 
   const other = await secondDevice(browser);
   await loginPage(other.page, true);
 
-  await nav(page).getByRole("link", { name: "Configurações" }).click();
+  await openSettings(page);
   await field(page, "Senha atual").fill(ADMIN.password);
   await field(page, "Nova senha").fill("SenhaNova987");
   await field(page, "Repita a nova senha").fill("SenhaNova987");

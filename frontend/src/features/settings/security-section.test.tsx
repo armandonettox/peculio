@@ -10,7 +10,7 @@ import { fakeSessionsApi, makeSession } from "@/test-utils/sessions-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeTwoFactorApi, GOOD_CODE, GOOD_PASSWORD, SECRET } from "@/test-utils/two-factor-api";
-import SecurityPage from "./security";
+import { SecuritySection } from "./security-section";
 
 function renderPage(
   options: Parameters<typeof fakeTwoFactorApi>[0] = {},
@@ -22,7 +22,7 @@ function renderPage(
   const page = (
     <FakeAuth>
       <MemoryRouter>
-        <SecurityPage />
+        <SecuritySection />
       </MemoryRouter>
     </FakeAuth>
   );

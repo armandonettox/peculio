@@ -251,7 +251,11 @@
     },
     "settings": {
       "configuracoes": "Configurações",
-      "seuPerfilSenhaAparencia": "Seu perfil, senha, aparência e, para o administrador, os convites e o contato de segurança"
+      "seuPerfilSenhaAparencia": "Seu perfil, senha, aparência e segurança",
+      "secaoDeConfiguracoes": "Seção de configurações",
+      "perfil": "Perfil",
+      "aparencia": "Aparência",
+      "administracao": "Administração"
     },
     "security": {
       "desativada": "Desativada",
@@ -264,7 +268,6 @@
       "restamPoucosCodigosDe": "Restam poucos códigos de recuperação. Gere novos para não ficar sem acesso se perder o celular.",
       "gerarNovosCodigos": "Gerar novos códigos",
       "desativar": "Desativar",
-      "protejaOAcessoA": "Proteja o acesso à sua conta",
       "verificacaoEmDuasEtapas": "Verificação em duas etapas",
       "umSegundoCodigoAlem": "Um segundo código, além da senha, ao entrar.",
       "paraRelatarUmProblema": "Para relatar um problema de segurança nesta instalação, fale com <wk>{{contact}}</wk>."
@@ -365,8 +368,7 @@
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
     "webhooks": "Webhooks",
-    "reports": "Relatórios",
-    "settings": "Configurações"
+    "reports": "Relatórios"
   },
   "validation": {
     "emailRequired": "Informe o e-mail.",
@@ -1718,10 +1720,6 @@
       "contatoSalvo": "Contato salvo.",
       "contatoRemovido": "Contato removido.",
       "publicadoEm": "Publicado em <wk>/.well-known/security.txt</wk>, o endereço padrão que pesquisadores de segurança procuram."
-    },
-    "securitySection": {
-      "verificacaoEmDuasEtapas": "Verificação em duas etapas e tokens de API para scripts.",
-      "abrirAPaginaDe": "Abrir a página de Segurança"
     },
     "model": {
       "informeONome": "Informe o nome.",

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { loginAndWaitForDashboard } from "./helpers";
+import { loginAndWaitForDashboard, openSettings } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Em ordem: cada passo parte do estado do anterior.
 test.describe.configure({ mode: "serial" });
@@ -16,9 +16,7 @@ const values = { reader: "", writer: "" };
 
 async function openSecurity(page: Page) {
   await loginAndWaitForDashboard(page);
-  await page.getByRole("button", { name: "Menu do usuário" }).click();
-  await page.getByRole("menuitem", { name: "Segurança" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Segurança" })).toBeVisible();
+  await openSettings(page, "Segurança");
   await expect(page.getByRole("heading", { name: "Tokens de API" })).toBeVisible();
 }
 

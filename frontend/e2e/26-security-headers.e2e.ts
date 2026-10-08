@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { loginAndWaitForDashboard } from "./helpers";
+import { loginAndWaitForDashboard, openSettings } from "./helpers";
 
 // Os cabecalhos de seguranca do servidor e a politica de conteudo (CSP). A prova que importa: o app inteiro continua
 // funcionando com a politica ligada, sem nenhuma violacao.
@@ -80,16 +80,17 @@ test("o app inteiro funciona com a politica ligada", async ({ page }) => {
   await watchViolations(page);
   await loginAndWaitForDashboard(page);
 
-  // Telas com graficos, formularios, dialogos, tabelas e exportacao
+  // Telas com graficos, formularios, dialogos e tabelas
   for (const [link, heading] of [
     ["Transações", "Transações"],
     ["Relatórios", "Relatórios"],
     ["Orçamentos", "Orçamentos"],
-    ["Configurações", "Configurações"],
   ] as const) {
     await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: link }).click();
     await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
   }
+  // Configuracoes agora so pelo menu do usuario
+  await openSettings(page);
   // Um dialogo (Radix injeta estilo) e o menu do usuario
   await page.getByRole("button", { name: "Menu do usuário" }).click();
   await page.keyboard.press("Escape");

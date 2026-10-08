@@ -1,24 +1,25 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, field, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, field, loginAndWaitForDashboard, openSettings } from "./helpers";
 
-// A pagina Configuracoes: perfil, senha, aparencia e convites. Em ordem: cada passo parte do anterior.
-// O ultimo passo devolve a senha ao que era, porque os outros arquivos entram com ela.
+// A pagina Configuracoes, em abas: Perfil (com senha), Aparencia, Seguranca e, so para admin,
+// Administracao (convites e contato de seguranca). Em ordem: cada passo parte do anterior. O
+// ultimo passo devolve a senha ao que era, porque os outros arquivos entram com ela.
 test.describe.configure({ mode: "serial" });
 
 const NEW_PASSWORD = "NovaSenha789";
 
-async function openSettings(page: Page) {
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Configurações" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Configurações" })).toBeVisible();
-}
-
-test("a pagina tem as secoes e o item do menu leva a ela", async ({ page }) => {
+test("a pagina tem as abas e o menu do usuario leva a ela", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await openSettings(page);
-  for (const title of ["Perfil", "Senha", "Aparência", "Segurança", "Usuários e convites"]) {
-    await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+  for (const title of ["Perfil", "Aparência", "Segurança", "Administração"]) {
+    await expect(page.getByRole("button", { name: title, exact: true })).toBeVisible();
   }
+  for (const title of ["Perfil", "Senha"]) {
+    await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
+  }
+  await page.getByRole("button", { name: "Administração", exact: true }).click();
+  await expect(page.getByText("Usuários e convites", { exact: true })).toBeVisible();
 });
 
 test("trocar o nome e a moeda padrao salva e o nome muda no menu do usuario", async ({ page }) => {
@@ -51,7 +52,7 @@ test("nome vazio e recusado na tela e o e-mail nao e editavel", async ({ page })
 
 test("o tema escolhido nas Configuracoes vale para o app e fica lembrado", async ({ page }) => {
   await loginAndWaitForDashboard(page);
-  await openSettings(page);
+  await openSettings(page, "Aparência");
   await page.getByRole("radio", { name: /Escuro/ }).check();
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.getByRole("radio", { name: /Claro/ }).check();
@@ -101,7 +102,7 @@ test("trocar a senha mantem esta aba conectada e encerra as outras sessoes", asy
 
 test("o administrador cria um convite, ve o link uma vez e revoga", async ({ page }) => {
   await loginAndWaitForDashboard(page, { ...ADMIN, password: NEW_PASSWORD });
-  await openSettings(page);
+  await openSettings(page, "Administração");
 
   await field(page, "E-mail da pessoa").fill("convidada@example.com");
   await page.getByRole("button", { name: "Criar convite" }).click();

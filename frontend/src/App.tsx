@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppLayout } from "@/components/layout/app-shell";
 import { AuthLayout } from "@/components/layout/auth-layout";
@@ -19,7 +19,6 @@ import PiggyBanksPage from "@/pages/piggy-banks";
 import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
-import SecurityPage from "@/pages/security";
 import SettingsPage from "@/pages/settings";
 import TagsPage from "@/pages/tags";
 import TransactionsPage from "@/pages/transactions";
@@ -53,7 +52,8 @@ export default function App() {
             <Route path="tags" element={<TagsPage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="relatorios" element={<ReportsPage />} />
-            <Route path="seguranca" element={<SecurityPage />} />
+            {/* /seguranca virou a aba Seguranca de Configuracoes (favoritos antigos continuam entrando) */}
+            <Route path="seguranca" element={<Navigate to="/configuracoes?aba=seguranca" replace />} />
             <Route path="configuracoes" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

@@ -1,4 +1,4 @@
-import { Download, LogOut, ShieldCheck } from "lucide-react";
+import { Download, LogOut, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -45,9 +45,9 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/seguranca">
-            <ShieldCheck />
-            {t("common.seguranca")}
+          <Link to="/configuracoes">
+            <Settings />
+            {t("pages.settings.configuracoes")}
           </Link>
         </DropdownMenuItem>
         {canInstall && (

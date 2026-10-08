@@ -25,8 +25,10 @@ test("o seletor de idioma na tela de login troca para ingles, e a escolha fica s
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   await expect(page.getByText(`Hi, ${ADMIN.name.split(" ")[0]}.`)).toBeVisible();
 
-  await page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "User menu" }).click();
+  await page.getByRole("menuitem", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+  await page.getByRole("button", { name: "Appearance", exact: true }).click();
   await expect(page.getByRole("radio", { name: "English" })).toBeChecked();
 
   // Volta para portugues pelo mesmo seletor usado em Configuracoes, para nao vazar estado para os testes seguintes
