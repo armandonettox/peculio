@@ -105,7 +105,6 @@
       "carregandoOrcamentos": "Loading budgets...",
       "nenhumOrcamentoAinda": "No budgets yet",
       "crieUmLimiteDe": "Set a spending limit for part of your money, like groceries or leisure, and track how much you've used.",
-      "seusOrcamentos": "Your budgets",
       "orcamentos": "Budgets",
       "quantoVoceJaUsou": "How much you've already used of each spending limit",
       "mesAnterior": "Previous month",
@@ -129,6 +128,17 @@
       "aplicarTemplates": "Apply templates",
       "excluirEnvelope": "Delete envelope",
       "oQueFoiDistribuido": "What was distributed to it disappears and goes back to Ready to budget. Linked transactions lose the envelope."
+    },
+    "budgetsEnvelopes": {
+      "titulo": "Budgets and envelopes",
+      "descricao": "Two ways to organize the month's money.",
+      "secao": "Budgets or envelopes section",
+      "comparacao": {
+        "orcamentosTitulo": "Budgets",
+        "orcamentosTexto": "A spending limit for a category, like groceries or leisure. The money stays in the account; the budget just tracks how much you've spent against that ceiling.",
+        "envelopesTitulo": "Envelopes",
+        "envelopesTexto": "You distribute the money you already have among goals, month by month: every unit of money gets a destination. What's left carries to the next month; what overspends comes out of another envelope."
+      }
     },
     "bills": {
       "novaContaAPagar": "New bill",
@@ -371,7 +381,6 @@
     "reconcile": "Reconcile",
     "categories": "Categories",
     "budgets": "Budgets",
-    "envelopes": "Envelopes",
     "bills": "Bills",
     "piggyBanks": "Piggy banks",
     "rules": "Rules",

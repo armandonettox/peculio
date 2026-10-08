@@ -48,7 +48,6 @@ describe("arquivos de traducao", () => {
   const SAME_IN_BOTH = new Set([
     "components.appShell.menu",
     "nav.webhooks",
-    "nav.envelopes",
     "pages.accounts.total",
     "common.tag",
     "pages.labels.tags",
@@ -57,6 +56,7 @@ describe("arquivos de traducao", () => {
     "labels.tag.count_one",
     "labels.tag.count_other",
     "pages.envelopes.envelopes",
+    "pages.budgetsEnvelopes.comparacao.envelopesTitulo",
     "budgets.budgetFormDialog.envelope",
     "envelopes.applyTemplatesDialog.envelope",
     "envelopes.envelopeGroupTable.envelope",

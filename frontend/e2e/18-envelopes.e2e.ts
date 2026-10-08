@@ -28,10 +28,12 @@ async function brl(request: APIRequestContext) {
   return { money: Number(group.money), toBudget: Number(group.to_budget) };
 }
 
+// Envelopes virou a aba Envelopes de Orcamentos
 async function openEnvelopes(page: Page) {
   await loginAndWaitForDashboard(page);
-  await nav(page).getByRole("link", { name: "Envelopes" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Envelopes" })).toBeVisible();
+  await nav(page).getByRole("link", { name: "Orçamentos" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Orçamentos e envelopes" })).toBeVisible();
+  await page.getByRole("tab", { name: "Envelopes" }).click();
 }
 
 async function createEnvelope(page: Page, name: string) {

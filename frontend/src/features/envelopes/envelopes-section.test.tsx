@@ -9,7 +9,7 @@ import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeEnvelopesApi, makeEnvelope } from "@/test-utils/envelopes-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
-import EnvelopesPage from "./envelopes";
+import { EnvelopesSection } from "./envelopes-section";
 
 // Data fixa: o mes mostrado ao abrir e o botao "Mes atual" dependem de hoje
 beforeEach(() => {
@@ -24,7 +24,7 @@ function renderPage(envelopes: ReturnType<typeof makeEnvelope>[] = [], options: 
   render(
     <FakeAuth>
       <MemoryRouter>
-        <EnvelopesPage />
+        <EnvelopesSection />
       </MemoryRouter>
     </FakeAuth>,
   );

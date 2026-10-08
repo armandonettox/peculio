@@ -7,7 +7,6 @@ import { getErrorMessage } from "@/api/error-messages";
 import { useEnvelopes, type Envelope } from "@/api/envelopes";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { BudgetFormDialog } from "@/features/budgets/budget-form-dialog";
@@ -27,7 +26,8 @@ type DialogState =
   | { kind: "move"; currency: string; to?: string }
   | null;
 
-export default function EnvelopesPage() {
+/** Distribui o dinheiro que voce ja tem entre metas, mes a mes; todo real tem um destino. */
+export function EnvelopesSection() {
   const { t } = useTranslation();
   const currentMonth = firstOfMonth(appToday());
   const [month, setMonth] = useState(currentMonth);
@@ -113,7 +113,14 @@ export default function EnvelopesPage() {
 
   return (
     <>
-      <PageHeader title={t("pages.envelopes.envelopes")} description={t("pages.envelopes.distribuaODinheiroQue")} actions={newButton} />
+      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-primary-text">{t("pages.envelopes.envelopes")}</h2>
+          <p className="text-sm text-muted-foreground">{t("pages.envelopes.distribuaODinheiroQue")}</p>
+        </div>
+        {newButton}
+      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Button variant="outline" size="icon" className="shrink-0" aria-label={t("pages.envelopes.mesAnterior")} onClick={() => setMonth(shiftMonth(month, -1))}>

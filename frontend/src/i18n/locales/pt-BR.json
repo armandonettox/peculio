@@ -105,7 +105,6 @@
       "carregandoOrcamentos": "Carregando orçamentos...",
       "nenhumOrcamentoAinda": "Nenhum orçamento ainda",
       "crieUmLimiteDe": "Crie um limite de gasto para uma parte do seu dinheiro, como mercado ou lazer, e acompanhe quanto já usou.",
-      "seusOrcamentos": "Seus orçamentos",
       "orcamentos": "Orçamentos",
       "quantoVoceJaUsou": "Quanto você já usou do limite de cada gasto",
       "mesAnterior": "Mês anterior",
@@ -129,6 +128,17 @@
       "aplicarTemplates": "Aplicar templates",
       "excluirEnvelope": "Excluir envelope",
       "oQueFoiDistribuido": "O que foi distribuído para ele some e volta para o A orçar. Os lançamentos ligados ficam sem envelope."
+    },
+    "budgetsEnvelopes": {
+      "titulo": "Orçamentos e envelopes",
+      "descricao": "Dois jeitos de organizar o dinheiro do mês.",
+      "secao": "Seção de orçamentos ou envelopes",
+      "comparacao": {
+        "orcamentosTitulo": "Orçamentos",
+        "orcamentosTexto": "Um limite de gasto por categoria, como mercado ou lazer. O dinheiro continua na conta; o orçamento só acompanha quanto já foi gasto contra esse teto.",
+        "envelopesTitulo": "Envelopes",
+        "envelopesTexto": "Você distribui o dinheiro que já tem entre metas, mês a mês: todo real ganha um destino. O que sobra passa para o mês seguinte; o que estoura sai de outro envelope."
+      }
     },
     "bills": {
       "novaContaAPagar": "Nova conta a pagar",
@@ -371,7 +381,6 @@
     "reconcile": "Conciliar",
     "categories": "Categorias",
     "budgets": "Orçamentos",
-    "envelopes": "Envelopes",
     "bills": "Contas a pagar",
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
