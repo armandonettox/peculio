@@ -21,10 +21,11 @@ const brazilian = (iso: string) => iso.split("-").reverse().join("/");
 // Primeiro vencimento tres dias atras: sem pagamento a conta esta atrasada, e pagar hoje quita esse vencimento
 const FIRST_DUE = isoDaysFromToday(-3);
 
+// Contas a pagar e Recorrentes viraram abas de uma unica tela; Contas a pagar e a aba padrao
 async function openBills(page: Page) {
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas a pagar" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Contas a pagar" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Contas a pagar e recorrentes" })).toBeVisible();
 }
 
 async function menu(page: Page, item: string) {

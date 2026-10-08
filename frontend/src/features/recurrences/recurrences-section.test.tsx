@@ -10,7 +10,7 @@ import { fakeLabelsApi } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeRecurrencesApi, makeRecurrence, makeTemplateSplit } from "@/test-utils/recurrences-api";
-import RecurrencesPage from "./recurrences";
+import { RecurrencesSection } from "./recurrences-section";
 
 const nubank = makeAccount({ id: "a0000000-0000-4000-8000-000000000001", name: "Nubank" });
 const poupanca = makeAccount({ id: "a0000000-0000-4000-8000-000000000002", name: "Poupanca" });
@@ -35,7 +35,7 @@ function renderPage(items = [makeRecurrence({ name: "Aluguel" })]) {
   render(
     <FakeAuth>
       <MemoryRouter>
-        <RecurrencesPage />
+        <RecurrencesSection />
       </MemoryRouter>
     </FakeAuth>,
   );

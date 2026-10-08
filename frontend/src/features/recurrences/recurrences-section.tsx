@@ -10,7 +10,6 @@ import {
 } from "@/api/recurrences";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RecurrenceCard } from "@/features/recurrences/recurrence-card";
@@ -24,7 +23,8 @@ type DialogState =
   | { kind: "delete"; recurrence: Recurrence }
   | null;
 
-export default function RecurrencesPage() {
+/** Lancamentos que se repetem sozinhos (aluguel, salario...), criados pelo app a cada ciclo. */
+export function RecurrencesSection() {
   const { t } = useTranslation();
   const today = appToday();
   const [includePaused, setIncludePaused] = useState(false);
@@ -86,9 +86,7 @@ export default function RecurrencesPage() {
     );
   } else {
     content = (
-      <>
-        <h2 className="sr-only">{t("pages.recurrences.seusLancamentosRecorrentes")}</h2>
-        <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-3">
         {items.map((recurrence) => (
           <RecurrenceCard
             key={recurrence.id}
@@ -100,13 +98,19 @@ export default function RecurrencesPage() {
           />
         ))}
       </ul>
-      </>
     );
   }
 
   return (
     <>
-      <PageHeader title={t("pages.recurrences.recorrentes")} description={t("pages.recurrences.lancamentosQueSeRepetem")} actions={newButton} />
+      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-primary-text">{t("pages.recurrences.recorrentes")}</h2>
+          <p className="text-sm text-muted-foreground">{t("pages.recurrences.lancamentosQueSeRepetem")}</p>
+        </div>
+        {newButton}
+      </div>
 
       <div className="mb-4 flex justify-end">
         <label className="flex cursor-pointer items-center gap-2 text-sm">

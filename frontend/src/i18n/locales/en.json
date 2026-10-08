@@ -135,7 +135,6 @@
       "carregandoContasAPagar": "Loading bills...",
       "nenhumaContaAPagar": "No bills yet",
       "cadastreOQueVence": "Register what's always due, like rent, internet or a subscription, and see what's already paid and what's overdue.",
-      "suasContasAPagar": "Your bills",
       "contasAPagar": "Bills",
       "oQueVenceSempre": "What's always due and whether it's already been paid",
       "mostrarArquivadas": "Show archived",
@@ -147,12 +146,16 @@
       "carregandoRecorrentes": "Loading recurrences...",
       "nenhumaRecorrenteAinda": "No recurrences yet",
       "cadastreOQueSe": "Register what repeats on its own, like rent or a paycheck, and the app creates the transactions for you, including days it was turned off.",
-      "seusLancamentosRecorrentes": "Your recurring transactions",
       "recorrentes": "Recurrences",
       "lancamentosQueSeRepetem": "Transactions that repeat on their own",
       "mostrarPausadas": "Show paused",
       "excluirRecorrente": "Delete recurrence",
       "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones."
+    },
+    "billsRecurrences": {
+      "titulo": "Bills and recurring",
+      "descricao": "What's always due and what repeats on its own, in one place.",
+      "secao": "Bills or recurring section"
     },
     "piggyBanks": {
       "novoCofrinho": "New piggy bank",
@@ -370,7 +373,6 @@
     "budgets": "Budgets",
     "envelopes": "Envelopes",
     "bills": "Bills",
-    "recurrences": "Recurring",
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
     "webhooks": "Webhooks",

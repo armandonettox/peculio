@@ -20,10 +20,12 @@ const isoDaysFromToday = (days: number) => {
   return date.toLocaleDateString("sv-SE");
 };
 
+// Recorrentes virou a aba Recorrentes de Contas a pagar
 async function openRecurrences(page: Page) {
   await loginAndWaitForDashboard(page);
-  await nav(page).getByRole("link", { name: "Recorrentes" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Recorrentes" })).toBeVisible();
+  await nav(page).getByRole("link", { name: "Contas a pagar" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Contas a pagar e recorrentes" })).toBeVisible();
+  await page.getByRole("tab", { name: "Recorrentes" }).click();
 }
 
 async function menu(page: Page, name: string, item: string) {

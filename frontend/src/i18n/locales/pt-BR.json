@@ -135,7 +135,6 @@
       "carregandoContasAPagar": "Carregando contas a pagar...",
       "nenhumaContaAPagar": "Nenhuma conta a pagar ainda",
       "cadastreOQueVence": "Cadastre o que vence sempre, como aluguel, internet ou uma assinatura, e veja o que já foi pago e o que está atrasado.",
-      "suasContasAPagar": "Suas contas a pagar",
       "contasAPagar": "Contas a pagar",
       "oQueVenceSempre": "O que vence sempre e se já foi pago",
       "mostrarArquivadas": "Mostrar arquivadas",
@@ -147,12 +146,16 @@
       "carregandoRecorrentes": "Carregando recorrentes...",
       "nenhumaRecorrenteAinda": "Nenhuma recorrente ainda",
       "cadastreOQueSe": "Cadastre o que se repete sozinho, como aluguel ou salário, e o app cria os lançamentos por você, inclusive os dias em que ele esteve desligado.",
-      "seusLancamentosRecorrentes": "Seus lançamentos recorrentes",
       "recorrentes": "Recorrentes",
       "lancamentosQueSeRepetem": "Lançamentos que se repetem sozinhos",
       "mostrarPausadas": "Mostrar pausadas",
       "excluirRecorrente": "Excluir recorrente",
       "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
+    },
+    "billsRecurrences": {
+      "titulo": "Contas a pagar e recorrentes",
+      "descricao": "O que vence sempre e o que se repete sozinho, num só lugar.",
+      "secao": "Seção de contas a pagar ou recorrentes"
     },
     "piggyBanks": {
       "novoCofrinho": "Novo cofrinho",
@@ -370,7 +373,6 @@
     "budgets": "Orçamentos",
     "envelopes": "Envelopes",
     "bills": "Contas a pagar",
-    "recurrences": "Recorrentes",
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
     "webhooks": "Webhooks",

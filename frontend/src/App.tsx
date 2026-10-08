@@ -7,7 +7,7 @@ import { PwaBanners } from "@/components/pwa-banners";
 import AccountsPage from "@/pages/accounts";
 import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
-import BillsPage from "@/pages/bills";
+import BillsRecurrencesPage from "@/pages/bills";
 import DashboardPage from "@/pages/dashboard";
 import EnvelopesPage from "@/pages/envelopes";
 import ImportPage from "@/pages/import";
@@ -16,7 +16,6 @@ import ReconciliationPage from "@/pages/reconciliation";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
 import PiggyBanksPage from "@/pages/piggy-banks";
-import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
@@ -38,8 +37,9 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="cofrinhos" element={<PiggyBanksPage />} />
-            <Route path="recorrentes" element={<RecurrencesPage />} />
-            <Route path="contas-a-pagar" element={<BillsPage />} />
+            {/* Recorrentes virou a aba Recorrentes de Contas a pagar (favoritos antigos continuam entrando) */}
+            <Route path="recorrentes" element={<Navigate to="/contas-a-pagar?aba=recorrentes" replace />} />
+            <Route path="contas-a-pagar" element={<BillsRecurrencesPage />} />
             <Route path="orcamentos" element={<BudgetsPage />} />
             <Route path="envelopes" element={<EnvelopesPage />} />
             <Route path="regras" element={<RulesPage />} />
