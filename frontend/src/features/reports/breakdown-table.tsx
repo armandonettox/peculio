@@ -1,5 +1,4 @@
 import { TableScroll } from "@/components/table-scroll";
-import { useId } from "react";
 
 import type { ReportGroupBlock } from "@/api/reports";
 import { formatMoney } from "@/lib/money";
@@ -14,16 +13,13 @@ type BreakdownTableProps = {
 /** Tabela de receita e despesa por categoria, tag, orcamento ou conta, com uma barra de despesa em CSS. */
 export function BreakdownTable({ dimension, block }: BreakdownTableProps) {
   const { t } = useTranslation();
-  const headingId = useId();
   const code = block.currency_code;
   // As linhas vem do maior gasto para o menor, mas a barra nao depende disso
   const maxExpense = block.rows.reduce((max, row) => (Number(row.expense) > Number(max) ? row.expense : max), "0");
 
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-2">
-      <h4 id={headingId} className="text-sm font-semibold">
-        {dimension.title}
-      </h4>
+    <section aria-label={t("reports.breakdownTable.secaoEm", { title: dimension.column, code })} className="flex flex-col gap-2">
+      <h4 className="text-sm font-semibold">{dimension.title}</h4>
       {dimension.note && <p className="text-xs text-muted-foreground">{dimension.note}</p>}
       <TableScroll label={t("reports.breakdownTable.tituloEm", { title: dimension.title, code })}>
         <table className="w-full min-w-96 text-sm">

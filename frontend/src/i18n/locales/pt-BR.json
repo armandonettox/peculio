@@ -1305,6 +1305,7 @@
     },
     "breakdownTable": {
       "tituloEm": "{{title}} em {{code}}",
+      "secaoEm": "Detalhamento de {{title}} em {{code}}",
       "despesaDePercent": "Despesa de {{amount}}, {{percent}}% do maior gasto da lista"
     },
     "currencySection": {
@@ -1433,8 +1434,8 @@
       "outros": "Outros"
     },
     "monthlyChart": {
-      "mesAMes": "Mês a mês",
-      "valoresPorMes": "Valores por mês",
+      "mesAMesEm": "Mês a mês em {{code}}",
+      "valoresPorMesEm": "Valores por mês em {{code}}",
       "mes": "Mês",
       "receitaEDespesaPorMes": "Receita e despesa por mês em {{code}}, de {{from}} a {{to}}. Os valores estão na tabela abaixo.",
       "receitaDespesaResultadoPorMes": "Receita, despesa e resultado por mês em {{code}}"

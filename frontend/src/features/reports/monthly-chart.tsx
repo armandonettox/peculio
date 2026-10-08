@@ -28,7 +28,7 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-3">
       <h3 id={headingId} className="text-base font-semibold">
-        {t("reports.monthlyChart.mesAMes")}
+        {t("reports.monthlyChart.mesAMesEm", { code })}
       </h3>
 
       <div className="rounded-lg border bg-card p-4">
@@ -63,7 +63,7 @@ export function MonthlyChart({ block }: { block: MonthlyBlock }) {
         </div>
       </div>
 
-      <TableScroll label={t("reports.monthlyChart.valoresPorMes")} className="max-h-72 overflow-auto">
+      <TableScroll label={t("reports.monthlyChart.valoresPorMesEm", { code })} className="max-h-72 overflow-auto">
         <table className="w-full min-w-96 text-sm">
           <caption className="sr-only">{t("reports.monthlyChart.receitaDespesaResultadoPorMes", { code })}</caption>
           <thead>

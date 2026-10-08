@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { createdText, endText, frequencyLabel, nextText, templateSummary } from "./presentation";
 import { useTranslation } from "react-i18next";
 
@@ -27,7 +26,7 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
   const canToggle = !recurrence.ended;
 
   return (
-    <li className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", (paused || recurrence.ended) && "opacity-70")}>
+    <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">

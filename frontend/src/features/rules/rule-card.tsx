@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { actionSummary, triggerSummary, type NameLookups } from "./presentation";
 import { useTranslation } from "react-i18next";
 
@@ -29,7 +28,7 @@ function Badge({ children }: { children: string }) {
 export function RuleCard({ rule, lookups, onEdit, onToggleActive, onDelete }: Props) {
   const { t } = useTranslation();
   return (
-    <li className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", !rule.active && "opacity-70")}>
+    <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

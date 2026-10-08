@@ -1305,6 +1305,7 @@
     },
     "breakdownTable": {
       "tituloEm": "{{title}} in {{code}}",
+      "secaoEm": "Breakdown of {{title}} in {{code}}",
       "despesaDePercent": "Expense of {{amount}}, {{percent}}% of the biggest expense in the list"
     },
     "currencySection": {
@@ -1433,8 +1434,8 @@
       "outros": "Others"
     },
     "monthlyChart": {
-      "mesAMes": "Month by month",
-      "valoresPorMes": "Values by month",
+      "mesAMesEm": "Month by month in {{code}}",
+      "valoresPorMesEm": "Values by month in {{code}}",
       "mes": "Month",
       "receitaEDespesaPorMes": "Income and expense by month in {{code}}, from {{from}} to {{to}}. The values are in the table below.",
       "receitaDespesaResultadoPorMes": "Income, expense and net by month in {{code}}"

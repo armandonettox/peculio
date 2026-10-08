@@ -29,10 +29,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
 
   return (
     <li
-      className={cn(
-        "flex items-start justify-between gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm",
-        !account.active && "opacity-70",
-      )}
+      className="flex items-start justify-between gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
     >
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">

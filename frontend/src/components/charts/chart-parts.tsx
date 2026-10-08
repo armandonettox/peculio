@@ -41,7 +41,7 @@ export function ChartTable({
   rows: { header: string; cells: string[] }[];
 }) {
   return (
-    <table className="sr-only">
+    <table className="sr-only table-fixed">
       <caption>{caption}</caption>
       <thead>
         <tr>

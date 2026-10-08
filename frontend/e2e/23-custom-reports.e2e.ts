@@ -64,7 +64,7 @@ test("prepara a conta, as categorias e os lancamentos pela API", async ({ reques
 
 test("o relatorio comeca em despesas por categoria, com grafico e a tabela completa", async ({ page }) => {
   await openCustom(page);
-  const report = page.getByRole("region", { name: "Despesas por categoria em BRL" });
+  const report = page.getByRole("region", { name: "Despesas por categoria em BRL", exact: true });
   await expect(report).toBeVisible();
   await expect(report.locator('[data-chart="donut"]')).toBeVisible();
   const table = report.getByRole("table", { name: /todos os grupos/ });
@@ -76,14 +76,14 @@ test("o relatorio comeca em despesas por categoria, com grafico e a tabela compl
 
 test("trocar o agrupamento e o grafico muda o relatorio e escolhe um grafico que sirva", async ({ page }) => {
   await openCustom(page);
-  await expect(page.getByRole("region", { name: "Despesas por categoria em BRL" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Despesas por categoria em BRL", exact: true })).toBeVisible();
 
   await page.getByLabel("Gráfico").selectOption("bar");
   const bars = page.getByRole("list", { name: "Despesas por categoria em BRL" });
   await expect(bars.getByRole("listitem")).toHaveCount(2);
 
   await page.getByLabel("Agrupar por").selectOption("counterparty");
-  const byWho = page.getByRole("region", { name: "Despesas por contraparte em BRL" });
+  const byWho = page.getByRole("region", { name: "Despesas por contraparte em BRL", exact: true });
   await expect(byWho.getByRole("rowheader", { name: "Mercado Central Pers E2E" })).toBeVisible();
   await expect(byWho.getByRole("rowheader", { name: "Cinema Pers E2E" })).toBeVisible();
 
@@ -96,7 +96,9 @@ test("trocar o agrupamento e o grafico muda o relatorio e escolhe um grafico que
   await page.getByLabel("Gráfico").selectOption("bar");
   await page.getByLabel("Agrupar por").selectOption("month");
   await page.getByLabel("Gráfico").selectOption("line");
-  await expect(page.getByRole("region", { name: "Receitas mês a mês em BRL" }).locator('[data-chart="line"]')).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Receitas mês a mês em BRL", exact: true }).locator('[data-chart="line"]'),
+  ).toBeVisible();
   await expect(page.getByLabel("Gráfico").locator("option")).toHaveText(["Tabela", "Barras", "Linha"]);
 
   // Saldo com rosca nao serve: ao voltar para categoria o grafico e trocado
@@ -111,7 +113,7 @@ test("datas fixas pedem as duas datas", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Salvar relatório" })).toBeDisabled();
   await page.getByLabel("Data inicial").fill(`${today().slice(0, 4)}-01-01`);
   await page.getByLabel("Data final").fill(today());
-  await expect(page.getByRole("region", { name: "Despesas por categoria em BRL" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Despesas por categoria em BRL", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Salvar relatório" })).toBeEnabled();
 });
 
@@ -138,7 +140,7 @@ test("salvar, reabrir e atualizar um relatorio", async ({ page, request }) => {
   await expect(page.getByLabel("Gráfico")).toHaveValue("bar");
   await expect(page.getByLabel("Período")).toHaveValue("last-3-months");
   await expect(page.getByText(/Aberto:/)).toContainText(NAME);
-  await expect(page.getByRole("region", { name: "Despesas por contraparte em BRL" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Despesas por contraparte em BRL", exact: true })).toBeVisible();
 
   // Mudar e atualizar
   await page.getByLabel("Medir").selectOption("income");
