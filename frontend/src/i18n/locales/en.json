@@ -205,6 +205,13 @@
       "lancamentosAte": "Transactions up to {{date}}",
       "aindaNaoTemConta": "You don't have an account to reconcile yet. <cta>Create an account</cta> first."
     },
+    "labels": {
+      "categoriasETags": "Categories and tags",
+      "organizeSeusLancamentos": "Organize your transactions by category and mark them with free-form tags.",
+      "secaoDeClassificacao": "Categories or tags section",
+      "categorias": "Categories",
+      "tags": "Tags"
+    },
     "reports": {
       "carregandoRelatorio": "Loading report...",
       "nadaNestePeriodo": "Nothing in this period",
@@ -360,7 +367,6 @@
     "import": "Import statement",
     "reconcile": "Reconcile",
     "categories": "Categories",
-    "tags": "Tags",
     "budgets": "Budgets",
     "envelopes": "Envelopes",
     "bills": "Bills",

@@ -6,7 +6,6 @@ import { getErrorMessage } from "@/api/error-messages";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { LabelChip } from "@/components/label-chip";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -149,7 +148,14 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
 
   return (
     <>
-      <PageHeader title={t(`labels.${config.kind}.title`)} description={t(`labels.${config.kind}.description`)} actions={newButton} />
+      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba (ver LabelsTabsPage) */}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-primary-text">{t(`labels.${config.kind}.title`)}</h2>
+          <p className="text-sm text-muted-foreground">{t(`labels.${config.kind}.description`)}</p>
+        </div>
+        <div className="flex items-center gap-2">{newButton}</div>
+      </div>
 
       <div className="relative mb-6 max-w-sm">
         <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

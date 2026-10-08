@@ -205,6 +205,13 @@
       "lancamentosAte": "Lançamentos até {{date}}",
       "aindaNaoTemConta": "Você ainda não tem uma conta para conciliar. <cta>Crie uma conta</cta> primeiro."
     },
+    "labels": {
+      "categoriasETags": "Categorias e tags",
+      "organizeSeusLancamentos": "Organize seus lançamentos por categoria e marque com tags livres.",
+      "secaoDeClassificacao": "Seção de categorias ou tags",
+      "categorias": "Categorias",
+      "tags": "Tags"
+    },
     "reports": {
       "carregandoRelatorio": "Carregando relatório...",
       "nadaNestePeriodo": "Nada neste período",
@@ -360,7 +367,6 @@
     "import": "Importar extrato",
     "reconcile": "Conciliar",
     "categories": "Categorias",
-    "tags": "Tags",
     "budgets": "Orçamentos",
     "envelopes": "Envelopes",
     "bills": "Contas a pagar",

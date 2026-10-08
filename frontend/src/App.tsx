@@ -8,10 +8,10 @@ import AccountsPage from "@/pages/accounts";
 import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
 import BillsPage from "@/pages/bills";
-import CategoriesPage from "@/pages/categories";
 import DashboardPage from "@/pages/dashboard";
 import EnvelopesPage from "@/pages/envelopes";
 import ImportPage from "@/pages/import";
+import LabelsPage from "@/pages/labels";
 import ReconciliationPage from "@/pages/reconciliation";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
@@ -20,7 +20,6 @@ import RecurrencesPage from "@/pages/recurrences";
 import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
-import TagsPage from "@/pages/tags";
 import TransactionsPage from "@/pages/transactions";
 import WebhooksPage from "@/pages/webhooks";
 
@@ -48,8 +47,9 @@ export default function App() {
             <Route path="transacoes" element={<TransactionsPage />} />
             <Route path="importar" element={<ImportPage />} />
             <Route path="conciliar" element={<ReconciliationPage />} />
-            <Route path="categorias" element={<CategoriesPage />} />
-            <Route path="tags" element={<TagsPage />} />
+            <Route path="categorias" element={<LabelsPage />} />
+            {/* Tags virou a aba Tags de Categorias (favoritos antigos continuam entrando) */}
+            <Route path="tags" element={<Navigate to="/categorias?aba=tags" replace />} />
             <Route path="webhooks" element={<WebhooksPage />} />
             <Route path="relatorios" element={<ReportsPage />} />
             {/* /seguranca virou a aba Seguranca de Configuracoes (favoritos antigos continuam entrando) */}

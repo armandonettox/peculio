@@ -5,10 +5,13 @@ import { ADMIN, loginAndWaitForDashboard } from "./helpers";
 // Roda depois do 01-auth (que cria o administrador). Os testes seguem em ordem.
 test.describe.configure({ mode: "serial" });
 
+// Categorias e Tags viraram abas de uma unica tela (Categorias no menu lateral); Tags clica a aba depois
 async function openPage(page: Page, menuLabel: "Categorias" | "Tags") {
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: menuLabel }).click();
-  await expect(page.getByRole("heading", { level: 1, name: menuLabel })).toBeVisible();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Categorias" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Categorias e tags" })).toBeVisible();
+  if (menuLabel === "Tags") await page.getByRole("tab", { name: "Tags" }).click();
+  await expect(page.getByRole("heading", { name: menuLabel, exact: true })).toBeVisible();
 }
 
 const dialog = (page: Page, name: string | RegExp) => page.getByRole("dialog", { name });

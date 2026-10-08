@@ -47,11 +47,11 @@ describe("arquivos de traducao", () => {
   // Textos iguais nos dois idiomas por serem a mesma palavra (nome de funcao, termo tecnico), nao por esquecimento
   const SAME_IN_BOTH = new Set([
     "components.appShell.menu",
-    "nav.tags",
     "nav.webhooks",
     "nav.envelopes",
     "pages.accounts.total",
     "common.tag",
+    "pages.labels.tags",
     "transactions.transactionFormDialog.tags",
     "labels.tag.title",
     "labels.tag.count_one",
