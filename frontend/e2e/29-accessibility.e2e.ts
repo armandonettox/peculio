@@ -11,7 +11,7 @@ const ROUTES = [
   "/contas",
   "/transacoes",
   "/importar",
-  "/conciliar",
+  "/importar?aba=conciliar",
   "/categorias",
   "/categorias?aba=tags",
   "/orcamentos",

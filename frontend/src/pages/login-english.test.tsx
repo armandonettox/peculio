@@ -40,7 +40,7 @@ it("o menu lateral aparece em ingles, com a navegacao e todos os itens", async (
     </MemoryRouter>,
   );
   expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
-  for (const label of ["Dashboard", "Accounts", "Transactions", "Import statement", "Reconcile", "Categories", "Budgets", "Bills", "Piggy banks", "Rules", "Webhooks", "Reports"]) {
+  for (const label of ["Dashboard", "Accounts", "Transactions", "Import statement", "Categories", "Budgets", "Bills", "Piggy banks", "Rules", "Webhooks", "Reports"]) {
     expect(screen.getByRole("link", { name: label })).toBeInTheDocument();
   }
   expect(screen.queryByRole("link", { name: "Painel" })).not.toBeInTheDocument();

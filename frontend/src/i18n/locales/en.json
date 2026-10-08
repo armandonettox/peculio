@@ -218,6 +218,11 @@
       "lancamentosAte": "Transactions up to {{date}}",
       "aindaNaoTemConta": "You don't have an account to reconcile yet. <cta>Create an account</cta> first."
     },
+    "importConciliar": {
+      "titulo": "Import and reconcile",
+      "descricao": "Bring in the bank statement and check the transactions against it.",
+      "secao": "Import or reconcile section"
+    },
     "labels": {
       "categoriasETags": "Categories and tags",
       "organizeSeusLancamentos": "Organize your transactions by category and mark them with free-form tags.",
@@ -378,7 +383,6 @@
     "accounts": "Accounts",
     "transactions": "Transactions",
     "import": "Import statement",
-    "reconcile": "Reconcile",
     "categories": "Categories",
     "budgets": "Budgets",
     "bills": "Bills",

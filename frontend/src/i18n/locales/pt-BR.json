@@ -218,6 +218,11 @@
       "lancamentosAte": "Lançamentos até {{date}}",
       "aindaNaoTemConta": "Você ainda não tem uma conta para conciliar. <cta>Crie uma conta</cta> primeiro."
     },
+    "importConciliar": {
+      "titulo": "Importar e conciliar",
+      "descricao": "Traga o extrato do banco e confira os lançamentos com ele.",
+      "secao": "Seção de importar ou conciliar"
+    },
     "labels": {
       "categoriasETags": "Categorias e tags",
       "organizeSeusLancamentos": "Organize seus lançamentos por categoria e marque com tags livres.",
@@ -378,7 +383,6 @@
     "accounts": "Contas",
     "transactions": "Transações",
     "import": "Importar extrato",
-    "reconcile": "Conciliar",
     "categories": "Categorias",
     "budgets": "Orçamentos",
     "bills": "Contas a pagar",

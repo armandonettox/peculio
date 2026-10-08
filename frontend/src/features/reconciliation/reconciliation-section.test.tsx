@@ -7,7 +7,7 @@ import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeReconciliationApi, makeEntry } from "@/test-utils/reconciliation-api";
-import ReconciliationPage from "./reconciliation";
+import { ReconciliationSection } from "./reconciliation-section";
 
 // Data fixa: a data do extrato comeca em hoje e nao pode passar disso
 beforeEach(() => {
@@ -22,7 +22,7 @@ function renderPage(entries: ReturnType<typeof makeEntry>[], accounts = [makeAcc
   render(
     <FakeAuth>
       <MemoryRouter>
-        <ReconciliationPage />
+        <ReconciliationSection />
       </MemoryRouter>
     </FakeAuth>,
   );

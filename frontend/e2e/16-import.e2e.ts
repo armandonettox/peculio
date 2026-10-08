@@ -59,10 +59,11 @@ async function balance(request: APIRequestContext): Promise<string> {
   return (await response.json()).balance;
 }
 
+// Importar extrato e a aba padrao de Importar e conciliar
 async function openImport(page: Page) {
   await loginAndWaitForDashboard(page);
   await nav(page).getByRole("link", { name: "Importar extrato" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Importar extrato" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Importar e conciliar" })).toBeVisible();
 }
 
 async function readFile(page: Page, name: string, content: string, mimeType = "text/csv") {

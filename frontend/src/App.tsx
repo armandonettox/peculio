@@ -9,9 +9,8 @@ import BudgetsEnvelopesPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
 import BillsRecurrencesPage from "@/pages/bills";
 import DashboardPage from "@/pages/dashboard";
-import ImportPage from "@/pages/import";
+import ImportReconciliationPage from "@/pages/import";
 import LabelsPage from "@/pages/labels";
-import ReconciliationPage from "@/pages/reconciliation";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
 import PiggyBanksPage from "@/pages/piggy-banks";
@@ -45,8 +44,9 @@ export default function App() {
             <Route path="regras" element={<RulesPage />} />
             <Route path="contas" element={<AccountsPage />} />
             <Route path="transacoes" element={<TransactionsPage />} />
-            <Route path="importar" element={<ImportPage />} />
-            <Route path="conciliar" element={<ReconciliationPage />} />
+            <Route path="importar" element={<ImportReconciliationPage />} />
+            {/* Conciliar virou a aba Conciliar de Importar extrato (favoritos antigos continuam entrando) */}
+            <Route path="conciliar" element={<Navigate to="/importar?aba=conciliar" replace />} />
             <Route path="categorias" element={<LabelsPage />} />
             {/* Tags virou a aba Tags de Categorias (favoritos antigos continuam entrando) */}
             <Route path="tags" element={<Navigate to="/categorias?aba=tags" replace />} />

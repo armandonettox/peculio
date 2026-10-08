@@ -28,10 +28,12 @@ async function transaction(request: APIRequestContext, id: string) {
   return response.json();
 }
 
+// Conciliar virou a aba Conciliar de Importar e conciliar
 async function openReconciliation(page: Page) {
   await loginAndWaitForDashboard(page);
-  await nav(page).getByRole("link", { name: "Conciliar" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Conciliar" })).toBeVisible();
+  await nav(page).getByRole("link", { name: "Importar extrato" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Importar e conciliar" })).toBeVisible();
+  await page.getByRole("tab", { name: "Conciliar" }).click();
 }
 
 async function check(page: Page, balance: string) {

@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useCloseReconciliation, useReconciliation, useSetCleared, type Statement } from "@/api/reconciliation";
-import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/dates";
@@ -132,7 +131,7 @@ function Work({ statement }: { statement: Statement }) {
       </section>
 
       <section aria-label={t("pages.reconciliation.lancamentos")} className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">{t("pages.reconciliation.lancamentosAte", { date: formatDate(data.statement_date) })}</h2>
+        <h3 className="text-base font-semibold">{t("pages.reconciliation.lancamentosAte", { date: formatDate(data.statement_date) })}</h3>
         {truncatedText(data) && <Alert>{truncatedText(data)}</Alert>}
         <ReconciliationTable rows={data.rows} currencyCode={currency} pending={busy} onToggle={(ids, cleared) => void toggle(ids, cleared)} />
       </section>
@@ -142,7 +141,8 @@ function Work({ statement }: { statement: Statement }) {
   );
 }
 
-export default function ReconciliationPage() {
+/** Confere os lancamentos da conta com o extrato do banco; quando bate, fecha a conciliacao. */
+export function ReconciliationSection() {
   const { t } = useTranslation();
   const accountsQuery = useAccounts({ includeArchived: false });
   const [statement, setStatement] = useState<Statement | null>(null);
@@ -184,16 +184,17 @@ export default function ReconciliationPage() {
 
   return (
     <>
-      <PageHeader
-        title={t("pages.reconciliation.conciliar")}
-        description={t("pages.reconciliation.confiraOsLancamentosDa")}
-      />
+      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
+      <div className="mb-6 flex flex-col gap-1">
+        <h2 className="text-lg font-semibold text-primary-text">{t("pages.reconciliation.conciliar")}</h2>
+        <p className="text-sm text-muted-foreground">{t("pages.reconciliation.confiraOsLancamentosDa")}</p>
+      </div>
       <div className="flex flex-col gap-8">
         {form}
         {statement && <Work key={`${statement.accountId}|${statement.balance}|${statement.date}`} statement={statement} />}
         {statement && account && (
           <section aria-label={t("pages.reconciliation.historico")} className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold">{t("pages.reconciliation.conciliacoesFechadas")}</h2>
+            <h3 className="text-base font-semibold">{t("pages.reconciliation.conciliacoesFechadas")}</h3>
             <HistoryList accountId={statement.accountId} currencyCode={account.currency_code} />
           </section>
         )}
