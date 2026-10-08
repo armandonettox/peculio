@@ -507,7 +507,9 @@
       "cofrinhos": "Piggy banks",
       "nenhumCofrinhoAinda": "No piggy banks yet.",
       "verCofrinhos": "View piggy banks",
-      "ofTarget": "of {{target}}"
+      "ofTarget": "of {{target}}",
+      "savedOf": "Saved for {{name}}",
+      "percentOfTarget": "{{percent}}% of target"
     },
     "thisMonthBlock": {
       "esteMes": "This month",

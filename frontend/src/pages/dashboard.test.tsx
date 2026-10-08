@@ -700,14 +700,14 @@ it("transacoes: o dia vem do relogio do app (aparelho atrasado ainda mostra Hoje
 
 // ---------- Layout no desktop: sem buracos nem faixas vazias ----------
 
-it("os blocos ficam em colunas que se enchem de cima para baixo, de 1 a 3 colunas conforme a tela", async () => {
+it("os blocos ficam numa grade que se encaixa pela altura real, de 1 a 2 colunas conforme a tela", async () => {
   renderPage();
   const columns = await screen.findByTestId("dashboard-columns");
-  expect(columns).toHaveClass("columns-1", "lg:columns-2", "2xl:columns-3");
-  // Cada bloco e inteiro numa coluna e tem o proprio espaco embaixo (sem grade em linhas, que deixa buraco ao lado do bloco curto)
-  expect(columns.className).toContain("[&>*]:break-inside-avoid");
-  expect(columns.className).toContain("[&>*]:mb-6");
-  expect(columns.className).not.toContain("grid");
+  expect(columns).toHaveClass("grid-cols-1", "lg:grid-cols-2");
+  // Grade com "dense": cada bloco ocupa quantas linhas precisar, sem buraco ao lado do bloco curto
+  // nem sobra no fim de uma coluna mais curta (ver MasonryColumns)
+  expect(columns.className).toContain("grid");
+  expect(columns.className).toContain("[grid-auto-flow:dense]");
 });
 
 it("o patrimonio fica fora das colunas, ocupando a largura toda", async () => {

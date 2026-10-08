@@ -6,6 +6,7 @@ import { getErrorMessage } from "@/api/error-messages";
 import { useAuth } from "@/auth/auth-context";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { MasonryColumns } from "@/components/masonry-columns";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
@@ -66,17 +67,18 @@ export default function DashboardPage() {
             <NetWorthBlock />
           </div>
           {/*
-            Colunas que se enchem de cima para baixo, cada bloco do proprio tamanho: sem o buraco que uma grade em linhas
-            deixa ao lado de um bloco curto. A ordem do HTML e a da tela (coluna a coluna), tambem para o teclado.
+            Colunas que se encaixam pela altura real de cada bloco, sem buraco ao lado de um bloco curto
+            nem sobra no fim de uma coluna mais curta. A ordem do HTML continua a de leitura, so o lugar
+            visual na grade e que se ajusta (ver MasonryColumns).
           */}
-          <div data-testid="dashboard-columns" className="columns-1 gap-6 lg:columns-2 2xl:columns-3 [&>*]:mb-6 [&>*]:break-inside-avoid">
+          <MasonryColumns className="grid-cols-1 lg:grid-cols-2" data-testid="dashboard-columns">
             <ThisMonthBlock />
             <CategoryBlock />
             <BudgetsBlock today={today} />
             <UpcomingBlock />
             <TransactionsBlock />
             <PiggyBanksBlock />
-          </div>
+          </MasonryColumns>
         </>
       )}
     </>

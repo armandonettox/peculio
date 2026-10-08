@@ -507,7 +507,9 @@
       "cofrinhos": "Cofrinhos",
       "nenhumCofrinhoAinda": "Nenhum cofrinho ainda.",
       "verCofrinhos": "Ver cofrinhos",
-      "ofTarget": "de {{target}}"
+      "ofTarget": "de {{target}}",
+      "savedOf": "Guardado de {{name}}",
+      "percentOfTarget": "{{percent}}% da meta"
     },
     "thisMonthBlock": {
       "esteMes": "Este mês",

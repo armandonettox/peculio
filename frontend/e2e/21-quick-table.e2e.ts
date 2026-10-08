@@ -216,7 +216,9 @@ test("o botao Atalhos lista as teclas e a escolha da tabela fica lembrada", asyn
 
   // A escolha fica no navegador: ao voltar para a pagina (sem recarregar), a tabela continua
   await nav(page).getByRole("link", { name: "Painel" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
   await nav(page).getByRole("link", { name: "Transações" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Transações" })).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
   await page.getByRole("button", { name: "Lista", exact: true }).click();
   await expect(page.getByRole("table")).toHaveCount(0);
