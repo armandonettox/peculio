@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Tab, TabList } from "@/components/ui/tabs";
 import { CustomReportsTab } from "@/features/reports/custom-reports-tab";
 import { CurrencySection } from "@/features/reports/currency-section";
 import {
@@ -189,14 +190,14 @@ export default function ReportsPage() {
         }
       />
 
-      <div role="group" aria-label={t("pages.reports.tipoDeRelatorio")} className="mb-6 flex gap-1">
-        <Button size="sm" variant={tab === "summary" ? "default" : "outline"} aria-pressed={tab === "summary"} onClick={() => chooseTab("summary")}>
+      <TabList aria-label={t("pages.reports.tipoDeRelatorio")} className="mb-6">
+        <Tab active={tab === "summary"} onSelect={() => chooseTab("summary")}>
           {t("pages.reports.resumo")}
-        </Button>
-        <Button size="sm" variant={tab === "custom" ? "default" : "outline"} aria-pressed={tab === "custom"} onClick={() => chooseTab("custom")}>
+        </Tab>
+        <Tab active={tab === "custom"} onSelect={() => chooseTab("custom")}>
           {t("pages.reports.personalizado")}
-        </Button>
-      </div>
+        </Tab>
+      </TabList>
 
       {exportError && (
         <Alert variant="destructive" className="mb-4">

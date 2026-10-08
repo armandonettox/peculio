@@ -97,14 +97,14 @@ it("abre no resumo de sempre; Personalizado troca de aba e lembra na URL", async
   expect(screen.queryByRole("region", { name: "Montar relatório" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeInTheDocument();
 
-  await user.click(screen.getByRole("button", { name: "Personalizado" }));
+  await user.click(screen.getByRole("tab", { name: "Personalizado" }));
   expect(await screen.findByRole("region", { name: "Montar relatório" })).toBeInTheDocument();
   expect(location()).toContain("aba=personalizado");
   expect(screen.queryByRole("button", { name: "Exportar CSV" })).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Personalizado" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByRole("tab", { name: "Personalizado" })).toHaveAttribute("aria-selected", "true");
   void reports;
 
-  await user.click(screen.getByRole("button", { name: "Resumo" }));
+  await user.click(screen.getByRole("tab", { name: "Resumo" }));
   expect(await screen.findByRole("region", { name: "Relatório em BRL" })).toBeInTheDocument();
   expect(location()).not.toContain("aba=");
 });

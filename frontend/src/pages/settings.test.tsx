@@ -58,7 +58,7 @@ const field = (label: string) => screen.getByLabelText(label, { exact: true }) a
 
 // A pagina agora e em abas (Perfil, Aparencia, Seguranca e, so para admin, Administracao); so uma fica montada por vez.
 async function openTab(name: string) {
-  await user.click(await screen.findByRole("button", { name }));
+  await user.click(await screen.findByRole("tab", { name }));
 }
 
 // ---------- A pagina ----------
@@ -66,7 +66,7 @@ async function openTab(name: string) {
 it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
   renderPage({ as: member });
   expect(await screen.findByRole("heading", { level: 1, name: "Configurações" })).toBeInTheDocument();
-  for (const title of ["Perfil", "Aparência", "Segurança"]) expect(screen.getByRole("button", { name: title })).toBeInTheDocument();
+  for (const title of ["Perfil", "Aparência", "Segurança"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
   // Perfil e Senha vem juntas na aba que abre por padrao
   expect(screen.getByRole("heading", { name: "Perfil" })).toBeInTheDocument();
   expect(screen.getByText("Senha")).toBeInTheDocument();
@@ -75,7 +75,7 @@ it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
 it("so o administrador ve a aba Administracao, e quem nao e nem pede a lista de convites", async () => {
   const { invitesApi } = renderPage({ as: member });
   await screen.findByRole("heading", { name: "Perfil" });
-  expect(screen.queryByRole("button", { name: "Administração" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("tab", { name: "Administração" })).not.toBeInTheDocument();
   expect(invitesApi.state.requests).toEqual([]);
 });
 

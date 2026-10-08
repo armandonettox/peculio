@@ -25,7 +25,7 @@ async function openCustom(page: Page, { filterByAccount = true } = {}) {
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Relatórios" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Relatórios" })).toBeVisible();
-  await page.getByRole("button", { name: "Personalizado" }).click();
+  await page.getByRole("tab", { name: "Personalizado" }).click();
   await expect(page.getByRole("region", { name: "Montar relatório" })).toBeVisible();
   if (filterByAccount) await page.getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
 }
@@ -196,5 +196,5 @@ test("a aba Resumo continua como antes", async ({ page }) => {
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Relatórios" }).click();
   await expect(page.getByRole("button", { name: "Exportar CSV" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Montar relatório" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Resumo" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("tab", { name: "Resumo" })).toHaveAttribute("aria-selected", "true");
 });

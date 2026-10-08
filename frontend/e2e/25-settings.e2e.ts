@@ -13,12 +13,12 @@ test("a pagina tem as abas e o menu do usuario leva a ela", async ({ page }) => 
   await loginAndWaitForDashboard(page);
   await openSettings(page);
   for (const title of ["Perfil", "Aparência", "Segurança", "Administração"]) {
-    await expect(page.getByRole("button", { name: title, exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: title, exact: true })).toBeVisible();
   }
   for (const title of ["Perfil", "Senha"]) {
     await expect(page.getByRole("heading", { name: title }).first()).toBeVisible();
   }
-  await page.getByRole("button", { name: "Administração", exact: true }).click();
+  await page.getByRole("tab", { name: "Administração", exact: true }).click();
   await expect(page.getByText("Usuários e convites", { exact: true })).toBeVisible();
 });
 

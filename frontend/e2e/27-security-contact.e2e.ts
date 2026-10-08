@@ -8,7 +8,7 @@ test.describe.configure({ mode: "serial" });
 
 // A aba Seguranca so tem o contato quando ele ja foi definido na aba Administracao
 async function openSecurity(page: Page) {
-  await page.getByRole("button", { name: "Segurança", exact: true }).click();
+  await page.getByRole("tab", { name: "Segurança", exact: true }).click();
 }
 
 async function saveContact(page: Page, value: string) {

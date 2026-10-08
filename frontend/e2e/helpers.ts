@@ -32,7 +32,7 @@ export async function openSettings(page: Page, tab?: "Aparência" | "Segurança"
   await page.getByRole("button", { name: "Menu do usuário" }).click();
   await page.getByRole("menuitem", { name: "Configurações" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Configurações" })).toBeVisible();
-  if (tab) await page.getByRole("button", { name: tab, exact: true }).click();
+  if (tab) await page.getByRole("tab", { name: tab, exact: true }).click();
 }
 
 // ---------- Dados criados direto pela API (para testar telas que listam coisas) ----------
