@@ -8,7 +8,6 @@ import {
   Receipt,
   Tags,
   Upload,
-  Webhook,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +32,5 @@ export const navItems: NavItem[] = [
   { labelKey: "nav.bills", icon: Receipt, to: "/contas-a-pagar" },
   { labelKey: "nav.piggyBanks", icon: Coins, to: "/cofrinhos" },
   { labelKey: "nav.rules", icon: Workflow, to: "/regras" },
-  { labelKey: "nav.webhooks", icon: Webhook, to: "/webhooks" },
   { labelKey: "nav.reports", icon: BarChart3, to: "/relatorios" },
 ];

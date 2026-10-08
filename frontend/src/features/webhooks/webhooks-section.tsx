@@ -13,7 +13,6 @@ import {
 } from "@/api/webhooks";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DeliveriesDialog } from "@/features/webhooks/deliveries-dialog";
@@ -34,7 +33,8 @@ type DialogState =
   | { kind: "secret"; webhookName: string; secret: string }
   | null;
 
-export default function WebhooksPage() {
+/** Avisa outros sistemas (fora do app) quando algo acontece aqui dentro, via HTTP. */
+export function WebhooksSection() {
   const { t } = useTranslation();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -130,7 +130,14 @@ export default function WebhooksPage() {
 
   return (
     <>
-      <PageHeader title={t("pages.webhooks.webhooks")} description={t("pages.webhooks.avisosAutomaticosParaOutros")} actions={newButton} />
+      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-primary-text">{t("pages.webhooks.webhooks")}</h2>
+          <p className="text-sm text-muted-foreground">{t("pages.webhooks.avisosAutomaticosParaOutros")}</p>
+        </div>
+        {newButton}
+      </div>
 
       {actionError && (
         <Alert variant="destructive" className="mb-4">

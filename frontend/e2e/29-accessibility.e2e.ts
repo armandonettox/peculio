@@ -20,11 +20,11 @@ const ROUTES = [
   "/contas-a-pagar?aba=recorrentes",
   "/cofrinhos",
   "/regras",
-  "/webhooks",
   "/relatorios",
   "/configuracoes",
   "/configuracoes?aba=aparencia",
   "/configuracoes?aba=seguranca",
+  "/configuracoes?aba=webhooks",
   "/configuracoes?aba=administracao",
   "/rota-que-nao-existe",
 ];
@@ -109,7 +109,7 @@ const DIALOGS: { route: string; opener: string; optional?: boolean }[] = [
   { route: "/cofrinhos", opener: "Novo cofrinho" },
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
-  { route: "/webhooks", opener: "Novo webhook" },
+  { route: "/configuracoes?aba=webhooks", opener: "Novo webhook" },
   { route: "/configuracoes?aba=seguranca", opener: "Criar token" },
   { route: "/configuracoes?aba=seguranca", opener: "Ativar verificação em duas etapas", optional: true },
 ];

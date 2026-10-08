@@ -12,7 +12,7 @@ const NEW_PASSWORD = "NovaSenha789";
 test("a pagina tem as abas e o menu do usuario leva a ela", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await openSettings(page);
-  for (const title of ["Perfil", "Aparência", "Segurança", "Administração"]) {
+  for (const title of ["Perfil", "Aparência", "Segurança", "Webhooks", "Administração"]) {
     await expect(page.getByRole("tab", { name: title, exact: true })).toBeVisible();
   }
   for (const title of ["Perfil", "Senha"]) {

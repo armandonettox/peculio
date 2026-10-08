@@ -12,6 +12,7 @@ import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth, testUser } from "@/test-utils/providers";
 import { fakeAccountApi, fakeInvitesApi, makeInvite } from "@/test-utils/settings-api";
+import { fakeWebhooksApi } from "@/test-utils/webhooks-api";
 import SettingsPage from "./settings";
 
 const user = userEvent.setup();
@@ -42,7 +43,13 @@ function renderPage({
   const invitesApi = fakeInvitesApi(invites);
   const instance = fakeInstanceApi(contact);
   instance.state.readError = readError;
-  server.use(...account.handlers, ...invitesApi.handlers, ...instance.handlers, ...fakeAccountsApi([]).handlers);
+  server.use(
+    ...account.handlers,
+    ...invitesApi.handlers,
+    ...instance.handlers,
+    ...fakeAccountsApi([]).handlers,
+    ...fakeWebhooksApi([]).handlers,
+  );
   render(
     <FakeAuth user={as} updateUser={updateUser}>
       <MemoryRouter>
@@ -56,7 +63,7 @@ function renderPage({
 
 const field = (label: string) => screen.getByLabelText(label, { exact: true }) as HTMLInputElement | HTMLSelectElement;
 
-// A pagina agora e em abas (Perfil, Aparencia, Seguranca e, so para admin, Administracao); so uma fica montada por vez.
+// A pagina agora e em abas (Perfil, Aparencia, Seguranca, Webhooks e, so para admin, Administracao); so uma fica montada por vez.
 async function openTab(name: string) {
   await user.click(await screen.findByRole("tab", { name }));
 }
@@ -66,10 +73,17 @@ async function openTab(name: string) {
 it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
   renderPage({ as: member });
   expect(await screen.findByRole("heading", { level: 1, name: "Configurações" })).toBeInTheDocument();
-  for (const title of ["Perfil", "Aparência", "Segurança"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
+  for (const title of ["Perfil", "Aparência", "Segurança", "Webhooks"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
   // Perfil e Senha vem juntas na aba que abre por padrao
   expect(screen.getByRole("heading", { name: "Perfil" })).toBeInTheDocument();
   expect(screen.getByText("Senha")).toBeInTheDocument();
+});
+
+it("a aba Webhooks fica disponivel para qualquer usuario", async () => {
+  renderPage({ as: member });
+  await openTab("Webhooks");
+  expect(await screen.findByRole("heading", { name: "Webhooks" })).toBeInTheDocument();
+  expect(screen.getByText("Nenhum webhook ainda")).toBeInTheDocument();
 });
 
 it("so o administrador ve a aba Administracao, e quem nao e nem pede a lista de convites", async () => {

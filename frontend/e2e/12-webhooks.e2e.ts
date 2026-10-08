@@ -4,7 +4,7 @@ import type { AddressInfo } from "node:net";
 
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openSettings } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Em ordem: cada passo parte do estado do anterior.
 test.describe.configure({ mode: "serial" });
@@ -45,10 +45,11 @@ test.afterAll(async () => {
   await new Promise<void>((resolve) => receiver.close(() => resolve()));
 });
 
+// Webhooks virou a aba Webhooks de Configuracoes
 async function openWebhooks(page: Page) {
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Webhooks" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Webhooks" })).toBeVisible();
+  await openSettings(page, "Webhooks");
+  await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
 }
 
 async function menu(page: Page, item: string) {

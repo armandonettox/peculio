@@ -7,7 +7,7 @@ import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeWebhooksApi, FAKE_SECRET, makeDelivery, makeWebhook } from "@/test-utils/webhooks-api";
 import type { WebhookDelivery } from "@/api/webhooks";
-import WebhooksPage from "./webhooks";
+import { WebhooksSection } from "./webhooks-section";
 
 function renderPage(webhooks = [makeWebhook({ name: "Planilha" })], deliveries: Record<string, WebhookDelivery[]> = {}) {
   const api = fakeWebhooksApi(webhooks, deliveries);
@@ -15,7 +15,7 @@ function renderPage(webhooks = [makeWebhook({ name: "Planilha" })], deliveries: 
   render(
     <FakeAuth>
       <MemoryRouter>
-        <WebhooksPage />
+        <WebhooksSection />
       </MemoryRouter>
     </FakeAuth>,
   );

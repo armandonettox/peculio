@@ -18,7 +18,6 @@ import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import TransactionsPage from "@/pages/transactions";
-import WebhooksPage from "@/pages/webhooks";
 
 export default function App() {
   return (
@@ -50,7 +49,8 @@ export default function App() {
             <Route path="categorias" element={<LabelsPage />} />
             {/* Tags virou a aba Tags de Categorias (favoritos antigos continuam entrando) */}
             <Route path="tags" element={<Navigate to="/categorias?aba=tags" replace />} />
-            <Route path="webhooks" element={<WebhooksPage />} />
+            {/* Webhooks virou a aba Webhooks de Configuracoes (favoritos antigos continuam entrando) */}
+            <Route path="webhooks" element={<Navigate to="/configuracoes?aba=webhooks" replace />} />
             <Route path="relatorios" element={<ReportsPage />} />
             {/* /seguranca virou a aba Seguranca de Configuracoes (favoritos antigos continuam entrando) */}
             <Route path="seguranca" element={<Navigate to="/configuracoes?aba=seguranca" replace />} />
