@@ -16,6 +16,13 @@ nohup.out
 # Worktrees temporarios dos workflows de agentes
 .claude/worktrees/
 
-# Instrucoes de agentes de IA: ficam so localmente, nao vao para o repo publico
+# Instrucoes e arquivos de processo de agentes de IA: ficam so localmente, nao vao para o repo publico
 AGENTS.md
 CLAUDE.md
+.claude/
+PROGRESS.md
+IDEAS.md
+DECISIONS.md
+BLOCKERS.md
+prompt-autonomo.md
+run-autonomo.sh
