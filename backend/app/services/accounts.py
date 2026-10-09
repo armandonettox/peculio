@@ -70,7 +70,7 @@ def get_owned_account(db: Session, user_id: uuid.UUID, account_id: uuid.UUID) ->
     return account
 
 
-# ---------- Saldo inicial (uma transacao especial, estilo Firefly) ----------
+# ---------- Saldo inicial (uma transacao especial) ----------
 
 
 def _system_account(db: Session, user_id: uuid.UUID, account_type: AccountType, currency_code: str) -> Account:

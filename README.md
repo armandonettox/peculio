@@ -1,6 +1,6 @@
 # Pecúlio
 
-Organizacao financeira pessoal, open source e self-hosted. Inspirado em [Firefly III](https://github.com/firefly-iii/firefly-iii) e [Actual Budget](https://github.com/actualbudget/actual).
+Organizacao financeira pessoal, open source e self-hosted.
 
 "Pecúlio" e o dinheiro que a pessoa junta e guarda para si. No codigo, nos pacotes e nas pastas o nome e escrito `peculio`, sem acento.
 

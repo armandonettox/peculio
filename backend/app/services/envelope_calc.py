@@ -1,6 +1,6 @@
 """Conta dos envelopes, sem banco de dados: so datas e valores entram, numeros saem.
 
-Regra (a do Actual Budget): em cada mes o envelope tem o que sobrou do mes anterior, mais o que a pessoa
+Regra: em cada mes o envelope tem o que sobrou do mes anterior, mais o que a pessoa
 distribuiu, menos o que gastou. Se sobrou, passa para o mes seguinte. Se faltou, o envelope volta a zero e o
 excesso sai do "A orcar" (que e o dinheiro nas contas menos o que ja esta nos envelopes).
 """
