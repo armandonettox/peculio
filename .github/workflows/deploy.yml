@@ -1,0 +1,111 @@
+name: deploy
+
+# Roda depois que o workflow "testes" passa na main, ou manualmente.
+on:
+  workflow_run:
+    workflows: [testes]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# Um deploy por vez: dois juntos mexeriam nos mesmos containers
+concurrency:
+  group: deploy-peculio
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  construir:
+    # So com os testes verdes (ou numa execucao manual)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # A VPS e ARM64; o runner ARM evita emular a arquitetura no build
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.versao.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Define a tag da imagem
+        id: versao
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: echo "tag=${SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Imagem do backend
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/armandonettox/peculio-backend:${{ steps.versao.outputs.tag }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Imagem do frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/armandonettox/peculio-frontend:${{ steps.versao.outputs.tag }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  implantar:
+    needs: construir
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Prepara o SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # A chave do servidor vem de um secret fixo: sem StrictHostKeyChecking=no
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Envia o compose e os arquivos de deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          tar czf - docker-compose.yml deploy \
+            | ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=40 \
+                "$VPS_USER@$VPS_HOST" 'mkdir -p ~/peculio && tar xzf - -C ~/peculio'
+
+      - name: Implanta na VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          TAG: ${{ needs.construir.outputs.tag }}
+          DONO: ${{ github.repository_owner }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # O token vai pela entrada padrao, nao pela linha de comando
+          printf '%s\n' "$TOKEN" \
+            | ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=40 \
+                "$VPS_USER@$VPS_HOST" "bash ~/peculio/deploy/scripts/deploy-remoto.sh '$TAG' '$DONO'"

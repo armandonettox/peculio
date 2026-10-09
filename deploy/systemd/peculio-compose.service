@@ -1,0 +1,28 @@
+# Sobe e derruba o peculio inteiro via podman-compose, como o hera e o verbo fazem. Um
+# projeto e um pod proprios (pod_peculio), separados dos outros, entao reiniciar um nao mexe
+# no outro.
+#
+# As imagens a usar vem de ~/peculio/.env.imagens, escrito pelo deploy.
+#
+# Instalar em ~/.config/systemd/user/peculio-compose.service (o deploy faz isso) e habilitar:
+#   systemctl --user daemon-reload
+#   systemctl --user enable peculio-compose.service
+# O linger do usuario ja esta ativo por causa do hera (loginctl enable-linger).
+
+[Unit]
+Description=Peculio (banco, backend e frontend via podman-compose)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/peculio
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:%h/.local/bin
+Environment=COMPOSE_PARALLEL_LIMIT=1
+EnvironmentFile=-%h/peculio/.env.imagens
+ExecStart=%h/.local/bin/podman-compose up -d --no-build
+ExecStop=%h/.local/bin/podman-compose down
+
+[Install]
+WantedBy=default.target

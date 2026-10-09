@@ -1,0 +1,83 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      db-test:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: finance
+          POSTGRES_PASSWORD: finance
+          POSTGRES_DB: finance_test
+        ports:
+          - "5433:5432"
+        options: >-
+          --health-cmd "pg_isready -U finance -d finance_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instala dependencias
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Roda o pytest
+        working-directory: backend
+        run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instala dependencias
+        run: npm ci
+
+      - name: Checagem de tipos e build
+        run: npm run build
+
+      - name: Testes de unidade
+        run: npm test
+
+      - name: Chaves de traducao sem uso
+        run: node scripts/i18n-unused.mjs
+
+      - name: Instala o navegador dos testes e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Testes e2e (stack propria em Docker)
+        run: npm run e2e
+
+      - name: Guarda o relatorio dos testes e2e quando falham
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-e2e
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
