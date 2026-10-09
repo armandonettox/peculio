@@ -44,6 +44,7 @@ import {
   validateForm,
   accountOf,
   budgetAllowed,
+  installmentsAllowed,
   type FormContext,
   type FormErrors,
   type FormState,
@@ -752,6 +753,25 @@ function FormBody({
           </FormField>
         )}
       </div>
+
+      {installmentsAllowed(state, ctx) && !editing && !recurring && (
+        <FormField
+          id="tx-installments"
+          label={t("transactions.transactionFormDialog.parcelarEmQuantasVezes")}
+          error={errors.installments}
+        >
+          {(props) => (
+            <Select {...props} value={state.installments} onChange={(e) => patch({ installments: e.target.value }, "installments")}>
+              <option value="1">{t("transactions.transactionFormDialog.naoParcelar")}</option>
+              {Array.from({ length: 23 }, (_, index) => index + 2).map((count) => (
+                <option key={count} value={String(count)}>
+                  {t("transactions.transactionFormDialog.vezesCount", { count })}
+                </option>
+              ))}
+            </Select>
+          )}
+        </FormField>
+      )}
 
       {originalAllowed(state) && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

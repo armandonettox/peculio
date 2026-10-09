@@ -55,6 +55,8 @@ export type FormState = {
   notes: string;
   // null: um lancamento so. Lista: o lancamento dividido em linhas.
   splits: SplitDraft[] | null;
+  // Compra parcelada no cartao de credito: "1" (nenhuma, o padrao) a "60"
+  installments: string;
 };
 
 export type FormContext = {
@@ -73,6 +75,7 @@ export type FormErrors = {
   originalAmount?: string;
   splitTotal?: string;
   splits?: Record<string, { description?: string; amount?: string }>;
+  installments?: string;
 };
 
 let keyCounter = 0;
@@ -123,6 +126,7 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     tagIds: [],
     notes: "",
     splits: null,
+    installments: "1",
     ...overrides,
   };
 }
@@ -159,6 +163,15 @@ function activeOriginalCurrency(state: FormState, ctx: FormContext): string | nu
 /** Orcamento so vale para gasto: saida para um nome (despesa), nunca entrada, transferencia ou divida. */
 export function budgetAllowed(state: FormState): boolean {
   return state.kind === "withdrawal" && !state.ownCounterparty;
+}
+
+export function isCreditCard(state: FormState, ctx: FormContext): boolean {
+  return accountOf(ctx, state.accountId)?.role === "credit_card";
+}
+
+/** Parcelar so vale numa saida unica (sem divisao) da conta de cartao de credito. */
+export function installmentsAllowed(state: FormState, ctx: FormContext): boolean {
+  return state.kind === "withdrawal" && !state.splits && isCreditCard(state, ctx);
 }
 
 /** Campo bill_id do corpo: omitido no automatico, null em "nao ligar", ou o id. So vale onde ha orcamento. */
@@ -281,6 +294,13 @@ export function validateForm(state: FormState, ctx: FormContext): FormErrors {
       }
     }
   }
+
+  if (installmentsAllowed(state, ctx) && state.installments !== "1") {
+    const count = Number(state.installments);
+    if (!/^\d+$/.test(state.installments) || count < 2 || count > 60) {
+      errors.installments = i18n.t("transactions.form.installmentsInvalid");
+    }
+  }
   return errors;
 }
 
@@ -335,7 +355,8 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
             }
           : {}),
     };
-    return { splits: [split] };
+    const installments = installmentsAllowed(state, ctx) && state.installments !== "1" ? Number(state.installments) : null;
+    return { splits: [split], ...(installments ? { installments } : {}) };
   }
 
   return {

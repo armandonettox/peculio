@@ -3666,6 +3666,8 @@ export interface components {
         };
         /** TransactionCreate */
         "TransactionCreate-Input": {
+            /** Installments */
+            installments?: number | null;
             /** Splits */
             splits: components["schemas"]["TransactionSplitCreate-Input"][];
             /** Title */
@@ -3673,6 +3675,8 @@ export interface components {
         };
         /** TransactionCreate */
         "TransactionCreate-Output": {
+            /** Installments */
+            installments?: number | null;
             /** Splits */
             splits: components["schemas"]["TransactionSplitCreate-Output"][];
             /** Title */
@@ -3692,6 +3696,10 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Installment Count */
+            installment_count: number | null;
+            /** Installment Index */
+            installment_index: number | null;
             /** Recurrence Id */
             recurrence_id: string | null;
             /** Splits */
@@ -3853,6 +3861,8 @@ export interface components {
          * @description Mesma forma da criacao: a edicao troca o grupo inteiro (titulo e splits).
          */
         TransactionUpdate: {
+            /** Installments */
+            installments?: number | null;
             /** Splits */
             splits: components["schemas"]["TransactionSplitCreate-Input"][];
             /** Title */

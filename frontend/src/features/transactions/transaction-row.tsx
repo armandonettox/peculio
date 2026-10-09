@@ -17,6 +17,7 @@ import {
   foreignNote,
   formatSplitAmount,
   formatTransactionAmount,
+  installmentText,
   ownAccountName,
   reconciliationState,
   transactionTitle,
@@ -67,7 +68,14 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {/* Quebra de linha em vez de cortar: o valor de uma transferencia entre moedas e largo */}
-          <p className="break-words font-medium">{transactionTitle(transaction)}</p>
+          <p className="break-words font-medium">
+            {transactionTitle(transaction)}
+            {transaction.installment_count != null && transaction.installment_index != null && (
+              <span className="ml-2 rounded-md bg-muted px-1.5 py-0.5 text-xs font-normal text-muted-foreground">
+                {installmentText(transaction.installment_index, transaction.installment_count)}
+              </span>
+            )}
+          </p>
           {reconciliation && (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
               {reconciliation === "locked" && <Lock className="size-3" aria-hidden="true" />}

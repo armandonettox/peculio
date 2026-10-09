@@ -726,6 +726,9 @@
       "contaAPagar": "Bill",
       "tags": "Tags",
       "dividirLancamento": "Split transaction",
+      "parcelarEmQuantasVezes": "Split into how many installments?",
+      "naoParcelar": "No installments",
+      "vezesCount": "{{count}}x",
       "notas": "Notes",
       "salvando": "Saving...",
       "salvar": "Save",
@@ -763,6 +766,7 @@
         "transfer": "Transfer"
       },
       "amountPositive": "Enter an amount greater than zero.",
+      "installmentsInvalid": "Enter a number of installments between 2 and 60.",
       "accountRequired": "Choose the account.",
       "descriptionRequired": "Enter the description.",
       "destinationRequired": "Choose the destination account.",

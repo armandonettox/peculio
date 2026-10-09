@@ -109,3 +109,8 @@ export function reconciliationState(transaction: Transaction): ReconciliationSta
   if (transaction.splits.some((split) => split.cleared)) return "cleared";
   return null;
 }
+
+/** "2/3": a parcela desta compra parcelada (index comeca em 0 no banco, mostra a partir de 1). */
+export function installmentText(index: number, count: number): string {
+  return `${index + 1}/${count}`;
+}

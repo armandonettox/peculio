@@ -65,6 +65,7 @@ describe("arquivos de traducao", () => {
     "reports.customConfig.filterName.tag",
     "rules.presentation.actionSummary.add_tag",
     "webhooks.presentation.httpCode",
+    "transactions.transactionFormDialog.vezesCount",
   ]);
 
   it("o ingles nao e uma copia do portugues: texto igual so na lista de excecoes", () => {

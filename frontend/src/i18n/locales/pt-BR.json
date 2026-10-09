@@ -726,6 +726,9 @@
       "contaAPagar": "Conta a pagar",
       "tags": "Tags",
       "dividirLancamento": "Dividir lançamento",
+      "parcelarEmQuantasVezes": "Parcelar em quantas vezes?",
+      "naoParcelar": "Não parcelar",
+      "vezesCount": "{{count}}x",
       "notas": "Notas",
       "salvando": "Salvando...",
       "salvar": "Salvar",
@@ -763,6 +766,7 @@
         "transfer": "Transferência"
       },
       "amountPositive": "Informe o valor maior que zero.",
+      "installmentsInvalid": "Informe um número de parcelas entre 2 e 60.",
       "accountRequired": "Escolha a conta.",
       "descriptionRequired": "Informe a descrição.",
       "destinationRequired": "Escolha a conta de destino.",

@@ -31,6 +31,13 @@ const financiamento = makeAccount({
   role: "mortgage",
   balance: "-1000.00",
 });
+const cartao = makeAccount({
+  id: "a0000000-0000-4000-8000-000000000006",
+  name: "Cartao",
+  role: "credit_card",
+  closing_day: 28,
+  due_day: 5,
+});
 
 const mercadoOrc = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a1", name: "Mercado orc" });
 const lazerOrc = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a2", name: "Lazer orc" });
@@ -1288,5 +1295,75 @@ it("editar um dividido com valor original numa linha preserva esse valor ao salv
   const [first, second] = tx.state.writes[0].body.splits;
   expect(first).toMatchObject({ foreign_amount: "110.00", foreign_currency_code: "USD" });
   expect(second).not.toHaveProperty("foreign_amount");
+});
+
+// ---------- Parcelamento ----------
+
+const INSTALLMENTS_LABEL = "Parcelar em quantas vezes?";
+
+it("conta comum nao mostra o campo de parcelas", async () => {
+  renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Nubank");
+  expect(d().queryByLabelText(INSTALLMENTS_LABEL)).not.toBeInTheDocument();
+});
+
+it("cartao de credito em saida mostra o campo de parcelas", async () => {
+  renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Cartao");
+  expect(d().getByLabelText(INSTALLMENTS_LABEL)).toBeInTheDocument();
+});
+
+it("entrada e transferencia no cartao nao mostram o campo de parcelas", async () => {
+  renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Cartao");
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+  expect(d().queryByLabelText(INSTALLMENTS_LABEL)).not.toBeInTheDocument();
+  await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
+  expect(d().queryByLabelText(INSTALLMENTS_LABEL)).not.toBeInTheDocument();
+});
+
+it("por padrao (Nao parcelar) o corpo nao leva installments", async () => {
+  const { tx } = renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Cartao");
+  await type("Descrição", "Notebook");
+  await type("Para quem", "Loja");
+  await type(/^Valor \(BRL\)/, "300,00");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body).not.toHaveProperty("installments");
+});
+
+it("escolher 3x manda installments: 3 no corpo", async () => {
+  const { tx } = renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Cartao");
+  await type("Descrição", "Notebook");
+  await type("Para quem", "Loja");
+  await type(/^Valor \(BRL\)/, "300,00");
+  await pick(INSTALLMENTS_LABEL, "3");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.installments).toBe(3);
+});
+
+it("trocar para uma conta comum depois de escolher parcelas esconde o campo e nao envia nada", async () => {
+  const { tx } = renderPage({ accounts: [nubank, poupanca, antiga, wise, financiamento, cartao] });
+  await openNew();
+  await pick("Conta", "Cartao");
+  await pick(INSTALLMENTS_LABEL, "3");
+  await pick("Conta", "Nubank");
+  await type("Descrição", "Compra");
+  await type("Para quem", "Loja");
+  await type(/^Valor \(BRL\)/, "300,00");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body).not.toHaveProperty("installments");
 });
 
