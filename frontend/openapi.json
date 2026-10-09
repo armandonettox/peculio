@@ -15,11 +15,37 @@
             ],
             "title": "Account Number"
           },
+          "closing_day": {
+            "anyOf": [
+              {
+                "maximum": 31.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closing Day"
+          },
           "currency_code": {
             "maxLength": 3,
             "minLength": 3,
             "title": "Currency Code",
             "type": "string"
+          },
+          "due_day": {
+            "anyOf": [
+              {
+                "maximum": 31.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Day"
           },
           "iban": {
             "anyOf": [
@@ -130,6 +156,17 @@
             "title": "Balance",
             "type": "string"
           },
+          "closing_day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closing Day"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -138,6 +175,17 @@
           "currency_code": {
             "title": "Currency Code",
             "type": "string"
+          },
+          "due_day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Day"
           },
           "iban": {
             "anyOf": [
@@ -216,6 +264,8 @@
           "iban",
           "account_number",
           "notes",
+          "closing_day",
+          "due_day",
           "opening_balance",
           "opening_balance_date",
           "balance",
@@ -275,6 +325,32 @@
               }
             ],
             "title": "Active"
+          },
+          "closing_day": {
+            "anyOf": [
+              {
+                "maximum": 31.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closing Day"
+          },
+          "due_day": {
+            "anyOf": [
+              {
+                "maximum": 31.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Day"
           },
           "iban": {
             "anyOf": [
@@ -2438,6 +2514,93 @@
           "created_at"
         ],
         "title": "InviteOut",
+        "type": "object"
+      },
+      "InvoiceOut": {
+        "properties": {
+          "account_id": {
+            "format": "uuid",
+            "title": "Account Id",
+            "type": "string"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "due_date": {
+            "format": "date",
+            "title": "Due Date",
+            "type": "string"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "splits": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceSplitOut"
+            },
+            "title": "Splits",
+            "type": "array"
+          },
+          "total": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "currency_code",
+          "period_start",
+          "period_end",
+          "due_date",
+          "total",
+          "splits"
+        ],
+        "title": "InvoiceOut",
+        "type": "object"
+      },
+      "InvoiceSplitOut": {
+        "properties": {
+          "amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "description",
+          "amount",
+          "currency_code"
+        ],
+        "title": "InvoiceSplitOut",
         "type": "object"
       },
       "LoginOut": {
@@ -6998,6 +7161,72 @@
           }
         ],
         "summary": "Update Account",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/accounts/{account_id}/invoice": {
+      "get": {
+        "description": "Fatura do cartao que contem a data `on` (hoje, se omitida): periodo, vencimento e os\nlancamentos dentro dele. So funciona para conta com role=credit_card e fechamento/vencimento\nconfigurados.",
+        "operationId": "get_invoice_api_v1_accounts__account_id__invoice_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Account Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "On"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Invoice",
         "tags": [
           "accounts"
         ]

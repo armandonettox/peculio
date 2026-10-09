@@ -199,6 +199,8 @@ def build_outputs(db: Session, accounts: list[Account]) -> list[AccountOut]:
                 iban=account.iban,
                 account_number=account.account_number,
                 notes=account.notes,
+                closing_day=account.closing_day,
+                due_day=account.due_day,
                 opening_balance=quantize_money(opening, decimals),
                 opening_balance_date=opening_date,
                 balance=quantize_money(balances[account.id], decimals),
@@ -223,6 +225,8 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         iban=data.iban,
         account_number=data.account_number,
         notes=data.notes,
+        closing_day=data.closing_day,
+        due_day=data.due_day,
     )
     try:
         with db.begin_nested():
@@ -247,6 +251,13 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
         if data.role not in roles_for(account.type):
             raise AppError(400, ErrorCode.VALIDATION_ERROR, "Papel incompativel com o tipo da conta")
         account.role = data.role
+    if "closing_day" in provided:
+        if data.closing_day is not None and account.role != AccountRole.credit_card:
+            raise AppError(
+                400, ErrorCode.VALIDATION_ERROR, "Dia de fechamento e de vencimento so valem para cartao de credito"
+            )
+        account.closing_day = data.closing_day
+        account.due_day = data.due_day
     if "active" in provided and data.active is not None:
         account.active = data.active
     if "in_envelopes" in provided and data.in_envelopes is not None:

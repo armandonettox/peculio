@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text, UniqueConstraint, Uuid, func, true
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid, func, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -57,4 +57,7 @@ class Account(Base):
     iban: Mapped[str | None] = mapped_column(String(34))
     account_number: Mapped[str | None] = mapped_column(String(64))
     notes: Mapped[str | None] = mapped_column(Text)
+    # So fazem sentido com role=credit_card: dia do fechamento da fatura e dia do vencimento
+    closing_day: Mapped[int | None] = mapped_column(Integer)
+    due_day: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

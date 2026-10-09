@@ -40,6 +40,9 @@ class AccountCreate(BaseModel):
     notes: str | None = Field(default=None, max_length=2000)
     # O dinheiro desta conta entra no "A orcar" dos envelopes
     in_envelopes: bool = True
+    # So fazem sentido com role=credit_card: dia do fechamento da fatura e dia do vencimento
+    closing_day: int | None = Field(default=None, ge=1, le=31)
+    due_day: int | None = Field(default=None, ge=1, le=31)
 
     @field_validator("name")
     @classmethod
@@ -60,6 +63,10 @@ class AccountCreate(BaseModel):
             raise ValueError("Tipo de conta incompativel com o papel informado")
         if self.type == AccountType.liability and self.opening_balance < 0:
             raise ValueError("O valor devido nao pode ser negativo")
+        if (self.closing_day is None) != (self.due_day is None):
+            raise ValueError("Informe o dia de fechamento e o de vencimento juntos")
+        if self.closing_day is not None and self.role != AccountRole.credit_card:
+            raise ValueError("Dia de fechamento e de vencimento so valem para cartao de credito")
         return self
 
 
@@ -76,6 +83,9 @@ class AccountUpdate(BaseModel):
     notes: str | None = Field(default=None, max_length=2000)
     opening_balance: Money | None = None
     opening_balance_date: date | None = None
+    # null limpa os dois; omitir nao mexe. So fazem sentido com role=credit_card (ver service)
+    closing_day: int | None = Field(default=None, ge=1, le=31)
+    due_day: int | None = Field(default=None, ge=1, le=31)
 
     @field_validator("name")
     @classmethod
@@ -86,6 +96,16 @@ class AccountUpdate(BaseModel):
         if not value:
             raise ValueError("Informe o nome da conta")
         return value
+
+    @model_validator(mode="after")
+    def check_closing_and_due(self):
+        provided = self.model_fields_set
+        # Os dois sempre juntos: manda os dois com valor (pra trocar), os dois null (pra limpar), ou nao manda nenhum
+        if ("closing_day" in provided) != ("due_day" in provided):
+            raise ValueError("Informe o dia de fechamento e o de vencimento juntos")
+        if "closing_day" in provided and (self.closing_day is None) != (self.due_day is None):
+            raise ValueError("Informe o dia de fechamento e o de vencimento juntos")
+        return self
 
 
 class AccountOut(BaseModel):
@@ -101,6 +121,8 @@ class AccountOut(BaseModel):
     iban: str | None
     account_number: str | None
     notes: str | None
+    closing_day: int | None
+    due_day: int | None
     # Mesmo sentido da entrada: saldo no dia (ativo) ou valor devido (passivo)
     opening_balance: Money
     opening_balance_date: date | None

@@ -112,6 +112,7 @@ class ErrorCode(StrEnum):
     ACCOUNT_NOT_FOUND = "account_not_found"
     ACCOUNT_NAME_TAKEN = "account_name_taken"
     ACCOUNT_HAS_TRANSACTIONS = "account_has_transactions"
+    ACCOUNT_NOT_CREDIT_CARD = "account_not_credit_card"
     CURRENCY_NOT_FOUND = "currency_not_found"
     INVALID_AMOUNT = "invalid_amount"
     # Transacoes

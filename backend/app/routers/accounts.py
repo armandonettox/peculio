@@ -1,17 +1,21 @@
 import uuid
+from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.account import USER_ACCOUNT_TYPES, Account
 from app.models.user import User
 from app.schemas.account import AccountCreate, AccountOut, AccountUpdate
+from app.schemas.invoice import InvoiceOut
 from app.services import accounts as service
+from app.services import invoices as invoices_service
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -69,6 +73,19 @@ def update_account(
     db.commit()
     db.refresh(account)
     return service.build_outputs(db, [account])[0]
+
+
+@router.get("/{account_id}/invoice", response_model=InvoiceOut)
+def get_invoice(
+    account_id: uuid.UUID,
+    on: date | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Fatura do cartao que contem a data `on` (hoje, se omitida): periodo, vencimento e os
+    lancamentos dentro dele. So funciona para conta com role=credit_card e fechamento/vencimento
+    configurados."""
+    return invoices_service.invoice(db, user.id, account_id, on or clock.today())
 
 
 @router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
