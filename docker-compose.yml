@@ -4,6 +4,7 @@ name: peculio
 services:
   db:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -22,6 +23,7 @@ services:
     # e o `--no-build` do systemd ignora `build`. Ver deploy/README.md.
     image: ${PECULIO_BACKEND_IMAGE:-peculio-backend:local}
     build: ./backend
+    restart: unless-stopped
     environment:
       ENVIRONMENT: production
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -51,9 +53,14 @@ services:
     # sobe um receptor na maquina do executor e o container do backend precisa alcanca-lo.
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # service_started e nao service_healthy: no podman rootless, quando o compose sobe pela unit
+    # do systemd, as checagens de saude nunca chegam a rodar (erro visto: "unable to get systemd
+    # connection to remove healthchecks") e o backend ficaria esperando o db para sempre. O
+    # entrypoint roda o alembic antes de subir a API; se o banco ainda nao aceitar conexao, o
+    # container reinicia sozinho (restart: unless-stopped) ate conseguir.
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -63,6 +70,7 @@ services:
   frontend:
     image: ${PECULIO_FRONTEND_IMAGE:-peculio-frontend:local}
     build: ./frontend
+    restart: unless-stopped
     environment:
       # Nome do servico de backend. Na VPS (podman-compose) os containers do mesmo pod nao
       # compartilham rede: o nginx do frontend resolve esse nome a cada requisicao (ver
@@ -72,9 +80,12 @@ services:
     ports:
       # So o host acessa (localhost local, ou o nginx do host na VPS); nunca exposto direto
       - "127.0.0.1:${FRONTEND_PORT:-8080}:80"
+    # service_started pelo mesmo motivo do backend->db (podman rootless + systemd nunca roda a
+    # checagem de saude). O nginx do frontend resolve o backend a cada requisicao, entao comecar
+    # antes dele estar pronto nao e problema.
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   db_data:
