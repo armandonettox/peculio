@@ -534,6 +534,8 @@ class TransactionFilters:
 
     account_id: uuid.UUID | None = None
     category_id: uuid.UUID | None = None
+    # So vale quando category_id nao vier (os dois juntos nao combinam: nenhum grupo atende)
+    uncategorized: bool = False
     budget_id: uuid.UUID | None = None
     bill_id: uuid.UUID | None = None
     tag_id: uuid.UUID | None = None
@@ -560,6 +562,8 @@ def _matched_groups(user_id: uuid.UUID, filters: TransactionFilters):
         )
     if filters.category_id is not None:
         conditions.append(TransactionSplit.category_id == filters.category_id)
+    if filters.uncategorized:
+        conditions.append(TransactionSplit.category_id.is_(None))
     if filters.budget_id is not None:
         conditions.append(TransactionSplit.budget_id == filters.budget_id)
     if filters.bill_id is not None:
@@ -609,6 +613,7 @@ def list_transactions(
     *,
     account_id: uuid.UUID | None = None,
     category_id: uuid.UUID | None = None,
+    uncategorized: bool = False,
     budget_id: uuid.UUID | None = None,
     bill_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
@@ -622,6 +627,7 @@ def list_transactions(
     filters = TransactionFilters(
         account_id=account_id,
         category_id=category_id,
+        uncategorized=uncategorized,
         budget_id=budget_id,
         bill_id=bill_id,
         tag_id=tag_id,

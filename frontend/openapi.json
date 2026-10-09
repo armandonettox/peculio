@@ -13320,6 +13320,16 @@
           },
           {
             "in": "query",
+            "name": "uncategorized",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Uncategorized",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
             "name": "budget_id",
             "required": false,
             "schema": {
@@ -13726,6 +13736,16 @@
                 }
               ],
               "title": "Category Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "uncategorized",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Uncategorized",
+              "type": "boolean"
             }
           },
           {

@@ -318,6 +318,24 @@ def test_filter_by_account_category_and_tag(client, headers):
     assert [t["id"] for t in client.get(f"{URL}?tag_id={tag_id}", headers=headers).json()["items"]] == [match["id"]]
 
 
+def test_filter_by_uncategorized(client, headers):
+    account_id = make_account(client, headers)
+    category_id = make_category(client, headers)
+
+    with_category = client.post(
+        URL, json={"splits": [withdrawal(account_id, category_id=category_id)]}, headers=headers
+    ).json()
+    without_category = client.post(URL, json={"splits": [withdrawal(account_id)]}, headers=headers).json()
+
+    items = client.get(f"{URL}?uncategorized=true", headers=headers).json()["items"]
+    assert [t["id"] for t in items] == [without_category["id"]]
+    assert with_category["id"] not in [t["id"] for t in items]
+
+    # category_id e uncategorized juntos nao combinam: nenhum grupo atende aos dois ao mesmo tempo
+    items = client.get(f"{URL}?uncategorized=true&category_id={category_id}", headers=headers).json()["items"]
+    assert items == []
+
+
 # ---------- Isolamento entre usuarios ----------
 
 

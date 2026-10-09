@@ -54,6 +54,7 @@ def list_transactions(
     params: PageParams = Depends(),
     account_id: uuid.UUID | None = None,
     category_id: uuid.UUID | None = None,
+    uncategorized: bool = False,
     budget_id: uuid.UUID | None = None,
     bill_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
@@ -71,6 +72,7 @@ def list_transactions(
         params,
         account_id=account_id,
         category_id=category_id,
+        uncategorized=uncategorized,
         budget_id=budget_id,
         bill_id=bill_id,
         tag_id=tag_id,
@@ -94,6 +96,7 @@ def _csv_stream(user_id: uuid.UUID, filters: service.TransactionFilters, lang: L
 def export_transactions_csv(
     account_id: uuid.UUID | None = None,
     category_id: uuid.UUID | None = None,
+    uncategorized: bool = False,
     budget_id: uuid.UUID | None = None,
     bill_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
@@ -108,6 +111,7 @@ def export_transactions_csv(
     filters = service.TransactionFilters(
         account_id=account_id,
         category_id=category_id,
+        uncategorized=uncategorized,
         budget_id=budget_id,
         bill_id=bill_id,
         tag_id=tag_id,
