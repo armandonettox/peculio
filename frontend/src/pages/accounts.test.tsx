@@ -610,3 +610,77 @@ it("editar mostra o valor atual e so manda in_envelopes quando muda", async () =
   await waitFor(() => expect(api.mutations()).toHaveLength(2));
   expect(api.mutations()[1].body).toEqual({ in_envelopes: true });
 });
+
+// ---------- Cartao de credito ----------
+
+it("os campos de fechamento e vencimento so aparecem com o papel cartao de credito", async () => {
+  renderPage();
+  await openCreate();
+  expect(within(dialog()).queryByLabelText("Dia de fechamento")).not.toBeInTheDocument();
+  await userEvent.selectOptions(within(dialog()).getByLabelText("Categoria da conta"), "credit_card");
+  expect(within(dialog()).getByLabelText("Dia de fechamento")).toBeInTheDocument();
+  expect(within(dialog()).getByLabelText("Dia de vencimento")).toBeInTheDocument();
+});
+
+it("cartao de credito sem fechamento ou vencimento mostra o erro e nao chama a API", async () => {
+  const api = renderPage();
+  await openCreate();
+  await userEvent.selectOptions(within(dialog()).getByLabelText("Categoria da conta"), "credit_card");
+  await userEvent.type(nameField(), "Nubank cartao");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
+
+  expect(within(dialog()).getAllByText("Informe um dia entre 1 e 31.")).toHaveLength(2);
+  expect(within(dialog()).getByLabelText("Dia de fechamento")).toHaveFocus();
+  expect(api.mutations()).toHaveLength(0);
+});
+
+it("cria um cartao de credito com fechamento e vencimento", async () => {
+  const api = renderPage();
+  await openCreate();
+  await userEvent.selectOptions(within(dialog()).getByLabelText("Categoria da conta"), "credit_card");
+  await userEvent.type(nameField(), "Nubank cartao");
+  await userEvent.type(within(dialog()).getByLabelText("Dia de fechamento"), "5");
+  await userEvent.type(within(dialog()).getByLabelText("Dia de vencimento"), "12");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
+
+  await screen.findByRole("heading", { level: 3, name: "Nubank cartao" });
+  expect(api.mutations()[0].body).toMatchObject({ role: "credit_card", closing_day: 5, due_day: 12 });
+});
+
+it("editar um cartao de credito mostra o fechamento e o vencimento atuais", async () => {
+  renderPage([makeAccount({ name: "Cartao", role: "credit_card", closing_day: 10, due_day: 17 })]);
+  await screen.findByRole("heading", { level: 3, name: "Cartao" });
+  await openMenu("Cartao");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  expect(within(dialog()).getByLabelText("Dia de fechamento")).toHaveValue(10);
+  expect(within(dialog()).getByLabelText("Dia de vencimento")).toHaveValue(17);
+});
+
+it("trocar o papel para fora de cartao de credito limpa o fechamento e o vencimento", async () => {
+  const api = renderPage([makeAccount({ name: "Cartao", role: "credit_card", closing_day: 10, due_day: 17 })]);
+  await screen.findByRole("heading", { level: 3, name: "Cartao" });
+  await openMenu("Cartao");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  await userEvent.selectOptions(within(dialog()).getByLabelText("Categoria da conta"), "checking");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ role: "checking", closing_day: null, due_day: null });
+});
+
+it("o link Ver fatura so aparece para cartao de credito e leva para a tela da fatura", async () => {
+  renderPage([makeAccount({ name: "Cartao", role: "credit_card", closing_day: 10, due_day: 17 })]);
+  await screen.findByRole("heading", { level: 3, name: "Cartao" });
+  await openMenu("Cartao");
+  expect(screen.getByRole("menuitem", { name: "Ver fatura" })).toHaveAttribute(
+    "href",
+    expect.stringContaining("/fatura"),
+  );
+});
+
+it("conta comum nao mostra o link Ver fatura", async () => {
+  renderPage();
+  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await openMenu("Nubank");
+  expect(screen.queryByRole("menuitem", { name: "Ver fatura" })).not.toBeInTheDocument();
+});

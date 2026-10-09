@@ -24,7 +24,7 @@ import { parseMoneyInput, placesOf } from "@/lib/money";
 import { DEFAULT_ROLE, kindLabel, roleLabel, ROLES_BY_KIND, type AccountKind } from "./labels";
 import { useTranslation } from "react-i18next";
 
-type Field = "name" | "opening" | "openingDate";
+type Field = "name" | "opening" | "openingDate" | "closingDay" | "dueDay";
 type Errors = Partial<Record<Field, string>>;
 type Role = NonNullable<Account["role"]>;
 
@@ -37,7 +37,16 @@ const SERVER_FIELDS: Record<string, Field> = {
   name: "name",
   opening_balance: "opening",
   opening_balance_date: "openingDate",
+  closing_day: "closingDay",
+  due_day: "dueDay",
 };
+
+// 1 a 31, sem casas decimais nem espaco
+function parseDay(text: string): number | null {
+  if (!/^\d{1,2}$/.test(text.trim())) return null;
+  const value = Number(text.trim());
+  return value >= 1 && value <= 31 ? value : null;
+}
 
 type Props = {
   // Sem `account` o dialogo cria; com `account` edita
@@ -64,6 +73,8 @@ export function AccountFormDialog({ account, onClose }: Props) {
   const [openingDate, setOpeningDate] = useState(account?.opening_balance_date ?? appToday());
   const [notes, setNotes] = useState(account?.notes ?? "");
   const [inEnvelopes, setInEnvelopes] = useState(account?.in_envelopes ?? true);
+  const [closingDay, setClosingDay] = useState(account?.closing_day != null ? String(account.closing_day) : "");
+  const [dueDay, setDueDay] = useState(account?.due_day != null ? String(account.due_day) : "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -94,7 +105,9 @@ export function AccountFormDialog({ account, onClose }: Props) {
     if (error.code === "invalid_amount") serverErrors.opening = message;
 
     setErrors(serverErrors);
-    const first = (["name", "opening", "openingDate"] as const).find((field) => serverErrors[field]);
+    const first = (["name", "opening", "openingDate", "closingDay", "dueDay"] as const).find(
+      (field) => serverErrors[field],
+    );
     if (first) document.getElementById(`account-${first}`)?.focus();
     // Erro que nao e de um campo (moeda desconhecida, falha do servidor) vai no aviso do topo
     if (!first || error.code === "validation_error") setFormError(message);
@@ -115,8 +128,18 @@ export function AccountFormDialog({ account, onClose }: Props) {
       } else openingValue = parsed.value;
       if (!found.opening && !DATE_PATTERN.test(openingDate)) found.openingDate = t("validation.dateInvalid");
     }
+    let closingDayValue: number | null = null;
+    let dueDayValue: number | null = null;
+    if (role === "credit_card") {
+      closingDayValue = parseDay(closingDay);
+      if (closingDayValue === null) found.closingDay = t("accounts.accountFormDialog.diaInvalido");
+      dueDayValue = parseDay(dueDay);
+      if (dueDayValue === null) found.dueDay = t("accounts.accountFormDialog.diaInvalido");
+    }
     setErrors(found);
-    const firstInvalid = (["name", "opening", "openingDate"] as const).find((field) => found[field]);
+    const firstInvalid = (["name", "opening", "openingDate", "closingDay", "dueDay"] as const).find(
+      (field) => found[field],
+    );
     if (firstInvalid) {
       document.getElementById(`account-${firstInvalid}`)?.focus();
       return;
@@ -134,6 +157,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
           // Zero nao cria transacao de saldo inicial no backend: e o mesmo que nao informar
           opening_balance: openingValue ?? "0",
           ...(openingValue !== null ? { opening_balance_date: openingDate } : {}),
+          ...(role === "credit_card" ? { closing_day: closingDayValue, due_day: dueDayValue } : {}),
         };
         await create.mutateAsync(body);
       } else {
@@ -143,6 +167,16 @@ export function AccountFormDialog({ account, onClose }: Props) {
         if (role !== account.role) body.role = role;
         if (inEnvelopes !== account.in_envelopes) body.in_envelopes = inEnvelopes;
         if ((notes.trim() || null) !== account.notes) body.notes = notes.trim() || null;
+        if (role === "credit_card") {
+          if (closingDayValue !== account.closing_day || dueDayValue !== account.due_day) {
+            body.closing_day = closingDayValue;
+            body.due_day = dueDayValue;
+          }
+        } else if (account.closing_day !== null || account.due_day !== null) {
+          // Saiu de cartao de credito: limpa fechamento/vencimento
+          body.closing_day = null;
+          body.due_day = null;
+        }
         if (openingValue !== null) {
           if (opening !== initialOpening || openingDate !== account.opening_balance_date) {
             body.opening_balance = openingValue;
@@ -245,6 +279,54 @@ export function AccountFormDialog({ account, onClose }: Props) {
               )}
             </FormField>
           </div>
+
+          {role === "credit_card" && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                id="account-closingDay"
+                label={t("accounts.accountFormDialog.diaDeFechamento")}
+                error={errors.closingDay}
+                hint={t("accounts.accountFormDialog.diaDeFechamentoHint")}
+              >
+                {(props) => (
+                  <Input
+                    {...props}
+                    type="number"
+                    min={1}
+                    max={31}
+                    inputMode="numeric"
+                    value={closingDay}
+                    onChange={(event) => {
+                      setClosingDay(event.target.value);
+                      clearError("closingDay");
+                    }}
+                  />
+                )}
+              </FormField>
+
+              <FormField
+                id="account-dueDay"
+                label={t("accounts.accountFormDialog.diaDeVencimento")}
+                error={errors.dueDay}
+                hint={t("accounts.accountFormDialog.diaDeVencimentoHint")}
+              >
+                {(props) => (
+                  <Input
+                    {...props}
+                    type="number"
+                    min={1}
+                    max={31}
+                    inputMode="numeric"
+                    value={dueDay}
+                    onChange={(event) => {
+                      setDueDay(event.target.value);
+                      clearError("dueDay");
+                    }}
+                  />
+                )}
+              </FormField>
+            </div>
+          )}
 
           <FormField
             id="account-opening"

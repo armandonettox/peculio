@@ -58,6 +58,28 @@ export interface paths {
         patch: operations["update_account_api_v1_accounts__account_id__patch"];
         trace?: never;
     };
+    "/api/v1/accounts/{account_id}/invoice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Invoice
+         * @description Fatura do cartao que contem a data `on` (hoje, se omitida): periodo, vencimento e os
+         *     lancamentos dentro dele. So funciona para conta com role=credit_card e fechamento/vencimento
+         *     configurados.
+         */
+        get: operations["get_invoice_api_v1_accounts__account_id__invoice_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/api-tokens": {
         parameters: {
             query?: never;
@@ -1670,8 +1692,12 @@ export interface components {
         AccountCreate: {
             /** Account Number */
             account_number?: string | null;
+            /** Closing Day */
+            closing_day?: number | null;
             /** Currency Code */
             currency_code: string;
+            /** Due Day */
+            due_day?: number | null;
             /** Iban */
             iban?: string | null;
             /**
@@ -1705,6 +1731,8 @@ export interface components {
             active: boolean;
             /** Balance */
             balance: string;
+            /** Closing Day */
+            closing_day: number | null;
             /**
              * Created At
              * Format: date-time
@@ -1712,6 +1740,8 @@ export interface components {
             created_at: string;
             /** Currency Code */
             currency_code: string;
+            /** Due Day */
+            due_day: number | null;
             /** Iban */
             iban: string | null;
             /**
@@ -1748,6 +1778,10 @@ export interface components {
             account_number?: string | null;
             /** Active */
             active?: boolean | null;
+            /** Closing Day */
+            closing_day?: number | null;
+            /** Due Day */
+            due_day?: number | null;
             /** Iban */
             iban?: string | null;
             /** In Envelopes */
@@ -2519,6 +2553,54 @@ export interface components {
             id: string;
             /** Used At */
             used_at: string | null;
+        };
+        /** InvoiceOut */
+        InvoiceOut: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Splits */
+            splits: components["schemas"]["InvoiceSplitOut"][];
+            /** Total */
+            total: string;
+        };
+        /** InvoiceSplitOut */
+        InvoiceSplitOut: {
+            /** Amount */
+            amount: string;
+            /** Currency Code */
+            currency_code: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
         };
         /**
          * LoginOut
@@ -4200,6 +4282,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_invoice_api_v1_accounts__account_id__invoice_get: {
+        parameters: {
+            query?: {
+                on?: string | null;
+            };
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceOut"];
                 };
             };
             /** @description Validation Error */

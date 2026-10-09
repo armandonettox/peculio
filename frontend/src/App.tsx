@@ -10,6 +10,7 @@ import RulesPage from "@/pages/rules";
 import BillsRecurrencesPage from "@/pages/bills";
 import DashboardPage from "@/pages/dashboard";
 import ImportReconciliationPage from "@/pages/import";
+import InvoicePage from "@/pages/invoice";
 import LabelsPage from "@/pages/labels";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="envelopes" element={<Navigate to="/orcamentos?aba=envelopes" replace />} />
             <Route path="regras" element={<RulesPage />} />
             <Route path="contas" element={<AccountsPage />} />
+            <Route path="contas/:accountId/fatura" element={<InvoicePage />} />
             <Route path="transacoes" element={<TransactionsPage />} />
             <Route path="importar" element={<ImportReconciliationPage />} />
             {/* Conciliar virou a aba Conciliar de Importar extrato (favoritos antigos continuam entrando) */}

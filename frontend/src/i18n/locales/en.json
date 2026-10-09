@@ -81,6 +81,23 @@
       "ondeEstaOSeu": "Where your money is and what you owe",
       "mostrarArquivadas": "Show archived"
     },
+    "invoice": {
+      "titulo": "{{name}} statement",
+      "descricao": "What's on this statement and when it's due",
+      "mesAnterior": "Previous month",
+      "proximoMes": "Next month",
+      "mesAtual": "Current month",
+      "total": "Statement total",
+      "vencimento": "Due date",
+      "periodo": "Period",
+      "marcarComoPaga": "Mark statement as paid",
+      "nenhumaCompraNessaFatura": "No purchases on this statement",
+      "contaNaoConfigurada": "This account doesn't have a closing and due day set up yet. Edit the account to see the statement.",
+      "voltarParaContas": "Back to Accounts",
+      "carregandoFatura": "Loading statement...",
+      "descricaoDoPagamento": "{{name}} statement payment",
+      "contaNaoEncontrada": "Account not found."
+    },
     "transactions": {
       "carregandoLancamentos": "Loading transactions...",
       "nadaEncontrado": "Nothing found",
@@ -483,6 +500,7 @@
     "account_not_found": "Account not found.",
     "account_name_taken": "An account with that name already exists.",
     "account_has_transactions": "This account has transactions and can't be deleted. Archive it instead.",
+    "account_not_credit_card": "This account isn't a credit card with closing and due day configured.",
     "currency_not_found": "Currency not found.",
     "invalid_amount": "Invalid amount for this currency.",
     "validation_error": "Check the information you entered.",
@@ -588,6 +606,7 @@
       "valorDevido": "Amount owed",
       "arquivar": "Archive",
       "restaurar": "Restore",
+      "verFatura": "View statement",
       "actionsFor": "Actions for account {{name}}"
     },
     "accountFormDialog": {
@@ -608,7 +627,12 @@
       "openingBalance": "Opening balance",
       "nameRequired": "Enter the account name.",
       "debtPositive": "Enter how much you owe as a positive amount.",
-      "inEnvelopes": "Goes into envelopes"
+      "inEnvelopes": "Goes into envelopes",
+      "diaDeFechamento": "Closing day",
+      "diaDeVencimento": "Due day",
+      "diaDeFechamentoHint": "Day of the month the statement closes. Purchases after it fall into the next statement.",
+      "diaDeVencimentoHint": "Day of the month the statement is due.",
+      "diaInvalido": "Enter a day between 1 and 31."
     },
     "deleteAccountDialog": {
       "excluirConta": "Delete account",

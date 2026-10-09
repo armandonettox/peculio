@@ -1,4 +1,5 @@
-import { Archive, ArchiveRestore, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, MoreVertical, Pencil, Receipt, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import type { Account } from "@/api/accounts";
 import {
@@ -59,6 +60,14 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
+          {account.role === "credit_card" && (
+            <DropdownMenuItem asChild>
+              <Link to={`/contas/${account.id}/fatura`}>
+                <Receipt />
+                {t("accounts.accountCard.verFatura")}
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => onEdit(account)}>
             <Pencil />
             {t("common.editar")}

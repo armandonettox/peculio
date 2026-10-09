@@ -18,6 +18,7 @@ import {
   useCreateTransaction,
   useUpdateTransaction,
   type Transaction,
+  type TransactionCreate,
 } from "@/api/transactions";
 import { FormField } from "@/components/form-field";
 import { Alert } from "@/components/ui/alert";
@@ -62,6 +63,8 @@ type Props = {
   // Modo recorrente: o mesmo formulario, mais nome, frequencia e fim. Com `recurrence` edita.
   repeating?: boolean;
   recurrence?: Recurrence;
+  // Abre ja preenchido com um lancamento novo (ex: "marcar fatura como paga"), sem repetir
+  initialTemplate?: { template: TransactionCreate; date: string };
   onClose: () => void;
 };
 
@@ -104,7 +107,7 @@ function TagPicker({
   );
 }
 
-export function TransactionFormDialog({ transaction, repeating = false, recurrence, onClose }: Props) {
+export function TransactionFormDialog({ transaction, repeating = false, recurrence, initialTemplate, onClose }: Props) {
   const { t } = useTranslation();
   const recurring = repeating || recurrence !== undefined;
   const editing = transaction !== undefined || recurrence !== undefined;
@@ -170,6 +173,7 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
             update={update}
             createRecurrence={createRecurrence}
             updateRecurrence={updateRecurrence}
+            initialTemplate={initialTemplate}
             onClose={onClose}
           />
         )}
@@ -193,6 +197,7 @@ type BodyProps = {
   update: ReturnType<typeof useUpdateTransaction>;
   createRecurrence: ReturnType<typeof useCreateRecurrence>;
   updateRecurrence: ReturnType<typeof useUpdateRecurrence>;
+  initialTemplate?: { template: TransactionCreate; date: string };
   onClose: () => void;
 };
 
@@ -210,6 +215,7 @@ function FormBody({
   update,
   createRecurrence,
   updateRecurrence,
+  initialTemplate,
   onClose,
 }: BodyProps) {
   const { t } = useTranslation();
@@ -218,7 +224,9 @@ function FormBody({
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
   const [initial] = useState(() => {
     if (recurrence) return formFromTemplate(recurrence.template, ctx, recurrence.first_date);
-    return transaction ? formFromTransaction(transaction, ctx) : null;
+    if (transaction) return formFromTransaction(transaction, ctx);
+    if (initialTemplate) return formFromTemplate(initialTemplate.template, ctx, initialTemplate.date);
+    return null;
   });
   const [state, setState] = useState<FormState>(() =>
     initial?.ok ? initial.state : emptyForm(ctx),

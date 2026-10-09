@@ -81,6 +81,23 @@
       "ondeEstaOSeu": "Onde está o seu dinheiro e o que você deve",
       "mostrarArquivadas": "Mostrar arquivadas"
     },
+    "invoice": {
+      "titulo": "Fatura de {{name}}",
+      "descricao": "O que entrou nessa fatura e quando ela vence",
+      "mesAnterior": "Mês anterior",
+      "proximoMes": "Próximo mês",
+      "mesAtual": "Mês atual",
+      "total": "Total da fatura",
+      "vencimento": "Vencimento",
+      "periodo": "Período",
+      "marcarComoPaga": "Marcar fatura como paga",
+      "nenhumaCompraNessaFatura": "Nenhuma compra nessa fatura",
+      "contaNaoConfigurada": "Esta conta ainda não tem dia de fechamento e de vencimento configurados. Edite a conta para ver a fatura.",
+      "voltarParaContas": "Voltar para Contas",
+      "carregandoFatura": "Carregando fatura...",
+      "descricaoDoPagamento": "Pagamento da fatura de {{name}}",
+      "contaNaoEncontrada": "Conta não encontrada."
+    },
     "transactions": {
       "carregandoLancamentos": "Carregando lançamentos...",
       "nadaEncontrado": "Nada encontrado",
@@ -483,6 +500,7 @@
     "account_not_found": "Conta não encontrada.",
     "account_name_taken": "Já existe uma conta com esse nome.",
     "account_has_transactions": "Esta conta tem transações e não pode ser excluída. Arquive-a em vez disso.",
+    "account_not_credit_card": "Esta conta não é um cartão de crédito com dia de fechamento e de vencimento configurados.",
     "currency_not_found": "Moeda não encontrada.",
     "invalid_amount": "Valor inválido para esta moeda.",
     "validation_error": "Confira os dados informados.",
@@ -588,6 +606,7 @@
       "valorDevido": "Valor devido",
       "arquivar": "Arquivar",
       "restaurar": "Restaurar",
+      "verFatura": "Ver fatura",
       "actionsFor": "Ações da conta {{name}}"
     },
     "accountFormDialog": {
@@ -608,7 +627,12 @@
       "openingBalance": "Saldo inicial",
       "nameRequired": "Informe o nome da conta.",
       "debtPositive": "Informe quanto você deve como um valor positivo.",
-      "inEnvelopes": "Entra nos envelopes"
+      "inEnvelopes": "Entra nos envelopes",
+      "diaDeFechamento": "Dia de fechamento",
+      "diaDeVencimento": "Dia de vencimento",
+      "diaDeFechamentoHint": "Dia do mês em que a fatura fecha. Compras depois dele caem na fatura seguinte.",
+      "diaDeVencimentoHint": "Dia do mês em que a fatura vence.",
+      "diaInvalido": "Informe um dia entre 1 e 31."
     },
     "deleteAccountDialog": {
       "excluirConta": "Excluir conta",
