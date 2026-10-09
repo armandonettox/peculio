@@ -46,6 +46,11 @@ services:
       ATTACHMENT_MAX_BYTES: ${ATTACHMENT_MAX_BYTES:-10485760}
     volumes:
       - attachments_data:/data/attachments
+    # host.docker.internal: o Docker Desktop (Windows/Mac) ja resolve sozinho; no Linux (CI do
+    # GitHub Actions, VPS) precisa deste mapeamento explicito. Usado pelo e2e de webhooks, que
+    # sobe um receptor na maquina do executor e o container do backend precisa alcanca-lo.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy
