@@ -5559,6 +5559,19 @@
       "TransactionCreate-Input": {
         "additionalProperties": false,
         "properties": {
+          "installments": {
+            "anyOf": [
+              {
+                "maximum": 60.0,
+                "minimum": 2.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installments"
+          },
           "splits": {
             "items": {
               "$ref": "#/components/schemas/TransactionSplitCreate-Input"
@@ -5589,6 +5602,19 @@
       "TransactionCreate-Output": {
         "additionalProperties": false,
         "properties": {
+          "installments": {
+            "anyOf": [
+              {
+                "maximum": 60.0,
+                "minimum": 2.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installments"
+          },
           "splits": {
             "items": {
               "$ref": "#/components/schemas/TransactionSplitCreate-Output"
@@ -5632,6 +5658,28 @@
             "title": "Id",
             "type": "string"
           },
+          "installment_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installment Count"
+          },
+          "installment_index": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installment Index"
+          },
           "recurrence_id": {
             "anyOf": [
               {
@@ -5667,6 +5715,8 @@
           "id",
           "title",
           "recurrence_id",
+          "installment_index",
+          "installment_count",
           "created_at",
           "attachment_count",
           "splits"
@@ -6180,6 +6230,19 @@
         "additionalProperties": false,
         "description": "Mesma forma da criacao: a edicao troca o grupo inteiro (titulo e splits).",
         "properties": {
+          "installments": {
+            "anyOf": [
+              {
+                "maximum": 60.0,
+                "minimum": 2.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Installments"
+          },
           "splits": {
             "items": {
               "$ref": "#/components/schemas/TransactionSplitCreate-Input"

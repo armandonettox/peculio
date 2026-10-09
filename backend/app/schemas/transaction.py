@@ -117,6 +117,9 @@ class TransactionCreate(BaseModel):
 
     title: str | None = Field(default=None, max_length=255)
     splits: list[TransactionSplitCreate] = Field(min_length=1)
+    # Compra parcelada: cria N lancamentos, um por mes. So vale para uma saida unica (checado no servico
+    # se a conta e um cartao de credito, que precisa do banco).
+    installments: int | None = Field(default=None, ge=2, le=60)
 
     @field_validator("title")
     @classmethod
@@ -125,6 +128,13 @@ class TransactionCreate(BaseModel):
             return value
         value = value.strip()
         return value or None
+
+    @model_validator(mode="after")
+    def check_installments(self):
+        if self.installments is not None:
+            if len(self.splits) != 1 or self.splits[0].type != "withdrawal":
+                raise ValueError("Parcelamento so vale para uma saida unica")
+        return self
 
 
 class TransactionUpdate(TransactionCreate):
@@ -138,6 +148,9 @@ class TransactionOut(BaseModel):
     title: str | None
     # Recorrente que criou este lancamento, se foi ela
     recurrence_id: uuid.UUID | None
+    # Parcela de uma compra parcelada: numero desta (0 = a primeira) e total de parcelas do grupo
+    installment_index: int | None
+    installment_count: int | None
     created_at: datetime
     # Quantos arquivos estao anexados ao lancamento
     attachment_count: int

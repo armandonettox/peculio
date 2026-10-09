@@ -45,6 +45,10 @@ class Transaction(Base):
     # Recorrente que criou este lancamento e a data da ocorrencia. O par e unico no banco.
     recurrence_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recurrences.id", ondelete="SET NULL"))
     recurrence_date: Mapped[date | None] = mapped_column(Date)
+    # Compra parcelada: grupo compartilhado pelas N parcelas, numero desta (0 = a primeira) e total do grupo
+    installment_group_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, index=True)
+    installment_index: Mapped[int | None] = mapped_column(Integer)
+    installment_count: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -53,6 +57,14 @@ Index(
     "uq_transactions_recurrence_id_recurrence_date",
     Transaction.recurrence_id,
     Transaction.recurrence_date,
+    unique=True,
+)
+
+# Cada parcela do grupo tem um numero unico, mesmo se a criacao rodar duas vezes ao mesmo tempo
+Index(
+    "uq_transactions_installment_group_id_installment_index",
+    Transaction.installment_group_id,
+    Transaction.installment_index,
     unique=True,
 )
 

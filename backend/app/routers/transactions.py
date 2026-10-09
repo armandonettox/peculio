@@ -16,6 +16,7 @@ from app.models.user import User
 from app.schemas.bulk import BulkIn, BulkOut
 from app.schemas.transaction import CounterpartyOut, TransactionCreate, TransactionOut, TransactionUpdate
 from app.services import bulk as bulk_service
+from app.services import installments as installments_service
 from app.services import transactions as service
 from app.services import transactions_csv
 from app.services.attachment_storage import remove_files
@@ -28,6 +29,10 @@ AmountFilter = Annotated[Decimal | None, Query(max_digits=18, decimal_places=2)]
 
 @router.post("", response_model=TransactionOut, status_code=status.HTTP_201_CREATED)
 def create_transaction(data: TransactionCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if data.installments is not None:
+        transactions = installments_service.create_installments(db, user, data, data.installments)
+        db.commit()
+        return service.build_output(db, transactions[0])
     transaction = service.create_transaction(db, user, data)
     db.commit()
     return service.build_output(db, transaction)
