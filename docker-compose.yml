@@ -17,6 +17,10 @@ services:
       retries: 10
 
   backend:
+    # Local (docker): sobe a imagem construida por `build`. Na VPS (podman-compose, deploy): a
+    # imagem vem do GHCR (PECULIO_BACKEND_IMAGE, definida em ~/peculio/.env.imagens pelo deploy)
+    # e o `--no-build` do systemd ignora `build`. Ver deploy/README.md.
+    image: ${PECULIO_BACKEND_IMAGE:-peculio-backend:local}
     build: ./backend
     environment:
       ENVIRONMENT: production
@@ -52,9 +56,17 @@ services:
       retries: 10
 
   frontend:
+    image: ${PECULIO_FRONTEND_IMAGE:-peculio-frontend:local}
     build: ./frontend
+    environment:
+      # Nome do servico de backend. Na VPS (podman-compose) os containers do mesmo pod nao
+      # compartilham rede: o nginx do frontend resolve esse nome a cada requisicao (ver
+      # frontend/nginx.conf.template), entao o nome continua certo mesmo quando o backend
+      # reinicia e troca de IP.
+      BACKEND_URL: ${PECULIO_BACKEND_URL:-http://backend:8000}
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      # So o host acessa (localhost local, ou o nginx do host na VPS); nunca exposto direto
+      - "127.0.0.1:${FRONTEND_PORT:-8080}:80"
     depends_on:
       backend:
         condition: service_healthy
