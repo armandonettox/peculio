@@ -32,8 +32,8 @@ test("prepara dados ficticios isolados numa conta so deste teste", async ({ requ
     opening_balance: "1000.00",
     opening_balance_date: "2026-01-01",
   });
-  const mercado = await apiPost(request, headers, "/categories", { name: "Mercado Rel E2E" });
-  const lazer = await apiPost(request, headers, "/categories", { name: "Lazer Rel E2E" });
+  const mercado = await apiPost(request, headers, "/categories", { name: "Mercado Rel E2E", kind: "expense" });
+  const lazer = await apiPost(request, headers, "/categories", { name: "Lazer Rel E2E", kind: "expense" });
   const spend = (description: string, amount: string, categoryId: string | null) =>
     apiPost(request, headers, "/transactions", {
       splits: [

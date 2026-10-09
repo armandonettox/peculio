@@ -32,10 +32,10 @@ test("prepara os dados pela API: contas, categorias, tag e 32 lancamentos", asyn
     type: "asset",
     currency_code: "USD",
   })).id;
-  const renda = (await apiPost(request, headers, "/categories", { name: "Renda E2E", color: "#00A878" })).id;
-  const moradia = (await apiPost(request, headers, "/categories", { name: "Moradia E2E", color: "#E11D48" })).id;
-  const mercado = (await apiPost(request, headers, "/categories", { name: "Mercado E2E" })).id;
-  const casa = (await apiPost(request, headers, "/categories", { name: "Casa E2E" })).id;
+  const renda = (await apiPost(request, headers, "/categories", { name: "Renda E2E", kind: "revenue", color: "#00A878" })).id;
+  const moradia = (await apiPost(request, headers, "/categories", { name: "Moradia E2E", kind: "expense", color: "#E11D48" })).id;
+  const mercado = (await apiPost(request, headers, "/categories", { name: "Mercado E2E", kind: "expense" })).id;
+  const casa = (await apiPost(request, headers, "/categories", { name: "Casa E2E", kind: "expense" })).id;
   const fixo = (await apiPost(request, headers, "/tags", { name: "fixo" })).id;
 
   const withdrawal = (date: string, description: string, amount: string, counterparty: string, extra = {}) => ({

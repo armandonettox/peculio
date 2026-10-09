@@ -67,8 +67,8 @@ test("prepara os dados e cria um grupo", async ({ page, request }) => {
       opening_balance_date: "2026-01-01",
     })
   ).id;
-  state.categoryId = (await apiPost(request, headers, "/categories", { name: "Padaria Regras" })).id;
-  await apiPost(request, headers, "/categories", { name: "Outra Regras" });
+  state.categoryId = (await apiPost(request, headers, "/categories", { name: "Padaria Regras", kind: "expense" })).id;
+  await apiPost(request, headers, "/categories", { name: "Outra Regras", kind: "expense" });
   // Este lancamento nasce antes da regra: so a aplicacao nos antigos vai preenche-lo
   state.oldTransactionId = (await spend(request, "Pao da Padaria Regra E2E antigo")).id;
 
@@ -108,7 +108,7 @@ test("nome repetido e recusado no campo do nome", async ({ page }) => {
 
 test("lancamento novo que combina recebe a categoria; o que ja tem categoria nao muda", async ({ request }) => {
   const headers = await apiHeaders(request, ADMIN);
-  const other = await apiPost(request, headers, "/categories", { name: "Escolhida Regras" });
+  const other = await apiPost(request, headers, "/categories", { name: "Escolhida Regras", kind: "expense" });
 
   const filled = await spend(request, "Compra na Padaria Regra E2E nova");
   expect(await categoryOf(request, filled.id)).toBe(state.categoryId);

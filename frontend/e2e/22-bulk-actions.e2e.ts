@@ -49,7 +49,7 @@ test("prepara a conta, a categoria e quatro lancamentos pela API", async ({ requ
     opening_balance_date: "2026-01-01",
   });
   accountId = account.id;
-  categoryId = (await apiPost(request, headers, "/categories", { name: "Mercado Massa E2E" })).id;
+  categoryId = (await apiPost(request, headers, "/categories", { name: "Mercado Massa E2E", kind: "expense" })).id;
   for (const [index, name] of ["Item1", "Item2", "Item3", "Item4"].entries()) {
     const created = await apiPost(request, headers, "/transactions", {
       splits: [

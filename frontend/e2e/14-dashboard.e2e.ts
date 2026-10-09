@@ -42,7 +42,7 @@ test("prepara dados ficticios: conta, divida, orcamento perto do limite, conta a
   await apiPost(request, headers, "/accounts", {
     name: "Cartao Painel E2E", type: "liability", currency_code: "BRL", opening_balance: "750.00", opening_balance_date: "2026-01-01",
   });
-  const mercado = await apiPost(request, headers, "/categories", { name: "Mercado Painel E2E" });
+  const mercado = await apiPost(request, headers, "/categories", { name: "Mercado Painel E2E", kind: "expense" });
   const budget = await apiPost(request, headers, "/budgets", {
     name: "Mercado Painel E2E", currency_code: "BRL", amount: "500.00", period: "monthly",
   });

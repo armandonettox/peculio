@@ -39,9 +39,9 @@ test("prepara a conta, as categorias e os lancamentos pela API", async ({ reques
     opening_balance: "1000.00",
     opening_balance_date: "2026-01-01",
   });
-  categoryId = (await apiPost(request, headers, "/categories", { name: "Mercado Pers E2E" })).id;
-  spareCategoryId = (await apiPost(request, headers, "/categories", { name: "Descartavel Pers E2E" })).id;
-  const lazer = (await apiPost(request, headers, "/categories", { name: "Lazer Pers E2E" })).id;
+  categoryId = (await apiPost(request, headers, "/categories", { name: "Mercado Pers E2E", kind: "expense" })).id;
+  spareCategoryId = (await apiPost(request, headers, "/categories", { name: "Descartavel Pers E2E", kind: "expense" })).id;
+  const lazer = (await apiPost(request, headers, "/categories", { name: "Lazer Pers E2E", kind: "expense" })).id;
   const add = (type: string, description: string, amount: string, who: string, category: string | null) =>
     apiPost(request, headers, "/transactions", {
       splits: [
