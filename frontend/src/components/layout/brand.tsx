@@ -1,12 +1,7 @@
-import { Wallet } from "lucide-react";
-
-// Nome definitivo (Peculio). O logo ainda e provisorio: a identidade visual entra na Fase 6
 export function Brand() {
   return (
     <div className="flex items-center gap-2">
-      <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <Wallet className="size-4" />
-      </span>
+      <img src="/favicon.svg" alt="" width={32} height={32} className="size-8 rounded-md" />
       <span className="text-base font-semibold text-primary-text">Pecúlio</span>
     </div>
   );
