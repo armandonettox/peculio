@@ -43,6 +43,8 @@ class AccountCreate(BaseModel):
     # So fazem sentido com role=credit_card: dia do fechamento da fatura e dia do vencimento
     closing_day: int | None = Field(default=None, ge=1, le=31)
     due_day: int | None = Field(default=None, ge=1, le=31)
+    # Limite do cartao (so role=credit_card). Opcional: sem ele a tela so nao mostra limite disponivel.
+    credit_limit: Money | None = Field(default=None, gt=0)
 
     @field_validator("name")
     @classmethod
@@ -67,6 +69,8 @@ class AccountCreate(BaseModel):
             raise ValueError("Informe o dia de fechamento e o de vencimento juntos")
         if self.closing_day is not None and self.role != AccountRole.credit_card:
             raise ValueError("Dia de fechamento e de vencimento so valem para cartao de credito")
+        if self.credit_limit is not None and self.role != AccountRole.credit_card:
+            raise ValueError("Limite so vale para cartao de credito")
         return self
 
 
@@ -86,6 +90,8 @@ class AccountUpdate(BaseModel):
     # null limpa os dois; omitir nao mexe. So fazem sentido com role=credit_card (ver service)
     closing_day: int | None = Field(default=None, ge=1, le=31)
     due_day: int | None = Field(default=None, ge=1, le=31)
+    # null limpa, omitir nao mexe. So vale com role=credit_card (ver service)
+    credit_limit: Money | None = Field(default=None, gt=0)
 
     @field_validator("name")
     @classmethod
@@ -123,6 +129,7 @@ class AccountOut(BaseModel):
     notes: str | None
     closing_day: int | None
     due_day: int | None
+    credit_limit: Money | None
     # Mesmo sentido da entrada: saldo no dia (ativo) ou valor devido (passivo)
     opening_balance: Money
     opening_balance_date: date | None

@@ -1,8 +1,9 @@
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, Uuid, func, true
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, Uuid, func, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -60,4 +61,7 @@ class Account(Base):
     # So fazem sentido com role=credit_card: dia do fechamento da fatura e dia do vencimento
     closing_day: Mapped[int | None] = mapped_column(Integer)
     due_day: Mapped[int | None] = mapped_column(Integer)
+    # Limite do cartao (so role=credit_card). Limite disponivel = credit_limit + balance (o saldo
+    # ja e negativo quando ha divida, entao a soma desconta sozinha).
+    credit_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

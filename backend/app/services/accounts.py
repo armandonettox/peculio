@@ -201,6 +201,7 @@ def build_outputs(db: Session, accounts: list[Account]) -> list[AccountOut]:
                 notes=account.notes,
                 closing_day=account.closing_day,
                 due_day=account.due_day,
+                credit_limit=quantize_money(account.credit_limit, decimals) if account.credit_limit is not None else None,
                 opening_balance=quantize_money(opening, decimals),
                 opening_balance_date=opening_date,
                 balance=quantize_money(balances[account.id], decimals),
@@ -213,6 +214,8 @@ def build_outputs(db: Session, accounts: list[Account]) -> list[AccountOut]:
 def create_account(db: Session, user: User, data: AccountCreate) -> Account:
     currency = get_currency(db, data.currency_code)
     check_amount(currency, data.opening_balance)
+    if data.credit_limit is not None:
+        check_amount(currency, data.credit_limit)
     check_name_free(db, user.id, data.type, data.name)
 
     account = Account(
@@ -227,6 +230,7 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         notes=data.notes,
         closing_day=data.closing_day,
         due_day=data.due_day,
+        credit_limit=data.credit_limit,
     )
     try:
         with db.begin_nested():
@@ -258,6 +262,12 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
             )
         account.closing_day = data.closing_day
         account.due_day = data.due_day
+    if "credit_limit" in provided:
+        if data.credit_limit is not None:
+            if account.role != AccountRole.credit_card:
+                raise AppError(400, ErrorCode.VALIDATION_ERROR, "Limite so vale para cartao de credito")
+            check_amount(get_currency(db, account.currency_code), data.credit_limit)
+        account.credit_limit = data.credit_limit
     if "active" in provided and data.active is not None:
         account.active = data.active
     if "in_envelopes" in provided and data.in_envelopes is not None:
