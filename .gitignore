@@ -15,3 +15,7 @@ nohup.out
 
 # Worktrees temporarios dos workflows de agentes
 .claude/worktrees/
+
+# Instrucoes de agentes de IA: ficam so localmente, nao vao para o repo publico
+AGENTS.md
+CLAUDE.md
