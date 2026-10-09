@@ -18,11 +18,17 @@ const PAGE_LIMIT = 200;
 
 // ---------- Categorias ----------
 
-export function useCategories({ search }: { search: string }) {
+export type CategoryKind = NonNullable<Category["kind"]>;
+
+export function useCategories({ search, kind }: { search: string; kind?: CategoryKind }) {
   return useQuery({
-    queryKey: [...categoriesKey, { search }],
+    queryKey: [...categoriesKey, { search, kind }],
     queryFn: async () => {
-      const query = search ? { limit: PAGE_LIMIT, q: search } : { limit: PAGE_LIMIT };
+      const query = {
+        limit: PAGE_LIMIT,
+        ...(search ? { q: search } : {}),
+        ...(kind ? { kind } : {}),
+      };
       return unwrap(api.client.GET("/api/v1/categories", { params: { query } }));
     },
   });

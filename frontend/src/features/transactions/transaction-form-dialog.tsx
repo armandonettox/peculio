@@ -12,7 +12,7 @@ import {
 import { useBudgets, type Budget } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
-import { useCategories, useTags, type Tag } from "@/api/labels";
+import { useCategories, useTags, type Category, type Tag } from "@/api/labels";
 import {
   useCounterparties,
   useCreateTransaction,
@@ -190,7 +190,7 @@ type BodyProps = {
   transaction?: Transaction;
   recurrence?: Recurrence;
   recurring: boolean;
-  categories: { id: string; name: string }[];
+  categories: Category[];
   tags: Tag[];
   budgets: Budget[];
   bills: Bill[];
@@ -265,6 +265,13 @@ function FormBody({
   const billOptions = (selectedId: string) =>
     bills.filter((bill) => bill.currency_code === currency && (bill.active || bill.id === selectedId));
 
+  // Saida so mostra categoria de saida, entrada so de entrada; transferencia mostra as duas
+  // (nao e nem uma coisa nem outra, e so dinheiro mudando de conta). A ja escolhida continua
+  // aparecendo mesmo se nao bater mais (lancamento antigo, de antes desta categoria ter um tipo).
+  const categoryKind = state.kind === "withdrawal" ? "expense" : state.kind === "deposit" ? "revenue" : null;
+  const categoryOptions = (selectedId: string) =>
+    categoryKind ? categories.filter((category) => category.kind === categoryKind || category.id === selectedId) : categories;
+
   const searchType = state.kind === "withdrawal" ? "expense" : "revenue";
   const usesNameSearch = state.kind !== "transfer" && !state.ownCounterparty;
   const suggestions = useCounterparties(searchType, state.counterpartyName.trim(), { enabled: usesNameSearch });
@@ -306,10 +313,15 @@ function FormBody({
         counterpartyName: "",
         counterpartyAccountId: "",
         foreignAmount: "",
-        // Orcamento so vale em saida: trocar o tipo solta o que estava escolhido
+        // Orcamento so vale em saida, e a categoria escolhida pode nao ser do novo sentido:
+        // trocar o tipo solta os dois
         budgetId: "",
         billId: "",
-        splits: kind === "transfer" ? null : clearBudgets(state.splits),
+        categoryId: "",
+        splits:
+          kind === "transfer"
+            ? null
+            : (state.splits?.map((row) => ({ ...row, budgetId: "", billId: "", categoryId: "" })) ?? null),
       },
       "counterparty",
       "foreignAmount",
@@ -880,7 +892,7 @@ function FormBody({
                       onChange={(e) => changeSplit(row.key, { categoryId: e.target.value })}
                     >
                       <option value="">{t("common.semCategoria")}</option>
-                      {categories.map((category) => (
+                      {categoryOptions(row.categoryId).map((category) => (
                         <option key={category.id} value={category.id}>
                           {category.name}
                         </option>
@@ -970,7 +982,7 @@ function FormBody({
             {(props) => (
               <Select {...props} value={state.categoryId} onChange={(e) => patch({ categoryId: e.target.value })}>
                 <option value="">{t("common.semCategoria")}</option>
-                {categories.map((category) => (
+                {categoryOptions(state.categoryId).map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>

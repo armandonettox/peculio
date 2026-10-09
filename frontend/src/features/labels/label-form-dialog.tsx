@@ -13,13 +13,15 @@ import { Input } from "@/components/ui/input";
 import { colorError, normalizeHex } from "@/lib/color";
 import { useTranslation } from "react-i18next";
 
-export type LabelValues = { name: string; color: string | null };
+export type LabelValues = { name: string; color: string | null; kind: "expense" | "revenue" | null };
 
 type Props = {
   title: string;
   description: string;
   initial: LabelValues;
   withColor: boolean;
+  // Categoria tem tipo (saida/entrada); tag nao
+  withKind: boolean;
   nameMaxLength: number;
   // Codigo de erro do servidor para "nome repetido" (category_name_taken ou tag_name_taken)
   takenCode: string;
@@ -35,6 +37,7 @@ export function LabelFormDialog({
   description,
   initial,
   withColor,
+  withKind,
   nameMaxLength,
   takenCode,
   submitLabel,
@@ -44,6 +47,7 @@ export function LabelFormDialog({
   const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [color, setColor] = useState(initial.color ?? "");
+  const [kind, setKind] = useState<"expense" | "revenue">(initial.kind ?? "expense");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -71,7 +75,7 @@ export function LabelFormDialog({
 
     setSubmitting(true);
     try {
-      await onSubmit({ name: name.trim(), color: withColor ? normalizeHex(color) : null });
+      await onSubmit({ name: name.trim(), color: withColor ? normalizeHex(color) : null, kind: withKind ? kind : null });
       onClose();
     } catch (error) {
       setSubmitting(false);
@@ -121,6 +125,30 @@ export function LabelFormDialog({
               />
             )}
           </FormField>
+
+          {withKind && (
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-2 text-sm font-medium">{t("labels.labelFormDialog.tipo")}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {(["expense", "revenue"] as const).map((option) => (
+                  <label
+                    key={option}
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-md border px-2 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                  >
+                    <input
+                      type="radio"
+                      name="label-kind"
+                      value={option}
+                      checked={kind === option}
+                      onChange={() => setKind(option)}
+                      className="accent-[var(--primary)]"
+                    />
+                    {t(`labels.labelFormDialog.kind.${option}`)}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
 
           {withColor && (
             <FormField id="label-color" label={t("labels.labelFormDialog.cor")} error={errors.color} hint={t("labels.labelFormDialog.escolhaQualquerCorOu")}>

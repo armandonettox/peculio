@@ -11,6 +11,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
 import type { FormContext, FormState } from "./form-model";
 import {
+  amountWithoutSign,
   buildQuickPayload,
   firstErrorColumn,
   hasQuickErrors,
@@ -65,7 +66,15 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
   const [busy, setBusy] = useState(false);
   const fields = useRef<Partial<Record<QuickColumn, Field | null>>>({});
 
-  const searchType = kindOfAmount(row.amount) === "withdrawal" ? "expense" : "revenue";
+  // A categoria vem antes do valor na ordem das colunas: so filtra por tipo depois que o sinal
+  // do valor ja foi digitado, senao uma saida escolhida primeiro sumiria da lista (o campo vazio
+  // conta como entrada, ver kindOfAmount)
+  const categoryKind = kindOfAmount(row.amount) === "withdrawal" ? "expense" : "revenue";
+  const categoryOptions =
+    amountWithoutSign(row.amount) === ""
+      ? categories
+      : categories.filter((category) => category.kind === categoryKind || category.id === row.categoryId);
+  const searchType = categoryKind;
   const search = useDebouncedValue(row.counterpartyName.trim(), 250);
   const suggestions = useCounterparties(searchType, search);
   const hint = kindHint(row.amount);
@@ -227,7 +236,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
             className="min-w-32"
           >
             <option value="">{t("common.semCategoria")}</option>
-            {categories.map((category) => (
+            {categoryOptions.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>

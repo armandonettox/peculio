@@ -70,7 +70,7 @@ it("lista as categorias em ordem alfabetica com a cor de cada uma", async () => 
   ]);
   await screen.findByText("Casa");
   const names = screen.getAllByRole("listitem").map((li) => li.textContent);
-  expect(names).toEqual(["Casa", "Lazer", "Sem cor"]);
+  expect(names).toEqual(["CasaSaída", "LazerSaída", "Sem corSaída"]);
   expect(screen.getByText("Casa")).toHaveAttribute("data-color", "#1E3A6B");
   expect(screen.getByText("Sem cor")).not.toHaveAttribute("data-color");
   expect(screen.getByText("3 categorias")).toBeInTheDocument();
@@ -163,7 +163,7 @@ it("cria uma categoria com a cor digitada", async () => {
 
   expect(await screen.findByText("Lazer")).toHaveAttribute("data-color", "#E11D48");
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(api.mutations()[0].body).toEqual({ name: "Lazer", color: "#E11D48" });
+  expect(api.mutations()[0].body).toEqual({ name: "Lazer", kind: "expense", color: "#E11D48" });
 });
 
 it("cria com uma cor das amostras", async () => {
@@ -173,7 +173,7 @@ it("cria com uma cor das amostras", async () => {
   await userEvent.click(within(dialog()).getByRole("button", { name: "Usar a cor #8B5CF6" }));
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar" }));
   await screen.findByText("Casa");
-  expect(api.mutations()[0].body).toEqual({ name: "Casa", color: "#8B5CF6" });
+  expect(api.mutations()[0].body).toEqual({ name: "Casa", kind: "expense", color: "#8B5CF6" });
 });
 
 it("cria com uma cor qualquer escolhida no seletor do navegador", async () => {
@@ -183,7 +183,7 @@ it("cria com uma cor qualquer escolhida no seletor do navegador", async () => {
   fireEvent.change(within(dialog()).getByLabelText("Escolher a cor no seletor"), { target: { value: "#123abc" } });
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar" }));
   await screen.findByText("Viagem");
-  expect(api.mutations()[0].body).toEqual({ name: "Viagem", color: "#123ABC" });
+  expect(api.mutations()[0].body).toEqual({ name: "Viagem", kind: "expense", color: "#123ABC" });
 });
 
 it("sem cor envia so o nome", async () => {
@@ -192,7 +192,7 @@ it("sem cor envia so o nome", async () => {
   await userEvent.type(nameField(), "Outros");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar" }));
   await screen.findByText("Outros");
-  expect(api.mutations()[0].body).toEqual({ name: "Outros" });
+  expect(api.mutations()[0].body).toEqual({ name: "Outros", kind: "expense" });
 });
 
 it("a previa mostra como a categoria vai aparecer com o nome e a cor escolhidos", async () => {

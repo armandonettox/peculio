@@ -439,6 +439,7 @@
     "email_already_registered": "Este e-mail já está cadastrado.",
     "category_not_found": "Categoria não encontrada.",
     "category_name_taken": "Já existe uma categoria com esse nome.",
+    "category_kind_mismatch": "Esta categoria não vale para este sentido (entrada ou saída).",
     "tag_not_found": "Tag não encontrada.",
     "tag_name_taken": "Já existe uma tag com esse nome.",
     "bill_not_found": "Conta a pagar não encontrada.",
@@ -877,6 +878,11 @@
   "labels": {
     "labelFormDialog": {
       "cor": "Cor",
+      "tipo": "Tipo",
+      "kind": {
+        "expense": "Saída",
+        "revenue": "Entrada"
+      },
       "escolhaQualquerCorOu": "Escolha qualquer cor ou deixe sem cor.",
       "comoVaiAparecer": "Como vai aparecer:",
       "salvando": "Salvando...",

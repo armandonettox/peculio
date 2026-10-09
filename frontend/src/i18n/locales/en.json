@@ -439,6 +439,7 @@
     "email_already_registered": "This email is already registered.",
     "category_not_found": "Category not found.",
     "category_name_taken": "A category with that name already exists.",
+    "category_kind_mismatch": "This category does not apply to this direction (income or expense).",
     "tag_not_found": "Tag not found.",
     "tag_name_taken": "A tag with that name already exists.",
     "bill_not_found": "Bill not found.",
@@ -877,6 +878,11 @@
   "labels": {
     "labelFormDialog": {
       "cor": "Color",
+      "tipo": "Type",
+      "kind": {
+        "expense": "Expense",
+        "revenue": "Income"
+      },
       "escolhaQualquerCorOu": "Choose any color or leave it without one.",
       "comoVaiAparecer": "How it will look:",
       "salvando": "Saving...",

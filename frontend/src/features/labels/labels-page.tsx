@@ -20,13 +20,15 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { LabelFormDialog, type LabelValues } from "./label-form-dialog";
 import { useTranslation } from "react-i18next";
 
-export type LabelItem = { id: string; name: string; color?: string | null };
+export type LabelItem = { id: string; name: string; color?: string | null; kind?: "expense" | "revenue" | null };
 
 type Config = {
   // Cada tipo tem as suas frases completas em labels.<tipo>.* (nada de montar frase juntando o nome do tipo)
   kind: "category" | "tag";
   icon: LucideIcon;
   withColor: boolean;
+  // Categoria tem tipo (saida/entrada); tag nao
+  withKind: boolean;
   nameMaxLength: number;
   takenCode: string;
 };
@@ -109,7 +111,14 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
               key={item.id}
               className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3 text-card-foreground shadow-sm"
             >
-              <LabelChip name={item.name} color={item.color} />
+              <div className="flex items-center gap-2">
+                <LabelChip name={item.name} color={item.color} />
+                {config.withKind && item.kind && (
+                  <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                    {t(`labels.labelFormDialog.kind.${item.kind}`)}
+                  </span>
+                )}
+              </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
@@ -141,6 +150,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
 
   const shared = {
     withColor: config.withColor,
+    withKind: config.withKind,
     nameMaxLength: config.nameMaxLength,
     takenCode: config.takenCode,
     onClose: () => setDialog(null),
@@ -176,7 +186,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
           {...shared}
           title={t(`labels.${config.kind}.newLabel`)}
           description={t(`labels.${config.kind}.createDescription`)}
-          initial={{ name: "", color: null }}
+          initial={{ name: "", color: null, kind: null }}
           submitLabel={t("labels.labelsPage.criar")}
           onSubmit={onCreate}
         />
@@ -186,7 +196,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
           {...shared}
           title={t(`labels.${config.kind}.editTitle`)}
           description={t(`labels.${config.kind}.editDescription`)}
-          initial={{ name: dialog.item.name, color: dialog.item.color ?? null }}
+          initial={{ name: dialog.item.name, color: dialog.item.color ?? null, kind: dialog.item.kind ?? null }}
           submitLabel={t("labels.labelsPage.salvar")}
           onSubmit={(values) => onUpdate(dialog.item, values)}
         />

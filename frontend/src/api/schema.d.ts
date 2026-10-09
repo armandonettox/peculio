@@ -2179,9 +2179,15 @@ export interface components {
         CategoryCreate: {
             /** Color */
             color?: string | null;
+            kind: components["schemas"]["CategoryKind"];
             /** Name */
             name: string;
         };
+        /**
+         * CategoryKind
+         * @enum {string}
+         */
+        CategoryKind: "expense" | "revenue";
         /** CategoryOut */
         CategoryOut: {
             /** Color */
@@ -2196,6 +2202,7 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            kind: components["schemas"]["CategoryKind"];
             /** Name */
             name: string;
         };
@@ -2203,6 +2210,7 @@ export interface components {
         CategoryUpdate: {
             /** Color */
             color?: string | null;
+            kind?: components["schemas"]["CategoryKind"] | null;
             /** Name */
             name?: string | null;
         };
@@ -5353,6 +5361,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                kind?: components["schemas"]["CategoryKind"] | null;
                 limit?: number;
                 offset?: number;
             };

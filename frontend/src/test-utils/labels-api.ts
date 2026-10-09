@@ -1,6 +1,13 @@
 import { http, HttpResponse } from "msw";
 
-export type FakeLabel = { id: string; name: string; color?: string | null; created_at: string };
+export type FakeLabel = {
+  id: string;
+  name: string;
+  color?: string | null;
+  // So categoria tem; tag carrega o campo sem usar, inofensivo
+  kind?: "expense" | "revenue";
+  created_at: string;
+};
 
 let counter = 0;
 
@@ -9,6 +16,7 @@ export function makeLabel(overrides: Partial<FakeLabel> = {}): FakeLabel {
   return {
     id: `10000000-0000-4000-8000-${String(counter).padStart(12, "0")}`,
     name: `Item ${counter}`,
+    kind: "expense",
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
@@ -66,6 +74,7 @@ export function fakeLabelsApi(resource: "categories" | "tags", initial: FakeLabe
       const created = makeLabel({
         name: String(body.name).trim(),
         ...(withColor ? { color: (body.color as string | undefined)?.toUpperCase() ?? null } : {}),
+        ...(withColor ? { kind: (body.kind as "expense" | "revenue" | undefined) ?? "expense" } : {}),
       });
       state.items.push(created);
       return HttpResponse.json(created, { status: 201 });
@@ -81,6 +90,7 @@ export function fakeLabelsApi(resource: "categories" | "tags", initial: FakeLabe
       if (typeof body.name === "string" && taken(body.name, item.id)) return fail({ status: 409, code: takenCode });
       if (typeof body.name === "string") item.name = body.name.trim();
       if ("color" in body) item.color = (body.color as string | null)?.toUpperCase() ?? null;
+      if ("kind" in body) item.kind = body.kind as "expense" | "revenue";
       return HttpResponse.json(item);
     }),
 

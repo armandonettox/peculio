@@ -21,6 +21,7 @@ const CATEGORY_CONFIG = {
   kind: "category",
   icon: Tags,
   withColor: true,
+  withKind: true,
   nameMaxLength: 100,
   takenCode: "category_name_taken",
 } as const;
@@ -29,6 +30,7 @@ const TAG_CONFIG = {
   kind: "tag",
   icon: Tag,
   withColor: false,
+  withKind: false,
   nameMaxLength: 50,
   takenCode: "tag_name_taken",
 } as const;
@@ -44,12 +46,13 @@ function CategoriesTab() {
     <LabelsPage
       config={CATEGORY_CONFIG}
       useList={useCategories}
-      onCreate={({ name, color }) => create.mutateAsync({ name, ...(color ? { color } : {}) })}
-      onUpdate={(item, { name, color }) => {
+      onCreate={({ name, color, kind }) => create.mutateAsync({ name, kind: kind!, ...(color ? { color } : {}) })}
+      onUpdate={(item, { name, color, kind }) => {
         // Manda so o que mudou: omitir a cor nao mexe nela, e null limpa
         const body: CategoryUpdate = {};
         if (name !== item.name) body.name = name;
         if ((color ?? null) !== (item.color ?? null)) body.color = color;
+        if (kind !== item.kind) body.kind = kind!;
         if (Object.keys(body).length === 0) return Promise.resolve();
         return update.mutateAsync({ id: item.id, body });
       }}
