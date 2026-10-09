@@ -1211,6 +1211,7 @@
       "arquivoDoExtratoCsv": "Arquivo do extrato (CSV ou OFX)",
       "trocarArquivo": "Trocar arquivo",
       "escolherArquivo": "Escolher arquivo",
+      "arrasteOuClique": "Arraste o arquivo aqui ou clique para escolher",
       "lendoOArquivo": "Lendo o arquivo...",
       "verPrevia": "Ver prévia",
       "escolhaAContaQueVai": "Escolha a conta que vai receber o extrato.",

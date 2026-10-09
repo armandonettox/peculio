@@ -177,7 +177,7 @@ export function ImportSection() {
     );
   } else {
     content = (
-      <div className="flex max-w-xl flex-col items-start gap-4 rounded-lg border bg-card p-6">
+      <div className="mx-auto flex max-w-xl flex-col items-start gap-4 rounded-lg border bg-card p-6">
         <span className="flex size-12 items-center justify-center rounded-full bg-accent text-positive">
           <CheckCircle2 className="size-6" aria-hidden="true" />
         </span>

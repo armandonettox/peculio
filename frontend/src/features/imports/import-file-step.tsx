@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { formatBytes } from "@/features/attachments/format";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
 type Props = {
@@ -29,6 +30,7 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Errors>({});
+  const [dragOver, setDragOver] = useState(false);
 
   function chooseFile(chosen: File | null) {
     setErrors((current) => ({ ...current, file: undefined }));
@@ -49,7 +51,7 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
 
   return (
     <form
-      className="flex max-w-xl flex-col gap-5"
+      className="mx-auto flex max-w-xl flex-col gap-5"
       onSubmit={(event) => {
         event.preventDefault();
         submit();
@@ -90,7 +92,23 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
         hint={t("imports.importFileStep.ateMbELinhas", { max: IMPORT_MAX_BYTES / (1024 * 1024) })}
       >
         {(props) => (
-          <div className="flex flex-wrap items-center gap-3">
+          <div
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragOver(false);
+              chooseFile(event.dataTransfer.files[0] ?? null);
+            }}
+            className={cn(
+              "flex cursor-pointer flex-col items-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-colors",
+              dragOver ? "border-primary-text bg-accent" : "border-border hover:bg-accent/50",
+            )}
+          >
             <input
               {...props}
               ref={inputRef}
@@ -99,15 +117,25 @@ export function ImportFileStep({ accounts, accountId, onAccountChange, file, onF
               className="sr-only"
               onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
             />
-            <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
-              <FileUp />
+            <FileUp className="size-8 text-muted-foreground" aria-hidden="true" />
+            {file ? (
+              <p className="min-w-0 break-words text-sm">
+                {file.name} <span className="tabular-nums text-muted-foreground">({formatBytes(file.size)})</span>
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("imports.importFileStep.arrasteOuClique")}</p>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={(event) => {
+                event.stopPropagation();
+                inputRef.current?.click();
+              }}
+            >
               {file ? t("imports.importFileStep.trocarArquivo") : t("imports.importFileStep.escolherArquivo")}
             </Button>
-            {file && (
-              <p className="min-w-0 break-words text-sm text-muted-foreground">
-                {file.name} <span className="tabular-nums">({formatBytes(file.size)})</span>
-              </p>
-            )}
           </div>
         )}
       </FormField>

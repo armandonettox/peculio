@@ -1211,6 +1211,7 @@
       "arquivoDoExtratoCsv": "Statement file (CSV or OFX)",
       "trocarArquivo": "Change file",
       "escolherArquivo": "Choose file",
+      "arrasteOuClique": "Drag the file here or click to choose",
       "lendoOArquivo": "Reading the file...",
       "verPrevia": "View preview",
       "escolhaAContaQueVai": "Choose the account that will receive the statement.",
