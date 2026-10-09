@@ -45,8 +45,9 @@ def other_user(client, db_session, email="outra@example.com"):
     return auth_headers(client, email=email)
 
 
-def make_label(client, headers, kind, name):
-    response = client.post(f"{API}/{kind}", json={"name": name}, headers=headers)
+def make_label(client, headers, kind, name, category_kind="expense"):
+    extra = {"kind": category_kind} if kind == "categories" else {}
+    response = client.post(f"{API}/{kind}", json={"name": name, **extra}, headers=headers)
     assert response.status_code == 201, response.text
     return response.json()["id"]
 

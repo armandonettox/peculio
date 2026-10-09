@@ -27,8 +27,8 @@ def make_account(client, headers, name="Nubank"):
     )
 
 
-def make_category(client, headers, name):
-    return post(client, headers, "categories", {"name": name})
+def make_category(client, headers, name, kind="expense"):
+    return post(client, headers, "categories", {"name": name, "kind": kind})
 
 
 def make_tag(client, headers, name):
@@ -244,7 +244,7 @@ def test_any_mode_needs_only_one_trigger_and_all_mode_needs_every_one(client, he
 
 def test_rule_on_a_deposit_matches_the_revenue_side(client, headers):
     account = make_account(client, headers)
-    category = make_category(client, headers, "Salario")
+    category = make_category(client, headers, "Salario", kind="revenue")
     make_rule(
         client, headers, "Salario", [{"field": "counterparty", "op": "contains", "value": "empresa"}],
         [{"kind": "set_category", "target_id": category}],
@@ -378,7 +378,7 @@ def test_each_split_of_a_group_is_decided_on_its_own(client, headers):
 
 def test_budget_on_a_deposit_is_skipped_but_the_rest_is_filled(client, headers):
     account = make_account(client, headers)
-    category = make_category(client, headers, "Salario")
+    category = make_category(client, headers, "Salario", kind="revenue")
     budget = make_budget(client, headers)
     make_rule(
         client, headers, "Entrada", [{"field": "type", "op": "is", "value": "deposit"}],

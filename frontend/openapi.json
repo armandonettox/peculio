@@ -1506,6 +1506,9 @@
             ],
             "title": "Color"
           },
+          "kind": {
+            "$ref": "#/components/schemas/CategoryKind"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -1514,10 +1517,19 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "kind"
         ],
         "title": "CategoryCreate",
         "type": "object"
+      },
+      "CategoryKind": {
+        "enum": [
+          "expense",
+          "revenue"
+        ],
+        "title": "CategoryKind",
+        "type": "string"
       },
       "CategoryOut": {
         "properties": {
@@ -1542,6 +1554,9 @@
             "title": "Id",
             "type": "string"
           },
+          "kind": {
+            "$ref": "#/components/schemas/CategoryKind"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -1550,6 +1565,7 @@
         "required": [
           "id",
           "name",
+          "kind",
           "color",
           "created_at"
         ],
@@ -1570,6 +1586,16 @@
               }
             ],
             "title": "Color"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoryKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "name": {
             "anyOf": [
@@ -8864,6 +8890,22 @@
                 }
               ],
               "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CategoryKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
             }
           },
           {

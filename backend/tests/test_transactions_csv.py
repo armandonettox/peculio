@@ -103,7 +103,7 @@ def test_lines_end_with_crlf_and_decimal_uses_a_comma(client, headers):
 
 def test_row_content(client, headers):
     account = make_account(client, headers)
-    category = make_named(client, headers, "categories", "Mercado")
+    category = make_named(client, headers, "categories", "Mercado", kind="expense")
     tag_b = make_named(client, headers, "tags", "viagem")
     tag_a = make_named(client, headers, "tags", "Casa")
     budget = make_named(client, headers, "budgets", "Casa mensal", currency_code="BRL", amount="900", period="monthly")
@@ -228,7 +228,7 @@ def test_money_is_a_number_never_prefixed(value, places, expected):
 
 def test_every_text_column_is_protected_in_the_file(client, headers):
     account = make_account(client, headers, name="=Conta")
-    category = make_named(client, headers, "categories", "+Categoria")
+    category = make_named(client, headers, "categories", "+Categoria", kind="expense")
     tag = make_named(client, headers, "tags", "@tag")
     budget = make_named(client, headers, "budgets", "-Orcamento", currency_code="BRL", amount="900", period="monthly")
     create(
@@ -310,8 +310,8 @@ def csv_rows_vs_list(client, headers, **params):
 def test_csv_follows_the_same_filters_as_the_list(client, headers):
     first = make_account(client, headers)
     second = make_account(client, headers, name="Poupanca")
-    category = make_named(client, headers, "categories", "Mercado")
-    other_category = make_named(client, headers, "categories", "Lazer")
+    category = make_named(client, headers, "categories", "Mercado", kind="expense")
+    other_category = make_named(client, headers, "categories", "Lazer", kind="expense")
     tag = make_named(client, headers, "tags", "viagem")
     budget = make_named(client, headers, "budgets", "Casa", currency_code="BRL", amount="900", period="monthly")
     create(client, headers, first, description="Feira de domingo", amount="10.00", date="2026-01-05", category_id=category)
@@ -344,7 +344,7 @@ def test_csv_follows_the_same_filters_as_the_list(client, headers):
 def test_filter_matches_the_group_but_the_file_has_all_its_splits(client, headers):
     """Igual a lista: o grupo entra se um split atende, e todos os splits dele saem."""
     account = make_account(client, headers)
-    category = make_named(client, headers, "categories", "Mercado")
+    category = make_named(client, headers, "categories", "Mercado", kind="expense")
     body = {
         "title": "Compra dividida",
         "splits": [

@@ -45,7 +45,10 @@ class World:
         ]:
             body = {"name": name, "type": kind, "currency_code": currency, "opening_balance": "1000"}
             self.accounts[name] = post(client, headers, "/api/v1/accounts", body)["id"]
-        self.categories = {n: post(client, headers, "/api/v1/categories", {"name": n})["id"] for n in ["Mercado", "Lazer", "Salario"]}
+        self.categories = {
+            n: post(client, headers, "/api/v1/categories", {"name": n, "kind": kind})["id"]
+            for n, kind in [("Mercado", "expense"), ("Lazer", "expense"), ("Salario", "revenue")]
+        }
         self.tags = {n: post(client, headers, "/api/v1/tags", {"name": n})["id"] for n in ["viagem", "trabalho"]}
         budget = {"name": "Casa", "currency_code": "BRL", "amount": "2000", "period": "monthly"}
         self.budgets = {"Casa": post(client, headers, "/api/v1/budgets", budget)["id"]}
@@ -537,7 +540,7 @@ def test_number_of_queries_does_not_grow_with_the_data(client, headers, path):
     small = count_statements(client, headers, path, **filters)
     for index in range(12):
         w.add("expense", f"2026-0{1 + index % 4}-2{index % 8}", "10.00", category="Mercado", tags=["viagem"], budget="Casa")
-        w.add("income", "2026-02-01", "5.00", category="Mercado")
+        w.add("income", "2026-02-01", "5.00", category="Salario")
     assert count_statements(client, headers, path, **filters) == small
     # Autenticacao, quatro conferencias de dono, o agrupamento (ate dois) e as casas decimais
     assert small <= 9

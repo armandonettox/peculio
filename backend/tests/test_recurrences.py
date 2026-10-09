@@ -410,7 +410,7 @@ def test_resuming_today_keeps_todays_occurrence(client, headers, account_id):
 
 
 def test_a_failing_occurrence_stops_there_and_keeps_the_reason(client, headers, account_id, db_session):
-    category = client.post("/api/v1/categories", json={"name": "Moradia"}, headers=headers).json()["id"]
+    category = client.post("/api/v1/categories", json={"name": "Moradia", "kind": "expense"}, headers=headers).json()["id"]
     body = make(
         client, headers, account_id, frequency="daily", first_date=days(1),
         template=template(account_id, category_id=category),
@@ -426,7 +426,7 @@ def test_a_failing_occurrence_stops_there_and_keeps_the_reason(client, headers, 
 
 
 def test_fixing_the_template_resumes_without_skipping_any_date(client, headers, account_id, db_session):
-    category = client.post("/api/v1/categories", json={"name": "Moradia"}, headers=headers).json()["id"]
+    category = client.post("/api/v1/categories", json={"name": "Moradia", "kind": "expense"}, headers=headers).json()["id"]
     body = make(
         client, headers, account_id, frequency="daily", first_date=days(1),
         template=template(account_id, category_id=category),
@@ -443,7 +443,7 @@ def test_fixing_the_template_resumes_without_skipping_any_date(client, headers, 
 
 
 def test_one_failing_recurrence_does_not_block_the_others(client, headers, account_id, db_session):
-    category = client.post("/api/v1/categories", json={"name": "Moradia"}, headers=headers).json()["id"]
+    category = client.post("/api/v1/categories", json={"name": "Moradia", "kind": "expense"}, headers=headers).json()["id"]
     bad = make(
         client, headers, account_id, name="Quebrada", first_date=days(1),
         template=template(account_id, category_id=category),

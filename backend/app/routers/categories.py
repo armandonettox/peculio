@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.errors import ErrorCode
 from app.core.pagination import Page, PageParams
-from app.models.category import Category
+from app.models.category import Category, CategoryKind
 from app.models.user import User
 from app.schemas.labels import CategoryCreate, CategoryOut, CategoryUpdate
 from app.services import named
@@ -25,7 +25,7 @@ SPEC = named.NamedResource(
 
 @router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
 def create_category(data: CategoryCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    category = named.create(db, SPEC, user.id, name=data.name, color=data.color)
+    category = named.create(db, SPEC, user.id, name=data.name, kind=data.kind, color=data.color)
     db.commit()
     db.refresh(category)
     return category
@@ -35,10 +35,12 @@ def create_category(data: CategoryCreate, user: User = Depends(get_current_user)
 def list_categories(
     params: PageParams = Depends(),
     q: str | None = None,
+    kind: CategoryKind | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return named.list_page(db, SPEC, user.id, params, q)
+    extra_where = (Category.kind == kind,) if kind is not None else ()
+    return named.list_page(db, SPEC, user.id, params, q, extra_where)
 
 
 @router.get("/{category_id}", response_model=CategoryOut)
@@ -58,6 +60,8 @@ def update_category(
     changes = data.model_dump(exclude_unset=True)
     if "name" in changes and changes["name"] is None:
         changes.pop("name")
+    if "kind" in changes and changes["kind"] is None:
+        changes.pop("kind")
     named.update(db, SPEC, category, changes)
     db.commit()
     db.refresh(category)

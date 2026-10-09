@@ -17,6 +17,8 @@ RESOURCES = {
         "taken": "category_name_taken",
         "missing": "category_not_found",
         "max_name": 100,
+        # Campos extras que so categoria precisa para criar (tag nao tem kind)
+        "create_extra": {"kind": "expense"},
     },
     "tags": {
         "url": "/api/v1/tags",
@@ -24,6 +26,7 @@ RESOURCES = {
         "taken": "tag_name_taken",
         "missing": "tag_not_found",
         "max_name": 50,
+        "create_extra": {},
     },
 }
 
@@ -45,7 +48,7 @@ def other_headers(client, db_session, email="outra@example.com"):
 
 
 def create(client, res, headers, name="Mercado", **extra):
-    return client.post(res["url"], json={"name": name, **extra}, headers=headers)
+    return client.post(res["url"], json={"name": name, **res["create_extra"], **extra}, headers=headers)
 
 
 # ---------- Criar ----------
@@ -109,7 +112,7 @@ def test_database_itself_refuses_duplicates_ignoring_case(client, res, headers, 
     """A regra nao depende do codigo da API: o banco garante, mesmo com duas requisicoes juntas."""
     create(client, res, headers, name="Mercado")
     existing = db_session.query(res["model"]).one()
-    db_session.add(res["model"](user_id=existing.user_id, name="MERCADO"))
+    db_session.add(res["model"](user_id=existing.user_id, name="MERCADO", **res["create_extra"]))
     with pytest.raises(IntegrityError):
         db_session.flush()
     db_session.rollback()

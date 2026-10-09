@@ -35,8 +35,8 @@ def account_id(client, headers):
     return make_account(client, headers)
 
 
-def make_category(client, headers, name="Mercado"):
-    response = client.post(f"{API}/categories", json={"name": name}, headers=headers)
+def make_category(client, headers, name="Mercado", kind="expense"):
+    response = client.post(f"{API}/categories", json={"name": name, "kind": kind}, headers=headers)
     assert response.status_code == 201, response.text
     return response.json()["id"]
 

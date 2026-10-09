@@ -185,8 +185,8 @@ def test_withdrawal_without_any_counterparty_is_rejected(client, headers):
 # ---------- Divisao em varias categorias (splits) ----------
 
 
-def make_category(client, headers, name="Mercado"):
-    return client.post("/api/v1/categories", json={"name": name}, headers=headers).json()["id"]
+def make_category(client, headers, name="Mercado", kind="expense"):
+    return client.post("/api/v1/categories", json={"name": name, "kind": kind}, headers=headers).json()["id"]
 
 
 def test_split_transaction_with_two_categories(client, headers):

@@ -1,10 +1,11 @@
 """Comportamento comum de categorias e tags: itens com nome unico por usuario."""
 
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -59,8 +60,15 @@ def delete(db: Session, item) -> None:
     db.flush()
 
 
-def list_page(db: Session, spec: NamedResource, user_id: uuid.UUID, params: PageParams, q: str | None):
-    statement = select(spec.model).where(spec.model.user_id == user_id)
+def list_page(
+    db: Session,
+    spec: NamedResource,
+    user_id: uuid.UUID,
+    params: PageParams,
+    q: str | None,
+    extra_where: Sequence[ColumnElement[bool]] = (),
+):
+    statement = select(spec.model).where(spec.model.user_id == user_id, *extra_where)
     if q and q.strip():
         # autoescape: um "%" ou "_" digitado na busca e texto comum, nao curinga
         statement = statement.where(func.lower(spec.model.name).contains(q.strip().lower(), autoescape=True))

@@ -539,7 +539,7 @@ def test_confirm_in_a_foreign_currency_account_uses_its_currency(client, headers
 
 
 def test_confirm_runs_the_rules_like_any_new_transaction(client, headers, account_id):
-    category = client.post(f"{API}/categories", json={"name": "Mercado"}, headers=headers).json()["id"]
+    category = client.post(f"{API}/categories", json={"name": "Mercado", "kind": "expense"}, headers=headers).json()["id"]
     rule = {
         "name": "Mercado",
         "triggers": [{"field": "description", "op": "contains", "value": "mercado"}],

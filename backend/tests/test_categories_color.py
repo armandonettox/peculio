@@ -15,7 +15,7 @@ def headers(client):
 
 
 def create(client, headers, **body):
-    return client.post(URL, json={"name": "Mercado", **body}, headers=headers)
+    return client.post(URL, json={"name": "Mercado", "kind": "expense", **body}, headers=headers)
 
 
 def test_category_has_no_color_by_default(client, headers):
@@ -64,7 +64,10 @@ def test_database_refuses_an_invalid_color(client, headers, db_session):
     owner = db_session.query(Category).one().user_id
     with pytest.raises(IntegrityError):
         db_session.execute(
-            text("INSERT INTO categories (id, user_id, name, color) VALUES (gen_random_uuid(), :u, 'X', 'verde')"),
+            text(
+                "INSERT INTO categories (id, user_id, name, kind, color) "
+                "VALUES (gen_random_uuid(), :u, 'X', 'expense', 'verde')"
+            ),
             {"u": owner},
         )
     db_session.rollback()

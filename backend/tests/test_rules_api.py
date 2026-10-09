@@ -21,8 +21,8 @@ def other_headers(client, headers, db_session):
     return auth_headers(client, email="outra@example.com")
 
 
-def make_category(client, headers, name="Mercado"):
-    return client.post(f"{API}/categories", json={"name": name}, headers=headers).json()["id"]
+def make_category(client, headers, name="Mercado", kind="expense"):
+    return client.post(f"{API}/categories", json={"name": name, "kind": kind}, headers=headers).json()["id"]
 
 
 def make_tag(client, headers, name="fixo"):

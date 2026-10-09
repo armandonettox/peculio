@@ -33,8 +33,8 @@ def make_account(client, headers, name="Nubank"):
     )
 
 
-def make_category(client, headers, name):
-    return post(client, headers, "categories", {"name": name})
+def make_category(client, headers, name, kind="expense"):
+    return post(client, headers, "categories", {"name": name, "kind": kind})
 
 
 def make_rule(client, headers, name, text, actions, **extra):
@@ -165,8 +165,8 @@ def test_bill_is_linked_and_invalid_targets_are_skipped(client, headers):
     saved_expense = get_split(client, headers, expense)
     assert (saved_expense["bill_id"], saved_expense["budget_id"], saved_expense["category_id"]) == (bill, budget, category)
     saved_deposit = get_split(client, headers, deposit)
-    # Orcamento e conta a pagar nao valem para entradas, mas a categoria vale
-    assert (saved_deposit["bill_id"], saved_deposit["budget_id"], saved_deposit["category_id"]) == (None, None, category)
+    # Nenhum dos tres vale para a entrada: orcamento e conta a pagar nunca valem, e a categoria e de saida
+    assert (saved_deposit["bill_id"], saved_deposit["budget_id"], saved_deposit["category_id"]) == (None, None, None)
 
 
 def test_counterparty_account_and_type_triggers_work_on_old_transactions(client, headers):

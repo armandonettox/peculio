@@ -4,6 +4,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
+from app.models.category import CategoryKind
+
 # Cor no formato #RRGGBB; a API devolve sempre em maiusculas
 Color = Annotated[str, StringConstraints(pattern=r"^#[0-9A-Fa-f]{6}$")]
 
@@ -22,6 +24,7 @@ class CategoryCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1, max_length=100)
+    kind: CategoryKind
     color: Color | None = None
 
     _strip_name = field_validator("name")(_strip)
@@ -36,6 +39,9 @@ class CategoryUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str | None = Field(default=None, min_length=1, max_length=100)
+    # Trocar o tipo de uma categoria ja usada nao desliga ela dos lancamentos antigos (o tipo so
+    # vale para lancamentos novos); a pessoa decide se quer mesmo mudar.
+    kind: CategoryKind | None = None
     color: Color | None = None
 
     _strip_name = field_validator("name")(_strip)
@@ -51,6 +57,7 @@ class CategoryOut(BaseModel):
 
     id: uuid.UUID
     name: str
+    kind: CategoryKind
     color: str | None
     created_at: datetime
 

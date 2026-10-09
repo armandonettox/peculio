@@ -14,7 +14,7 @@ from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams
 from app.models.account import Account, AccountType
 from app.models.attachment import Attachment
-from app.models.category import Category
+from app.models.category import Category, CategoryKind
 from app.models.currency import Currency
 from app.models.tag import Tag
 from app.models.transaction import Transaction, TransactionSplit, TransactionType, transaction_split_tags
@@ -92,6 +92,16 @@ def get_owned_category(db: Session, user_id: uuid.UUID, category_id: uuid.UUID) 
     if not category:
         raise AppError(404, ErrorCode.CATEGORY_NOT_FOUND, "Categoria nao encontrada")
     return category
+
+
+# Saida usa categoria de saida, entrada usa categoria de entrada; transferencia aceita as duas
+# (nao e nem uma coisa nem outra, e so dinheiro mudando de conta)
+CATEGORY_KIND_FOR_TYPE = {"withdrawal": CategoryKind.expense, "deposit": CategoryKind.revenue}
+
+
+def _category_kind_matches(category: Category, split_type: str) -> bool:
+    expected = CATEGORY_KIND_FOR_TYPE.get(split_type)
+    return expected is None or category.kind == expected
 
 
 def get_owned_tags(db: Session, user_id: uuid.UUID, tag_ids: Sequence[uuid.UUID]) -> list[Tag]:
@@ -224,8 +234,8 @@ def vet_rule_fill(db: Session, user: User, data: TransactionSplitCreate, destina
     completa (as que ja tinha mais as novas)."""
     changes: dict = {}
     if fill.category_id is not None:
-        owned = db.scalar(select(Category.id).where(Category.id == fill.category_id, Category.user_id == user.id))
-        if owned is not None:
+        owned = db.scalar(select(Category).where(Category.id == fill.category_id, Category.user_id == user.id))
+        if owned is not None and _category_kind_matches(owned, data.type):
             changes["category_id"] = fill.category_id
     if fill.budget_id is not None:
         try:
@@ -304,6 +314,14 @@ def _build_split(
     category = None
     if data.category_id is not None:
         category = get_owned_category(db, user.id, data.category_id)
+        if not _category_kind_matches(category, data.type):
+            expected = CATEGORY_KIND_FOR_TYPE[data.type]
+            message = (
+                "Esta categoria e de entrada, escolha uma categoria de saida"
+                if expected == CategoryKind.expense
+                else "Esta categoria e de saida, escolha uma categoria de entrada"
+            )
+            raise AppError(400, ErrorCode.CATEGORY_KIND_MISMATCH, message)
     tags = get_owned_tags(db, user.id, data.tag_ids)
     budget = _check_budget(db, user, data, destination_id) if data.budget_id is not None else None
     bill = _resolve_bill(db, user, data, destination_id)
