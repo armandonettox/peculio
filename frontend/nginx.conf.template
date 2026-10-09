@@ -1,3 +1,12 @@
+# Gerado a partir deste template quando o container sobe (${BACKEND_URL} vem do ambiente).
+#
+# O nome do backend e resolvido a cada requisicao, nao so quando o nginx sobe: em producao
+# (podman-compose na VPS) os containers do mesmo pod nao compartilham rede, e se o backend
+# reiniciar e ganhar outro IP, um proxy_pass fixo ficaria devolvendo 502 ate o frontend
+# tambem reiniciar. NGINX_LOCAL_RESOLVERS e preenchida pela imagem a partir do
+# /etc/resolv.conf do container (ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 no Dockerfile).
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
 server {
   listen 80;
   root /usr/share/nginx/html;
@@ -9,7 +18,9 @@ server {
   # Chamadas da API vao para o container do backend
   location /api/ {
     include /etc/nginx/security-headers.conf;
-    proxy_pass http://backend:8000;
+    # proxy_pass com variavel: o nginx resolve o nome em runtime (ver `resolver` acima)
+    set $backend ${BACKEND_URL};
+    proxy_pass $backend;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     # Sobrescreve o cabecalho com o IP de quem conectou. Nao usar $proxy_add_x_forwarded_for:
@@ -22,7 +33,8 @@ server {
   # Contato de seguranca da instalacao (RFC 9116). O administrador define na tela de Configuracoes e o backend publica aqui.
   location = /.well-known/security.txt {
     include /etc/nginx/security-headers.conf;
-    proxy_pass http://backend:8000;
+    set $backend ${BACKEND_URL};
+    proxy_pass $backend;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $remote_addr;
