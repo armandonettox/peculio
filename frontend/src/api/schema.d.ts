@@ -1694,6 +1694,8 @@ export interface components {
             account_number?: string | null;
             /** Closing Day */
             closing_day?: number | null;
+            /** Credit Limit */
+            credit_limit?: number | string | null;
             /** Currency Code */
             currency_code: string;
             /** Due Day */
@@ -1738,6 +1740,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Credit Limit */
+            credit_limit: string | null;
             /** Currency Code */
             currency_code: string;
             /** Due Day */
@@ -1780,6 +1784,8 @@ export interface components {
             active?: boolean | null;
             /** Closing Day */
             closing_day?: number | null;
+            /** Credit Limit */
+            credit_limit?: number | string | null;
             /** Due Day */
             due_day?: number | null;
             /** Iban */

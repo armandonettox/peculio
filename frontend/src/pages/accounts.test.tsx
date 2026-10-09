@@ -665,7 +665,12 @@ it("trocar o papel para fora de cartao de credito limpa o fechamento e o vencime
   await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
-  expect(api.mutations()[0].body).toEqual({ role: "checking", closing_day: null, due_day: null });
+  expect(api.mutations()[0].body).toEqual({
+    role: "checking",
+    closing_day: null,
+    due_day: null,
+    credit_limit: null,
+  });
 });
 
 it("o link Ver fatura so aparece para cartao de credito e leva para a tela da fatura", async () => {

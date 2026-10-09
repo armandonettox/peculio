@@ -28,6 +28,22 @@
             ],
             "title": "Closing Day"
           },
+          "credit_limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Limit"
+          },
           "currency_code": {
             "maxLength": 3,
             "minLength": 3,
@@ -172,6 +188,18 @@
             "title": "Created At",
             "type": "string"
           },
+          "credit_limit": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Limit"
+          },
           "currency_code": {
             "title": "Currency Code",
             "type": "string"
@@ -266,6 +294,7 @@
           "notes",
           "closing_day",
           "due_day",
+          "credit_limit",
           "opening_balance",
           "opening_balance_date",
           "balance",
@@ -338,6 +367,22 @@
               }
             ],
             "title": "Closing Day"
+          },
+          "credit_limit": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Limit"
           },
           "due_day": {
             "anyOf": [

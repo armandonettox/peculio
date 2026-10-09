@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatMoney, isNegativeMoney, negateMoney } from "@/lib/money";
+import { formatMoney, isNegativeMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { roleLabel } from "./labels";
 import { useTranslation } from "react-i18next";
@@ -47,6 +47,19 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
           {formatMoney(shown, account.currency_code)}
         </p>
         {isLiability && <p className="text-xs text-muted-foreground">{t("accounts.accountCard.valorDevido")}</p>}
+        {account.role === "credit_card" && account.credit_limit != null && (
+          <p className="text-xs text-muted-foreground">
+            {t("accounts.accountCard.limiteDisponivel", {
+              // O saldo ja e negativo quando ha divida (inclusive parcelas futuras, ja contadas por
+              // inteiro), entao somar com o limite desconta sozinho
+              disponivel: formatMoney(
+                sumMoney([account.credit_limit, account.balance], placesOf(account.currency_code)),
+                account.currency_code,
+              ),
+              limite: formatMoney(account.credit_limit, account.currency_code),
+            })}
+          </p>
+        )}
       </div>
 
       <DropdownMenu>

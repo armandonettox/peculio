@@ -69,6 +69,7 @@
     },
     "accounts": {
       "novaConta": "New account",
+      "novoCartao": "New card",
       "nenhumaContaAinda": "No accounts yet",
       "nenhumaContaAtiva": "No active accounts",
       "cadastreSuaPrimeiraConta": "Add your first account to get started.",
@@ -608,13 +609,16 @@
       "arquivar": "Archive",
       "restaurar": "Restore",
       "verFatura": "View statement",
+      "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
       "actionsFor": "Actions for account {{name}}"
     },
     "accountFormDialog": {
       "editarConta": "Edit account",
       "novaConta": "New account",
+      "novoCartao": "New card",
       "altereOsDadosDa": "Change the account's details. The type and currency can't change.",
       "cadastreUmaContaOnde": "Add an account (where you keep money) or a debt (what you owe).",
+      "cadastreUmCartaoDe": "Add a credit card, with limit, closing day and due day.",
       "categoriaDaConta": "Account category",
       "valorQueVoceAinda": "The amount you still owe today. Leave blank if you'd rather not say.",
       "quantoVoceTemHoje": "How much you have in this account today. Leave blank to start from zero.",
@@ -624,6 +628,7 @@
       "salvando": "Saving...",
       "salvar": "Save",
       "criarConta": "Create account",
+      "criarCartao": "Create card",
       "openingDebt": "How much you owe",
       "openingBalance": "Opening balance",
       "nameRequired": "Enter the account name.",
@@ -633,7 +638,10 @@
       "diaDeVencimento": "Due day",
       "diaDeFechamentoHint": "Day of the month the statement closes. Purchases after it fall into the next statement.",
       "diaDeVencimentoHint": "Day of the month the statement is due.",
-      "diaInvalido": "Enter a day between 1 and 31."
+      "diaInvalido": "Enter a day between 1 and 31.",
+      "limite": "Limit",
+      "limiteHint": "Total credit limit. Leave blank if you don't want to track it.",
+      "limiteInvalido": "Enter a limit greater than zero."
     },
     "deleteAccountDialog": {
       "excluirConta": "Delete account",

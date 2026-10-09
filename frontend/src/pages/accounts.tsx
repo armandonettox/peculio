@@ -1,4 +1,4 @@
-import { Landmark, Plus } from "lucide-react";
+import { CreditCard, Landmark, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { useAccounts, useCurrencies, useUpdateAccount, type Account } from "@/api/accounts";
@@ -14,7 +14,12 @@ import { totalsByCurrency } from "@/features/accounts/totals";
 import { formatMoney, negateMoney } from "@/lib/money";
 import { useTranslation } from "react-i18next";
 
-type DialogState = { kind: "create" } | { kind: "edit"; account: Account } | { kind: "delete"; account: Account } | null;
+type DialogState =
+  | { kind: "create" }
+  | { kind: "create-card" }
+  | { kind: "edit"; account: Account }
+  | { kind: "delete"; account: Account }
+  | null;
 
 function Totals({ label, totals }: { label: string; totals: { currency: string; total: string }[] }) {
   if (totals.length === 0) return null;
@@ -58,6 +63,12 @@ export default function AccountsPage() {
     <Button onClick={() => setDialog({ kind: "create" })}>
       <Plus />
       {t("pages.accounts.novaConta")}
+    </Button>
+  );
+  const newCardButton = (
+    <Button variant="outline" onClick={() => setDialog({ kind: "create-card" })}>
+      <CreditCard />
+      {t("pages.accounts.novoCartao")}
     </Button>
   );
 
@@ -154,7 +165,16 @@ export default function AccountsPage() {
 
   return (
     <>
-      <PageHeader title={t("pages.accounts.contas")} description={t("pages.accounts.ondeEstaOSeu")} actions={newAccountButton} />
+      <PageHeader
+        title={t("pages.accounts.contas")}
+        description={t("pages.accounts.ondeEstaOSeu")}
+        actions={
+          <div className="flex gap-2">
+            {newCardButton}
+            {newAccountButton}
+          </div>
+        }
+      />
 
       <label className="mb-6 flex w-fit cursor-pointer items-center gap-2 text-sm">
         <input
@@ -175,6 +195,7 @@ export default function AccountsPage() {
       {content}
 
       {dialog?.kind === "create" && <AccountFormDialog onClose={() => setDialog(null)} />}
+      {dialog?.kind === "create-card" && <AccountFormDialog presetCreditCard onClose={() => setDialog(null)} />}
       {dialog?.kind === "edit" && <AccountFormDialog account={dialog.account} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && <DeleteAccountDialog account={dialog.account} onClose={() => setDialog(null)} />}
     </>

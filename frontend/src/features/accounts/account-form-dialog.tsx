@@ -24,7 +24,7 @@ import { parseMoneyInput, placesOf } from "@/lib/money";
 import { DEFAULT_ROLE, kindLabel, roleLabel, ROLES_BY_KIND, type AccountKind } from "./labels";
 import { useTranslation } from "react-i18next";
 
-type Field = "name" | "opening" | "openingDate" | "closingDay" | "dueDay";
+type Field = "name" | "opening" | "openingDate" | "closingDay" | "dueDay" | "creditLimit";
 type Errors = Partial<Record<Field, string>>;
 type Role = NonNullable<Account["role"]>;
 
@@ -39,6 +39,7 @@ const SERVER_FIELDS: Record<string, Field> = {
   opening_balance_date: "openingDate",
   closing_day: "closingDay",
   due_day: "dueDay",
+  credit_limit: "creditLimit",
 };
 
 // 1 a 31, sem casas decimais nem espaco
@@ -51,10 +52,12 @@ function parseDay(text: string): number | null {
 type Props = {
   // Sem `account` o dialogo cria; com `account` edita
   account?: Account;
+  // Pula o tipo/papel: cria direto como cartao de credito. So vale na criacao.
+  presetCreditCard?: boolean;
   onClose: () => void;
 };
 
-export function AccountFormDialog({ account, onClose }: Props) {
+export function AccountFormDialog({ account, presetCreditCard = false, onClose }: Props) {
   const { t } = useTranslation();
   const editing = account !== undefined;
   const { user } = useAuth();
@@ -64,7 +67,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
 
   const [kind, setKind] = useState<AccountKind>(account?.type === "liability" ? "liability" : "asset");
   const [name, setName] = useState(account?.name ?? "");
-  const [role, setRole] = useState<Role>(account?.role ?? DEFAULT_ROLE[kind]);
+  const [role, setRole] = useState<Role>(account?.role ?? (presetCreditCard ? "credit_card" : DEFAULT_ROLE[kind]));
   const [currency, setCurrency] = useState(account?.currency_code ?? user?.default_currency ?? "BRL");
   // Conta criada sem saldo inicial nao tem data: o campo comeca vazio
   const hadOpening = account?.opening_balance_date != null;
@@ -75,6 +78,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
   const [inEnvelopes, setInEnvelopes] = useState(account?.in_envelopes ?? true);
   const [closingDay, setClosingDay] = useState(account?.closing_day != null ? String(account.closing_day) : "");
   const [dueDay, setDueDay] = useState(account?.due_day != null ? String(account.due_day) : "");
+  const [creditLimit, setCreditLimit] = useState(account?.credit_limit != null ? toInputText(account.credit_limit) : "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -105,7 +109,7 @@ export function AccountFormDialog({ account, onClose }: Props) {
     if (error.code === "invalid_amount") serverErrors.opening = message;
 
     setErrors(serverErrors);
-    const first = (["name", "opening", "openingDate", "closingDay", "dueDay"] as const).find(
+    const first = (["name", "opening", "openingDate", "closingDay", "dueDay", "creditLimit"] as const).find(
       (field) => serverErrors[field],
     );
     if (first) document.getElementById(`account-${first}`)?.focus();
@@ -130,14 +134,21 @@ export function AccountFormDialog({ account, onClose }: Props) {
     }
     let closingDayValue: number | null = null;
     let dueDayValue: number | null = null;
+    let creditLimitValue: string | null = null;
     if (role === "credit_card") {
       closingDayValue = parseDay(closingDay);
       if (closingDayValue === null) found.closingDay = t("accounts.accountFormDialog.diaInvalido");
       dueDayValue = parseDay(dueDay);
       if (dueDayValue === null) found.dueDay = t("accounts.accountFormDialog.diaInvalido");
+      if (creditLimit.trim()) {
+        const parsed = parseMoneyInput(creditLimit, places);
+        if (!parsed.ok || parsed.value === "0" || parsed.value.startsWith("-")) {
+          found.creditLimit = t("accounts.accountFormDialog.limiteInvalido");
+        } else creditLimitValue = parsed.value;
+      }
     }
     setErrors(found);
-    const firstInvalid = (["name", "opening", "openingDate", "closingDay", "dueDay"] as const).find(
+    const firstInvalid = (["name", "opening", "openingDate", "closingDay", "dueDay", "creditLimit"] as const).find(
       (field) => found[field],
     );
     if (firstInvalid) {
@@ -157,7 +168,9 @@ export function AccountFormDialog({ account, onClose }: Props) {
           // Zero nao cria transacao de saldo inicial no backend: e o mesmo que nao informar
           opening_balance: openingValue ?? "0",
           ...(openingValue !== null ? { opening_balance_date: openingDate } : {}),
-          ...(role === "credit_card" ? { closing_day: closingDayValue, due_day: dueDayValue } : {}),
+          ...(role === "credit_card"
+            ? { closing_day: closingDayValue, due_day: dueDayValue, credit_limit: creditLimitValue }
+            : {}),
         };
         await create.mutateAsync(body);
       } else {
@@ -172,10 +185,12 @@ export function AccountFormDialog({ account, onClose }: Props) {
             body.closing_day = closingDayValue;
             body.due_day = dueDayValue;
           }
-        } else if (account.closing_day !== null || account.due_day !== null) {
-          // Saiu de cartao de credito: limpa fechamento/vencimento
+          if (creditLimitValue !== account.credit_limit) body.credit_limit = creditLimitValue;
+        } else if (account.closing_day !== null || account.due_day !== null || account.credit_limit !== null) {
+          // Saiu de cartao de credito: limpa fechamento/vencimento/limite
           body.closing_day = null;
           body.due_day = null;
+          body.credit_limit = null;
         }
         if (openingValue !== null) {
           if (opening !== initialOpening || openingDate !== account.opening_balance_date) {
@@ -199,18 +214,26 @@ export function AccountFormDialog({ account, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? t("accounts.accountFormDialog.editarConta") : t("accounts.accountFormDialog.novaConta")}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? t("accounts.accountFormDialog.editarConta")
+              : presetCreditCard
+                ? t("accounts.accountFormDialog.novoCartao")
+                : t("accounts.accountFormDialog.novaConta")}
+          </DialogTitle>
           <DialogDescription>
             {editing
               ? t("accounts.accountFormDialog.altereOsDadosDa")
-              : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
+              : presetCreditCard
+                ? t("accounts.accountFormDialog.cadastreUmCartaoDe")
+                : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
 
-          {!editing && (
+          {!editing && !presetCreditCard && (
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
               <div className="grid grid-cols-2 gap-2">
@@ -249,17 +272,19 @@ export function AccountFormDialog({ account, onClose }: Props) {
           </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="account-role" label={t("accounts.accountFormDialog.categoriaDaConta")}>
-              {(props) => (
-                <Select {...props} value={role} onChange={(event) => setRole(event.target.value as Role)}>
-                  {ROLES_BY_KIND[kind].map((option) => (
-                    <option key={option} value={option}>
-                      {roleLabel(option)}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </FormField>
+            {!presetCreditCard && (
+              <FormField id="account-role" label={t("accounts.accountFormDialog.categoriaDaConta")}>
+                {(props) => (
+                  <Select {...props} value={role} onChange={(event) => setRole(event.target.value as Role)}>
+                    {ROLES_BY_KIND[kind].map((option) => (
+                      <option key={option} value={option}>
+                        {roleLabel(option)}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </FormField>
+            )}
 
             <FormField id="account-currency" label={t("common.moeda")}>
               {(props) => (
@@ -326,6 +351,29 @@ export function AccountFormDialog({ account, onClose }: Props) {
                 )}
               </FormField>
             </div>
+          )}
+
+          {role === "credit_card" && (
+            <FormField
+              id="account-creditLimit"
+              label={t("accounts.accountFormDialog.limite")}
+              error={errors.creditLimit}
+              hint={t("accounts.accountFormDialog.limiteHint")}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0,00"
+                  value={creditLimit}
+                  onChange={(event) => {
+                    setCreditLimit(event.target.value);
+                    clearError("creditLimit");
+                  }}
+                />
+              )}
+            </FormField>
           )}
 
           <FormField
@@ -395,7 +443,13 @@ export function AccountFormDialog({ account, onClose }: Props) {
               {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? t("accounts.accountFormDialog.salvando") : editing ? t("accounts.accountFormDialog.salvar") : t("accounts.accountFormDialog.criarConta")}
+              {submitting
+                ? t("accounts.accountFormDialog.salvando")
+                : editing
+                  ? t("accounts.accountFormDialog.salvar")
+                  : presetCreditCard
+                    ? t("accounts.accountFormDialog.criarCartao")
+                    : t("accounts.accountFormDialog.criarConta")}
             </Button>
           </DialogFooter>
         </form>

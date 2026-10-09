@@ -69,6 +69,7 @@
     },
     "accounts": {
       "novaConta": "Nova conta",
+      "novoCartao": "Novo cartão",
       "nenhumaContaAinda": "Nenhuma conta ainda",
       "nenhumaContaAtiva": "Nenhuma conta ativa",
       "cadastreSuaPrimeiraConta": "Cadastre sua primeira conta para começar.",
@@ -608,13 +609,16 @@
       "arquivar": "Arquivar",
       "restaurar": "Restaurar",
       "verFatura": "Ver fatura",
+      "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
       "actionsFor": "Ações da conta {{name}}"
     },
     "accountFormDialog": {
       "editarConta": "Editar conta",
       "novaConta": "Nova conta",
+      "novoCartao": "Novo cartão",
       "altereOsDadosDa": "Altere os dados da conta. O tipo e a moeda não podem mudar.",
       "cadastreUmaContaOnde": "Cadastre uma conta (onde você guarda dinheiro) ou uma dívida (o que você deve).",
+      "cadastreUmCartaoDe": "Cadastre um cartão de crédito, com limite, fechamento e vencimento.",
       "categoriaDaConta": "Categoria da conta",
       "valorQueVoceAinda": "Valor que você ainda deve hoje. Deixe em branco se não quiser informar.",
       "quantoVoceTemHoje": "Quanto você tem hoje nesta conta. Deixe em branco para começar do zero.",
@@ -624,6 +628,7 @@
       "salvando": "Salvando...",
       "salvar": "Salvar",
       "criarConta": "Criar conta",
+      "criarCartao": "Criar cartão",
       "openingDebt": "Quanto você deve",
       "openingBalance": "Saldo inicial",
       "nameRequired": "Informe o nome da conta.",
@@ -633,7 +638,10 @@
       "diaDeVencimento": "Dia de vencimento",
       "diaDeFechamentoHint": "Dia do mês em que a fatura fecha. Compras depois dele caem na fatura seguinte.",
       "diaDeVencimentoHint": "Dia do mês em que a fatura vence.",
-      "diaInvalido": "Informe um dia entre 1 e 31."
+      "diaInvalido": "Informe um dia entre 1 e 31.",
+      "limite": "Limite",
+      "limiteHint": "Limite total do cartão. Deixe em branco se não quiser acompanhar.",
+      "limiteInvalido": "Informe um limite maior que zero."
     },
     "deleteAccountDialog": {
       "excluirConta": "Excluir conta",

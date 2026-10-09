@@ -28,6 +28,7 @@ export function makeAccount(overrides: Partial<Account> = {}): Account {
     balance: "0.00",
     closing_day: null,
     due_day: null,
+    credit_limit: null,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
@@ -94,6 +95,7 @@ export function fakeAccountsApi(initial: Account[] = []) {
         balance: money(signed),
         closing_day: (body.closing_day as number | undefined) ?? null,
         due_day: (body.due_day as number | undefined) ?? null,
+        credit_limit: (body.credit_limit as string | undefined) ?? null,
       });
       state.accounts.push(created);
       return HttpResponse.json(created, { status: 201 });
