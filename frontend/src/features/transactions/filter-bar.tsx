@@ -106,6 +106,7 @@ export function FilterBar(props: FilterBarProps) {
               onChange={(event) => props.onChange({ categoryId: event.target.value })}
             >
               <option value="">{t("common.todas")}</option>
+              <option value="none">{t("transactions.filterBar.semCategoria")}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}

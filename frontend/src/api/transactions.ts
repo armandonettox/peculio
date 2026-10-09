@@ -19,6 +19,7 @@ export const PAGE_SIZE = 25;
 
 export type TransactionFilters = {
   accountId?: string;
+  // Id de uma categoria, ou "none" para filtrar so o que ainda nao tem categoria
   categoryId?: string;
   tagId?: string;
   // AAAA-MM-DD
@@ -35,7 +36,11 @@ function toQuery(filters: TransactionFilters, offset: number) {
     limit: PAGE_SIZE,
     offset,
     ...(filters.accountId ? { account_id: filters.accountId } : {}),
-    ...(filters.categoryId ? { category_id: filters.categoryId } : {}),
+    ...(filters.categoryId === "none"
+      ? { uncategorized: true }
+      : filters.categoryId
+        ? { category_id: filters.categoryId }
+        : {}),
     ...(filters.tagId ? { tag_id: filters.tagId } : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
     ...(filters.dateTo ? { date_to: filters.dateTo } : {}),

@@ -9,6 +9,7 @@ function matches(transaction: Transaction, query: URLSearchParams): boolean {
   const q = (query.get("q") ?? "").toLowerCase();
   const account = query.get("account_id");
   const category = query.get("category_id");
+  const uncategorized = query.get("uncategorized") === "true";
   const tag = query.get("tag_id");
   const from = query.get("date_from");
   const to = query.get("date_to");
@@ -20,6 +21,7 @@ function matches(transaction: Transaction, query: URLSearchParams): boolean {
     (split) =>
       (!account || split.source_account_id === account || split.destination_account_id === account) &&
       (!category || split.category_id === category) &&
+      (!uncategorized || split.category_id === null) &&
       (!tag || split.tag_ids.includes(tag)) &&
       (!from || split.date >= from) &&
       (!to || split.date <= to) &&

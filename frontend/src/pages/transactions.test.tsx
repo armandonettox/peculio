@@ -296,6 +296,22 @@ it("filtra por categoria e por tag", async () => {
   expect(api.params()).toMatchObject({ tag_id: viagem.id });
 });
 
+it("filtra so os lancamentos sem categoria", async () => {
+  const api = renderPage({
+    transactions: [
+      tx("Com categoria", "2026-03-10", { category_id: mercado.id }),
+      tx("Solta", "2026-03-09"),
+    ],
+  });
+  await screen.findByText("Com categoria");
+  await openFilters();
+  await userEvent.selectOptions(screen.getByLabelText("Categoria"), "Sem categoria");
+  await waitFor(() => expect(screen.queryByText("Com categoria")).not.toBeInTheDocument());
+  expect(screen.getByText("Solta")).toBeInTheDocument();
+  expect(api.params()).toMatchObject({ uncategorized: "true" });
+  expect(api.params()).not.toHaveProperty("category_id");
+});
+
 it("filtra por periodo", async () => {
   const api = renderPage({ transactions: [tx("Janeiro", "2026-01-10"), tx("Marco", "2026-03-10")] });
   await screen.findByText("Janeiro");

@@ -7626,6 +7626,7 @@ export interface operations {
             query?: {
                 account_id?: string | null;
                 category_id?: string | null;
+                uncategorized?: boolean;
                 budget_id?: string | null;
                 bill_id?: string | null;
                 tag_id?: string | null;
@@ -7767,6 +7768,7 @@ export interface operations {
             query?: {
                 account_id?: string | null;
                 category_id?: string | null;
+                uncategorized?: boolean;
                 budget_id?: string | null;
                 bill_id?: string | null;
                 tag_id?: string | null;
