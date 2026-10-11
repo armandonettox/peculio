@@ -6,8 +6,8 @@ são calculadas a partir de "hoje".
 
     docker compose exec backend python scripts/seed_demo.py --confirm
 
-Recusa rodar se a conta de demonstração já existir (não apaga nada). Para refazer, exclua o usuário
-demo pela tela de administração ou direto no banco e rode de novo.
+Recusa rodar se a conta de demonstração já existir. Para apagar tudo e recriar do zero (uso em
+reset periodico, pensado para visitantes publicos), use --reset junto com --confirm.
 """
 import argparse
 import random
@@ -62,10 +62,15 @@ class Api:
         return self.call("PATCH", path, body)
 
 
-def create_user() -> None:
+def create_user(reset: bool) -> None:
     with SessionLocal() as db:
-        if db.execute(select(User).where(User.email == DEMO_EMAIL)).scalar_one_or_none():
-            raise SystemExit(f"O usuário {DEMO_EMAIL} já existe: nada foi feito.")
+        existing = db.execute(select(User).where(User.email == DEMO_EMAIL)).scalar_one_or_none()
+        if existing:
+            if not reset:
+                raise SystemExit(f"O usuário {DEMO_EMAIL} já existe: nada foi feito (use --reset para recriar).")
+            # Apaga o usuario e tudo que referencia ele por CASCADE (contas, lancamentos, etc).
+            db.delete(existing)
+            db.commit()
         db.add(User(name="Conta de demonstração", email=DEMO_EMAIL, hashed_password=hash_password(DEMO_PASSWORD)))
         db.commit()
 
@@ -90,17 +95,29 @@ def seed(api: Api, today: date) -> dict:
     dollars = account("Conta em dólar", "other", "800.00", currency="USD")
     mortgage = account("Financiamento do apartamento", "mortgage", "38000.00", kind="liability")
 
+    credit_card = api.post("/accounts", {
+        "name": "Cartão de crédito",
+        "type": "asset",
+        "role": "credit_card",
+        "currency_code": "BRL",
+        "opening_balance": "0.00",
+        "opening_balance_date": first_day.isoformat(),
+        "closing_day": 3,
+        "due_day": 10,
+        "credit_limit": "2500.00",
+    })["id"]
+
     categories = {}
-    for name, color in [
-        ("Salário", "#00A878"),
-        ("Moradia", "#1E3A6B"),
-        ("Mercado", "#E8A33D"),
-        ("Transporte", "#5B8DEF"),
-        ("Lazer", "#B565D9"),
-        ("Saúde", "#E5534B"),
-        ("Assinaturas", "#2A9D8F"),
+    for name, color, kind in [
+        ("Salário", "#00A878", "revenue"),
+        ("Moradia", "#1E3A6B", "expense"),
+        ("Mercado", "#E8A33D", "expense"),
+        ("Transporte", "#5B8DEF", "expense"),
+        ("Lazer", "#B565D9", "expense"),
+        ("Saúde", "#E5534B", "expense"),
+        ("Assinaturas", "#2A9D8F", "expense"),
     ]:
-        categories[name] = api.post("/categories", {"name": name, "color": color})["id"]
+        categories[name] = api.post("/categories", {"name": name, "color": color, "kind": kind})["id"]
     tags = {name: api.post("/tags", {"name": name})["id"] for name in ["viagem", "trabalho", "fixo"]}
 
     budgets = {
@@ -192,6 +209,21 @@ def seed(api: Api, today: date) -> dict:
         "amount": "310.00", "currency_code": "USD", "account_id": dollars, "counterparty_name": "Hotel Exemplo",
         "tag_ids": [tags["viagem"]]}]})
 
+    # Cartão de crédito: uma compra à vista, uma parcelada (mostra o limite disponível descontando
+    # as parcelas futuras) e o pagamento da fatura do mês passado
+    tx(today - timedelta(days=6), "Roupas", "189.90", credit_card, counterparty_name="Loja Exemplo",
+       category_id=categories["Lazer"])
+    api.post("/transactions", {
+        "installments": 3,
+        "splits": [{
+            "type": "withdrawal", "date": (today - timedelta(days=14)).isoformat(), "description": "Notebook novo",
+            "amount": "2400.00", "currency_code": "BRL", "account_id": credit_card,
+            "counterparty_name": "Loja de Eletrônicos Exemplo",
+        }],
+    })
+    tx(month_day(today, 1, 10), "Pagamento da fatura", "640.00", checking, "transfer",
+       counterparty_account_id=credit_card)
+
     # Cofrinhos: um em andamento, um perto da meta e um arquivado (o valor continua reservado)
     trip = api.post("/piggy-banks", {"name": "Viagem de férias", "account_id": savings, "target_amount": "6000.00",
                                      "target_date": month_day(today, -8, 15).isoformat()})["id"]
@@ -240,16 +272,18 @@ def seed(api: Api, today: date) -> dict:
     api.post("/rules", {"name": "Mercado na categoria", "match_mode": "all",
                         "triggers": [{"field": "description", "op": "contains", "value": "mercado"}],
                         "actions": [{"kind": "set_category", "target_id": categories["Mercado"]}]})
-    return {"accounts": 5, "categories": len(categories), "budgets": len(budgets)}
+    return {"accounts": 6, "categories": len(categories), "budgets": len(budgets)}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--confirm", action="store_true", help="confirma que quer criar a conta de demonstração")
-    if not parser.parse_args().confirm:
+    parser.add_argument("--reset", action="store_true", help="apaga a conta de demonstração existente e recria do zero")
+    args = parser.parse_args()
+    if not args.confirm:
         raise SystemExit("Nada foi feito. Rode de novo com --confirm para criar a conta de demonstração.")
 
-    create_user()
+    create_user(reset=args.reset)
     client = TestClient(app)
     login = client.post("/api/v1/auth/login", json={"email": DEMO_EMAIL, "password": DEMO_PASSWORD})
     if login.status_code != 200:

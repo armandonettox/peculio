@@ -1,0 +1,13 @@
+# Apaga e recria a conta de demonstracao (demo@example.com) com dados ficticios do zero,
+# para desfazer qualquer bagunca que um visitante tenha deixado. Disparado pela timer
+# peculio-demo-reset.timer, nunca direto.
+#
+# Instalar em ~/.config/systemd/user/peculio-demo-reset.service (o deploy faz isso).
+
+[Unit]
+Description=Reseta a conta de demonstracao do Peculio
+After=peculio-compose.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/podman exec peculio_backend_1 python scripts/seed_demo.py --confirm --reset

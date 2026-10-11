@@ -87,6 +87,15 @@ atende, na porta 443, qualquer nome que não tenha bloco próprio, redirecionand
 `https://armandonetto.com/`. O deploy do Pecúlio não mexe nesse arquivo, só no seu próprio
 (`peculio.armandonetto.com.conf`).
 
+## Conta de demonstração
+
+Existe uma conta pública (`demo@example.com`, senha em `backend/scripts/seed_demo.py`) com dados
+fictícios, para mostrar o app sem usar dados reais. O deploy instala e liga a timer
+`peculio-demo-reset.timer`, que roda todo dia às 04h (Brasília) e apaga + recria a conta do zero,
+desfazendo qualquer bagunça que um visitante tenha deixado.
+
+Rodar o reset manualmente: `systemctl --user start peculio-demo-reset.service` (na VPS).
+
 ## Operação
 
 - Ver o estado: `podman ps --filter name=peculio` e `journalctl --user -u peculio-compose.service`.

@@ -47,11 +47,14 @@ printf '%s' "$TOKEN_GHCR" | podman login ghcr.io -u "$USUARIO_GHCR" --password-s
 podman pull "$IMAGEM_BACKEND:$TAG"
 podman pull "$IMAGEM_FRONTEND:$TAG"
 
-echo "=== Instalando a unit do systemd ==="
+echo "=== Instalando as units do systemd ==="
 mkdir -p "$HOME/.config/systemd/user"
 cp deploy/systemd/peculio-compose.service "$HOME/.config/systemd/user/peculio-compose.service"
+cp deploy/systemd/peculio-demo-reset.service "$HOME/.config/systemd/user/peculio-demo-reset.service"
+cp deploy/systemd/peculio-demo-reset.timer "$HOME/.config/systemd/user/peculio-demo-reset.timer"
 systemctl --user daemon-reload
 systemctl --user enable peculio-compose.service 2>/dev/null || true
+systemctl --user enable --now peculio-demo-reset.timer 2>/dev/null || true
 
 # Guarda as imagens atuais para voltar se a nova nao ficar saudavel
 if [ -f .env.imagens ]; then

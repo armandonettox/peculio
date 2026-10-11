@@ -1,0 +1,17 @@
+# Dispara o peculio-demo-reset.service toda madrugada (horario de Brasilia), horario baixo de uso.
+#
+# Instalar em ~/.config/systemd/user/peculio-demo-reset.timer (o deploy faz isso) e habilitar:
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now peculio-demo-reset.timer
+
+[Unit]
+Description=Reseta a conta de demonstracao do Peculio todo dia de madrugada
+
+[Timer]
+# O relogio da VPS e UTC; 07:00 UTC = 04:00 em Brasilia (sem horario de verao)
+OnCalendar=*-*-* 07:00:00
+# Se a VPS estiver fora do ar as 07:00 UTC, roda assim que voltar
+Persistent=true
+
+[Install]
+WantedBy=timers.target
