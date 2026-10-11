@@ -37,7 +37,8 @@
       "codeRecoveryRequired": "Informe o código de recuperação.",
       "codeRequired": "Informe o código de 6 dígitos.",
       "passwordRequired": "Informe a senha.",
-      "haveInvite": "Recebeu um convite?"
+      "haveInvite": "Recebeu um convite?",
+      "verDemo": "Ver demonstração"
     },
     "register": {
       "verificandoAInstancia": "Verificando a instância...",

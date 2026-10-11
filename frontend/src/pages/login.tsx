@@ -16,6 +16,10 @@ import { useTranslation } from "react-i18next";
 
 type FieldErrors = { email?: string; password?: string };
 
+// Conta publica com dados ficticios, resetada todo dia (ver deploy/README.md)
+const DEMO_EMAIL = "demo@example.com";
+const DEMO_PASSWORD = "demo-finance-2026";
+
 // Segundo passo para contas com 2FA: o codigo do app autenticador ou um codigo de recuperacao
 function TwoFactorStep({
   challenge,
@@ -131,9 +135,22 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   // Instancia sem nenhum usuario: nao ha com quem entrar, o caminho e criar o administrador
   if (status.data?.setup_required) return <Navigate to="/register" replace />;
+
+  async function handleDemoLogin() {
+    if (submitting || demoLoading) return;
+    setFormError(null);
+    setDemoLoading(true);
+    try {
+      await login({ email: DEMO_EMAIL, password: DEMO_PASSWORD, remember: false });
+    } catch (error) {
+      setFormError(getErrorMessage(error));
+      setDemoLoading(false);
+    }
+  }
 
   // O erro de um campo some assim que o usuario volta a digitar nele
   function clearError(field: keyof FieldErrors) {
@@ -242,6 +259,10 @@ export default function LoginPage() {
 
           <Button type="submit" disabled={submitting}>
             {submitting ? t("pages.login.entrando") : t("pages.login.entrar")}
+          </Button>
+
+          <Button type="button" variant="outline" disabled={submitting || demoLoading} onClick={handleDemoLogin}>
+            {demoLoading ? t("pages.login.entrando") : t("pages.login.verDemo")}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">

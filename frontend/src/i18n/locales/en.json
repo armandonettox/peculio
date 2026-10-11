@@ -37,7 +37,8 @@
       "codeRecoveryRequired": "Enter the recovery code.",
       "codeRequired": "Enter the 6-digit code.",
       "passwordRequired": "Enter your password.",
-      "haveInvite": "Got an invitation?"
+      "haveInvite": "Got an invitation?",
+      "verDemo": "View demo"
     },
     "register": {
       "verificandoAInstancia": "Checking the instance...",
