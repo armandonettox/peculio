@@ -5,7 +5,7 @@ import { AuthLayout } from "@/components/layout/auth-layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
 import { PwaBanners } from "@/components/pwa-banners";
 import AccountsPage from "@/pages/accounts";
-import BudgetsEnvelopesPage from "@/pages/budgets";
+import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
 import BillsRecurrencesPage from "@/pages/bills";
 import DashboardPage from "@/pages/dashboard";
@@ -38,9 +38,9 @@ export default function App() {
             {/* Recorrentes virou a aba Recorrentes de Contas a pagar (favoritos antigos continuam entrando) */}
             <Route path="recorrentes" element={<Navigate to="/contas-a-pagar?aba=recorrentes" replace />} />
             <Route path="contas-a-pagar" element={<BillsRecurrencesPage />} />
-            <Route path="orcamentos" element={<BudgetsEnvelopesPage />} />
-            {/* Envelopes virou a aba Envelopes de Orcamentos (favoritos antigos continuam entrando) */}
-            <Route path="envelopes" element={<Navigate to="/orcamentos?aba=envelopes" replace />} />
+            <Route path="orcamentos" element={<BudgetsPage />} />
+            {/* Envelopes virou orcamento com "carrega sobra" (favoritos antigos continuam entrando) */}
+            <Route path="envelopes" element={<Navigate to="/orcamentos" replace />} />
             <Route path="regras" element={<RulesPage />} />
             <Route path="contas" element={<AccountsPage />} />
             <Route path="contas/:accountId/fatura" element={<InvoicePage />} />

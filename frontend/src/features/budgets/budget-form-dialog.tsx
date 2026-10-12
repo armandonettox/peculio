@@ -1,14 +1,6 @@
 import { useState, type FormEvent } from "react";
 
-import {
-  useCreateBudget,
-  useUpdateBudget,
-  type Budget,
-  type BudgetCreate,
-  type BudgetMode,
-  type BudgetPeriod,
-  type BudgetUpdate,
-} from "@/api/budgets";
+import { useCreateBudget, useUpdateBudget, type Budget, type BudgetCreate, type BudgetPeriod, type BudgetUpdate } from "@/api/budgets";
 import { useCurrencies } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -36,12 +28,10 @@ const SERVER_FIELDS: Record<string, Field> = { name: "name", amount: "amount" };
 type Props = {
   // Sem `budget` o dialogo cria; com `budget` edita
   budget?: Budget;
-  // Modo escolhido ao abrir para criar (a tela de envelopes abre ja em envelope)
-  initialMode?: BudgetMode;
   onClose: () => void;
 };
 
-export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Props) {
+export function BudgetFormDialog({ budget, onClose }: Props) {
   const { t } = useTranslation();
   const editing = budget !== undefined;
   const { user } = useAuth();
@@ -51,11 +41,9 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
   const [name, setName] = useState(budget?.name ?? "");
   const [currency, setCurrency] = useState(budget?.currency_code ?? user?.default_currency ?? "BRL");
-  const [amount, setAmount] = useState(budget ? toInputText(budget.amount ?? "") : "");
+  const [amount, setAmount] = useState(budget ? toInputText(budget.amount) : "");
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period ?? "monthly");
-  // O modo nao muda depois de criado
-  const [mode, setMode] = useState<BudgetMode>(budget?.mode ?? initialMode);
-  const envelope = mode === "envelope";
+  const [carryOver, setCarryOver] = useState(budget?.carry_over ?? false);
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -65,6 +53,11 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
   function clearError(field: Field) {
     setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
+  }
+
+  function toggleCarryOver(checked: boolean) {
+    setCarryOver(checked);
+    if (checked) setPeriod("monthly");
   }
 
   function handleServerError(error: unknown) {
@@ -92,15 +85,12 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
     const found: Errors = { name: requiredError(name, t("budgets.budgetFormDialog.informeONome")) };
     let amountValue = "";
-    // Envelope nao tem limite: o valor de cada mes e a distribuicao
-    if (!envelope) {
-      const parsed = parseMoneyInput(amount, places);
-      if (amount.trim() === "") found.amount = t("budgets.budgetFormDialog.informeOValorDoLimite");
-      else if (!parsed.ok) found.amount = parsed.error;
-      else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-        found.amount = t("budgets.budgetFormDialog.informeUmValorMaior");
-      } else amountValue = parsed.value;
-    }
+    const parsed = parseMoneyInput(amount, places);
+    if (amount.trim() === "") found.amount = t("budgets.budgetFormDialog.informeOValorDoLimite");
+    else if (!parsed.ok) found.amount = parsed.error;
+    else if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
+      found.amount = t("budgets.budgetFormDialog.informeUmValorMaior");
+    } else amountValue = parsed.value;
 
     setErrors(found);
     const firstInvalid = (["name", "amount"] as const).find((field) => found[field]);
@@ -111,16 +101,21 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
 
     try {
       if (!editing) {
-        const body: BudgetCreate = envelope
-          ? { name: name.trim(), currency_code: currency, mode: "envelope" }
-          : { name: name.trim(), currency_code: currency, mode: "fixed", amount: amountValue, period };
+        const body: BudgetCreate = {
+          name: name.trim(),
+          currency_code: currency,
+          amount: amountValue,
+          period,
+          carry_over: carryOver,
+        };
         await create.mutateAsync(body);
       } else {
         // Manda so o que mudou, para nao sobrescrever sem querer
         const body: BudgetUpdate = {};
         if (name.trim() !== budget.name) body.name = name.trim();
-        if (!envelope && amountValue !== budget.amount) body.amount = amountValue;
-        if (!envelope && period !== budget.period) body.period = period;
+        if (amountValue !== budget.amount) body.amount = amountValue;
+        if (period !== budget.period) body.period = period;
+        if (carryOver !== budget.carry_over) body.carry_over = carryOver;
         if (Object.keys(body).length > 0) await update.mutateAsync({ id: budget.id, body });
       }
       onClose();
@@ -133,46 +128,14 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {editing ? (envelope ? t("budgets.budgetFormDialog.editarEnvelope") : t("budgets.budgetFormDialog.editarOrcamento")) : envelope ? t("budgets.budgetFormDialog.novoEnvelope") : t("budgets.budgetFormDialog.novoOrcamento")}
-          </DialogTitle>
+          <DialogTitle>{editing ? t("budgets.budgetFormDialog.editarOrcamento") : t("budgets.budgetFormDialog.novoOrcamento")}</DialogTitle>
           <DialogDescription>
-            {envelope
-              ? t("budgets.budgetFormDialog.voceDistribuiUmValor")
-              : editing
-                ? t("budgets.budgetFormDialog.mudarOValorOu")
-                : t("budgets.budgetFormDialog.umLimiteDeGasto")}
+            {editing ? t("budgets.budgetFormDialog.mudarOValorOu") : t("budgets.budgetFormDialog.umLimiteDeGasto")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
           {formError && <Alert variant="destructive">{formError}</Alert>}
-
-          {!editing && (
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium">{t("common.tipo")}</legend>
-              {(
-                [
-                  ["fixed", t("budgets.budgetFormDialog.limiteFixo"), t("budgets.budgetFormDialog.umTetoDeGasto")],
-                  ["envelope", t("budgets.budgetFormDialog.envelope"), t("budgets.budgetFormDialog.voceDistribuiDinheiroPorMes")],
-                ] as [BudgetMode, string, string][]
-              ).map(([value, label, hint]) => (
-                <label key={value} className="flex cursor-pointer items-start gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="budget-mode"
-                    checked={mode === value}
-                    onChange={() => setMode(value)}
-                    className="mt-0.5 accent-[var(--primary)]"
-                  />
-                  <span>
-                    <span className="font-medium">{label}</span>
-                    <span className="block text-xs text-muted-foreground">{hint}</span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          )}
 
           <FormField id="budget-name" label={t("common.nome")} error={errors.name}>
             {(props) => (
@@ -202,37 +165,46 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
               )}
             </FormField>
 
-            {!envelope && (
-              <FormField id="budget-period" label={t("common.periodo")}>
-                {(props) => (
-                  <Select {...props} value={period} onChange={(event) => setPeriod(event.target.value as BudgetPeriod)}>
-                    {PERIODS.map((option) => (
-                      <option key={option} value={option}>
-                        {periodLabel(option)}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </FormField>
-            )}
-          </div>
-
-          {!envelope && (
-            <FormField id="budget-amount" label={t("budgets.budgetFormDialog.limitePorPeriodo")} error={errors.amount}>
+            <FormField id="budget-period" label={t("common.periodo")}>
               {(props) => (
-                <MoneyInput
-                  {...props}
-                  placeholder="0,00"
-                  places={places}
-                  value={amount}
-                  onChange={(text) => {
-                    setAmount(text);
-                    clearError("amount");
-                  }}
-                />
+                <Select {...props} value={period} disabled={carryOver} onChange={(event) => setPeriod(event.target.value as BudgetPeriod)}>
+                  {PERIODS.map((option) => (
+                    <option key={option} value={option}>
+                      {periodLabel(option)}
+                    </option>
+                  ))}
+                </Select>
               )}
             </FormField>
-          )}
+          </div>
+
+          <FormField id="budget-amount" label={t("budgets.budgetFormDialog.limitePorPeriodo")} error={errors.amount}>
+            {(props) => (
+              <MoneyInput
+                {...props}
+                placeholder="0,00"
+                places={places}
+                value={amount}
+                onChange={(text) => {
+                  setAmount(text);
+                  clearError("amount");
+                }}
+              />
+            )}
+          </FormField>
+
+          <label className="flex cursor-pointer items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={carryOver}
+              onChange={(event) => toggleCarryOver(event.target.checked)}
+              className="mt-0.5 accent-[var(--primary)]"
+            />
+            <span>
+              <span className="font-medium">{t("budgets.budgetFormDialog.carregarSobra")}</span>
+              <span className="block text-xs text-muted-foreground">{t("budgets.budgetFormDialog.carregarSobraTexto")}</span>
+            </span>
+          </label>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>

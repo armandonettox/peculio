@@ -137,6 +137,22 @@ test("registrar uma saida pelo formulario escolhendo o orcamento faz o progresso
   await expect(card(page)).toContainText("Restam R$ 1.125,00");
 });
 
+test("carregar sobra trava o periodo em mensal e mostra o selo no card", async ({ page }) => {
+  await openBudgets(page);
+  await page.getByRole("button", { name: "Novo orçamento" }).first().click();
+  await dialog(page).getByLabel("Nome", { exact: true }).fill("Reserva Orc E2E");
+  await dialog(page).getByLabel("Limite por período").fill("20000");
+  await dialog(page).getByLabel("Período", { exact: true }).selectOption("Semanal");
+  await dialog(page).getByRole("checkbox", { name: "Carregar sobra para o mês seguinte" }).check();
+  await expect(dialog(page).getByLabel("Período", { exact: true })).toHaveValue("monthly");
+  await expect(dialog(page).getByLabel("Período", { exact: true })).toBeDisabled();
+  await dialog(page).getByRole("button", { name: "Criar orçamento" }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  const card = main(page).getByRole("heading", { level: 3, name: "Reserva Orc E2E" }).locator("xpath=ancestor::li[1]");
+  await expect(card).toContainText("Carrega sobra");
+});
+
 test("arquivar esconde o orcamento; mostrar arquivados e restaurar traz de volta", async ({ page }) => {
   await openBudgets(page);
   await menu(page, "Arquivar");

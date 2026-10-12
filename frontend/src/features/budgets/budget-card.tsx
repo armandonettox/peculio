@@ -47,6 +47,9 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{budget.name}</h3>
+            {budget.carry_over && (
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.carregaSobra")}</span>
+            )}
             {!budget.active && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.arquivado")}</span>
             )}
@@ -100,7 +103,7 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm">
           <span className="font-semibold tabular-nums">{formatMoney(budget.spent, budget.currency_code)}</span>
-          <span className="text-muted-foreground"> {t("budgets.budgetCard.de")} {formatMoney(budget.amount ?? "0", budget.currency_code)}</span>
+          <span className="text-muted-foreground"> {t("budgets.budgetCard.de")} {formatMoney(budget.limit, budget.currency_code)}</span>
         </p>
         <p className={cn("text-sm", TEXT_CLASS[state])}>
           {label && <span className="font-medium">{label} · </span>}

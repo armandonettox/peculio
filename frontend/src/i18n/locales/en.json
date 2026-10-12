@@ -133,32 +133,6 @@
       "excluirOrcamento": "Delete budget",
       "osLancamentosLigadosA": "The transactions linked to it stay; they just lose the budget."
     },
-    "envelopes": {
-      "novoEnvelope": "New envelope",
-      "carregandoEnvelopes": "Loading envelopes...",
-      "nenhumEnvelopeAinda": "No envelopes yet",
-      "noEnvelopeVoceDistribui": "In an envelope you distribute the money you already have, month by month. What's left over carries to the next month; what overspends comes out of what's still unbudgeted.",
-      "moverDinheiro": "Move money",
-      "envelopes": "Envelopes",
-      "distribuaODinheiroQue": "Distribute the money you have, month by month",
-      "mesAnterior": "Previous month",
-      "proximoMes": "Next month",
-      "mesAtual": "Current month",
-      "aplicarTemplates": "Apply templates",
-      "excluirEnvelope": "Delete envelope",
-      "oQueFoiDistribuido": "What was distributed to it disappears and goes back to Ready to budget. Linked transactions lose the envelope."
-    },
-    "budgetsEnvelopes": {
-      "titulo": "Budgets and envelopes",
-      "descricao": "Two ways to organize the month's money.",
-      "secao": "Budgets or envelopes section",
-      "comparacao": {
-        "orcamentosTitulo": "Budgets",
-        "orcamentosTexto": "A spending limit for a category, like groceries or leisure. The money stays in the account; the budget just tracks how much you've spent against that ceiling.",
-        "envelopesTitulo": "Envelopes",
-        "envelopesTexto": "You distribute the money you already have among goals, month by month: every unit of money gets a destination. What's left carries to the next month; what overspends comes out of another envelope."
-      }
-    },
     "bills": {
       "novaContaAPagar": "New bill",
       "carregandoContasAPagar": "Loading bills...",
@@ -463,8 +437,6 @@
     "attachment_type_not_allowed": "File type not allowed. Upload a PDF, JPEG, PNG, WEBP, TXT or CSV.",
     "attachment_too_large": "The file is over the 10 MB limit.",
     "attachment_empty": "The file is empty.",
-    "budget_not_envelope": "This budget is not an active envelope.",
-    "template_not_found": "This envelope has no template.",
     "saved_report_not_found": "This report no longer exists.",
     "saved_report_name_taken": "A saved report with that name already exists.",
     "saved_report_limit_reached": "You reached the limit of 30 saved reports. Delete one to save another.",
@@ -476,7 +448,6 @@
     "reconciliation_difference": "There's still a difference: what you checked doesn't match the statement.",
     "reconciliation_nothing": "There are no checked transactions to close.",
     "reconciliation_not_found": "Reconciliation not found.",
-    "envelope_not_enough": "The source envelope doesn't have that amount available.",
     "api_token_expired": "This token has expired. Create another.",
     "api_token_read_only": "This token is read-only: it can look things up, but not create, edit or delete.",
     "session_required": "This action requires signing in through the app. It doesn't work with an API token.",
@@ -951,14 +922,12 @@
       "acoesDoOrcamento": "Actions for budget {{name}}",
       "gastoDe": "Spent for {{name}}",
       "percentDoLimite": "{{percent}}% of the limit",
-      "de": "of"
+      "de": "of",
+      "carregaSobra": "Carries surplus"
     },
     "budgetFormDialog": {
-      "editarEnvelope": "Edit envelope",
       "editarOrcamento": "Edit budget",
-      "novoEnvelope": "New envelope",
       "novoOrcamento": "New budget",
-      "voceDistribuiUmValor": "You distribute an amount each month and what's left carries to the next month.",
       "mudarOValorOu": "Changing the amount or the period also applies to past periods. The currency can't change.",
       "umLimiteDeGasto": "A spending limit that repeats every period, like Groceries: R$ 800 a month.",
       "limitePorPeriodo": "Limit per period",
@@ -968,10 +937,8 @@
       "informeONome": "Enter the budget's name.",
       "informeOValorDoLimite": "Enter the limit amount.",
       "informeUmValorMaior": "Enter an amount greater than zero.",
-      "limiteFixo": "Fixed limit",
-      "umTetoDeGasto": "A spending cap that repeats every period.",
-      "envelope": "Envelope",
-      "voceDistribuiDinheiroPorMes": "You distribute money every month and what's left carries to the next month."
+      "carregarSobra": "Carry surplus to the next month",
+      "carregarSobraTexto": "If money's left, next month starts with a higher limit; if it overspends, a lower one. Always monthly."
     },
     "presentation": {
       "period": {
@@ -985,117 +952,6 @@
       },
       "passedLimit": "Went {{amount}} over the limit",
       "remaining": "{{amount}} left"
-    }
-  },
-  "envelopes": {
-    "applyTemplatesDialog": {
-      "calculandoAPrevia": "Calculating preview...",
-      "nenhumEnvelopeTemTemplate": "No envelope has a template yet. Pick one from the envelope row's menu.",
-      "osTemplatesSomamMais": "The templates add up to more than you have. You can still apply them: Ready to budget will go negative until you adjust.",
-      "envelope": "Envelope",
-      "hoje": "Today",
-      "fica": "Will be",
-      "vaiMudar": "Will change",
-      "semMudanca": "No change",
-      "vejaOQueCada": "See what each template would do. It only saves when you confirm.",
-      "sobrescreverOsEnvelopesQue": "Overwrite envelopes that already have an amount",
-      "aplicando": "Applying...",
-      "nadaParaAplicar": "Nothing to apply",
-      "aplicar": "Apply",
-      "previaEm": "Preview in {{code}}",
-      "aOrcarDepoisDeAplicar": "Ready to budget ({{code}}): {{before}} will become",
-      "aplicarTemplatesEm": "Apply templates in {{month}}"
-    },
-    "envelopeGroupTable": {
-      "envelope": "Envelope",
-      "passouDoMesAnterior": "Carried from last month",
-      "distribuido": "Allocated",
-      "gasto": "Spent",
-      "disponivel": "Available",
-      "acoes": "Actions",
-      "mudarTemplate": "Change template",
-      "definirTemplate": "Set template",
-      "envelopesEm": "Envelopes in {{code}}",
-      "aOrcar": "Ready to budget ({{code}})",
-      "aOrcarEm": "Ready to budget in {{code}}",
-      "dinheiroNasContas": "Money in accounts: {{money}} · In envelopes: {{inEnvelopes}}",
-      "distribuidoPara": "Allocated to {{name}}",
-      "cobrir": "Cover {{amount}}",
-      "acoesDoEnvelope": "Actions for envelope {{name}}"
-    },
-    "moveMoneyDialog": {
-      "moverDinheiro": "Move money",
-      "passaDinheiroDeUm": "Moves money from one envelope to another this month. This is how you cover an overspend.",
-      "tirarDe": "Take from",
-      "escolhaOEnvelope": "Choose the envelope",
-      "levarPara": "Send to",
-      "movendo": "Moving...",
-      "mover": "Move",
-      "escolhaDeOnde": "Choose where to take it from.",
-      "escolhaParaOnde": "Choose where to send it.",
-      "escolhaUmEnvelopeDiferente": "Choose an envelope different from the source.",
-      "informeUmValorMaior": "Enter an amount greater than zero.",
-      "oEnvelopeSoTem": "The {{name}} envelope only has {{amount}} available.",
-      "itemDisponivel": "{{name}} ({{amount}} available)",
-      "valor": "Amount ({{currency}})"
-    },
-    "templateDialog": {
-      "dizQuantoDistribuirA": "Says how much to allocate to this envelope each month. Nothing changes on its own: you apply templates from the page, seeing what will happen first.",
-      "metaProntaAteO": "Goal ready by month",
-      "contaAPagar": "Bill",
-      "tirarTemplate": "Remove template",
-      "salvando": "Saving...",
-      "salvar": "Save",
-      "templateDe": "Template for {{name}}",
-      "informeUmValorMaior": "Enter an amount greater than zero.",
-      "escolhaOMes": "Choose the month the goal needs to be ready by.",
-      "escolhaAConta2": "Choose the bill.",
-      "valorPorMes": "Amount per month ({{currency}})",
-      "meta": "Goal ({{currency}})",
-      "voceNaoTemConta": "You don't have a bill in {{currency}}.",
-      "billOption": "{{name}} (up to {{amount}})"
-    },
-    "templatePresentation": {
-      "kind": {
-        "fixed": {
-          "label": "Fixed amount per month",
-          "description": "Distributes the same amount every month."
-        },
-        "by_date": {
-          "label": "Save up by a date",
-          "description": "Splits what's left among the remaining months until the goal."
-        },
-        "bill": {
-          "label": "Linked to a bill",
-          "description": "Distributes the bill's maximum amount in the months it's due."
-        },
-        "remainder": {
-          "label": "Whatever's left",
-          "description": "Keeps its share of what's left of Ready to budget, after the other templates."
-        }
-      },
-      "summary": {
-        "fixed": "{{amount}} per month",
-        "byDate": "{{amount}} by {{month}}",
-        "billNamed": "Bill: {{name}}",
-        "billPlain": "Bill",
-        "remainder": "Whatever's left"
-      },
-      "goal": {
-        "met": "Goal met",
-        "partial": "Almost there",
-        "short": "Far from goal"
-      },
-      "reason": {
-        "already_has": "Already has an amount",
-        "goal_met": "Goal already met",
-        "date_passed": "Date has passed",
-        "no_due_date": "Bill isn't due this month",
-        "no_money_left": "No money left"
-      },
-      "applyCount_zero": "No envelopes will change.",
-      "applyCount_one": "1 envelope will change.",
-      "applyCount_other": "{{count}} envelopes will change."
     }
   },
   "bills": {

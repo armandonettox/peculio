@@ -700,127 +700,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/envelopes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Month
-         * @description Os envelopes do mes, o "A orcar" de cada moeda e o template e o selo de meta de cada envelope.
-         */
-        get: operations["get_month_api_v1_envelopes_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/envelopes/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Move Money
-         * @description Passa dinheiro de um envelope para outro no mes. Tira do disponivel do primeiro.
-         */
-        post: operations["move_money_api_v1_envelopes_move_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/envelopes/templates/apply": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Apply Templates
-         * @description Aplica os templates no mes. Sem `overwrite`, so os envelopes que ainda nao tem valor.
-         */
-        post: operations["apply_templates_api_v1_envelopes_templates_apply_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/envelopes/templates/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Preview Templates
-         * @description O que aplicar os templates faria neste mes, sem gravar nada.
-         */
-        get: operations["preview_templates_api_v1_envelopes_templates_preview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/envelopes/{budget_id}/template": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Set Template
-         * @description Define (ou troca) o template do envelope. Nada e distribuido: so quando mandar aplicar.
-         */
-        put: operations["set_template_api_v1_envelopes__budget_id__template_put"];
-        post?: never;
-        /** Remove Template */
-        delete: operations["remove_template_api_v1_envelopes__budget_id__template_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/envelopes/{budget_id}/{month}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Set Allocation
-         * @description Define quanto distribuir para o envelope no mes (zero limpa).
-         */
-        put: operations["set_allocation_api_v1_envelopes__budget_id___month__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/imports/confirm": {
         parameters: {
             query?: never;
@@ -1816,11 +1695,6 @@ export interface components {
          * @enum {string}
          */
         ActionKind: "set_category" | "add_tag" | "set_budget" | "set_bill";
-        /** AllocationSet */
-        AllocationSet: {
-            /** Amount */
-            amount: number | string;
-        };
         /** ApiTokenCreate */
         ApiTokenCreate: {
             /** Expires In Days */
@@ -2059,26 +1933,26 @@ export interface components {
         /** BudgetCreate */
         BudgetCreate: {
             /** Amount */
-            amount?: number | string | null;
+            amount: number | string;
+            /**
+             * Carry Over
+             * @default false
+             */
+            carry_over: boolean;
             /** Currency Code */
             currency_code: string;
-            /** @default fixed */
-            mode: components["schemas"]["BudgetMode"];
             /** Name */
             name: string;
-            period?: components["schemas"]["BudgetPeriod"] | null;
+            period: components["schemas"]["BudgetPeriod"];
         };
-        /**
-         * BudgetMode
-         * @enum {string}
-         */
-        BudgetMode: "fixed" | "envelope";
         /** BudgetOut */
         BudgetOut: {
             /** Active */
             active: boolean;
             /** Amount */
-            amount: string | null;
+            amount: string;
+            /** Carry Over */
+            carry_over: boolean;
             /**
              * Created At
              * Format: date-time
@@ -2091,7 +1965,6 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            mode: components["schemas"]["BudgetMode"];
             /** Name */
             name: string;
             period: components["schemas"]["BudgetPeriod"];
@@ -2109,7 +1982,9 @@ export interface components {
             /** Active */
             active: boolean;
             /** Amount */
-            amount: string | null;
+            amount: string;
+            /** Carry Over */
+            carry_over: boolean;
             /**
              * Created At
              * Format: date-time
@@ -2122,7 +1997,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            mode: components["schemas"]["BudgetMode"];
+            /** Limit */
+            limit: string;
             /** Name */
             name: string;
             /** Percent */
@@ -2152,6 +2028,8 @@ export interface components {
             active?: boolean | null;
             /** Amount */
             amount?: number | string | null;
+            /** Carry Over */
+            carry_over?: boolean | null;
             /** Name */
             name?: string | null;
             period?: components["schemas"]["BudgetPeriod"] | null;
@@ -2318,69 +2196,6 @@ export interface components {
          * @enum {string}
          */
         DeliveryStatus: "pending" | "delivered" | "failed" | "expired";
-        /** EnvelopeFullOut */
-        EnvelopeFullOut: {
-            /** Allocated */
-            allocated: string;
-            /** Available */
-            available: string;
-            /**
-             * Budget Id
-             * Format: uuid
-             */
-            budget_id: string;
-            /** Carried */
-            carried: string;
-            /** Goal */
-            goal?: ("met" | "partial" | "short") | null;
-            /** Name */
-            name: string;
-            /** Overspent */
-            overspent: string;
-            /** Spent */
-            spent: string;
-            template?: components["schemas"]["TemplateOut"] | null;
-        };
-        /** EnvelopeGroupFullOut */
-        EnvelopeGroupFullOut: {
-            /** Currency Code */
-            currency_code: string;
-            /** Envelopes */
-            envelopes: components["schemas"]["EnvelopeFullOut"][];
-            /** In Envelopes */
-            in_envelopes: string;
-            /** Money */
-            money: string;
-            /** To Budget */
-            to_budget: string;
-        };
-        /** EnvelopeMonthFullOut */
-        EnvelopeMonthFullOut: {
-            /** Groups */
-            groups: components["schemas"]["EnvelopeGroupFullOut"][];
-            /**
-             * Month
-             * Format: date
-             */
-            month: string;
-        };
-        /** EnvelopeMove */
-        EnvelopeMove: {
-            /** Amount */
-            amount: number | string;
-            /**
-             * From Budget Id
-             * Format: uuid
-             */
-            from_budget_id: string;
-            /** Month */
-            month: string;
-            /**
-             * To Budget Id
-             * Format: uuid
-             */
-            to_budget_id: string;
-        };
         /** GroupedReportOut */
         GroupedReportOut: {
             /** Currencies */
@@ -2988,38 +2803,6 @@ export interface components {
             /** Target Date */
             target_date?: string | null;
         };
-        /** PreviewGroupOut */
-        PreviewGroupOut: {
-            /** Currency Code */
-            currency_code: string;
-            /** Rows */
-            rows: components["schemas"]["PreviewRowOut"][];
-            /** To Budget After */
-            to_budget_after: string;
-            /** To Budget Before */
-            to_budget_before: string;
-        };
-        /** PreviewRowOut */
-        PreviewRowOut: {
-            /** Applies */
-            applies: boolean;
-            /**
-             * Budget Id
-             * Format: uuid
-             */
-            budget_id: string;
-            /** Current */
-            current: string;
-            kind: components["schemas"]["TemplateKind"];
-            /** Name */
-            name: string;
-            /** Proposed */
-            proposed: string;
-            /** Reason */
-            reason: ("already_has" | "goal_met" | "date_passed" | "no_due_date" | "no_money_left") | null;
-            /** Wanted */
-            wanted: string;
-        };
         /**
          * ProfileUpdate
          * @description Campos que a pessoa pode trocar no proprio perfil. O e-mail fica de fora: trocar exigiria
@@ -3617,56 +3400,6 @@ export interface components {
         TagUpdate: {
             /** Name */
             name?: string | null;
-        };
-        /** TemplateApply */
-        TemplateApply: {
-            /** Month */
-            month: string;
-            /**
-             * Overwrite
-             * @default false
-             */
-            overwrite: boolean;
-        };
-        /**
-         * TemplateIn
-         * @description O template de um envelope. Cada tipo usa so os campos dele; o resto precisa ficar vazio.
-         */
-        TemplateIn: {
-            /** Amount */
-            amount?: number | string | null;
-            /** Bill Id */
-            bill_id?: string | null;
-            kind: components["schemas"]["TemplateKind"];
-            /** Target Month */
-            target_month?: string | null;
-        };
-        /**
-         * TemplateKind
-         * @enum {string}
-         */
-        TemplateKind: "fixed" | "by_date" | "bill" | "remainder";
-        /** TemplateOut */
-        TemplateOut: {
-            /** Amount */
-            amount: string | null;
-            /** Bill Id */
-            bill_id: string | null;
-            kind: components["schemas"]["TemplateKind"];
-            /** Target Month */
-            target_month: string | null;
-        };
-        /** TemplatePreviewOut */
-        TemplatePreviewOut: {
-            /** Groups */
-            groups: components["schemas"]["PreviewGroupOut"][];
-            /**
-             * Month
-             * Format: date
-             */
-            month: string;
-            /** Overwrite */
-            overwrite: boolean;
         };
         /** Token */
         Token: {
@@ -5614,237 +5347,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpcomingOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_month_api_v1_envelopes_get: {
-        parameters: {
-            query?: {
-                /** @description AAAA-MM; sem ele, o mes de hoje */
-                month?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    move_money_api_v1_envelopes_move_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EnvelopeMove"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    apply_templates_api_v1_envelopes_templates_apply_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TemplateApply"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    preview_templates_api_v1_envelopes_templates_preview_get: {
-        parameters: {
-            query?: {
-                /** @description AAAA-MM; sem ele, o mes de hoje */
-                month?: string | null;
-                overwrite?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemplatePreviewOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_template_api_v1_envelopes__budget_id__template_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                budget_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TemplateIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemplateOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_template_api_v1_envelopes__budget_id__template_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                budget_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    set_allocation_api_v1_envelopes__budget_id___month__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                budget_id: string;
-                month: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AllocationSet"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EnvelopeMonthFullOut"];
                 };
             };
             /** @description Validation Error */

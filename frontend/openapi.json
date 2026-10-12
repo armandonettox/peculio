@@ -515,28 +515,6 @@
         "title": "ActionKind",
         "type": "string"
       },
-      "AllocationSet": {
-        "additionalProperties": false,
-        "properties": {
-          "amount": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              }
-            ],
-            "title": "Amount"
-          }
-        },
-        "required": [
-          "amount"
-        ],
-        "title": "AllocationSet",
-        "type": "object"
-      },
       "ApiTokenCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1197,22 +1175,20 @@
               {
                 "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
                 "type": "string"
-              },
-              {
-                "type": "null"
               }
             ],
             "title": "Amount"
+          },
+          "carry_over": {
+            "default": false,
+            "title": "Carry Over",
+            "type": "boolean"
           },
           "currency_code": {
             "maxLength": 3,
             "minLength": 3,
             "title": "Currency Code",
             "type": "string"
-          },
-          "mode": {
-            "$ref": "#/components/schemas/BudgetMode",
-            "default": "fixed"
           },
           "name": {
             "maxLength": 100,
@@ -1221,30 +1197,17 @@
             "type": "string"
           },
           "period": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/BudgetPeriod"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/BudgetPeriod"
           }
         },
         "required": [
           "name",
-          "currency_code"
+          "currency_code",
+          "amount",
+          "period"
         ],
         "title": "BudgetCreate",
         "type": "object"
-      },
-      "BudgetMode": {
-        "enum": [
-          "fixed",
-          "envelope"
-        ],
-        "title": "BudgetMode",
-        "type": "string"
       },
       "BudgetOut": {
         "properties": {
@@ -1253,16 +1216,13 @@
             "type": "boolean"
           },
           "amount": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "carry_over": {
+            "title": "Carry Over",
+            "type": "boolean"
           },
           "created_at": {
             "format": "date-time",
@@ -1278,9 +1238,6 @@
             "title": "Id",
             "type": "string"
           },
-          "mode": {
-            "$ref": "#/components/schemas/BudgetMode"
-          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -1293,9 +1250,9 @@
           "id",
           "name",
           "currency_code",
-          "mode",
           "amount",
           "period",
+          "carry_over",
           "active",
           "created_at"
         ],
@@ -1319,16 +1276,13 @@
             "type": "boolean"
           },
           "amount": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount",
+            "type": "string"
+          },
+          "carry_over": {
+            "title": "Carry Over",
+            "type": "boolean"
           },
           "created_at": {
             "format": "date-time",
@@ -1344,8 +1298,10 @@
             "title": "Id",
             "type": "string"
           },
-          "mode": {
-            "$ref": "#/components/schemas/BudgetMode"
+          "limit": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Limit",
+            "type": "string"
           },
           "name": {
             "title": "Name",
@@ -1383,13 +1339,14 @@
           "id",
           "name",
           "currency_code",
-          "mode",
           "amount",
           "period",
+          "carry_over",
           "active",
           "created_at",
           "period_start",
           "period_end",
+          "limit",
           "spent",
           "remaining",
           "percent"
@@ -1427,6 +1384,17 @@
               }
             ],
             "title": "Amount"
+          },
+          "carry_over": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carry Over"
           },
           "name": {
             "anyOf": [
@@ -1901,182 +1869,6 @@
         ],
         "title": "DeliveryStatus",
         "type": "string"
-      },
-      "EnvelopeFullOut": {
-        "properties": {
-          "allocated": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Allocated",
-            "type": "string"
-          },
-          "available": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Available",
-            "type": "string"
-          },
-          "budget_id": {
-            "format": "uuid",
-            "title": "Budget Id",
-            "type": "string"
-          },
-          "carried": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Carried",
-            "type": "string"
-          },
-          "goal": {
-            "anyOf": [
-              {
-                "enum": [
-                  "met",
-                  "partial",
-                  "short"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Goal"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "overspent": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Overspent",
-            "type": "string"
-          },
-          "spent": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Spent",
-            "type": "string"
-          },
-          "template": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TemplateOut"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "budget_id",
-          "name",
-          "carried",
-          "allocated",
-          "spent",
-          "available",
-          "overspent"
-        ],
-        "title": "EnvelopeFullOut",
-        "type": "object"
-      },
-      "EnvelopeGroupFullOut": {
-        "properties": {
-          "currency_code": {
-            "title": "Currency Code",
-            "type": "string"
-          },
-          "envelopes": {
-            "items": {
-              "$ref": "#/components/schemas/EnvelopeFullOut"
-            },
-            "title": "Envelopes",
-            "type": "array"
-          },
-          "in_envelopes": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "In Envelopes",
-            "type": "string"
-          },
-          "money": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Money",
-            "type": "string"
-          },
-          "to_budget": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "To Budget",
-            "type": "string"
-          }
-        },
-        "required": [
-          "currency_code",
-          "money",
-          "in_envelopes",
-          "to_budget",
-          "envelopes"
-        ],
-        "title": "EnvelopeGroupFullOut",
-        "type": "object"
-      },
-      "EnvelopeMonthFullOut": {
-        "properties": {
-          "groups": {
-            "items": {
-              "$ref": "#/components/schemas/EnvelopeGroupFullOut"
-            },
-            "title": "Groups",
-            "type": "array"
-          },
-          "month": {
-            "format": "date",
-            "title": "Month",
-            "type": "string"
-          }
-        },
-        "required": [
-          "month",
-          "groups"
-        ],
-        "title": "EnvelopeMonthFullOut",
-        "type": "object"
-      },
-      "EnvelopeMove": {
-        "additionalProperties": false,
-        "properties": {
-          "amount": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              }
-            ],
-            "title": "Amount"
-          },
-          "from_budget_id": {
-            "format": "uuid",
-            "title": "From Budget Id",
-            "type": "string"
-          },
-          "month": {
-            "title": "Month",
-            "type": "string"
-          },
-          "to_budget_id": {
-            "format": "uuid",
-            "title": "To Budget Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "from_budget_id",
-          "to_budget_id",
-          "month",
-          "amount"
-        ],
-        "title": "EnvelopeMove",
-        "type": "object"
       },
       "GroupedReportOut": {
         "properties": {
@@ -3673,104 +3465,6 @@
           }
         },
         "title": "PiggyBankUpdate",
-        "type": "object"
-      },
-      "PreviewGroupOut": {
-        "properties": {
-          "currency_code": {
-            "title": "Currency Code",
-            "type": "string"
-          },
-          "rows": {
-            "items": {
-              "$ref": "#/components/schemas/PreviewRowOut"
-            },
-            "title": "Rows",
-            "type": "array"
-          },
-          "to_budget_after": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "To Budget After",
-            "type": "string"
-          },
-          "to_budget_before": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "To Budget Before",
-            "type": "string"
-          }
-        },
-        "required": [
-          "currency_code",
-          "to_budget_before",
-          "to_budget_after",
-          "rows"
-        ],
-        "title": "PreviewGroupOut",
-        "type": "object"
-      },
-      "PreviewRowOut": {
-        "properties": {
-          "applies": {
-            "title": "Applies",
-            "type": "boolean"
-          },
-          "budget_id": {
-            "format": "uuid",
-            "title": "Budget Id",
-            "type": "string"
-          },
-          "current": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Current",
-            "type": "string"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/TemplateKind"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "proposed": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Proposed",
-            "type": "string"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "enum": [
-                  "already_has",
-                  "goal_met",
-                  "date_passed",
-                  "no_due_date",
-                  "no_money_left"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          },
-          "wanted": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Wanted",
-            "type": "string"
-          }
-        },
-        "required": [
-          "budget_id",
-          "name",
-          "kind",
-          "current",
-          "wanted",
-          "proposed",
-          "applies",
-          "reason"
-        ],
-        "title": "PreviewRowOut",
         "type": "object"
       },
       "ProfileUpdate": {
@@ -5447,166 +5141,6 @@
           }
         },
         "title": "TagUpdate",
-        "type": "object"
-      },
-      "TemplateApply": {
-        "additionalProperties": false,
-        "properties": {
-          "month": {
-            "title": "Month",
-            "type": "string"
-          },
-          "overwrite": {
-            "default": false,
-            "title": "Overwrite",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "month"
-        ],
-        "title": "TemplateApply",
-        "type": "object"
-      },
-      "TemplateIn": {
-        "additionalProperties": false,
-        "description": "O template de um envelope. Cada tipo usa so os campos dele; o resto precisa ficar vazio.",
-        "properties": {
-          "amount": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
-          },
-          "bill_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bill Id"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/TemplateKind"
-          },
-          "target_month": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Month"
-          }
-        },
-        "required": [
-          "kind"
-        ],
-        "title": "TemplateIn",
-        "type": "object"
-      },
-      "TemplateKind": {
-        "enum": [
-          "fixed",
-          "by_date",
-          "bill",
-          "remainder"
-        ],
-        "title": "TemplateKind",
-        "type": "string"
-      },
-      "TemplateOut": {
-        "properties": {
-          "amount": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount"
-          },
-          "bill_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bill Id"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/TemplateKind"
-          },
-          "target_month": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Month"
-          }
-        },
-        "required": [
-          "kind",
-          "amount",
-          "target_month",
-          "bill_id"
-        ],
-        "title": "TemplateOut",
-        "type": "object"
-      },
-      "TemplatePreviewOut": {
-        "properties": {
-          "groups": {
-            "items": {
-              "$ref": "#/components/schemas/PreviewGroupOut"
-            },
-            "title": "Groups",
-            "type": "array"
-          },
-          "month": {
-            "format": "date",
-            "title": "Month",
-            "type": "string"
-          },
-          "overwrite": {
-            "title": "Overwrite",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "month",
-          "overwrite",
-          "groups"
-        ],
-        "title": "TemplatePreviewOut",
         "type": "object"
       },
       "Token": {
@@ -9353,390 +8887,6 @@
         "summary": "Get Upcoming",
         "tags": [
           "dashboard"
-        ]
-      }
-    },
-    "/api/v1/envelopes": {
-      "get": {
-        "description": "Os envelopes do mes, o \"A orcar\" de cada moeda e o template e o selo de meta de cada envelope.",
-        "operationId": "get_month_api_v1_envelopes_get",
-        "parameters": [
-          {
-            "description": "AAAA-MM; sem ele, o mes de hoje",
-            "in": "query",
-            "name": "month",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "AAAA-MM; sem ele, o mes de hoje",
-              "title": "Month"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnvelopeMonthFullOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Get Month",
-        "tags": [
-          "envelopes"
-        ]
-      }
-    },
-    "/api/v1/envelopes/move": {
-      "post": {
-        "description": "Passa dinheiro de um envelope para outro no mes. Tira do disponivel do primeiro.",
-        "operationId": "move_money_api_v1_envelopes_move_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EnvelopeMove"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnvelopeMonthFullOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Move Money",
-        "tags": [
-          "envelopes"
-        ]
-      }
-    },
-    "/api/v1/envelopes/templates/apply": {
-      "post": {
-        "description": "Aplica os templates no mes. Sem `overwrite`, so os envelopes que ainda nao tem valor.",
-        "operationId": "apply_templates_api_v1_envelopes_templates_apply_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TemplateApply"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnvelopeMonthFullOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Apply Templates",
-        "tags": [
-          "envelopes"
-        ]
-      }
-    },
-    "/api/v1/envelopes/templates/preview": {
-      "get": {
-        "description": "O que aplicar os templates faria neste mes, sem gravar nada.",
-        "operationId": "preview_templates_api_v1_envelopes_templates_preview_get",
-        "parameters": [
-          {
-            "description": "AAAA-MM; sem ele, o mes de hoje",
-            "in": "query",
-            "name": "month",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "AAAA-MM; sem ele, o mes de hoje",
-              "title": "Month"
-            }
-          },
-          {
-            "in": "query",
-            "name": "overwrite",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Overwrite",
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TemplatePreviewOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Preview Templates",
-        "tags": [
-          "envelopes"
-        ]
-      }
-    },
-    "/api/v1/envelopes/{budget_id}/template": {
-      "delete": {
-        "operationId": "remove_template_api_v1_envelopes__budget_id__template_delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "budget_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Budget Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Remove Template",
-        "tags": [
-          "envelopes"
-        ]
-      },
-      "put": {
-        "description": "Define (ou troca) o template do envelope. Nada e distribuido: so quando mandar aplicar.",
-        "operationId": "set_template_api_v1_envelopes__budget_id__template_put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "budget_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Budget Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TemplateIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TemplateOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Set Template",
-        "tags": [
-          "envelopes"
-        ]
-      }
-    },
-    "/api/v1/envelopes/{budget_id}/{month}": {
-      "put": {
-        "description": "Define quanto distribuir para o envelope no mes (zero limpa).",
-        "operationId": "set_allocation_api_v1_envelopes__budget_id___month__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "budget_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Budget Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "month",
-            "required": true,
-            "schema": {
-              "title": "Month",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AllocationSet"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnvelopeMonthFullOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Set Allocation",
-        "tags": [
-          "envelopes"
         ]
       }
     },

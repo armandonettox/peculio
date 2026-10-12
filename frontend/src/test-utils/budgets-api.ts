@@ -11,24 +11,26 @@ export function makeBudget(overrides: Partial<BudgetProgress> = {}): BudgetProgr
     id: `b0000000-0000-4000-8000-${String(counter).padStart(12, "0")}`,
     name: `Orcamento ${counter}`,
     currency_code: "BRL",
-    mode: "fixed",
     amount: "800.00",
     period: "monthly",
+    carry_over: false,
     active: true,
     created_at: "2026-01-01T00:00:00Z",
     period_start: "2026-03-01",
     period_end: "2026-03-31",
+    limit: "800.00",
     spent: "0.00",
     remaining: "800.00",
     percent: 0,
     ...overrides,
   };
-  const amount = Number(base.amount);
+  const limit = Number(overrides.limit ?? base.amount);
   const spent = Number(base.spent);
   return {
     ...base,
-    remaining: overrides.remaining ?? (amount - spent).toFixed(2),
-    percent: overrides.percent ?? Math.floor((spent * 100) / amount),
+    limit: overrides.limit ?? limit.toFixed(2),
+    remaining: overrides.remaining ?? (limit - spent).toFixed(2),
+    percent: overrides.percent ?? Math.floor((spent * 100) / limit),
   };
 }
 
@@ -81,16 +83,17 @@ export function fakeBudgetsApi(initial: BudgetProgress[] = []) {
     }),
 
     http.post("*/api/v1/budgets", async ({ request }) => {
-      const body = (await request.json()) as Record<string, string>;
+      const body = (await request.json()) as Record<string, unknown>;
       state.requests.push({ method: "POST", path: "/budgets", body });
       const error = takeError();
       if (error) return fail(error);
-      if (taken(body.name)) return fail({ status: 409, code: "budget_name_taken" });
+      if (taken(body.name as string)) return fail({ status: 409, code: "budget_name_taken" });
       const created = makeBudget({
-        name: body.name,
-        currency_code: body.currency_code,
-        amount: body.amount,
+        name: body.name as string,
+        currency_code: body.currency_code as string,
+        amount: body.amount as string,
         period: body.period as BudgetProgress["period"],
+        carry_over: body.carry_over === true,
       });
       state.budgets.push(created);
       return HttpResponse.json(created, { status: 201 });
@@ -106,7 +109,9 @@ export function fakeBudgetsApi(initial: BudgetProgress[] = []) {
       if (typeof body.name === "string" && taken(body.name, String(params.id))) {
         return fail({ status: 409, code: "budget_name_taken" });
       }
-      state.budgets[index] = makeBudget({ ...state.budgets[index], ...body, id: state.budgets[index].id });
+      // Sem limit/remaining/percent: recalculam do amount novo, como o backend faria
+      const { limit: _limit, remaining: _remaining, percent: _percent, ...kept } = state.budgets[index];
+      state.budgets[index] = makeBudget({ ...kept, ...body, id: state.budgets[index].id });
       return HttpResponse.json(state.budgets[index]);
     }),
 
