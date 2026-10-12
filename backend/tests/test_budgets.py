@@ -504,3 +504,58 @@ def test_progress_uses_few_queries_regardless_of_the_number_of_budgets(client, h
 
     # Autenticacao (1), orcamentos (1), moedas (1) e no maximo 3 somas (semana, mes, ano)
     assert len(statements) <= 8, statements
+
+
+# ---------- Carrega a sobra (carry_over) ----------
+
+
+def test_carry_over_requires_monthly_period(client, headers):
+    resp = make_budget(client, headers, carry_over=True, period="weekly")
+    assert resp.status_code == 422
+
+
+def test_carry_over_defaults_to_off(client, headers):
+    assert make_budget(client, headers).json()["carry_over"] is False
+
+
+def test_unspent_money_raises_next_months_limit(client, headers):
+    account_id = make_account(client, headers)
+    budget_id = make_budget(client, headers, amount="100.00", carry_over=True).json()["id"]
+    spend(client, headers, account_id, budget_id, amount="40.00", on="2026-02-10")
+
+    [item] = progress(client, headers, on="2026-03-10").json()
+    # Sobrou 60 de fevereiro: marco nasce com 160 de limite
+    assert item["remaining"] == "160.00"
+
+
+def test_overspending_tightens_next_months_limit_without_covering_by_hand(client, headers):
+    account_id = make_account(client, headers)
+    budget_id = make_budget(client, headers, amount="100.00", carry_over=True).json()["id"]
+    spend(client, headers, account_id, budget_id, amount="130.00", on="2026-02-10")
+
+    [item] = progress(client, headers, on="2026-03-10").json()
+    # Estourou 30 em fevereiro: marco nasce com 70 de limite, sem precisar cobrir de outro orcamento
+    assert item["remaining"] == "70.00"
+    assert item["period_start"] == "2026-03-01" and item["period_end"] == "2026-03-31"
+
+
+def test_carry_over_chains_across_several_months(client, headers):
+    account_id = make_account(client, headers)
+    budget_id = make_budget(client, headers, amount="100.00", carry_over=True).json()["id"]
+    spend(client, headers, account_id, budget_id, amount="150.00", on="2026-01-10")  # estoura 50
+    spend(client, headers, account_id, budget_id, amount="20.00", on="2026-02-10")  # limite de fev: 50; sobra 30
+
+    [item] = progress(client, headers, on="2026-03-10").json()
+    assert item["remaining"] == "130.00"
+
+
+def test_updating_period_away_from_monthly_is_refused_while_carry_over_is_on(client, headers):
+    budget_id = make_budget(client, headers, amount="100.00", carry_over=True).json()["id"]
+    resp = client.patch(f"{URL}/{budget_id}", json={"period": "weekly"}, headers=headers)
+    assert resp.status_code == 422
+
+
+def test_turning_on_carry_over_requires_monthly_period(client, headers):
+    budget_id = make_budget(client, headers, amount="100.00", period="weekly").json()["id"]
+    resp = client.patch(f"{URL}/{budget_id}", json={"carry_over": True}, headers=headers)
+    assert resp.status_code == 422

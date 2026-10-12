@@ -56,9 +56,6 @@ class ErrorCode(StrEnum):
     BUDGET_NOT_FOUND = "budget_not_found"
     BUDGET_NAME_TAKEN = "budget_name_taken"
     BUDGET_NOT_ALLOWED = "budget_not_allowed"
-    BUDGET_NOT_ENVELOPE = "budget_not_envelope"
-    ENVELOPE_NOT_ENOUGH = "envelope_not_enough"
-    TEMPLATE_NOT_FOUND = "template_not_found"
     # Conciliacao
     TRANSACTION_LOCKED = "transaction_locked"
     TRANSACTIONS_LOCKED = "transactions_locked"

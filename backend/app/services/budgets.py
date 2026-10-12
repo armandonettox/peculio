@@ -11,12 +11,15 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams, paginate
-from app.models.budget import Budget, BudgetMode, BudgetPeriod
+from app.models.budget import Budget, BudgetPeriod
 from app.models.currency import Currency
 from app.models.transaction import TransactionSplit, TransactionType
 from app.models.user import User
 from app.schemas.budget import BudgetCreate, BudgetUpdate
+from app.services import budget_calc as calc
 from app.services.accounts import check_amount, get_currency, quantize_money
+
+ZERO = Decimal("0")
 
 
 def period_bounds(period: BudgetPeriod, reference: date) -> tuple[date, date]:
@@ -52,16 +55,14 @@ def _save(db: Session, budget: Budget) -> None:
 
 def create_budget(db: Session, user: User, data: BudgetCreate) -> Budget:
     currency = get_currency(db, data.currency_code)
-    if data.mode == BudgetMode.fixed:
-        check_amount(currency, data.amount)
+    check_amount(currency, data.amount)
     budget = Budget(
         user_id=user.id,
         name=data.name,
         currency_code=currency.code,
-        mode=data.mode,
         amount=data.amount,
-        # Envelope e sempre mensal
-        period=data.period or BudgetPeriod.monthly,
+        period=data.period,
+        carry_over=data.carry_over,
     )
     _save(db, budget)
     return budget
@@ -71,10 +72,12 @@ def update_budget(db: Session, budget: Budget, data: BudgetUpdate) -> Budget:
     changes = data.model_dump(exclude_unset=True)
     # Campo enviado como null nao apaga nada: nenhum destes campos aceita vazio
     changes = {field: value for field, value in changes.items() if value is not None}
-    if budget.mode == BudgetMode.envelope and ("amount" in changes or "period" in changes):
-        raise AppError(422, ErrorCode.VALIDATION_ERROR, "Envelope nao tem limite nem periodo: a distribuicao e por mes")
     if "amount" in changes:
         check_amount(get_currency(db, budget.currency_code), changes["amount"])
+    next_carry_over = changes.get("carry_over", budget.carry_over)
+    next_period = changes.get("period", budget.period)
+    if next_carry_over and next_period != BudgetPeriod.monthly:
+        raise AppError(422, ErrorCode.VALIDATION_ERROR, "Carregar a sobra so vale com periodo mensal")
     for field, value in changes.items():
         setattr(budget, field, value)
     _save(db, budget)
@@ -98,9 +101,9 @@ def budget_output(budget: Budget, places: int) -> dict:
         "id": budget.id,
         "name": budget.name,
         "currency_code": budget.currency_code,
-        "mode": budget.mode,
-        "amount": None if budget.amount is None else quantize_money(budget.amount, places),
+        "amount": quantize_money(budget.amount, places),
         "period": budget.period,
+        "carry_over": budget.carry_over,
         "active": budget.active,
         "created_at": budget.created_at,
     }
@@ -149,24 +152,64 @@ def _spent_by_budget(
     return spent
 
 
+def _spent_by_month(
+    db: Session, user_id: uuid.UUID, budget_ids: Sequence[uuid.UUID], up_to: date
+) -> dict[uuid.UUID, dict[date, Decimal]]:
+    """Gasto de cada orcamento em cada mes, ate o fim do mes `up_to`: so saidas ligadas ao orcamento."""
+    found: dict[uuid.UUID, dict[date, Decimal]] = defaultdict(dict)
+    if not budget_ids:
+        return found
+    month = func.date_trunc("month", TransactionSplit.date)
+    rows = db.execute(
+        select(TransactionSplit.budget_id, month, func.sum(TransactionSplit.amount))
+        .where(
+            TransactionSplit.user_id == user_id,
+            TransactionSplit.budget_id.in_(budget_ids),
+            TransactionSplit.type == TransactionType.withdrawal,
+            TransactionSplit.date <= calc.last_day_of_month(up_to),
+        )
+        .group_by(TransactionSplit.budget_id, month)
+    ).all()
+    for budget_id, first, total in rows:
+        found[budget_id][first.date() if hasattr(first, "date") else first] = total
+    return found
+
+
+def _percent(spent: Decimal, limit: Decimal) -> int:
+    if limit <= ZERO:
+        return 100 if spent > ZERO else 0
+    # Divisao inteira de Decimals: nunca arredonda para cima, 99,9% continua 99
+    return int((spent * 100) // limit)
+
+
 def progress(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) -> list[dict]:
     """Orcamentos com o gasto do periodo que contem `on`, em ordem alfabetica."""
-    # Envelope nao tem limite: nao entra no progresso (a tela de envelopes e a dele)
-    statement = select(Budget).where(Budget.user_id == user_id, Budget.mode == BudgetMode.fixed)
+    statement = select(Budget).where(Budget.user_id == user_id)
     if not include_archived:
         statement = statement.where(Budget.active.is_(True))
     budgets = list(db.execute(statement.order_by(func.lower(Budget.name), Budget.id)).scalars())
     if not budgets:
         return []
 
-    bounds = {budget.id: period_bounds(budget.period, on) for budget in budgets}
-    spent = _spent_by_budget(db, user_id, budgets, bounds)
+    fixed = [budget for budget in budgets if not budget.carry_over]
+    rolling = [budget for budget in budgets if budget.carry_over]
+
+    bounds = {budget.id: period_bounds(budget.period, on) for budget in fixed}
+    spent_fixed = _spent_by_budget(db, user_id, fixed, bounds)
+
+    target_month = calc.first_of_month(on)
+    spent_by_month = _spent_by_month(db, user_id, [b.id for b in rolling], target_month)
+    # Comeca a cadeia no primeiro mes com algum gasto ligado ao orcamento; sem nenhum, nao ha o que carregar
+    since_by_id = {
+        budget.id: min(spent_by_month.get(budget.id, {}).keys(), default=target_month) for budget in rolling
+    }
+
     places = _places(db, {budget.currency_code for budget in budgets})
 
     items = []
-    for budget in budgets:
+    for budget in fixed:
         decimals = places[budget.currency_code]
-        total = quantize_money(spent.get(budget.id, Decimal(0)), decimals)
+        total = quantize_money(spent_fixed.get(budget.id, ZERO), decimals)
         limit = quantize_money(budget.amount, decimals)
         start, end = bounds[budget.id]
         items.append(
@@ -174,10 +217,30 @@ def progress(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) 
                 **budget_output(budget, decimals),
                 "period_start": start,
                 "period_end": end,
+                "limit": limit,
                 "spent": total,
                 "remaining": limit - total,
-                # Divisao inteira de Decimals: nunca arredonda para cima, 99,9% continua 99
-                "percent": int((total * 100) // limit),
+                "percent": _percent(total, limit),
             }
         )
+    for budget in rolling:
+        decimals = places[budget.currency_code]
+        since = since_by_id[budget.id]
+        figures = calc.rolling_available(budget.amount, spent_by_month.get(budget.id, {}), since, target_month)
+        start, end = period_bounds(BudgetPeriod.monthly, on)
+        total = quantize_money(figures.spent, decimals)
+        limit = quantize_money(figures.limit, decimals)
+        items.append(
+            {
+                **budget_output(budget, decimals),
+                "period_start": start,
+                "period_end": end,
+                "limit": limit,
+                "spent": total,
+                "remaining": quantize_money(figures.remaining, decimals),
+                "percent": _percent(total, limit),
+            }
+        )
+    order = {budget.id: index for index, budget in enumerate(budgets)}
+    items.sort(key=lambda item: order[item["id"]])
     return items

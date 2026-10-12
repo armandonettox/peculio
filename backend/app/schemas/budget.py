@@ -5,7 +5,7 @@ from typing import Annotated
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.models.budget import BudgetMode, BudgetPeriod
+from app.models.budget import BudgetPeriod
 
 Money = Annotated[Decimal, Field(max_digits=18, decimal_places=2)]
 PositiveMoney = Annotated[Decimal, Field(max_digits=18, decimal_places=2, gt=0)]
@@ -25,11 +25,10 @@ class BudgetCreate(BaseModel):
 
     name: str = Field(min_length=1, max_length=100)
     currency_code: str = Field(min_length=3, max_length=3)
-    # O modo nao muda depois de criado. Limite fixo precisa de limite e periodo; envelope nao tem limite (o valor
-    # de cada mes e a distribuicao) e e sempre mensal.
-    mode: BudgetMode = BudgetMode.fixed
-    amount: PositiveMoney | None = None
-    period: BudgetPeriod | None = None
+    amount: PositiveMoney
+    period: BudgetPeriod
+    # Carrega a sobra (ou o estouro) para o limite do mes seguinte. So vale com periodo mensal.
+    carry_over: bool = False
 
     _strip_name = field_validator("name")(_strip)
 
@@ -39,15 +38,9 @@ class BudgetCreate(BaseModel):
         return value.strip().upper()
 
     @model_validator(mode="after")
-    def check_mode(self):
-        if self.mode == BudgetMode.fixed:
-            if self.amount is None or self.period is None:
-                raise ValueError("Informe o limite e o periodo")
-        else:
-            if self.amount is not None:
-                raise ValueError("Envelope nao tem limite: voce distribui um valor por mes")
-            if self.period not in (None, BudgetPeriod.monthly):
-                raise ValueError("Envelope e sempre mensal")
+    def check_carry_over(self):
+        if self.carry_over and self.period != BudgetPeriod.monthly:
+            raise ValueError("Carregar a sobra so vale com periodo mensal")
         return self
 
 
@@ -59,6 +52,7 @@ class BudgetUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     amount: PositiveMoney | None = None
     period: BudgetPeriod | None = None
+    carry_over: bool | None = None
     active: bool | None = None
 
     _strip_name = field_validator("name")(_strip)
@@ -70,10 +64,9 @@ class BudgetOut(BaseModel):
     id: uuid.UUID
     name: str
     currency_code: str
-    mode: BudgetMode
-    # Vazio no envelope
-    amount: Money | None
+    amount: Money
     period: BudgetPeriod
+    carry_over: bool
     active: bool
     created_at: datetime
 
@@ -83,8 +76,10 @@ class BudgetProgressOut(BudgetOut):
 
     period_start: date
     period_end: date
+    # amount + o que carregou do mes anterior (igual a amount quando carry_over esta desligado)
+    limit: Money
     spent: Money
-    # Pode ser negativo: gastou alem do limite
+    # Pode ser negativo: gastou alem do limite (soma com o que estourou antes, se carrega a sobra)
     remaining: Money
     # Parte inteira de gasto / limite, em %. Chega a 100 so quando o limite foi atingido.
     percent: int

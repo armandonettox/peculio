@@ -22,7 +22,6 @@ from app.routers import (
     clock,
     currencies,
     dashboard,
-    envelopes,
     imports,
     instance,
     invites,
@@ -76,7 +75,6 @@ api_v1.include_router(accounts.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
-api_v1.include_router(envelopes.router)
 api_v1.include_router(reconciliation.router)
 api_v1.include_router(saved_reports.router)
 api_v1.include_router(rules.router)
