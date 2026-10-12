@@ -133,32 +133,18 @@
       "excluirOrcamento": "Delete budget",
       "osLancamentosLigadosA": "The transactions linked to it stay; they just lose the budget."
     },
-    "bills": {
-      "novaContaAPagar": "New bill",
-      "carregandoContasAPagar": "Loading bills...",
-      "nenhumaContaAPagar": "No bills yet",
-      "cadastreOQueVence": "Register what's always due, like rent, internet or a subscription, and see what's already paid and what's overdue.",
-      "contasAPagar": "Bills",
-      "oQueVenceSempre": "What's always due and whether it's already been paid",
-      "mostrarArquivadas": "Show archived",
-      "excluirContaAPagar": "Delete bill",
-      "osLancamentosLigadosA": "The transactions linked to it stay; they just stop being linked."
-    },
     "recurrences": {
-      "novaRecorrente": "New recurrence",
+      "titulo": "Recurring",
+      "descricao": "What's always due and what repeats on its own, in one place.",
+      "novaRecorrenteAutomatica": "New automatic recurrence",
+      "novoLembrete": "New reminder",
       "carregandoRecorrentes": "Loading recurrences...",
       "nenhumaRecorrenteAinda": "No recurrences yet",
-      "cadastreOQueSe": "Register what repeats on its own, like rent or a paycheck, and the app creates the transactions for you, including days it was turned off.",
-      "recorrentes": "Recurrences",
-      "lancamentosQueSeRepetem": "Transactions that repeat on their own",
-      "mostrarPausadas": "Show paused",
+      "cadastreOQueSe": "Register what's always due or repeats on its own: the app can create the transaction for you, or just remind you of the due date until you log it.",
+      "mostrarInativas": "Show inactive",
       "excluirRecorrente": "Delete recurrence",
-      "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones."
-    },
-    "billsRecurrences": {
-      "titulo": "Bills and recurring",
-      "descricao": "What's always due and what repeats on its own, in one place.",
-      "secao": "Bills or recurring section"
+      "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones.",
+      "osLancamentosLigadosA": "The transactions linked to it stay; they just stop being linked."
     },
     "piggyBanks": {
       "novoCofrinho": "New piggy bank",
@@ -378,7 +364,7 @@
     "import": "Import statement",
     "categories": "Categories",
     "budgets": "Budgets",
-    "bills": "Bills",
+    "bills": "Recurring",
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
     "reports": "Reports"
@@ -419,7 +405,7 @@
     "tag_not_found": "Tag not found.",
     "tag_name_taken": "A tag with that name already exists.",
     "bill_not_found": "Bill not found.",
-    "bill_name_taken": "A bill with that name already exists.",
+    "bill_name_taken": "A recurrence with that name already exists.",
     "bill_not_allowed": "A bill only applies to expenses, not to income, transfers or debt payments.",
     "recurrence_not_found": "Recurring transaction not found.",
     "recurrence_invalid": "Check when the recurrence ends: give either an end date or a number of repetitions, and the end date can't be before the first one.",
@@ -954,56 +940,6 @@
       "remaining": "{{amount}} left"
     }
   },
-  "bills": {
-    "billCard": {
-      "arquivada": "Archived",
-      "arquivar": "Archive",
-      "restaurar": "Restore",
-      "jaPago": "· already paid",
-      "acoesDaConta": "Actions for bill {{name}}"
-    },
-    "billFormDialog": {
-      "editarContaAPagar": "Edit bill",
-      "novaContaAPagar": "New bill",
-      "mudarADataOu": "Changing the date or frequency recalculates every due date. The currency can't change.",
-      "algoQueVenceSempre": "Something that's always due, like rent or a subscription. The app links matching transactions on its own.",
-      "frequencia": "Frequency",
-      "valorMinimo": "Minimum amount",
-      "valorMaximo": "Maximum amount",
-      "deixeEmBrancoSe": "Leave it blank if the amount is always the same.",
-      "primeiroVencimento": "First due date",
-      "textoParaLigarSozinho": "Text to auto-link",
-      "quandoUmaSaidaTiver": "When an expense has this text in the description or in who received it, and the amount is in range, it's linked to this bill. Leave it blank to link only by hand.",
-      "salvando": "Saving...",
-      "salvar": "Save",
-      "criarContaAPagar": "Create bill",
-      "informeONome": "Enter the bill's name.",
-      "informeOValor": "Enter the amount.",
-      "valorMaximoNaoPode": "The maximum amount can't be less than the minimum.",
-      "informeUmaData": "Enter a valid date.",
-      "informeUmValorMaior": "Enter an amount greater than zero."
-    },
-    "presentation": {
-      "frequency": {
-        "weekly": "Weekly",
-        "monthly": "Monthly",
-        "quarterly": "Quarterly",
-        "half_yearly": "Semiannual",
-        "yearly": "Yearly"
-      },
-      "nextDue": "Next due date: {{date}}",
-      "nextDueWithRelative": "Next due date: {{date}} ({{relative}})",
-      "amountRange": "{{min}} to {{max}}",
-      "status": {
-        "paid": "Paid",
-        "overdueMultiple": "Overdue · {{count}} overdue payments, the oldest on {{date}}",
-        "overdueSingle": "Overdue · was due on {{date}}",
-        "upcoming": "Upcoming"
-      },
-      "matchText": "Auto-links when it contains “{{text}}”",
-      "noMatchText": "No automatic link"
-    }
-  },
   "recurrences": {
     "recurrenceCard": {
       "pausada": "Paused",
@@ -1012,7 +948,32 @@
       "retomar": "Resume",
       "aoRetomarOPeriodo": "On resuming, the paused period isn't recreated: it resumes from the next due date.",
       "acoesDaRecorrente": "Actions for recurrence {{name}}",
-      "naoFoiPossivelCriar": "Couldn't create the next transaction: {{error}}"
+      "naoFoiPossivelCriar": "Couldn't create the next transaction: {{error}}",
+      "arquivada": "Archived",
+      "arquivar": "Archive",
+      "restaurar": "Restore",
+      "jaPago": "· already paid"
+    },
+    "reminderFormDialog": {
+      "editarLembrete": "Edit reminder",
+      "novoLembrete": "New reminder",
+      "mudarADataOu": "Changing the date or frequency recalculates every due date. The currency can't change.",
+      "algoQueVenceSempre": "Something that's always due, like rent or a subscription. The app links matching transactions on its own.",
+      "frequencia": "Frequency",
+      "valorMinimo": "Minimum amount",
+      "valorMaximo": "Maximum amount",
+      "deixeEmBrancoSe": "Leave it blank if the amount is always the same.",
+      "primeiroVencimento": "First due date",
+      "textoParaLigarSozinho": "Text to auto-link",
+      "quandoUmaSaidaTiver": "When an expense has this text in the description or in who received it, and the amount is in range, it's linked to this reminder. Leave it blank to link only by hand.",
+      "salvando": "Saving...",
+      "salvar": "Save",
+      "criarLembrete": "Create reminder",
+      "informeONome": "Enter the reminder's name.",
+      "informeOValor": "Enter the amount.",
+      "valorMaximoNaoPode": "The maximum amount can't be less than the minimum.",
+      "informeUmaData": "Enter a valid date.",
+      "informeUmValorMaior": "Enter an amount greater than zero."
     },
     "presentation": {
       "frequency": {
@@ -1032,7 +993,18 @@
       "ended": "Ended",
       "paused": "Paused",
       "next": "Next: {{date}}",
-      "nextWithRelative": "Next: {{date}} ({{relative}})"
+      "nextWithRelative": "Next: {{date}} ({{relative}})",
+      "nextDue": "Next due date: {{date}}",
+      "nextDueWithRelative": "Next due date: {{date}} ({{relative}})",
+      "amountRange": "{{min}} to {{max}}",
+      "status": {
+        "paid": "Paid",
+        "overdueMultiple": "Overdue · {{count}} overdue payments, the oldest on {{date}}",
+        "overdueSingle": "Overdue · was due on {{date}}",
+        "upcoming": "Upcoming"
+      },
+      "matchText": "Auto-links when it contains “{{text}}”",
+      "noMatchText": "No automatic link"
     }
   },
   "piggy-banks": {

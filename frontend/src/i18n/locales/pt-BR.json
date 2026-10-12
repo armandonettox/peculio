@@ -133,32 +133,18 @@
       "excluirOrcamento": "Excluir orçamento",
       "osLancamentosLigadosA": "Os lançamentos ligados a ele continuam, só ficam sem orçamento."
     },
-    "bills": {
-      "novaContaAPagar": "Nova conta a pagar",
-      "carregandoContasAPagar": "Carregando contas a pagar...",
-      "nenhumaContaAPagar": "Nenhuma conta a pagar ainda",
-      "cadastreOQueVence": "Cadastre o que vence sempre, como aluguel, internet ou uma assinatura, e veja o que já foi pago e o que está atrasado.",
-      "contasAPagar": "Contas a pagar",
-      "oQueVenceSempre": "O que vence sempre e se já foi pago",
-      "mostrarArquivadas": "Mostrar arquivadas",
-      "excluirContaAPagar": "Excluir conta a pagar",
-      "osLancamentosLigadosA": "Os lançamentos ligados a ela continuam, só deixam de estar ligados."
-    },
     "recurrences": {
-      "novaRecorrente": "Nova recorrente",
+      "titulo": "Recorrentes",
+      "descricao": "O que vence sempre e o que se repete sozinho, num só lugar.",
+      "novaRecorrenteAutomatica": "Nova recorrente automática",
+      "novoLembrete": "Novo lembrete",
       "carregandoRecorrentes": "Carregando recorrentes...",
       "nenhumaRecorrenteAinda": "Nenhuma recorrente ainda",
-      "cadastreOQueSe": "Cadastre o que se repete sozinho, como aluguel ou salário, e o app cria os lançamentos por você, inclusive os dias em que ele esteve desligado.",
-      "recorrentes": "Recorrentes",
-      "lancamentosQueSeRepetem": "Lançamentos que se repetem sozinhos",
-      "mostrarPausadas": "Mostrar pausadas",
+      "cadastreOQueSe": "Cadastre o que vence sempre ou se repete sozinho: o app pode criar o lançamento por você, ou só lembrar o vencimento até você lançar.",
+      "mostrarInativas": "Mostrar inativas",
       "excluirRecorrente": "Excluir recorrente",
-      "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
-    },
-    "billsRecurrences": {
-      "titulo": "Contas a pagar e recorrentes",
-      "descricao": "O que vence sempre e o que se repete sozinho, num só lugar.",
-      "secao": "Seção de contas a pagar ou recorrentes"
+      "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos.",
+      "osLancamentosLigadosA": "Os lançamentos ligados a ela continuam, só deixam de estar ligados."
     },
     "piggyBanks": {
       "novoCofrinho": "Novo cofrinho",
@@ -378,7 +364,7 @@
     "import": "Importar extrato",
     "categories": "Categorias",
     "budgets": "Orçamentos",
-    "bills": "Contas a pagar",
+    "bills": "Recorrentes",
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
     "reports": "Relatórios"
@@ -419,7 +405,7 @@
     "tag_not_found": "Tag não encontrada.",
     "tag_name_taken": "Já existe uma tag com esse nome.",
     "bill_not_found": "Conta a pagar não encontrada.",
-    "bill_name_taken": "Já existe uma conta a pagar com esse nome.",
+    "bill_name_taken": "Já existe uma recorrente com esse nome.",
     "bill_not_allowed": "Conta a pagar só vale para saídas para uma despesa, não para entradas, transferências ou pagamento de dívida.",
     "recurrence_not_found": "Recorrente não encontrada.",
     "recurrence_invalid": "Confira o fim da recorrência: informe só a data final ou só o número de repetições, e a data final não pode ser antes da primeira.",
@@ -954,56 +940,6 @@
       "remaining": "Restam {{amount}}"
     }
   },
-  "bills": {
-    "billCard": {
-      "arquivada": "Arquivada",
-      "arquivar": "Arquivar",
-      "restaurar": "Restaurar",
-      "jaPago": "· já pago",
-      "acoesDaConta": "Ações da conta a pagar {{name}}"
-    },
-    "billFormDialog": {
-      "editarContaAPagar": "Editar conta a pagar",
-      "novaContaAPagar": "Nova conta a pagar",
-      "mudarADataOu": "Mudar a data ou a frequência recalcula todos os vencimentos. A moeda não pode mudar.",
-      "algoQueVenceSempre": "Algo que vence sempre, como aluguel ou uma assinatura. O app liga sozinho os lançamentos que combinam.",
-      "frequencia": "Frequência",
-      "valorMinimo": "Valor mínimo",
-      "valorMaximo": "Valor máximo",
-      "deixeEmBrancoSe": "Deixe em branco se o valor é sempre o mesmo.",
-      "primeiroVencimento": "Primeiro vencimento",
-      "textoParaLigarSozinho": "Texto para ligar sozinho",
-      "quandoUmaSaidaTiver": "Quando uma saída tiver este texto na descrição ou no nome de quem recebeu, e o valor estiver na faixa, ela é ligada a esta conta. Deixe em branco para ligar só à mão.",
-      "salvando": "Salvando...",
-      "salvar": "Salvar",
-      "criarContaAPagar": "Criar conta a pagar",
-      "informeONome": "Informe o nome da conta.",
-      "informeOValor": "Informe o valor.",
-      "valorMaximoNaoPode": "O valor máximo não pode ser menor que o mínimo.",
-      "informeUmaData": "Informe uma data válida.",
-      "informeUmValorMaior": "Informe um valor maior que zero."
-    },
-    "presentation": {
-      "frequency": {
-        "weekly": "Semanal",
-        "monthly": "Mensal",
-        "quarterly": "Trimestral",
-        "half_yearly": "Semestral",
-        "yearly": "Anual"
-      },
-      "nextDue": "Próximo vencimento: {{date}}",
-      "nextDueWithRelative": "Próximo vencimento: {{date}} ({{relative}})",
-      "amountRange": "{{min}} a {{max}}",
-      "status": {
-        "paid": "Pago",
-        "overdueMultiple": "Atrasada · {{count}} vencimentos atrasados, o mais antigo em {{date}}",
-        "overdueSingle": "Atrasada · venceu em {{date}}",
-        "upcoming": "A vencer"
-      },
-      "matchText": "Liga sozinha quando contém “{{text}}”",
-      "noMatchText": "Sem ligação automática"
-    }
-  },
   "recurrences": {
     "recurrenceCard": {
       "pausada": "Pausada",
@@ -1012,7 +948,32 @@
       "retomar": "Retomar",
       "aoRetomarOPeriodo": "Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.",
       "acoesDaRecorrente": "Ações da recorrente {{name}}",
-      "naoFoiPossivelCriar": "Não foi possível criar o próximo lançamento: {{error}}"
+      "naoFoiPossivelCriar": "Não foi possível criar o próximo lançamento: {{error}}",
+      "arquivada": "Arquivada",
+      "arquivar": "Arquivar",
+      "restaurar": "Restaurar",
+      "jaPago": "· já pago"
+    },
+    "reminderFormDialog": {
+      "editarLembrete": "Editar lembrete",
+      "novoLembrete": "Novo lembrete",
+      "mudarADataOu": "Mudar a data ou a frequência recalcula todos os vencimentos. A moeda não pode mudar.",
+      "algoQueVenceSempre": "Algo que vence sempre, como aluguel ou uma assinatura. O app liga sozinho os lançamentos que combinam.",
+      "frequencia": "Frequência",
+      "valorMinimo": "Valor mínimo",
+      "valorMaximo": "Valor máximo",
+      "deixeEmBrancoSe": "Deixe em branco se o valor é sempre o mesmo.",
+      "primeiroVencimento": "Primeiro vencimento",
+      "textoParaLigarSozinho": "Texto para ligar sozinho",
+      "quandoUmaSaidaTiver": "Quando uma saída tiver este texto na descrição ou no nome de quem recebeu, e o valor estiver na faixa, ela é ligada a este lembrete. Deixe em branco para ligar só à mão.",
+      "salvando": "Salvando...",
+      "salvar": "Salvar",
+      "criarLembrete": "Criar lembrete",
+      "informeONome": "Informe o nome do lembrete.",
+      "informeOValor": "Informe o valor.",
+      "valorMaximoNaoPode": "O valor máximo não pode ser menor que o mínimo.",
+      "informeUmaData": "Informe uma data válida.",
+      "informeUmValorMaior": "Informe um valor maior que zero."
     },
     "presentation": {
       "frequency": {
@@ -1032,7 +993,18 @@
       "ended": "Terminou",
       "paused": "Pausada",
       "next": "Próximo: {{date}}",
-      "nextWithRelative": "Próximo: {{date}} ({{relative}})"
+      "nextWithRelative": "Próximo: {{date}} ({{relative}})",
+      "nextDue": "Próximo vencimento: {{date}}",
+      "nextDueWithRelative": "Próximo vencimento: {{date}} ({{relative}})",
+      "amountRange": "{{min}} a {{max}}",
+      "status": {
+        "paid": "Pago",
+        "overdueMultiple": "Atrasada · {{count}} vencimentos atrasados, o mais antigo em {{date}}",
+        "overdueSingle": "Atrasada · venceu em {{date}}",
+        "upcoming": "A vencer"
+      },
+      "matchText": "Liga sozinha quando contém “{{text}}”",
+      "noMatchText": "Sem ligação automática"
     }
   },
   "piggy-banks": {

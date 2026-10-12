@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { useAccounts } from "@/api/accounts";
-import { useBills } from "@/api/bills";
+import { useReminderRecurrences } from "@/api/recurrences";
 import { useBudgets } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -66,7 +66,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useBills({ activeOnly: false });
+  const bills = useReminderRecurrences({ activeOnly: false });
 
   const [draft, setDraft] = useState<RuleDraft>(() => (rule ? draftFromRule(rule) : emptyDraft()));
   const [errors, setErrors] = useState<DraftErrors>(NO_ERRORS);

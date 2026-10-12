@@ -4,7 +4,6 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeBillsApi } from "@/test-utils/bills-api";
 import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeLabelsApi } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -30,7 +29,6 @@ function renderPage(items = [makeRecurrence({ name: "Aluguel" })]) {
     ...fakeLabelsApi("categories", []).handlers,
     ...fakeLabelsApi("tags", []).handlers,
     ...fakeBudgetsApi([]).handlers,
-    ...fakeBillsApi([]).handlers,
   );
   render(
     <FakeAuth>
@@ -122,7 +120,7 @@ it("recorrente pausada avisa que o periodo parado nao e recriado ao retomar", as
     makeRecurrence({ name: "Acabou", active: false, ended: true, next_date: null, max_occurrences: 3, created_count: 3 }),
   ]);
   await screen.findByText("Ativa");
-  await userEvent.click(screen.getByLabelText("Mostrar pausadas"));
+  await userEvent.click(screen.getByLabelText("Mostrar inativas"));
   await screen.findByText("Parada");
   const hint = "Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.";
   expect(within(card("Parada")).getByText(hint)).toBeInTheDocument();
@@ -177,13 +175,13 @@ it("pausadas ficam escondidas ate pedir para mostrar", async () => {
   const api = renderPage([makeRecurrence({ name: "Ativa" }), makeRecurrence({ name: "Parada", active: false })]);
   await screen.findByText("Ativa");
   expect(screen.queryByText("Parada")).not.toBeInTheDocument();
-  expect(api.listRequests().at(-1)?.query?.get("active")).toBe("true");
+  expect(api.listRequests().filter((r) => r.path === "/recurrences").at(-1)?.query?.get("active")).toBe("true");
 
-  await userEvent.click(screen.getByLabelText("Mostrar pausadas"));
+  await userEvent.click(screen.getByLabelText("Mostrar inativas"));
   expect(await screen.findByText("Parada")).toBeInTheDocument();
   expect(within(card("Parada")).getByText("Pausada", { selector: "span" })).toBeInTheDocument();
   expect(within(card("Parada")).getByText("Pausada", { selector: "p" })).toBeInTheDocument();
-  expect(api.listRequests().at(-1)?.query?.has("active")).toBe(false);
+  expect(api.listRequests().filter((r) => r.path === "/recurrences").at(-1)?.query?.has("active")).toBe(false);
 });
 
 it("pausar manda active falso e a recorrente some da lista", async () => {
@@ -198,7 +196,7 @@ it("pausar manda active falso e a recorrente some da lista", async () => {
 
 it("retomar manda active verdadeiro", async () => {
   const api = renderPage([makeRecurrence({ name: "Parada", active: false })]);
-  await userEvent.click(await screen.findByLabelText("Mostrar pausadas"));
+  await userEvent.click(await screen.findByLabelText("Mostrar inativas"));
   await screen.findByText("Parada");
   await openMenu("Parada");
   await userEvent.click(screen.getByRole("menuitem", { name: "Retomar" }));

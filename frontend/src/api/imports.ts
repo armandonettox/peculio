@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { accountsKey } from "./accounts";
 import { api, unwrap } from "./client";
-import { billsKey, budgetsKey, dashboardKey, piggyBanksKey, reportsKey } from "./query-keys";
+import { budgetsKey, dashboardKey, piggyBanksKey, recurrencesKey, reportsKey } from "./query-keys";
 import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
@@ -46,7 +46,7 @@ export function useConfirmImport() {
     mutationFn: (body: ImportConfirm) => unwrap(api.client.POST("/api/v1/imports/confirm", { body })),
     onSuccess: () =>
       Promise.all(
-        [transactionsKey, accountsKey, budgetsKey, billsKey, piggyBanksKey, reportsKey, dashboardKey].map((queryKey) =>
+        [transactionsKey, accountsKey, budgetsKey, piggyBanksKey, recurrencesKey, reportsKey, dashboardKey].map((queryKey) =>
           queryClient.invalidateQueries({ queryKey }),
         ),
       ),

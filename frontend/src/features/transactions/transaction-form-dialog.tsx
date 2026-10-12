@@ -2,9 +2,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
 import { useAccounts, useCurrencies } from "@/api/accounts";
-import { useBills, type Bill } from "@/api/bills";
 import {
   useCreateRecurrence,
+  useReminderRecurrences,
   useUpdateRecurrence,
   type Recurrence,
   type RecurrenceFrequency,
@@ -120,7 +120,7 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
   const tags = useTags({ search: "" });
   // Todos, inclusive arquivados: editar um lancamento ligado a um orcamento arquivado precisa mostrar o nome dele
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useBills({ activeOnly: false });
+  const bills = useReminderRecurrences({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
   const createRecurrence = useCreateRecurrence();
@@ -195,7 +195,7 @@ type BodyProps = {
   categories: Category[];
   tags: Tag[];
   budgets: Budget[];
-  bills: Bill[];
+  bills: Recurrence[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
   createRecurrence: ReturnType<typeof useCreateRecurrence>;
@@ -226,7 +226,8 @@ function FormBody({
 
   // Calculado uma vez, na abertura: o formulario nao deve ser refeito quando a lista recarrega
   const [initial] = useState(() => {
-    if (recurrence) return formFromTemplate(recurrence.template, ctx, recurrence.first_date);
+    // So chega aqui no modo automatico (auto_create), que sempre tem template
+    if (recurrence) return formFromTemplate(recurrence.template!, ctx, recurrence.first_date);
     if (transaction) return formFromTransaction(transaction, ctx);
     if (initialTemplate) return formFromTemplate(initialTemplate.template, ctx, initialTemplate.date);
     return null;
@@ -437,7 +438,14 @@ function FormBody({
         if (recurrence) {
           await updateRecurrence.mutateAsync({ id: recurrence.id, body: { name: name.trim(), template: body, ...end } });
         } else {
-          await createRecurrence.mutateAsync({ name: name.trim(), frequency, first_date: state.date, template: body, ...end });
+          await createRecurrence.mutateAsync({
+            name: name.trim(),
+            auto_create: true,
+            frequency,
+            first_date: state.date,
+            template: body,
+            ...end,
+          });
         }
       } else if (transaction) await update.mutateAsync({ id: transaction.id, body });
       else await create.mutateAsync(body);

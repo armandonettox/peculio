@@ -8,7 +8,7 @@ import { server } from "@/test-utils/msw";
 import { accountsKey } from "./accounts";
 import { useBulkTransactions } from "./bulk";
 import { dashboardKey } from "./dashboard";
-import { billsKey, budgetsKey, reportsKey, webhooksKey } from "./query-keys";
+import { budgetsKey, recurrencesKey, reportsKey, webhooksKey } from "./query-keys";
 import { reconciliationKey } from "./reconciliation";
 import { counterpartiesKey, transactionsKey } from "./transactions";
 
@@ -20,7 +20,7 @@ const KEYS = {
   accounts: [...accountsKey, "lista"],
   counterparties: [...counterpartiesKey, "expense", ""],
   budgets: [...budgetsKey, "lista"],
-  bills: [...billsKey, "lista"],
+  bills: [...recurrencesKey, "lista"],
   reports: [...reportsKey, "mensal"],
   dashboard: [...dashboardKey, "net-worth"],
   reconciliation: [...reconciliationKey, "view", null],

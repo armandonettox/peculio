@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 
 import { accountsKey } from "./accounts";
 import { api, unwrap } from "./client";
-import { billsKey, budgetsKey, dashboardKey, piggyBanksKey, reportsKey } from "./query-keys";
+import { budgetsKey, dashboardKey, piggyBanksKey, recurrencesKey, reportsKey } from "./query-keys";
 import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
@@ -77,7 +77,7 @@ export function useCreateAdjustment(accountId: string) {
       ),
     onSuccess: () =>
       Promise.all(
-        [reconciliationKey, transactionsKey, accountsKey, budgetsKey, billsKey, piggyBanksKey, reportsKey, dashboardKey].map(
+        [reconciliationKey, transactionsKey, accountsKey, budgetsKey, piggyBanksKey, recurrencesKey, reportsKey, dashboardKey].map(
           (queryKey) => queryClient.invalidateQueries({ queryKey }),
         ),
       ),

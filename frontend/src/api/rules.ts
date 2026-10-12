@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "./client";
-import { billsKey, budgetsKey, reportsKey, rulesKey } from "./query-keys";
+import { budgetsKey, recurrencesKey, reportsKey, rulesKey } from "./query-keys";
 import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
@@ -116,7 +116,7 @@ export function useApplyRules() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: transactionsKey }),
         queryClient.invalidateQueries({ queryKey: budgetsKey }),
-        queryClient.invalidateQueries({ queryKey: billsKey }),
+        queryClient.invalidateQueries({ queryKey: recurrencesKey }),
         queryClient.invalidateQueries({ queryKey: reportsKey }),
       ]),
   });

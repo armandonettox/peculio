@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeBillsApi } from "@/test-utils/bills-api";
+import { fakeRecurrencesApi } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeInvoicesApi, makeInvoice, makeInvoiceSplit } from "@/test-utils/invoices-api";
 import { fakeLabelsApi } from "@/test-utils/labels-api";
@@ -34,7 +34,7 @@ function renderPage({
     ...invoicesApi.handlers,
     ...tx.handlers,
     ...fakeBudgetsApi([]).handlers,
-    ...fakeBillsApi([]).handlers,
+    ...fakeRecurrencesApi([]).handlers,
     ...fakeLabelsApi("categories", []).handlers,
     ...fakeLabelsApi("tags", []).handlers,
   );

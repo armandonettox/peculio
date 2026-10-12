@@ -745,379 +745,6 @@
         "title": "AuthStatus",
         "type": "object"
       },
-      "BillCreate": {
-        "additionalProperties": false,
-        "properties": {
-          "amount_max": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              }
-            ],
-            "title": "Amount Min"
-          },
-          "currency_code": {
-            "maxLength": 3,
-            "minLength": 3,
-            "title": "Currency Code",
-            "type": "string"
-          },
-          "first_due_date": {
-            "format": "date",
-            "title": "First Due Date",
-            "type": "string"
-          },
-          "frequency": {
-            "$ref": "#/components/schemas/BillFrequency"
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "currency_code",
-          "amount_min",
-          "amount_max",
-          "first_due_date",
-          "frequency"
-        ],
-        "title": "BillCreate",
-        "type": "object"
-      },
-      "BillFrequency": {
-        "enum": [
-          "weekly",
-          "monthly",
-          "quarterly",
-          "half_yearly",
-          "yearly"
-        ],
-        "title": "BillFrequency",
-        "type": "string"
-      },
-      "BillOut": {
-        "properties": {
-          "active": {
-            "title": "Active",
-            "type": "boolean"
-          },
-          "amount_max": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount Max",
-            "type": "string"
-          },
-          "amount_min": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount Min",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "currency_code": {
-            "title": "Currency Code",
-            "type": "string"
-          },
-          "first_due_date": {
-            "format": "date",
-            "title": "First Due Date",
-            "type": "string"
-          },
-          "frequency": {
-            "$ref": "#/components/schemas/BillFrequency"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "currency_code",
-          "amount_min",
-          "amount_max",
-          "match_text",
-          "first_due_date",
-          "frequency",
-          "active",
-          "created_at"
-        ],
-        "title": "BillOut",
-        "type": "object"
-      },
-      "BillStatusOut": {
-        "description": "A conta a pagar com a situacao na data pedida.",
-        "properties": {
-          "active": {
-            "title": "Active",
-            "type": "boolean"
-          },
-          "amount_max": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount Max",
-            "type": "string"
-          },
-          "amount_min": {
-            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-            "title": "Amount Min",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "currency_code": {
-            "title": "Currency Code",
-            "type": "string"
-          },
-          "first_due_date": {
-            "format": "date",
-            "title": "First Due Date",
-            "type": "string"
-          },
-          "frequency": {
-            "$ref": "#/components/schemas/BillFrequency"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "last_due_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Due Date"
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "next_due_date": {
-            "format": "date",
-            "title": "Next Due Date",
-            "type": "string"
-          },
-          "next_due_paid": {
-            "title": "Next Due Paid",
-            "type": "boolean"
-          },
-          "oldest_overdue_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Oldest Overdue Date"
-          },
-          "overdue_count": {
-            "title": "Overdue Count",
-            "type": "integer"
-          },
-          "status": {
-            "enum": [
-              "upcoming",
-              "paid",
-              "overdue"
-            ],
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "currency_code",
-          "amount_min",
-          "amount_max",
-          "match_text",
-          "first_due_date",
-          "frequency",
-          "active",
-          "created_at",
-          "last_due_date",
-          "next_due_date",
-          "status",
-          "overdue_count",
-          "oldest_overdue_date",
-          "next_due_paid"
-        ],
-        "title": "BillStatusOut",
-        "type": "object"
-      },
-      "BillUpdate": {
-        "additionalProperties": false,
-        "description": "A moeda nao muda. `match_text` enviado como null apaga a ligacao automatica.",
-        "properties": {
-          "active": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Active"
-          },
-          "amount_max": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Min"
-          },
-          "first_due_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "First Due Date"
-          },
-          "frequency": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/BillFrequency"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          }
-        },
-        "title": "BillUpdate",
-        "type": "object"
-      },
       "Body_preview_import_api_v1_imports_preview_post": {
         "properties": {
           "account_id": {
@@ -2759,37 +2386,6 @@
         "title": "Page[ApiTokenOut]",
         "type": "object"
       },
-      "Page_BillOut_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/BillOut"
-            },
-            "title": "Items",
-            "type": "array"
-          },
-          "limit": {
-            "title": "Limit",
-            "type": "integer"
-          },
-          "offset": {
-            "title": "Offset",
-            "type": "integer"
-          },
-          "total": {
-            "title": "Total",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "limit",
-          "offset"
-        ],
-        "title": "Page[BillOut]",
-        "type": "object"
-      },
       "Page_BudgetOut_": {
         "properties": {
           "items": {
@@ -3692,8 +3288,58 @@
       },
       "RecurrenceCreate": {
         "additionalProperties": false,
-        "description": "`template` e um lancamento comum. A data de cada linha dele e trocada pela data de cada\nocorrencia, entao quem escreve so precisa de um valor valido.",
+        "description": "`auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja\ndata de cada linha e trocada pela data de cada ocorrencia). Desligado, pede `currency_code` e\na faixa de valor (`amount_min`/`amount_max`) para so lembrar o vencimento.",
         "properties": {
+          "amount_max": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Max"
+          },
+          "amount_min": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Min"
+          },
+          "auto_create": {
+            "default": false,
+            "title": "Auto Create",
+            "type": "boolean"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
           "end_date": {
             "anyOf": [
               {
@@ -3713,6 +3359,18 @@
           },
           "frequency": {
             "$ref": "#/components/schemas/RecurrenceFrequency"
+          },
+          "match_text": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Text"
           },
           "max_occurrences": {
             "anyOf": [
@@ -3734,14 +3392,20 @@
             "type": "string"
           },
           "template": {
-            "$ref": "#/components/schemas/TransactionCreate-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionCreate-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "name",
           "frequency",
-          "first_date",
-          "template"
+          "first_date"
         ],
         "title": "RecurrenceCreate",
         "type": "object"
@@ -3764,6 +3428,34 @@
             "title": "Active",
             "type": "boolean"
           },
+          "amount_max": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Max"
+          },
+          "amount_min": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Min"
+          },
+          "auto_create": {
+            "title": "Auto Create",
+            "type": "boolean"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3772,6 +3464,17 @@
           "created_count": {
             "title": "Created Count",
             "type": "integer"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
           },
           "end_date": {
             "anyOf": [
@@ -3813,6 +3516,17 @@
             ],
             "title": "Last Error"
           },
+          "match_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Text"
+          },
           "max_occurrences": {
             "anyOf": [
               {
@@ -3841,7 +3555,14 @@
             "title": "Next Date"
           },
           "template": {
-            "$ref": "#/components/schemas/TransactionCreate-Output"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionCreate-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -3852,7 +3573,12 @@
           "end_date",
           "max_occurrences",
           "active",
+          "auto_create",
           "template",
+          "currency_code",
+          "amount_min",
+          "amount_max",
+          "match_text",
           "created_count",
           "next_date",
           "ended",
@@ -3862,20 +3588,60 @@
         "title": "RecurrenceOut",
         "type": "object"
       },
-      "RecurrenceUpdate": {
-        "additionalProperties": false,
-        "description": "A frequencia e a primeira data nao mudam: elas definem todas as datas que ja foram criadas.\n`end_date` e `max_occurrences` enviados como null tiram o fim.",
+      "RecurrenceStatusOut": {
+        "description": "Uma recorrente do modo de lembrete, com a situacao na data pedida.",
         "properties": {
           "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "amount_max": {
             "anyOf": [
               {
-                "type": "boolean"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Active"
+            "title": "Amount Max"
+          },
+          "amount_min": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Min"
+          },
+          "auto_create": {
+            "title": "Auto Create",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_count": {
+            "title": "Created Count",
+            "type": "integer"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
           },
           "end_date": {
             "anyOf": [
@@ -3888,6 +3654,251 @@
               }
             ],
             "title": "End Date"
+          },
+          "ended": {
+            "title": "Ended",
+            "type": "boolean"
+          },
+          "first_date": {
+            "format": "date",
+            "title": "First Date",
+            "type": "string"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/RecurrenceFrequency"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Due Date"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "match_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Text"
+          },
+          "max_occurrences": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Occurrences"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Date"
+          },
+          "next_due_date": {
+            "format": "date",
+            "title": "Next Due Date",
+            "type": "string"
+          },
+          "next_due_paid": {
+            "title": "Next Due Paid",
+            "type": "boolean"
+          },
+          "oldest_overdue_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oldest Overdue Date"
+          },
+          "overdue_count": {
+            "title": "Overdue Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "upcoming",
+              "paid",
+              "overdue"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionCreate-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "frequency",
+          "first_date",
+          "end_date",
+          "max_occurrences",
+          "active",
+          "auto_create",
+          "template",
+          "currency_code",
+          "amount_min",
+          "amount_max",
+          "match_text",
+          "created_count",
+          "next_date",
+          "ended",
+          "last_error",
+          "created_at",
+          "last_due_date",
+          "next_due_date",
+          "status",
+          "overdue_count",
+          "oldest_overdue_date",
+          "next_due_paid"
+        ],
+        "title": "RecurrenceStatusOut",
+        "type": "object"
+      },
+      "RecurrenceUpdate": {
+        "additionalProperties": false,
+        "description": "`auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo\nautomatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que\nja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir\ndelas). `end_date` e `max_occurrences` enviados como null tiram o fim. `match_text` enviado\ncomo null apaga a ligacao automatica.",
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "amount_max": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Max"
+          },
+          "amount_min": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Min"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "first_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Date"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceFrequency"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "match_text": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Text"
           },
           "max_occurrences": {
             "anyOf": [
@@ -7751,356 +7762,6 @@
         ]
       }
     },
-    "/api/v1/bills": {
-      "get": {
-        "operationId": "list_bills_api_v1_bills_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "q",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Q"
-            }
-          },
-          {
-            "in": "query",
-            "name": "active",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Active"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Offset",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page_BillOut_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "List Bills",
-        "tags": [
-          "bills"
-        ]
-      },
-      "post": {
-        "operationId": "create_bill_api_v1_bills_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BillCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BillOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Create Bill",
-        "tags": [
-          "bills"
-        ]
-      }
-    },
-    "/api/v1/bills/status": {
-      "get": {
-        "description": "Ultimo e proximo vencimento de cada conta a pagar na data `on` (hoje, se omitida), e se o\nultimo foi pago. Ordenadas pelo proximo vencimento.",
-        "operationId": "bills_status_api_v1_bills_status_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "on",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "date",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "On"
-            }
-          },
-          {
-            "in": "query",
-            "name": "include_archived",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Include Archived",
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/BillStatusOut"
-                  },
-                  "title": "Response Bills Status Api V1 Bills Status Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Bills Status",
-        "tags": [
-          "bills"
-        ]
-      }
-    },
-    "/api/v1/bills/{bill_id}": {
-      "delete": {
-        "operationId": "delete_bill_api_v1_bills__bill_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "bill_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Bill Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Delete Bill",
-        "tags": [
-          "bills"
-        ]
-      },
-      "get": {
-        "operationId": "get_bill_api_v1_bills__bill_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "bill_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Bill Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BillOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Get Bill",
-        "tags": [
-          "bills"
-        ]
-      },
-      "patch": {
-        "operationId": "update_bill_api_v1_bills__bill_id__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "bill_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Bill Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BillUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BillOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Update Bill",
-        "tags": [
-          "bills"
-        ]
-      }
-    },
     "/api/v1/budgets": {
       "get": {
         "operationId": "list_budgets_api_v1_budgets_get",
@@ -10182,7 +9843,7 @@
     },
     "/api/v1/recurrences/run": {
       "post": {
-        "description": "Cria agora os lancamentos que faltam das recorrentes do usuario (o laco de fundo faz o mesmo\nsozinho a cada poucos minutos).",
+        "description": "Cria agora os lancamentos que faltam das recorrentes automaticas do usuario (o laco de fundo\nfaz o mesmo sozinho a cada poucos minutos).",
         "operationId": "run_now_api_v1_recurrences_run_post",
         "responses": {
           "200": {
@@ -10202,6 +9863,76 @@
           }
         ],
         "summary": "Run Now",
+        "tags": [
+          "recurrences"
+        ]
+      }
+    },
+    "/api/v1/recurrences/status": {
+      "get": {
+        "description": "Ultimo e proximo vencimento de cada recorrente do modo de lembrete na data `on` (hoje, se\nomitida), e se o ultimo foi pago. Ordenadas pelo proximo vencimento.",
+        "operationId": "recurrences_status_api_v1_recurrences_status_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "on",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "On"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecurrenceStatusOut"
+                  },
+                  "title": "Response Recurrences Status Api V1 Recurrences Status Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Recurrences Status",
         "tags": [
           "recurrences"
         ]

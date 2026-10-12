@@ -6,7 +6,7 @@ import { expect, it } from "vitest";
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
+import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -49,10 +49,10 @@ const dolarOrc = makeBudget({
   amount: "100.00",
 });
 
-const netflixBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b1", name: "Netflix conta" });
-const aluguelBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b2", name: "Aluguel conta" });
-const velhaBill = makeBill({ id: "d0000000-0000-4000-8000-0000000000b3", name: "Velha conta", active: false });
-const dolarBill = makeBill({
+const netflixBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b1", name: "Netflix conta" });
+const aluguelBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b2", name: "Aluguel conta" });
+const velhaBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b3", name: "Velha conta", active: false });
+const dolarBill = makeReminder({
   id: "d0000000-0000-4000-8000-0000000000b4",
   name: "Dolar conta",
   currency_code: "USD",
@@ -64,7 +64,7 @@ type Options = {
   transactions?: Transaction[];
   accounts?: ReturnType<typeof makeAccount>[];
   budgets?: ReturnType<typeof makeBudget>[];
-  bills?: ReturnType<typeof makeBill>[];
+  bills?: ReturnType<typeof makeReminder>[];
 };
 
 function renderPage({
@@ -79,7 +79,7 @@ function renderPage({
     ...tx.handlers,
     ...accountsApi.handlers,
     ...fakeBudgetsApi(budgets).handlers,
-    ...fakeBillsApi(bills).handlers,
+    ...fakeRecurrencesApi(bills).handlers,
     ...fakeLabelsApi("categories", [mercado, lazer]).handlers,
     ...fakeLabelsApi("tags", [viagem, casa]).handlers,
   );

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { i18n } from "@/i18n";
-import { createdText, endText, frequencyLabel, nextText } from "./presentation";
+import { amountRangeText, createdText, endText, frequencyLabel, matchText, nextDueText, nextText, statusText } from "./presentation";
 
 // A logica de recorrentes no idioma ingles: frequencia, plural de criadas e situacao do proximo lancamento.
 beforeEach(async () => {
@@ -33,6 +33,28 @@ describe("rotulos e textos", () => {
     expect(nextText({ active: true, next_date: null }, "2026-03-10")).toBe("Ended");
     expect(nextText({ active: false, next_date: "2026-04-01" }, "2026-03-10")).toBe("Paused");
     expect(nextText({ active: true, next_date: "2026-03-10" }, "2026-03-10")).toBe("Next: 03/10/2026 (today)");
+  });
+
+  it("faixa de valor igual ou diferente (modo de lembrete)", () => {
+    expect(amountRangeText({ amount_min: "10.00", amount_max: "10.00", currency_code: "USD" })).toBe("$10.00");
+    expect(amountRangeText({ amount_min: "10.00", amount_max: "20.00", currency_code: "USD" })).toBe("$10.00 to $20.00");
+  });
+
+  it("situacao: paga, atrasada (uma ou varias) e a vencer (modo de lembrete)", () => {
+    expect(statusText({ status: "paid", last_due_date: null, overdue_count: 0, oldest_overdue_date: null })).toBe("Paid");
+    expect(statusText({ status: "upcoming", last_due_date: null, overdue_count: 0, oldest_overdue_date: null })).toBe("Upcoming");
+    expect(
+      statusText({ status: "overdue", last_due_date: "2026-03-01", overdue_count: 1, oldest_overdue_date: "2026-03-01" }),
+    ).toBe("Overdue · was due on 03/01/2026");
+    expect(
+      statusText({ status: "overdue", last_due_date: "2026-03-01", overdue_count: 3, oldest_overdue_date: "2026-01-01" }),
+    ).toBe("Overdue · 3 overdue payments, the oldest on 01/01/2026");
+  });
+
+  it("vencimento relativo e texto de ligacao automatica (modo de lembrete)", () => {
+    expect(nextDueText({ next_due_date: "2026-03-10" }, "2026-03-10")).toBe("Next due date: 03/10/2026 (today)");
+    expect(matchText({ match_text: "rent" })).toBe('Auto-links when it contains “rent”');
+    expect(matchText({ match_text: null })).toBe("No automatic link");
   });
 });
 

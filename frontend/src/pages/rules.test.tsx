@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
+import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -18,7 +18,7 @@ const otherCategory = makeLabel({ name: "Lazer" });
 const tag = makeLabel({ name: "casa" });
 const otherTag = makeLabel({ name: "viagem" });
 const budget = makeBudget({ name: "Casa" });
-const bill = makeBill({ name: "Netflix" });
+const bill = makeReminder({ name: "Netflix" });
 
 function renderPage(initial: Parameters<typeof fakeRulesApi>[0] = {}) {
   const api = fakeRulesApi(initial);
@@ -28,7 +28,7 @@ function renderPage(initial: Parameters<typeof fakeRulesApi>[0] = {}) {
     ...fakeLabelsApi("categories", [category, otherCategory]).handlers,
     ...fakeLabelsApi("tags", [tag, otherTag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeBillsApi([bill]).handlers,
+    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>

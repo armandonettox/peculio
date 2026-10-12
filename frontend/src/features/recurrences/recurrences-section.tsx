@@ -5,55 +5,74 @@ import { getErrorMessage } from "@/api/error-messages";
 import {
   useDeleteRecurrence,
   useRecurrences,
+  useRecurrencesStatus,
   useUpdateRecurrence,
   type Recurrence,
+  type RecurrenceStatus,
 } from "@/api/recurrences";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RecurrenceCard } from "@/features/recurrences/recurrence-card";
+import { ReminderFormDialog } from "@/features/recurrences/reminder-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { appToday } from "@/lib/dates";
 import { useTranslation } from "react-i18next";
 
+type Item = Recurrence | RecurrenceStatus;
+
 type DialogState =
-  | { kind: "create" }
-  | { kind: "edit"; recurrence: Recurrence }
-  | { kind: "delete"; recurrence: Recurrence }
+  | { kind: "create-auto" }
+  | { kind: "create-reminder" }
+  | { kind: "edit"; item: Item }
+  | { kind: "delete"; item: Item }
   | null;
 
-/** Lancamentos que se repetem sozinhos (aluguel, salario...), criados pelo app a cada ciclo. */
+/** O que vence sempre e o que se repete sozinho, num so lugar: cada item decide, pelo botao
+ * "criar o lancamento automaticamente", se o app cria o lancamento sozinho ou so lembra o vencimento. */
 export function RecurrencesSection() {
   const { t } = useTranslation();
   const today = appToday();
-  const [includePaused, setIncludePaused] = useState(false);
+  const [includeInactive, setIncludeInactive] = useState(false);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const query = useRecurrences({ includePaused });
+  const autoQuery = useRecurrences({ includePaused: includeInactive });
+  const reminderQuery = useRecurrencesStatus({ on: today, includeArchived: includeInactive });
   const update = useUpdateRecurrence();
   const remove = useDeleteRecurrence();
-  const items = query.data ?? [];
 
-  async function toggleActive(recurrence: Recurrence) {
+  const autoItems = (autoQuery.data ?? []).filter((item) => item.auto_create);
+  const reminderItems = reminderQuery.data ?? [];
+  const items: Item[] = [...reminderItems, ...autoItems];
+  const isPending = autoQuery.isPending || reminderQuery.isPending;
+  const isError = autoQuery.isError || reminderQuery.isError;
+
+  async function toggleActive(item: Item) {
     setActionError(null);
     try {
-      await update.mutateAsync({ id: recurrence.id, body: { active: !recurrence.active } });
+      await update.mutateAsync({ id: item.id, body: { active: !item.active } });
     } catch (error) {
       setActionError(getErrorMessage(error));
     }
   }
 
-  const newButton = (
-    <Button onClick={() => setDialog({ kind: "create" })}>
-      <Plus />
-      {t("pages.recurrences.novaRecorrente")}
-    </Button>
+  const newButtons = (
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" onClick={() => setDialog({ kind: "create-reminder" })}>
+        <Plus />
+        {t("pages.recurrences.novoLembrete")}
+      </Button>
+      <Button onClick={() => setDialog({ kind: "create-auto" })}>
+        <Plus />
+        {t("pages.recurrences.novaRecorrenteAutomatica")}
+      </Button>
+    </div>
   );
 
   let content;
-  if (query.isPending) {
+  if (isPending) {
     content = (
       <div aria-busy="true" className="flex flex-col gap-3">
         {[0, 1].map((index) => (
@@ -64,13 +83,19 @@ export function RecurrencesSection() {
         </p>
       </div>
     );
-  } else if (query.isError) {
+  } else if (isError) {
     content = (
       <div className="flex flex-col items-start gap-3">
         <Alert variant="destructive" className="w-full">
-          {getErrorMessage(query.error)}
+          {getErrorMessage(autoQuery.error ?? reminderQuery.error)}
         </Alert>
-        <Button variant="outline" onClick={() => void query.refetch()}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            void autoQuery.refetch();
+            void reminderQuery.refetch();
+          }}
+        >
           {t("common.tentarDeNovo")}
         </Button>
       </div>
@@ -81,46 +106,47 @@ export function RecurrencesSection() {
         icon={Repeat}
         title={t("pages.recurrences.nenhumaRecorrenteAinda")}
         description={t("pages.recurrences.cadastreOQueSe")}
-        action={newButton}
+        action={newButtons}
       />
     );
   } else {
     content = (
       <ul className="flex flex-col gap-3">
-        {items.map((recurrence) => (
+        {items.map((item) => (
           <RecurrenceCard
-            key={recurrence.id}
-            recurrence={recurrence}
+            key={item.id}
+            recurrence={item}
             today={today}
-            onEdit={(item) => setDialog({ kind: "edit", recurrence: item })}
-            onToggleActive={(item) => void toggleActive(item)}
-            onDelete={(item) => setDialog({ kind: "delete", recurrence: item })}
+            onEdit={(picked) => setDialog({ kind: "edit", item: picked })}
+            onToggleActive={(picked) => void toggleActive(picked)}
+            onDelete={(picked) => setDialog({ kind: "delete", item: picked })}
           />
         ))}
       </ul>
     );
   }
 
+  const editing = dialog?.kind === "edit" ? dialog.item : null;
+
   return (
     <>
-      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-primary-text">{t("pages.recurrences.recorrentes")}</h2>
-          <p className="text-sm text-muted-foreground">{t("pages.recurrences.lancamentosQueSeRepetem")}</p>
+          <h2 className="text-lg font-semibold text-primary-text">{t("pages.recurrences.titulo")}</h2>
+          <p className="text-sm text-muted-foreground">{t("pages.recurrences.descricao")}</p>
         </div>
-        {newButton}
+        {newButtons}
       </div>
 
       <div className="mb-4 flex justify-end">
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={includePaused}
-            onChange={(event) => setIncludePaused(event.target.checked)}
+            checked={includeInactive}
+            onChange={(event) => setIncludeInactive(event.target.checked)}
             className="accent-[var(--primary)]"
           />
-          {t("pages.recurrences.mostrarPausadas")}
+          {t("pages.recurrences.mostrarInativas")}
         </label>
       </div>
 
@@ -132,16 +158,20 @@ export function RecurrencesSection() {
 
       {content}
 
-      {dialog?.kind === "create" && <TransactionFormDialog repeating onClose={() => setDialog(null)} />}
-      {dialog?.kind === "edit" && (
-        <TransactionFormDialog recurrence={dialog.recurrence} onClose={() => setDialog(null)} />
+      {dialog?.kind === "create-auto" && <TransactionFormDialog repeating onClose={() => setDialog(null)} />}
+      {dialog?.kind === "create-reminder" && <ReminderFormDialog onClose={() => setDialog(null)} />}
+      {editing && editing.auto_create && (
+        <TransactionFormDialog recurrence={editing} onClose={() => setDialog(null)} />
       )}
+      {editing && !editing.auto_create && <ReminderFormDialog recurrence={editing} onClose={() => setDialog(null)} />}
       {dialog?.kind === "delete" && (
         <ConfirmDeleteDialog
           title={t("pages.recurrences.excluirRecorrente")}
-          itemName={dialog.recurrence.name}
-          consequence={t("pages.recurrences.osLancamentosQueEla")}
-          onConfirm={() => remove.mutateAsync(dialog.recurrence.id)}
+          itemName={dialog.item.name}
+          consequence={
+            dialog.item.auto_create ? t("pages.recurrences.osLancamentosQueEla") : t("pages.recurrences.osLancamentosLigadosA")
+          }
+          onConfirm={() => remove.mutateAsync(dialog.item.id)}
           onClose={() => setDialog(null)}
         />
       )}

@@ -471,64 +471,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/bills": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Bills */
-        get: operations["list_bills_api_v1_bills_get"];
-        put?: never;
-        /** Create Bill */
-        post: operations["create_bill_api_v1_bills_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/bills/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Bills Status
-         * @description Ultimo e proximo vencimento de cada conta a pagar na data `on` (hoje, se omitida), e se o
-         *     ultimo foi pago. Ordenadas pelo proximo vencimento.
-         */
-        get: operations["bills_status_api_v1_bills_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/bills/{bill_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Bill */
-        get: operations["get_bill_api_v1_bills__bill_id__get"];
-        put?: never;
-        post?: never;
-        /** Delete Bill */
-        delete: operations["delete_bill_api_v1_bills__bill_id__delete"];
-        options?: never;
-        head?: never;
-        /** Update Bill */
-        patch: operations["update_bill_api_v1_bills__bill_id__patch"];
-        trace?: never;
-    };
     "/api/v1/budgets": {
         parameters: {
             query?: never;
@@ -1024,10 +966,31 @@ export interface paths {
         put?: never;
         /**
          * Run Now
-         * @description Cria agora os lancamentos que faltam das recorrentes do usuario (o laco de fundo faz o mesmo
-         *     sozinho a cada poucos minutos).
+         * @description Cria agora os lancamentos que faltam das recorrentes automaticas do usuario (o laco de fundo
+         *     faz o mesmo sozinho a cada poucos minutos).
          */
         post: operations["run_now_api_v1_recurrences_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recurrences/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recurrences Status
+         * @description Ultimo e proximo vencimento de cada recorrente do modo de lembrete na data `on` (hoje, se
+         *     omitida), e se o ultimo foi pago. Ordenadas pelo proximo vencimento.
+         */
+        get: operations["recurrences_status_api_v1_recurrences_status_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1787,132 +1750,6 @@ export interface components {
             /** Setup Required */
             setup_required: boolean;
         };
-        /** BillCreate */
-        BillCreate: {
-            /** Amount Max */
-            amount_max: number | string;
-            /** Amount Min */
-            amount_min: number | string;
-            /** Currency Code */
-            currency_code: string;
-            /**
-             * First Due Date
-             * Format: date
-             */
-            first_due_date: string;
-            frequency: components["schemas"]["BillFrequency"];
-            /** Match Text */
-            match_text?: string | null;
-            /** Name */
-            name: string;
-        };
-        /**
-         * BillFrequency
-         * @enum {string}
-         */
-        BillFrequency: "weekly" | "monthly" | "quarterly" | "half_yearly" | "yearly";
-        /** BillOut */
-        BillOut: {
-            /** Active */
-            active: boolean;
-            /** Amount Max */
-            amount_max: string;
-            /** Amount Min */
-            amount_min: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Currency Code */
-            currency_code: string;
-            /**
-             * First Due Date
-             * Format: date
-             */
-            first_due_date: string;
-            frequency: components["schemas"]["BillFrequency"];
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Match Text */
-            match_text: string | null;
-            /** Name */
-            name: string;
-        };
-        /**
-         * BillStatusOut
-         * @description A conta a pagar com a situacao na data pedida.
-         */
-        BillStatusOut: {
-            /** Active */
-            active: boolean;
-            /** Amount Max */
-            amount_max: string;
-            /** Amount Min */
-            amount_min: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Currency Code */
-            currency_code: string;
-            /**
-             * First Due Date
-             * Format: date
-             */
-            first_due_date: string;
-            frequency: components["schemas"]["BillFrequency"];
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Last Due Date */
-            last_due_date: string | null;
-            /** Match Text */
-            match_text: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Next Due Date
-             * Format: date
-             */
-            next_due_date: string;
-            /** Next Due Paid */
-            next_due_paid: boolean;
-            /** Oldest Overdue Date */
-            oldest_overdue_date: string | null;
-            /** Overdue Count */
-            overdue_count: number;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "upcoming" | "paid" | "overdue";
-        };
-        /**
-         * BillUpdate
-         * @description A moeda nao muda. `match_text` enviado como null apaga a ligacao automatica.
-         */
-        BillUpdate: {
-            /** Active */
-            active?: boolean | null;
-            /** Amount Max */
-            amount_max?: number | string | null;
-            /** Amount Min */
-            amount_min?: number | string | null;
-            /** First Due Date */
-            first_due_date?: string | null;
-            frequency?: components["schemas"]["BillFrequency"] | null;
-            /** Match Text */
-            match_text?: string | null;
-            /** Name */
-            name?: string | null;
-        };
         /** Body_preview_import_api_v1_imports_preview_post */
         Body_preview_import_api_v1_imports_preview_post: {
             /**
@@ -2555,17 +2392,6 @@ export interface components {
             /** Total */
             total: number;
         };
-        /** Page[BillOut] */
-        Page_BillOut_: {
-            /** Items */
-            items: components["schemas"]["BillOut"][];
-            /** Limit */
-            limit: number;
-            /** Offset */
-            offset: number;
-            /** Total */
-            total: number;
-        };
         /** Page[BudgetOut] */
         Page_BudgetOut_: {
             /** Items */
@@ -2907,10 +2733,22 @@ export interface components {
         };
         /**
          * RecurrenceCreate
-         * @description `template` e um lancamento comum. A data de cada linha dele e trocada pela data de cada
-         *     ocorrencia, entao quem escreve so precisa de um valor valido.
+         * @description `auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja
+         *     data de cada linha e trocada pela data de cada ocorrencia). Desligado, pede `currency_code` e
+         *     a faixa de valor (`amount_min`/`amount_max`) para so lembrar o vencimento.
          */
         RecurrenceCreate: {
+            /** Amount Max */
+            amount_max?: number | string | null;
+            /** Amount Min */
+            amount_min?: number | string | null;
+            /**
+             * Auto Create
+             * @default false
+             */
+            auto_create: boolean;
+            /** Currency Code */
+            currency_code?: string | null;
             /** End Date */
             end_date?: string | null;
             /**
@@ -2919,11 +2757,13 @@ export interface components {
              */
             first_date: string;
             frequency: components["schemas"]["RecurrenceFrequency"];
+            /** Match Text */
+            match_text?: string | null;
             /** Max Occurrences */
             max_occurrences?: number | null;
             /** Name */
             name: string;
-            template: components["schemas"]["TransactionCreate-Input"];
+            template?: components["schemas"]["TransactionCreate-Input"] | null;
         };
         /**
          * RecurrenceFrequency
@@ -2934,6 +2774,12 @@ export interface components {
         RecurrenceOut: {
             /** Active */
             active: boolean;
+            /** Amount Max */
+            amount_max: string | null;
+            /** Amount Min */
+            amount_min: string | null;
+            /** Auto Create */
+            auto_create: boolean;
             /**
              * Created At
              * Format: date-time
@@ -2941,6 +2787,8 @@ export interface components {
             created_at: string;
             /** Created Count */
             created_count: number;
+            /** Currency Code */
+            currency_code: string | null;
             /** End Date */
             end_date: string | null;
             /** Ended */
@@ -2958,24 +2806,105 @@ export interface components {
             id: string;
             /** Last Error */
             last_error: string | null;
+            /** Match Text */
+            match_text: string | null;
             /** Max Occurrences */
             max_occurrences: number | null;
             /** Name */
             name: string;
             /** Next Date */
             next_date: string | null;
-            template: components["schemas"]["TransactionCreate-Output"];
+            template: components["schemas"]["TransactionCreate-Output"] | null;
+        };
+        /**
+         * RecurrenceStatusOut
+         * @description Uma recorrente do modo de lembrete, com a situacao na data pedida.
+         */
+        RecurrenceStatusOut: {
+            /** Active */
+            active: boolean;
+            /** Amount Max */
+            amount_max: string | null;
+            /** Amount Min */
+            amount_min: string | null;
+            /** Auto Create */
+            auto_create: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created Count */
+            created_count: number;
+            /** Currency Code */
+            currency_code: string | null;
+            /** End Date */
+            end_date: string | null;
+            /** Ended */
+            ended: boolean;
+            /**
+             * First Date
+             * Format: date
+             */
+            first_date: string;
+            frequency: components["schemas"]["RecurrenceFrequency"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Due Date */
+            last_due_date: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Match Text */
+            match_text: string | null;
+            /** Max Occurrences */
+            max_occurrences: number | null;
+            /** Name */
+            name: string;
+            /** Next Date */
+            next_date: string | null;
+            /**
+             * Next Due Date
+             * Format: date
+             */
+            next_due_date: string;
+            /** Next Due Paid */
+            next_due_paid: boolean;
+            /** Oldest Overdue Date */
+            oldest_overdue_date: string | null;
+            /** Overdue Count */
+            overdue_count: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "upcoming" | "paid" | "overdue";
+            template: components["schemas"]["TransactionCreate-Output"] | null;
         };
         /**
          * RecurrenceUpdate
-         * @description A frequencia e a primeira data nao mudam: elas definem todas as datas que ja foram criadas.
-         *     `end_date` e `max_occurrences` enviados como null tiram o fim.
+         * @description `auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo
+         *     automatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que
+         *     ja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir
+         *     delas). `end_date` e `max_occurrences` enviados como null tiram o fim. `match_text` enviado
+         *     como null apaga a ligacao automatica.
          */
         RecurrenceUpdate: {
             /** Active */
             active?: boolean | null;
+            /** Amount Max */
+            amount_max?: number | string | null;
+            /** Amount Min */
+            amount_min?: number | string | null;
             /** End Date */
             end_date?: string | null;
+            /** First Date */
+            first_date?: string | null;
+            frequency?: components["schemas"]["RecurrenceFrequency"] | null;
+            /** Match Text */
+            match_text?: string | null;
             /** Max Occurrences */
             max_occurrences?: number | null;
             /** Name */
@@ -4708,200 +4637,6 @@ export interface operations {
             };
         };
     };
-    list_bills_api_v1_bills_get: {
-        parameters: {
-            query?: {
-                q?: string | null;
-                active?: boolean | null;
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_BillOut_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_bill_api_v1_bills_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BillCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    bills_status_api_v1_bills_status_get: {
-        parameters: {
-            query?: {
-                on?: string | null;
-                include_archived?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillStatusOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_bill_api_v1_bills__bill_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                bill_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_bill_api_v1_bills__bill_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                bill_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_bill_api_v1_bills__bill_id__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                bill_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BillUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_budgets_api_v1_budgets_get: {
         parameters: {
             query?: {
@@ -6126,6 +5861,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RunResult"];
+                };
+            };
+        };
+    };
+    recurrences_status_api_v1_recurrences_status_get: {
+        parameters: {
+            query?: {
+                on?: string | null;
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecurrenceStatusOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

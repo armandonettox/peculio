@@ -7,7 +7,7 @@ import { expect, it } from "vitest";
 import type { RulePreviewItem } from "@/api/rules";
 import { BackfillDialog } from "@/features/rules/backfill-dialog";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeBillsApi, makeBill } from "@/test-utils/bills-api";
+import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -20,7 +20,7 @@ const otherAccount = makeAccount({ name: "Itau" });
 const category = makeLabel({ name: "Mercado" });
 const tag = makeLabel({ name: "casa" });
 const budget = makeBudget({ name: "Casa" });
-const bill = makeBill({ name: "Netflix" });
+const bill = makeReminder({ name: "Netflix" });
 
 const mercado = makeRule({ name: "Mercado", actions: [{ kind: "set_category", target_id: category.id }] });
 const lazer = makeRule({ name: "Lazer" });
@@ -51,7 +51,7 @@ function renderPage(rules = [mercado, lazer, pausada]) {
     ...fakeLabelsApi("categories", [category]).handlers,
     ...fakeLabelsApi("tags", [tag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeBillsApi([bill]).handlers,
+    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>
@@ -302,7 +302,7 @@ it("o botao de aplicar nas antigas espera as regras carregarem", async () => {
     ...fakeLabelsApi("categories", [category]).handlers,
     ...fakeLabelsApi("tags", [tag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeBillsApi([bill]).handlers,
+    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>

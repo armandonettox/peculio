@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from "react";
 
 import { useCurrencies } from "@/api/accounts";
-import {
-  useCreateBill,
-  useUpdateBill,
-  type Bill,
-  type BillCreate,
-  type BillFrequency,
-  type BillUpdate,
-} from "@/api/bills";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
+import {
+  useCreateRecurrence,
+  useUpdateRecurrence,
+  type Recurrence,
+  type RecurrenceCreate,
+  type RecurrenceFrequency,
+  type RecurrenceUpdate,
+} from "@/api/recurrences";
 import { useAuth } from "@/auth/auth-context";
 import { requiredError } from "@/auth/validation";
 import { FormField } from "@/components/form-field";
@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { appToday } from "@/lib/dates";
 import { isNegativeMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
-import { FREQUENCIES, frequencyLabel } from "./presentation";
+import { REMINDER_FREQUENCIES, frequencyLabel } from "./presentation";
 import { useTranslation } from "react-i18next";
 
 type Field = "name" | "min" | "max" | "date";
@@ -37,32 +37,32 @@ const SERVER_FIELDS: Record<string, Field> = {
   name: "name",
   amount_min: "min",
   amount_max: "max",
-  first_due_date: "date",
+  first_date: "date",
 };
 
 const FIELD_ORDER: Field[] = ["name", "min", "max", "date"];
 
 type Props = {
-  // Sem `bill` o dialogo cria; com `bill` edita
-  bill?: Bill;
+  // Sem `recurrence` o dialogo cria; com `recurrence` edita (sempre do modo de lembrete)
+  recurrence?: Recurrence;
   onClose: () => void;
 };
 
-export function BillFormDialog({ bill, onClose }: Props) {
+export function ReminderFormDialog({ recurrence, onClose }: Props) {
   const { t } = useTranslation();
-  const editing = bill !== undefined;
+  const editing = recurrence !== undefined;
   const { user } = useAuth();
   const currencies = useCurrencies();
-  const create = useCreateBill();
-  const update = useUpdateBill();
+  const create = useCreateRecurrence();
+  const update = useUpdateRecurrence();
 
-  const [name, setName] = useState(bill?.name ?? "");
-  const [currency, setCurrency] = useState(bill?.currency_code ?? user?.default_currency ?? "BRL");
-  const [min, setMin] = useState(bill ? toInputText(bill.amount_min) : "");
-  const [max, setMax] = useState(bill && bill.amount_max !== bill.amount_min ? toInputText(bill.amount_max) : "");
-  const [match, setMatch] = useState(bill?.match_text ?? "");
-  const [date, setDate] = useState(bill?.first_due_date ?? appToday());
-  const [frequency, setFrequency] = useState<BillFrequency>(bill?.frequency ?? "monthly");
+  const [name, setName] = useState(recurrence?.name ?? "");
+  const [currency, setCurrency] = useState(recurrence?.currency_code ?? user?.default_currency ?? "BRL");
+  const [min, setMin] = useState(recurrence ? toInputText(recurrence.amount_min ?? "0") : "");
+  const [max, setMax] = useState(recurrence && recurrence.amount_max !== recurrence.amount_min ? toInputText(recurrence.amount_max ?? "0") : "");
+  const [match, setMatch] = useState(recurrence?.match_text ?? "");
+  const [date, setDate] = useState(recurrence?.first_date ?? appToday());
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>(recurrence?.frequency ?? "monthly");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -98,7 +98,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
     const parsed = parseMoneyInput(text, places);
     if (!parsed.ok) return { error: parsed.error };
     if (/^0+(\.0+)?$/.test(parsed.value) || parsed.value.startsWith("-")) {
-      return { error: t("bills.billFormDialog.informeUmValorMaior") };
+      return { error: t("recurrences.reminderFormDialog.informeUmValorMaior") };
     }
     return { value: parsed.value };
   }
@@ -108,20 +108,20 @@ export function BillFormDialog({ bill, onClose }: Props) {
     if (submitting) return;
     setFormError(null);
 
-    const found: Errors = { name: requiredError(name, t("bills.billFormDialog.informeONome")) };
-    const minResult = parsePositive(min, t("bills.billFormDialog.informeOValor"));
+    const found: Errors = { name: requiredError(name, t("recurrences.reminderFormDialog.informeONome")) };
+    const minResult = parsePositive(min, t("recurrences.reminderFormDialog.informeOValor"));
     if ("error" in minResult) found.min = minResult.error;
-    // Sem valor maximo, a conta tem preco fixo: o maximo e igual ao minimo
-    const maxResult = max.trim() === "" ? minResult : parsePositive(max, t("bills.billFormDialog.informeOValor"));
+    // Sem valor maximo, o lembrete tem preco fixo: o maximo e igual ao minimo
+    const maxResult = max.trim() === "" ? minResult : parsePositive(max, t("recurrences.reminderFormDialog.informeOValor"));
     if (max.trim() !== "" && "error" in maxResult) found.max = maxResult.error;
     if (
       "value" in minResult &&
       "value" in maxResult &&
       isNegativeMoney(sumMoney([maxResult.value, negateMoney(minResult.value)], places))
     ) {
-      found.max = t("bills.billFormDialog.valorMaximoNaoPode");
+      found.max = t("recurrences.reminderFormDialog.valorMaximoNaoPode");
     }
-    if (!DATE_PATTERN.test(date)) found.date = t("bills.billFormDialog.informeUmaData");
+    if (!DATE_PATTERN.test(date)) found.date = t("recurrences.reminderFormDialog.informeUmaData");
 
     setErrors(found);
     const firstInvalid = FIELD_ORDER.find((field) => found[field]);
@@ -133,26 +133,27 @@ export function BillFormDialog({ bill, onClose }: Props) {
     const matchValue = match.trim() || null;
     try {
       if (!editing) {
-        const body: BillCreate = {
+        const body: RecurrenceCreate = {
           name: name.trim(),
+          auto_create: false,
+          frequency,
+          first_date: date,
           currency_code: currency,
           amount_min: minResult.value,
           amount_max: maxResult.value,
           match_text: matchValue,
-          first_due_date: date,
-          frequency,
         };
         await create.mutateAsync(body);
       } else {
         // Manda so o que mudou, para nao sobrescrever sem querer
-        const body: BillUpdate = {};
-        if (name.trim() !== bill.name) body.name = name.trim();
-        if (minResult.value !== bill.amount_min) body.amount_min = minResult.value;
-        if (maxResult.value !== bill.amount_max) body.amount_max = maxResult.value;
-        if (matchValue !== bill.match_text) body.match_text = matchValue;
-        if (date !== bill.first_due_date) body.first_due_date = date;
-        if (frequency !== bill.frequency) body.frequency = frequency;
-        if (Object.keys(body).length > 0) await update.mutateAsync({ id: bill.id, body });
+        const body: RecurrenceUpdate = {};
+        if (name.trim() !== recurrence.name) body.name = name.trim();
+        if (minResult.value !== recurrence.amount_min) body.amount_min = minResult.value;
+        if (maxResult.value !== recurrence.amount_max) body.amount_max = maxResult.value;
+        if (matchValue !== recurrence.match_text) body.match_text = matchValue;
+        if (date !== recurrence.first_date) body.first_date = date;
+        if (frequency !== recurrence.frequency) body.frequency = frequency;
+        if (Object.keys(body).length > 0) await update.mutateAsync({ id: recurrence.id, body });
       }
       onClose();
     } catch (error) {
@@ -164,11 +165,11 @@ export function BillFormDialog({ bill, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editing ? t("bills.billFormDialog.editarContaAPagar") : t("bills.billFormDialog.novaContaAPagar")}</DialogTitle>
+          <DialogTitle>{editing ? t("recurrences.reminderFormDialog.editarLembrete") : t("recurrences.reminderFormDialog.novoLembrete")}</DialogTitle>
           <DialogDescription>
             {editing
-              ? t("bills.billFormDialog.mudarADataOu")
-              : t("bills.billFormDialog.algoQueVenceSempre")}
+              ? t("recurrences.reminderFormDialog.mudarADataOu")
+              : t("recurrences.reminderFormDialog.algoQueVenceSempre")}
           </DialogDescription>
         </DialogHeader>
 
@@ -203,14 +204,14 @@ export function BillFormDialog({ bill, onClose }: Props) {
               )}
             </FormField>
 
-            <FormField id="bill-frequency" label={t("bills.billFormDialog.frequencia")}>
+            <FormField id="bill-frequency" label={t("recurrences.reminderFormDialog.frequencia")}>
               {(props) => (
                 <Select
                   {...props}
                   value={frequency}
-                  onChange={(event) => setFrequency(event.target.value as BillFrequency)}
+                  onChange={(event) => setFrequency(event.target.value as RecurrenceFrequency)}
                 >
-                  {FREQUENCIES.map((option) => (
+                  {REMINDER_FREQUENCIES.map((option) => (
                     <option key={option} value={option}>
                       {frequencyLabel(option)}
                     </option>
@@ -221,7 +222,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="bill-min" label={t("bills.billFormDialog.valorMinimo")} error={errors.min}>
+            <FormField id="bill-min" label={t("recurrences.reminderFormDialog.valorMinimo")} error={errors.min}>
               {(props) => (
                 <MoneyInput
                   {...props}
@@ -238,9 +239,9 @@ export function BillFormDialog({ bill, onClose }: Props) {
 
             <FormField
               id="bill-max"
-              label={t("bills.billFormDialog.valorMaximo")}
+              label={t("recurrences.reminderFormDialog.valorMaximo")}
               error={errors.max}
-              hint={t("bills.billFormDialog.deixeEmBrancoSe")}
+              hint={t("recurrences.reminderFormDialog.deixeEmBrancoSe")}
             >
               {(props) => (
                 <MoneyInput
@@ -257,7 +258,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
             </FormField>
           </div>
 
-          <FormField id="bill-date" label={t("bills.billFormDialog.primeiroVencimento")} error={errors.date}>
+          <FormField id="bill-date" label={t("recurrences.reminderFormDialog.primeiroVencimento")} error={errors.date}>
             {(props) => (
               <Input
                 {...props}
@@ -273,8 +274,8 @@ export function BillFormDialog({ bill, onClose }: Props) {
 
           <FormField
             id="bill-match"
-            label={t("bills.billFormDialog.textoParaLigarSozinho")}
-            hint={t("bills.billFormDialog.quandoUmaSaidaTiver")}
+            label={t("recurrences.reminderFormDialog.textoParaLigarSozinho")}
+            hint={t("recurrences.reminderFormDialog.quandoUmaSaidaTiver")}
           >
             {(props) => (
               <Input {...props} autoComplete="off" value={match} onChange={(event) => setMatch(event.target.value)} />
@@ -286,7 +287,7 @@ export function BillFormDialog({ bill, onClose }: Props) {
               {t("common.cancelar")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? t("bills.billFormDialog.salvando") : editing ? t("bills.billFormDialog.salvar") : t("bills.billFormDialog.criarContaAPagar")}
+              {submitting ? t("recurrences.reminderFormDialog.salvando") : editing ? t("recurrences.reminderFormDialog.salvar") : t("recurrences.reminderFormDialog.criarLembrete")}
             </Button>
           </DialogFooter>
         </form>

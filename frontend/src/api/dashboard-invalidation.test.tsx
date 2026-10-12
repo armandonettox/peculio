@@ -6,7 +6,6 @@ import { expect, it } from "vitest";
 
 import { server } from "@/test-utils/msw";
 import { useCreateAccount, useDeleteAccount, useUpdateAccount } from "./accounts";
-import { useCreateBill, useDeleteBill, useUpdateBill } from "./bills";
 import { dashboardKey } from "./dashboard";
 import { webhooksKey } from "./query-keys";
 import { useCreateRecurrence, useDeleteRecurrence, useUpdateRecurrence } from "./recurrences";
@@ -41,9 +40,6 @@ function routes() {
     http.post("*/api/v1/transactions", ok),
     http.put("*/api/v1/transactions/:id", ok),
     http.delete("*/api/v1/transactions/:id", gone),
-    http.post("*/api/v1/bills", ok),
-    http.patch("*/api/v1/bills/:id", ok),
-    http.delete("*/api/v1/bills/:id", gone),
     http.post("*/api/v1/recurrences", ok),
     http.patch("*/api/v1/recurrences/:id", ok),
     http.delete("*/api/v1/recurrences/:id", gone),
@@ -62,9 +58,6 @@ const cases: { name: string; useHook: () => { mutateAsync: (input: never) => Pro
   { name: "criar lancamento", useHook: useCreateTransaction as never, input: body },
   { name: "editar lancamento", useHook: useUpdateTransaction as never, input: { id: ID, body } },
   { name: "apagar lancamento", useHook: useDeleteTransaction as never, input: ID },
-  { name: "criar conta a pagar", useHook: useCreateBill as never, input: body },
-  { name: "editar conta a pagar", useHook: useUpdateBill as never, input: { id: ID, body } },
-  { name: "apagar conta a pagar", useHook: useDeleteBill as never, input: ID },
   { name: "criar recorrente", useHook: useCreateRecurrence as never, input: body },
   { name: "editar recorrente", useHook: useUpdateRecurrence as never, input: { id: ID, body } },
   { name: "apagar recorrente", useHook: useDeleteRecurrence as never, input: ID },
