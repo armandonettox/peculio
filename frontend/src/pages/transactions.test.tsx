@@ -365,20 +365,17 @@ it("valor minimo e maximo aceitam o formato brasileiro", async () => {
   await waitFor(() => expect(screen.queryByText("Barato")).not.toBeInTheDocument());
   expect(screen.getByText("Caro")).toBeInTheDocument();
 
-  await userEvent.type(screen.getByLabelText("Valor máximo"), "3000");
+  await userEvent.type(screen.getByLabelText("Valor máximo"), "300000");
   await waitFor(() => expect(api.params()).toMatchObject({ min_amount: "1000.50", max_amount: "3000.00" }));
 });
 
-it.each([
-  ["abc", "Valor inválido."],
-  ["10,555", "Use no máximo 2 casas decimais."],
-])("valor %j mostra o erro e nao envia o filtro", async (typed, message) => {
+it("valor grande demais mostra o erro e nao envia o filtro", async () => {
   const api = renderPage({ transactions: [tx("x")] });
   await screen.findByText("x");
   await openFilters();
-  await userEvent.type(screen.getByLabelText("Valor mínimo"), typed);
+  await userEvent.type(screen.getByLabelText("Valor mínimo"), "1".repeat(19));
 
-  expect(await screen.findByText(message)).toBeInTheDocument();
+  expect(await screen.findByText("Valor muito grande.")).toBeInTheDocument();
   expect(screen.getByLabelText("Valor mínimo")).toHaveAttribute("aria-invalid", "true");
   await new Promise((resolve) => setTimeout(resolve, 450));
   expect(api.withParam("min_amount")).toHaveLength(0);

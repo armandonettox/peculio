@@ -15,6 +15,7 @@ import { ApiError } from "@/api/errors";
 import { useAuth } from "@/auth/auth-context";
 import { requiredError } from "@/auth/validation";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -219,14 +220,13 @@ export function BudgetFormDialog({ budget, initialMode = "fixed", onClose }: Pro
           {!envelope && (
             <FormField id="budget-amount" label={t("budgets.budgetFormDialog.limitePorPeriodo")} error={errors.amount}>
               {(props) => (
-                <Input
+                <MoneyInput
                   {...props}
-                  inputMode="decimal"
-                  autoComplete="off"
                   placeholder="0,00"
+                  places={places}
                   value={amount}
-                  onChange={(event) => {
-                    setAmount(event.target.value);
+                  onChange={(text) => {
+                    setAmount(text);
                     clearError("amount");
                   }}
                 />

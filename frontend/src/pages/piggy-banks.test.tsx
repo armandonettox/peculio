@@ -254,20 +254,15 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
   expect(api.mutations()).toHaveLength(0);
 });
 
-it.each([
-  ["0", "Informe um valor maior que zero."],
-  ["-5", "Informe um valor maior que zero."],
-  ["abc", "Valor inválido."],
-  ["10,555", "Use no máximo 2 casas decimais."],
-])("valor da meta %j mostra %j", async (value, message) => {
+it("valor da meta \"0\" mostra \"Informe um valor maior que zero.\"", async () => {
   const api = renderPage();
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
-  await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), value);
+  await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "0");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
 
-  expect(inDialog().getByText(message)).toBeInTheDocument();
+  expect(inDialog().getByText("Informe um valor maior que zero.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
 });
 
@@ -321,7 +316,7 @@ it("editar reabre os campos, com a conta travada", async () => {
   expect(inDialog().getByLabelText("Nome")).toHaveValue("Viagem");
   expect(inDialog().getByLabelText("Conta")).toBeDisabled();
   expect(inDialog().getByLabelText("Conta")).toHaveDisplayValue("Nubank");
-  expect(inDialog().getByLabelText(/^Valor da meta/)).toHaveValue("1234,50");
+  expect(inDialog().getByLabelText(/^Valor da meta/)).toHaveValue("1.234,50");
   expect(inDialog().getByLabelText("Data alvo (opcional)")).toHaveValue("2026-12-31");
 });
 
@@ -331,7 +326,7 @@ it("editar manda so o que mudou", async () => {
   await openEdit("Viagem");
   const amount = inDialog().getByLabelText(/^Valor da meta/);
   await userEvent.clear(amount);
-  await userEvent.type(amount, "900");
+  await userEvent.type(amount, "90000");
   await userEvent.click(inDialog().getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
@@ -409,7 +404,7 @@ it("retirar manda kind remove e devolve ao disponivel", async () => {
   await openMenu("Viagem", "Retirar");
 
   expect(dialog()).toHaveTextContent("Guardado agora: R$ 300,00");
-  await userEvent.type(inDialog().getByLabelText(/^Valor/), "100");
+  await userEvent.type(inDialog().getByLabelText(/^Valor/), "10000");
   await userEvent.click(inDialog().getByRole("button", { name: "Retirar" }));
 
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -459,11 +454,11 @@ it("falha do servidor ao guardar aparece no aviso do topo", async () => {
   await screen.findByText("Viagem");
   await openMenu("Viagem", "Guardar");
   api.state.nextMutationError = { status: 500, code: "internal_error" };
-  await userEvent.type(inDialog().getByLabelText(/^Valor/), "10");
+  await userEvent.type(inDialog().getByLabelText(/^Valor/), "1000");
   await userEvent.click(inDialog().getByRole("button", { name: "Guardar" }));
 
   expect(await inDialog().findByRole("alert")).toBeInTheDocument();
-  expect(inDialog().getByLabelText(/^Valor/)).toHaveValue("10");
+  expect(inDialog().getByLabelText(/^Valor/)).toHaveValue("10,00");
 });
 
 // ---------- Historico ----------

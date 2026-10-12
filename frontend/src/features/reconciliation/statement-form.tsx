@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { useCurrencies, type Account } from "@/api/accounts";
 import type { Statement } from "@/api/reconciliation";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -85,14 +86,13 @@ export function StatementForm({ accounts, onApply }: Props) {
         error={errors.balance}
       >
         {(props) => (
-          <Input
+          <MoneyInput
             {...props}
-            inputMode="decimal"
-            autoComplete="off"
             placeholder="0,00"
+            places={places}
             value={balance}
-            onChange={(event) => {
-              setBalance(event.target.value);
+            onChange={(text) => {
+              setBalance(text);
               clearError("balance");
             }}
           />

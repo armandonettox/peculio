@@ -14,6 +14,7 @@ import { ApiError } from "@/api/errors";
 import { useAuth } from "@/auth/auth-context";
 import { requiredError } from "@/auth/validation";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -222,14 +223,13 @@ export function BillFormDialog({ bill, onClose }: Props) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="bill-min" label={t("bills.billFormDialog.valorMinimo")} error={errors.min}>
               {(props) => (
-                <Input
+                <MoneyInput
                   {...props}
-                  inputMode="decimal"
-                  autoComplete="off"
                   placeholder="0,00"
+                  places={places}
                   value={min}
-                  onChange={(event) => {
-                    setMin(event.target.value);
+                  onChange={(text) => {
+                    setMin(text);
                     clearError("min");
                   }}
                 />
@@ -243,14 +243,13 @@ export function BillFormDialog({ bill, onClose }: Props) {
               hint={t("bills.billFormDialog.deixeEmBrancoSe")}
             >
               {(props) => (
-                <Input
+                <MoneyInput
                   {...props}
-                  inputMode="decimal"
-                  autoComplete="off"
                   placeholder="0,00"
+                  places={places}
                   value={max}
-                  onChange={(event) => {
-                    setMax(event.target.value);
+                  onChange={(text) => {
+                    setMax(text);
                     clearError("max");
                   }}
                 />

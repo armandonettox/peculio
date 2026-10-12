@@ -221,8 +221,8 @@ test("periodo invalido e valor invalido mostram o erro", async ({ page }) => {
 
   await page.getByLabel("Data inicial").fill("");
   await page.getByLabel("Data final").fill("");
-  await page.getByLabel("Valor máximo").fill("abc");
-  await expect(page.getByText("Valor inválido.")).toBeVisible();
+  await page.getByLabel("Valor máximo").fill("1".repeat(19));
+  await expect(page.getByText("Valor muito grande.")).toBeVisible();
 });
 
 test("Limpar filtros volta a lista inteira", async ({ page }) => {

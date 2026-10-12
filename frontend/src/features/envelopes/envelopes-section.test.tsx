@@ -188,7 +188,7 @@ it("Enter tambem confirma", async () => {
   await screen.findByRole("rowheader", { name: "Mercado" });
   const field = allocationField("Lazer");
   await user.clear(field);
-  await user.type(field, "10{Enter}");
+  await user.type(field, "1000{Enter}");
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
   expect(api.mutations()[0].body).toEqual({ amount: "10.00" });
 });
@@ -215,21 +215,22 @@ it("valor negativo tira do que passou do mes anterior", async () => {
   await screen.findByRole("rowheader", { name: "Mercado" });
   const field = allocationField("Reserva");
   await user.clear(field);
-  await user.type(field, "-20");
+  await user.type(field, "-2000");
   await user.tab();
   await waitFor(() => expect(api.mutations()[0].body).toEqual({ amount: "-20.00" }));
 });
 
-it("valor invalido mostra o aviso no campo e nao chama a API", async () => {
+it("valor grande demais mostra o aviso no campo e nao chama a API", async () => {
   const api = renderPage(trio());
   await screen.findByRole("rowheader", { name: "Mercado" });
   const field = allocationField("Lazer");
   await user.clear(field);
-  await user.type(field, "abc");
+  await user.type(field, "1".repeat(19));
   await user.tab();
-  expect(await within(row("Lazer")).findByRole("alert")).toHaveTextContent("Valor inválido");
+  expect(await within(row("Lazer")).findByRole("alert")).toHaveTextContent("Valor muito grande");
   expect(field).toHaveAttribute("aria-invalid", "true");
   expect(api.mutations()).toHaveLength(0);
+  await user.clear(field);
   await user.type(field, "1");
   expect(within(row("Lazer")).queryByRole("alert")).not.toBeInTheDocument();
 });
@@ -354,7 +355,7 @@ it("Cobrir abre o mover ja levando para o envelope que estourou", async () => {
   await user.click(within(row("Passou")).getByRole("button", { name: /^Cobrir/ }));
   expect((inDialog().getByLabelText("Levar para") as HTMLSelectElement).selectedOptions[0].textContent).toBe("Passou");
   await pick("Tirar de", /^Reserva/);
-  await user.type(inDialog().getByLabelText("Valor (BRL)"), "30");
+  await user.type(inDialog().getByLabelText("Valor (BRL)"), "3000");
   await user.click(inDialog().getByRole("button", { name: "Mover" }));
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
   await waitFor(() => expect(within(row("Passou")).queryByText("Estourou")).not.toBeInTheDocument());

@@ -5,10 +5,10 @@ import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
 import { useMoveMoney, type EnvelopeGroup } from "@/api/envelopes";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { formatMoney, isNegativeMoney, negateMoney, parseMoneyInput, placesOf, sumMoney } from "@/lib/money";
 import { signOf } from "./presentation";
@@ -139,14 +139,13 @@ export function MoveMoneyDialog({ month, group, initialTo = "", onClose }: Props
 
           <FormField id="move-amount" label={t("envelopes.moveMoneyDialog.valor", { currency: group.currency_code })} error={errors.amount}>
             {(props) => (
-              <Input
+              <MoneyInput
                 {...props}
-                inputMode="decimal"
-                autoComplete="off"
                 placeholder="0,00"
+                places={places}
                 value={amount}
-                onChange={(event) => {
-                  setAmount(event.target.value);
+                onChange={(text) => {
+                  setAmount(text);
                   clearError("amount");
                 }}
               />

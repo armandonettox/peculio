@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCurrencies } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useSetAllocation, type Envelope, type EnvelopeGroup } from "@/api/envelopes";
+import { MoneyInput } from "@/components/money-input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { formatMoney, placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
@@ -194,16 +194,16 @@ function EnvelopeRow({
         {formatMoney(envelope.carried, code)}
       </td>
       <td className="px-2 py-2 sm:px-3 text-right">
-        <Input
+        <MoneyInput
           aria-label={t("envelopes.envelopeGroupTable.distribuidoPara", { name: envelope.name })}
           aria-invalid={invalid !== null}
-          inputMode="decimal"
-          autoComplete="off"
+          signed
           className="ml-auto h-8 w-24 text-right tabular-nums sm:w-28"
+          places={places}
           value={text}
           disabled={set.isPending}
-          onChange={(event) => {
-            setText(event.target.value);
+          onChange={(next) => {
+            setText(next);
             setInvalid(null);
           }}
           onBlur={() => void commit()}

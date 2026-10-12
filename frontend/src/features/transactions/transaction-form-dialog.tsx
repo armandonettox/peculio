@@ -21,12 +21,14 @@ import {
   type TransactionCreate,
 } from "@/api/transactions";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
   buildPayload,
@@ -249,6 +251,7 @@ function FormBody({
     create.isPending || update.isPending || createRecurrence.isPending || updateRecurrence.isPending;
   const account = accountOf(ctx, state.accountId);
   const currency = account?.currency_code ?? "BRL";
+  const places = placesOf(currency, ctx.places);
   const other = foreignAccount(state, ctx);
   // Valor original (informativo): outra moeda que nao a da conta. A escolhida aparece mesmo que a lista nao a traga.
   const originalCurrencies = currencies.filter((item) => item.code !== currency);
@@ -739,13 +742,12 @@ function FormBody({
           error={errors.amount}
         >
           {(props) => (
-            <Input
+            <MoneyInput
               {...props}
-              inputMode="decimal"
-              autoComplete="off"
               placeholder="0,00"
+              places={places}
               value={state.amount}
-              onChange={(e) => patch({ amount: e.target.value }, "amount", "splitTotal")}
+              onChange={(text) => patch({ amount: text }, "amount", "splitTotal")}
             />
           )}
         </FormField>
@@ -753,13 +755,12 @@ function FormBody({
         {other && (
           <FormField id="tx-foreign-amount" label={t("transactions.form.arrivingAmount", { currency: other.currency_code })} error={errors.foreignAmount}>
             {(props) => (
-              <Input
+              <MoneyInput
                 {...props}
-                inputMode="decimal"
-                autoComplete="off"
                 placeholder="0,00"
+                places={placesOf(other.currency_code, ctx.places)}
                 value={state.foreignAmount}
-                onChange={(e) => patch({ foreignAmount: e.target.value }, "foreignAmount")}
+                onChange={(text) => patch({ foreignAmount: text }, "foreignAmount")}
               />
             )}
           </FormField>
@@ -814,13 +815,12 @@ function FormBody({
           {originalChosen && (
             <FormField id="tx-original-amount" label={t("transactions.form.originalAmount", { currency: state.originalCurrency })} error={errors.originalAmount}>
               {(props) => (
-                <Input
+                <MoneyInput
                   {...props}
-                  inputMode="decimal"
-                  autoComplete="off"
                   placeholder="0,00"
+                  places={placesOf(state.originalCurrency, ctx.places)}
                   value={state.originalAmount}
-                  onChange={(e) => patch({ originalAmount: e.target.value }, "originalAmount")}
+                  onChange={(text) => patch({ originalAmount: text }, "originalAmount")}
                 />
               )}
             </FormField>
@@ -873,13 +873,12 @@ function FormBody({
                   </FormField>
                   <FormField id={`${row.key}-amount`} label={t("transactions.form.rowAmount", { n: index + 1 })} error={rowErrors?.amount}>
                     {(props) => (
-                      <Input
+                      <MoneyInput
                         {...props}
-                        inputMode="decimal"
-                        autoComplete="off"
                         placeholder="0,00"
+                        places={places}
                         value={row.amount}
-                        onChange={(e) => changeSplit(row.key, { amount: e.target.value })}
+                        onChange={(text) => changeSplit(row.key, { amount: text })}
                       />
                     )}
                   </FormField>

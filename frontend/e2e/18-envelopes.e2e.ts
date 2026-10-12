@@ -123,9 +123,9 @@ test("distribuir move dinheiro do A orcar para o envelope", async ({ page, reque
 test("um valor invalido avisa no campo e nada muda", async ({ page, request }) => {
   const before = await brl(request);
   await openEnvelopes(page);
-  await field(page, MARKET).fill("abc");
+  await field(page, MARKET).fill("1".repeat(19));
   await field(page, MARKET).press("Tab");
-  await expect(row(page, MARKET).getByRole("alert")).toContainText("Valor inválido");
+  await expect(row(page, MARKET).getByRole("alert")).toContainText("Valor muito grande");
   expect((await brl(request)).toBudget).toBe(before.toBudget);
 });
 

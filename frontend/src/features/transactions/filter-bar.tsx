@@ -5,6 +5,7 @@ import type { Account } from "@/api/accounts";
 import type { Category, Tag } from "@/api/labels";
 import type { TransactionFilters } from "@/api/transactions";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -157,28 +158,10 @@ export function FilterBar(props: FilterBarProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <FormField id="filter-min" label={t("transactions.filterBar.valorMinimo")} error={props.minError}>
-            {(field) => (
-              <Input
-                {...field}
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder="0,00"
-                value={minDraft}
-                onChange={(event) => props.onMinChange(event.target.value)}
-              />
-            )}
+            {(field) => <MoneyInput {...field} placeholder="0,00" places={2} value={minDraft} onChange={props.onMinChange} />}
           </FormField>
           <FormField id="filter-max" label={t("transactions.filterBar.valorMaximo")} error={props.maxError}>
-            {(field) => (
-              <Input
-                {...field}
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder="0,00"
-                value={maxDraft}
-                onChange={(event) => props.onMaxChange(event.target.value)}
-              />
-            )}
+            {(field) => <MoneyInput {...field} placeholder="0,00" places={2} value={maxDraft} onChange={props.onMaxChange} />}
           </FormField>
         </div>
       </div>

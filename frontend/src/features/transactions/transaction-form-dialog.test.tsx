@@ -178,7 +178,7 @@ it("entrada pergunta de quem veio e usa a conta que recebe", async () => {
   await pick("Conta que recebe", "Nubank");
   await type("Descrição", "Salario");
   await type("De quem", "Empregador");
-  await type(/^Valor/, "3000");
+  await type(/^Valor/, "300000");
   await submit();
 
   await waitFor(() => expect(tx.state.writes).toHaveLength(1));
@@ -252,7 +252,7 @@ it("transferencia entre moedas pede o valor que chega", async () => {
   await pick("Conta", "Nubank");
   await type("Descrição", "Envio");
   await pick("Para a conta", "Wise - USD");
-  await type(/^Valor \(BRL\)/, "500");
+  await type(/^Valor \(BRL\)/, "50000");
 
   const foreign = d().getByLabelText("Valor que chega em USD");
   await submit();
@@ -320,12 +320,12 @@ it("dividir lancamento: o valor vira o total, falta distribuir ate fechar e so e
   const amount1 = d().getByLabelText("Valor da linha 1");
   expect(amount1).toHaveValue("1.234,50");
   await userEvent.clear(amount1);
-  await userEvent.type(amount1, "1000");
+  await userEvent.type(amount1, "100000");
   expect(d().getByRole("status", { name: "" })).toHaveTextContent("Falta distribuir R$ 234,50");
 
   await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
   await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Limpeza");
-  await userEvent.type(d().getByLabelText("Valor da linha 2"), "300");
+  await userEvent.type(d().getByLabelText("Valor da linha 2"), "30000");
   expect(d().getByRole("status", { name: "" })).toHaveTextContent("As linhas passam do total em R$ 65,50");
 
   await submit();
@@ -776,7 +776,7 @@ it("no lancamento dividido cada linha escolhe o seu orcamento", async () => {
   expect(d().getByLabelText("Orçamento da linha 1")).toHaveValue(mercadoOrc.id);
   const amount1 = d().getByLabelText("Valor da linha 1");
   await userEvent.clear(amount1);
-  await userEvent.type(amount1, "1000");
+  await userEvent.type(amount1, "100000");
   await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
   await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Cinema");
   await userEvent.type(d().getByLabelText("Valor da linha 2"), "234,50");
@@ -958,7 +958,7 @@ it("no lancamento dividido cada linha escolhe a sua conta a pagar", async () => 
   expect(d().getByLabelText("Conta a pagar da linha 1")).toHaveValue(netflixBill.id);
   const amount1 = d().getByLabelText("Valor da linha 1");
   await userEvent.clear(amount1);
-  await userEvent.type(amount1, "1000");
+  await userEvent.type(amount1, "100000");
   await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
   await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Aluguel do mes");
   await userEvent.type(d().getByLabelText("Valor da linha 2"), "234,50");
@@ -1171,7 +1171,7 @@ it("entrada tambem aceita a moeda original", async () => {
   await type("De quem", "Cliente");
   await type(/^Valor/, "500");
   await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
-  await type("Valor original (USD)", "100");
+  await type("Valor original (USD)", "10000");
   await submit();
   await waitFor(() => expect(tx.state.writes).toHaveLength(1));
   expect(tx.state.writes[0].body.splits[0]).toMatchObject({ type: "deposit", foreign_amount: "100.00", foreign_currency_code: "USD" });
@@ -1193,12 +1193,12 @@ it("dividir esconde a moeda original do total e desfazer a divisao a devolve com
   renderPage();
   await fillBasicExpense();
   await pick(ORIGINAL_CURRENCY, "USD - Dolar americano");
-  await type("Valor original (USD)", "10");
+  await type("Valor original (USD)", "1000");
   await userEvent.click(d().getByRole("button", { name: /Dividir/ }));
   expect(d().queryByLabelText(ORIGINAL_CURRENCY)).not.toBeInTheDocument();
   await userEvent.click(d().getByRole("button", { name: "Desfazer divisão" }));
   expect(d().getByLabelText(ORIGINAL_CURRENCY)).toHaveValue("USD");
-  expect(d().getByLabelText("Valor original (USD)")).toHaveValue("10");
+  expect(d().getByLabelText("Valor original (USD)")).toHaveValue("10,00");
 });
 
 // O caso que antes era recusado: o lancamento com valor original criado pela API agora abre e salva

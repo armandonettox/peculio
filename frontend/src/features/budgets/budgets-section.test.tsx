@@ -261,20 +261,14 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
   expect(api.mutations()).toHaveLength(0);
 });
 
-it.each([
-  ["0", "Informe um valor maior que zero."],
-  ["0,00", "Informe um valor maior que zero."],
-  ["-5", "Informe um valor maior que zero."],
-  ["abc", "Valor inválido."],
-  ["10,555", "Use no máximo 2 casas decimais."],
-])("limite %j mostra %j", async (value, message) => {
+it("limite \"0\" mostra \"Informe um valor maior que zero.\"", async () => {
   const api = renderPage([makeBudget()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
-  await userEvent.type(inDialog().getByLabelText("Limite por período"), value);
+  await userEvent.type(inDialog().getByLabelText("Limite por período"), "0");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
 
-  expect(inDialog().getByText(message)).toBeInTheDocument();
+  expect(inDialog().getByText("Informe um valor maior que zero.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
 });
 
@@ -310,16 +304,18 @@ it("falha do servidor aparece no aviso do topo do dialogo", async () => {
   expect(inDialog().getByLabelText("Nome")).toHaveValue("X");
 });
 
-it("a moeda sem centavos recusa valor com centavos", async () => {
-  renderPage([makeBudget()]);
+it("a moeda sem centavos nao mostra separador decimal", async () => {
+  const api = renderPage([makeBudget()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "Iene");
   await waitFor(() => expect(within(inDialog().getByLabelText("Moeda")).getAllByRole("option").length).toBeGreaterThan(1));
   await userEvent.selectOptions(inDialog().getByLabelText("Moeda"), "JPY - Iene japones");
-  await userEvent.type(inDialog().getByLabelText("Limite por período"), "100,5");
+  await userEvent.type(inDialog().getByLabelText("Limite por período"), "100");
+  expect(inDialog().getByLabelText("Limite por período")).toHaveValue("100");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
 
-  expect(inDialog().getByText("Esta moeda não tem centavos.")).toBeInTheDocument();
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toMatchObject({ amount: "100" });
 });
 
 it("cancelar fecha sem criar", async () => {
@@ -346,7 +342,7 @@ it("editar reabre os campos, com a moeda travada", async () => {
   await openEdit("Mercado");
 
   expect(inDialog().getByLabelText("Nome")).toHaveValue("Mercado");
-  expect(inDialog().getByLabelText("Limite por período")).toHaveValue("1234,50");
+  expect(inDialog().getByLabelText("Limite por período")).toHaveValue("1.234,50");
   expect(inDialog().getByLabelText("Período")).toHaveValue("weekly");
   expect(inDialog().getByLabelText("Moeda")).toBeDisabled();
 });
@@ -358,7 +354,7 @@ it("editar manda so o que mudou", async () => {
 
   const amount = inDialog().getByLabelText("Limite por período");
   await userEvent.clear(amount);
-  await userEvent.type(amount, "900");
+  await userEvent.type(amount, "90000");
   await userEvent.click(inDialog().getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -482,7 +478,7 @@ it("trocar de volta para limite fixo traz o limite de novo e o corpo leva o modo
   await userEvent.click(inDialog().getByRole("radio", { name: /Envelope/ }));
   await userEvent.click(inDialog().getByRole("radio", { name: /Limite fixo/ }));
   await userEvent.type(inDialog().getByLabelText("Nome"), "Lazer");
-  await userEvent.type(inDialog().getByLabelText("Limite por período"), "400");
+  await userEvent.type(inDialog().getByLabelText("Limite por período"), "40000");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar orçamento" }));
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
   expect(api.mutations()[0].body).toEqual({ name: "Lazer", currency_code: "BRL", mode: "fixed", amount: "400.00", period: "monthly" });

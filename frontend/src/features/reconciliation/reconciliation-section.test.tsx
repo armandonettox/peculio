@@ -54,7 +54,7 @@ it("pede o saldo antes de conferir e nao chama o servidor", async () => {
 it("a data do extrato nao pode ser no futuro", async () => {
   const api = renderPage([]);
   await screen.findByLabelText("Conta");
-  await user.type(screen.getByLabelText(/Saldo do extrato/), "900");
+  await user.type(screen.getByLabelText(/Saldo do extrato/), "90000");
   const date = screen.getByLabelText("Data do extrato");
   await user.clear(date);
   await user.type(date, "2026-04-15");
@@ -71,7 +71,7 @@ it("so contas de ativo aparecem na escolha", async () => {
 
 it("mostra o extrato, o conferido e a diferenca", async () => {
   renderPage([makeEntry("Mercado", -100)]);
-  await statement("900");
+  await statement("90000");
   expect(await screen.findByText("O conferido tem R$ 100,00 a mais do que o extrato.")).toBeInTheDocument();
   expect(figure(/Saldo do extrato em/)).toBe("R$ 900,00");
   expect(figure(/^Conferido$/)).toBe("R$ 1.000,00");
@@ -89,7 +89,7 @@ it("o saldo digitado vira texto da API e a data vai junto", async () => {
 
 it("conferir um lancamento zera a diferenca e libera o fechamento", async () => {
   const api = renderPage([makeEntry("Mercado", -100)]);
-  await statement("900");
+  await statement("90000");
   await user.click(await checkbox("Mercado"));
   expect(await screen.findByText("O conferido bate com o extrato.")).toBeInTheDocument();
   expect(await checkbox("Mercado")).toBeChecked();
@@ -101,7 +101,7 @@ it("conferir um lancamento zera a diferenca e libera o fechamento", async () => 
 
 it("marcar todos e desmarcar todos", async () => {
   const api = renderPage([makeEntry("Mercado", -100), makeEntry("Salario", 50), makeEntry("Cafe", -5)]);
-  await statement("1000");
+  await statement("100000");
   await user.click(await screen.findByRole("button", { name: "Marcar todos" }));
   await waitFor(() => expect(api.state.entries.every((entry) => entry.cleared)).toBe(true));
   expect(await screen.findByText("3 de 3 lançamentos conferidos")).toBeInTheDocument();
@@ -111,7 +111,7 @@ it("marcar todos e desmarcar todos", async () => {
 
 it("o ajuste so e criado depois de confirmar", async () => {
   const api = renderPage([makeEntry("Mercado", -100, { cleared: true })]);
-  await statement("880");
+  await statement("88000");
   await user.click(await screen.findByRole("button", { name: "Criar lançamento de ajuste" }));
   expect(clean(dialog().textContent)).toContain("uma saída de R$ 20,00");
   expect(api.mutations()).toHaveLength(0);
@@ -126,7 +126,7 @@ it("o ajuste so e criado depois de confirmar", async () => {
 
 it("cancelar o ajuste nao cria nada", async () => {
   const api = renderPage([makeEntry("Mercado", -100, { cleared: true })]);
-  await statement("880");
+  await statement("88000");
   await user.click(await screen.findByRole("button", { name: "Criar lançamento de ajuste" }));
   await user.click(within(dialog()).getByRole("button", { name: "Cancelar" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -135,7 +135,7 @@ it("cancelar o ajuste nao cria nada", async () => {
 
 it("fechar trava os lancamentos e registra no historico", async () => {
   const api = renderPage([makeEntry("Mercado", -100, { cleared: true })]);
-  await statement("900");
+  await statement("90000");
   await user.click(await screen.findByRole("button", { name: "Fechar conciliação" }));
   expect(await screen.findByText("Conciliação fechada. 1 lançamento travado.")).toBeInTheDocument();
   expect(api.state.entries[0].locked).toBe(true);
@@ -148,14 +148,14 @@ it("fechar trava os lancamentos e registra no historico", async () => {
 
 it("sem nada conferido nao deixa fechar", async () => {
   renderPage([]);
-  await statement("1000");
+  await statement("100000");
   expect(await screen.findByRole("button", { name: "Fechar conciliação" })).toBeDisabled();
   expect(screen.getByText("Marque ao menos um lançamento como conferido para fechar.")).toBeInTheDocument();
 });
 
 it("desfazer uma conciliacao destrava e marca como desfeita", async () => {
   const api = renderPage([makeEntry("Mercado", -100, { cleared: true })]);
-  await statement("900");
+  await statement("90000");
   await user.click(await screen.findByRole("button", { name: "Fechar conciliação" }));
   await screen.findByText("Conciliação fechada. 1 lançamento travado.");
 
@@ -173,7 +173,7 @@ it("desfazer uma conciliacao destrava e marca como desfeita", async () => {
 
 it("mostra a mensagem do servidor quando conferir falha", async () => {
   const api = renderPage([makeEntry("Mercado", -100)]);
-  await statement("900");
+  await statement("90000");
   const box = await checkbox("Mercado");
   api.state.nextMutationError = { status: 409, code: "transaction_locked" };
   await user.click(box);
@@ -184,7 +184,7 @@ it("mostra a mensagem do servidor quando conferir falha", async () => {
 it("erro ao carregar a conciliacao tem botao de tentar de novo", async () => {
   const api = renderPage([makeEntry("Mercado", -100)]);
   api.state.viewError = true;
-  await statement("900");
+  await statement("90000");
   expect(await screen.findByRole("button", { name: "Tentar de novo" })).toBeInTheDocument();
 });
 
@@ -192,7 +192,7 @@ it("trocar de conta esconde a conciliacao da anterior", async () => {
   renderPage([makeEntry("Mercado", -100)], [makeAccount({ name: "Nubank" }), makeAccount({ name: "Itau" })]);
   const select = (await screen.findByLabelText("Conta")) as HTMLSelectElement;
   await user.selectOptions(select, "Nubank");
-  await user.type(screen.getByLabelText(/Saldo do extrato/), "900");
+  await user.type(screen.getByLabelText(/Saldo do extrato/), "90000");
   await user.click(screen.getByRole("button", { name: "Conferir" }));
   await checkbox("Mercado");
   await user.selectOptions(select, "Itau");
@@ -201,7 +201,7 @@ it("trocar de conta esconde a conciliacao da anterior", async () => {
 
 it("marcar todos e desmarcar todos so ficam ativos quando ha o que mudar", async () => {
   renderPage([makeEntry("Mercado", -100), makeEntry("Salario", 50)]);
-  await statement("1000");
+  await statement("100000");
   await screen.findByRole("checkbox", { name: "Conferido: Mercado" });
   expect(screen.getByRole("button", { name: "Marcar todos" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "Desmarcar todos" })).toBeDisabled();
@@ -212,7 +212,7 @@ it("marcar todos e desmarcar todos so ficam ativos quando ha o que mudar", async
 
 it("enquanto o pedido esta no ar, a lista nao aceita outro clique", async () => {
   const api = renderPage([makeEntry("Mercado", -100), makeEntry("Salario", 50)]);
-  await statement("1000");
+  await statement("100000");
   const box = await checkbox("Mercado");
   let release = () => {};
   api.state.hold = new Promise<void>((resolve) => {
@@ -227,7 +227,7 @@ it("enquanto o pedido esta no ar, a lista nao aceita outro clique", async () => 
 
 it("o erro do servidor aparece no dialogo do ajuste sem fechar", async () => {
   const api = renderPage([makeEntry("Mercado", -100, { cleared: true })]);
-  await statement("880");
+  await statement("88000");
   await user.click(await screen.findByRole("button", { name: "Criar lançamento de ajuste" }));
   api.state.nextMutationError = { status: 400, code: "reconciliation_no_difference" };
   await user.click(within(dialog()).getByRole("button", { name: "Criar ajuste" }));

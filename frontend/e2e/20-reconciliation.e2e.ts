@@ -69,7 +69,7 @@ test("a tela aparece no menu e pede o saldo antes de conferir", async ({ page })
 
 test("conferir os lancamentos zera a diferenca", async ({ page }) => {
   await openReconciliation(page);
-  await check(page, "1150");
+  await check(page, "115000");
   await expect(main(page).getByText(/O extrato tem R\$.150,00 a mais do que o conferido\./)).toBeVisible();
 
   await mark(page, "Mercado Conciliar E2E").click();
@@ -84,7 +84,7 @@ test("conferir os lancamentos zera a diferenca", async ({ page }) => {
 
 test("uma diferenca pede confirmacao e o ajuste ja entra conferido", async ({ page, request }) => {
   await openReconciliation(page);
-  await check(page, "1140");
+  await check(page, "114000");
   // As marcas da etapa anterior continuam no servidor
   await expect(main(page).getByText(/O conferido tem R\$.10,00 a mais do que o extrato\./)).toBeVisible();
 
@@ -107,7 +107,7 @@ test("uma diferenca pede confirmacao e o ajuste ja entra conferido", async ({ pa
 
 test("fechar trava os lancamentos e aparece no historico", async ({ page, request }) => {
   await openReconciliation(page);
-  await check(page, "1140");
+  await check(page, "114000");
   await page.getByRole("button", { name: "Fechar conciliação" }).click();
   await expect(main(page).getByText("Conciliação fechada. 3 lançamentos travados.")).toBeVisible();
   await expect(mark(page, "Mercado Conciliar E2E")).toHaveCount(0);
@@ -144,7 +144,7 @@ test("lancamento travado nao se edita nem se exclui", async ({ request }) => {
 
 test("desfazer a conciliacao destrava e mantem o historico", async ({ page, request }) => {
   await openReconciliation(page);
-  await check(page, "1140");
+  await check(page, "114000");
   await history(page).getByRole("button", { name: "Desfazer" }).click();
   await expect(page.getByRole("dialog")).toContainText("continuam marcados como conferidos");
   await page.getByRole("dialog").getByRole("button", { name: "Desfazer" }).click();

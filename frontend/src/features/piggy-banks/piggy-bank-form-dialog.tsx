@@ -12,6 +12,7 @@ import {
 } from "@/api/piggy-banks";
 import { requiredError } from "@/auth/validation";
 import { FormField } from "@/components/form-field";
+import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -198,14 +199,13 @@ export function PiggyBankFormDialog({ piggy, onClose }: Props) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="piggy-amount" label={t("piggy-banks.piggyBankFormDialog.valorDaMeta", { currency })} error={errors.amount}>
               {(props) => (
-                <Input
+                <MoneyInput
                   {...props}
-                  inputMode="decimal"
-                  autoComplete="off"
                   placeholder="0,00"
+                  places={places}
                   value={amount}
-                  onChange={(event) => {
-                    setAmount(event.target.value);
+                  onChange={(text) => {
+                    setAmount(text);
                     clearError("amount");
                   }}
                 />

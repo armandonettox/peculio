@@ -198,7 +198,7 @@ it("cria uma divida: o campo vira Quanto voce deve e os papeis mudam", async () 
   expect(roles).toEqual(["Empréstimo", "Dívida", "Financiamento"]);
 
   await userEvent.type(nameField(), "Carro");
-  await userEvent.type(openingField(), "12.000");
+  await userEvent.type(openingField(), "1200000");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
 
   await screen.findByRole("heading", { level: 3, name: "Carro" });
@@ -216,19 +216,13 @@ it("o papel escolhido e enviado", async () => {
   expect(api.mutations()[0].body).toMatchObject({ role: "savings" });
 });
 
-it("a moeda escolhida e enviada e o iene nao aceita centavos", async () => {
+it("a moeda escolhida e enviada e o iene nao mostra separador decimal", async () => {
   const api = renderPage();
   await openCreate();
   await userEvent.selectOptions(within(dialog()).getByLabelText("Moeda"), "JPY");
   await userEvent.type(nameField(), "Toquio");
-  await userEvent.type(openingField(), "100,5");
-  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-
-  expect(within(dialog()).getByText("Esta moeda não tem centavos.")).toBeInTheDocument();
-  expect(api.mutations()).toHaveLength(0);
-
-  await userEvent.clear(openingField());
   await userEvent.type(openingField(), "100");
+  expect(openingField()).toHaveValue("100");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
   await screen.findByRole("heading", { level: 3, name: "Toquio" });
   expect(api.mutations()[0].body).toMatchObject({ currency_code: "JPY", opening_balance: "100" });
@@ -263,30 +257,23 @@ it("nome vazio mostra o erro, foca o campo e nao chama a API", async () => {
   expect(api.mutations()).toHaveLength(0);
 });
 
-it.each([
-  ["abc", "Valor inválido."],
-  ["10,555", "Use no máximo 2 casas decimais."],
-  ["1,2,3", "Valor inválido."],
-])("saldo %j mostra %j", async (typed, message) => {
+it("saldo em branco e tratado como zero (nao exige digitar nada)", async () => {
   const api = renderPage();
   await openCreate();
   await userEvent.type(nameField(), "X");
-  await userEvent.type(openingField(), typed);
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
 
-  expect(within(dialog()).getByText(message)).toBeInTheDocument();
-  expect(openingField()).toHaveFocus();
-  expect(api.mutations()).toHaveLength(0);
+  await screen.findByRole("heading", { level: 3, name: "X" });
+  expect(api.mutations()[0].body).toMatchObject({ opening_balance: "0" });
 });
 
-it("divida com valor negativo e recusada", async () => {
+it("campo de divida nao aceita o sinal de negativo", async () => {
   renderPage();
   await openCreate();
   await userEvent.click(within(dialog()).getByRole("radio", { name: "Dívida" }));
   await userEvent.type(nameField(), "Carro");
   await userEvent.type(openingField(), "-100");
-  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-  expect(within(dialog()).getByText("Informe quanto você deve como um valor positivo.")).toBeInTheDocument();
+  expect(openingField()).toHaveValue("1,00");
 });
 
 it("conta de ativo aceita saldo inicial negativo", async () => {
@@ -395,7 +382,7 @@ it("editar abre com os dados atuais e nao deixa mudar tipo nem moeda", async () 
   expect(dialog()).toHaveAccessibleName("Editar conta");
   expect(nameField()).toHaveValue("Nubank");
   expect(within(dialog()).getByLabelText("Notas")).toHaveValue("principal");
-  expect(openingField()).toHaveValue("1234,50");
+  expect(openingField()).toHaveValue("1.234,50");
   expect(within(dialog()).getByLabelText("Data do saldo")).toHaveValue("2026-01-10");
   expect(within(dialog()).getByLabelText("Moeda")).toBeDisabled();
   expect(within(dialog()).queryByRole("radio")).not.toBeInTheDocument();

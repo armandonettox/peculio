@@ -232,7 +232,7 @@ const fillBasics = async (name = "Aluguel novo") => {
   await userEvent.type(inDialog().getByLabelText("Nome da recorrente"), name);
   await userEvent.type(inDialog().getByLabelText("Descrição"), "Aluguel do mes");
   await userEvent.type(inDialog().getByLabelText("Para quem"), "Imobiliaria");
-  await userEvent.type(inDialog().getByLabelText(/^Valor \(BRL\)/), "1.500");
+  await userEvent.type(inDialog().getByLabelText(/^Valor \(BRL\)/), "150000");
 };
 
 const submit = () => userEvent.click(inDialog().getByRole("button", { name: "Criar recorrente" }));
@@ -463,7 +463,7 @@ it("editar reabre nome, frequencia, primeira data e o modelo, com frequencia e d
   expect(inDialog().getByLabelText("Primeira data")).toBeDisabled();
   expect(inDialog().getByLabelText("Descrição")).toHaveValue("Aluguel");
   expect(inDialog().getByLabelText("Para quem")).toHaveValue("Imobiliaria");
-  expect(inDialog().getByLabelText(/^Valor \(BRL\)/)).toHaveValue("1.500,00".replace(".", ""));
+  expect(inDialog().getByLabelText(/^Valor \(BRL\)/)).toHaveValue("1.500,00");
   expect(inDialog().getByLabelText("Termina")).toHaveValue("never");
 });
 
@@ -490,7 +490,7 @@ it("editar manda nome, modelo e o fim, sem frequencia nem primeira data", async 
 
   const amount = inDialog().getByLabelText(/^Valor \(BRL\)/);
   await userEvent.clear(amount);
-  await userEvent.type(amount, "1800");
+  await userEvent.type(amount, "180000");
   await userEvent.click(inDialog().getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));

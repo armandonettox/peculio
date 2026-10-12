@@ -69,7 +69,7 @@ test("a API devolve o dinheiro como texto e isola por usuario", async ({ request
 
 test("cria uma divida e mostra o valor devido, o total e o patrimonio liquido", async ({ page }) => {
   await openAccounts(page);
-  await createAccount(page, { name: "Financiamento", kind: "Dívida", opening: "5.000" });
+  await createAccount(page, { name: "Financiamento", kind: "Dívida", opening: "500000" });
 
   await expect(card(page, "Financiamento")).toContainText("R$ 5.000,00");
   await expect(card(page, "Financiamento")).toContainText("Valor devido");
@@ -80,7 +80,7 @@ test("cria uma divida e mostra o valor devido, o total e o patrimonio liquido", 
 
 test("cria uma conta em outra moeda sem misturar nos totais", async ({ page }) => {
   await openAccounts(page);
-  await createAccount(page, { name: "Wise", opening: "100", currency: "USD" });
+  await createAccount(page, { name: "Wise", opening: "10000", currency: "USD" });
 
   await expect(card(page, "Wise")).toContainText("US$ 100,00");
   await expect(page.getByRole("region", { name: "Contas" })).toContainText("R$ 3.200,50 · US$ 100,00");
@@ -101,10 +101,10 @@ test("valor invalido e recusado no formulario, sem chamar o servidor", async ({ 
   await page.getByRole("button", { name: "Nova conta" }).first().click();
   const form = dialog(page, "Nova conta");
   await form.getByLabel("Nome", { exact: true }).fill("Teste");
-  await form.getByLabel("Saldo inicial").fill("10,555");
+  await form.getByLabel("Saldo inicial").fill("1".repeat(19));
   await form.getByRole("button", { name: "Criar conta" }).click();
 
-  await expect(form.getByText("Use no máximo 2 casas decimais.")).toBeVisible();
+  await expect(form.getByText("Valor muito grande.")).toBeVisible();
   await expect(form).toBeVisible();
 });
 

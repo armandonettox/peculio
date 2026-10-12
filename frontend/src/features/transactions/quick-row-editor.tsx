@@ -4,12 +4,14 @@ import type { Account } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import type { Category } from "@/api/labels";
 import { useCounterparties, type TransactionCreate } from "@/api/transactions";
+import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import type { FormContext, FormState } from "./form-model";
+import { accountOf, type FormContext, type FormState } from "./form-model";
 import {
   amountWithoutSign,
   buildQuickPayload,
@@ -78,6 +80,7 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
   const search = useDebouncedValue(row.counterpartyName.trim(), 250);
   const suggestions = useCounterparties(searchType, search);
   const hint = kindHint(row.amount);
+  const places = placesOf(accountOf(ctx, row.accountId)?.currency_code ?? "BRL", ctx.places);
 
   useEffect(() => {
     fields.current[focusColumn ?? (mode === "new" ? "date" : "description")]?.focus();
@@ -244,16 +247,16 @@ export function QuickRowEditor({ mode, initial, base, ctx, categories, focusColu
           </Select>
         </td>
         <td className="px-2 py-2">
-          <Input
+          <MoneyInput
             {...fieldProps("amount")}
             ref={(element) => {
               fields.current.amount = element;
             }}
-            inputMode="decimal"
-            autoComplete="off"
+            signed
             placeholder="-0,00"
+            places={places}
             value={row.amount}
-            onChange={(event) => patch({ amount: event.target.value }, "amount")}
+            onChange={(text) => patch({ amount: text }, "amount")}
             className="min-w-28 text-right tabular-nums"
           />
           <p className={cn("mt-1 text-right text-xs text-muted-foreground", !hint && "invisible")} aria-live="polite">

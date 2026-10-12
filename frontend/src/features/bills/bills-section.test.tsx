@@ -247,7 +247,7 @@ it("sem valor maximo a conta tem preco fixo (maximo igual ao minimo)", async () 
   const api = renderPage([makeBill({ name: "Outra" })]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "Aluguel");
-  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "1.500");
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "150000");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar conta a pagar" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
@@ -271,19 +271,14 @@ it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async 
   expect(api.mutations()).toHaveLength(0);
 });
 
-it.each([
-  ["0", "Informe um valor maior que zero."],
-  ["-5", "Informe um valor maior que zero."],
-  ["abc", "Valor inválido."],
-  ["10,555", "Use no máximo 2 casas decimais."],
-])("valor minimo %j mostra %j", async (value, message) => {
+it("valor minimo \"0\" mostra \"Informe um valor maior que zero.\"", async () => {
   const api = renderPage([makeBill()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
-  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), value);
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "0");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar conta a pagar" }));
 
-  expect(inDialog().getByText(message)).toBeInTheDocument();
+  expect(inDialog().getByText("Informe um valor maior que zero.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
 });
 
@@ -291,8 +286,8 @@ it("valor maximo menor que o minimo e recusado no campo do maximo", async () => 
   const api = renderPage([makeBill()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
-  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "50");
-  await userEvent.type(inDialog().getByLabelText("Valor máximo"), "49,99");
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "5000");
+  await userEvent.type(inDialog().getByLabelText("Valor máximo"), "4999");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar conta a pagar" }));
 
   expect(inDialog().getByText("O valor máximo não pode ser menor que o mínimo.")).toBeInTheDocument();
@@ -303,8 +298,8 @@ it("maximo igual ao minimo e aceito", async () => {
   const api = renderPage([makeBill()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
-  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "50");
-  await userEvent.type(inDialog().getByLabelText("Valor máximo"), "50,00");
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "5000");
+  await userEvent.type(inDialog().getByLabelText("Valor máximo"), "5000");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar conta a pagar" }));
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
 });
@@ -352,16 +347,18 @@ it("falha do servidor aparece no aviso do topo e nada se perde", async () => {
   expect(inDialog().getByLabelText("Nome")).toHaveValue("X");
 });
 
-it("a moeda sem centavos recusa valor com centavos", async () => {
-  renderPage([makeBill()]);
+it("a moeda sem centavos nao mostra separador decimal", async () => {
+  const api = renderPage([makeBill()]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "Iene");
   await waitFor(() => expect(within(inDialog().getByLabelText("Moeda")).getAllByRole("option").length).toBeGreaterThan(1));
   await userEvent.selectOptions(inDialog().getByLabelText("Moeda"), "JPY - Iene japones");
-  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "100,5");
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "100");
+  expect(inDialog().getByLabelText("Valor mínimo")).toHaveValue("100");
   await userEvent.click(inDialog().getByRole("button", { name: "Criar conta a pagar" }));
 
-  expect(inDialog().getByText("Esta moeda não tem centavos.")).toBeInTheDocument();
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toMatchObject({ amount_min: "100" });
 });
 
 it("cancelar fecha sem criar", async () => {
@@ -425,7 +422,7 @@ it("editar manda so o que mudou", async () => {
   await openEdit("Netflix");
   const max = inDialog().getByLabelText("Valor máximo");
   await userEvent.clear(max);
-  await userEvent.type(max, "70");
+  await userEvent.type(max, "7000");
   await userEvent.click(inDialog().getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));

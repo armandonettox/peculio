@@ -159,7 +159,7 @@ it("valor fixo: manda so kind e valor", async () => {
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 });
 
-it("valor fixo vazio, zero ou invalido mostra o aviso e nao chama a API", async () => {
+it("valor fixo vazio ou zero mostra o aviso e nao chama a API", async () => {
   const api = renderPage();
   await openDefine();
   await save();
@@ -168,10 +168,6 @@ it("valor fixo vazio, zero ou invalido mostra o aviso e nao chama a API", async 
   await user.type(inDialog().getByLabelText("Valor por mês (BRL)"), "0");
   await save();
   expect(inDialog().getByText("Informe um valor maior que zero.")).toBeInTheDocument();
-  await user.clear(inDialog().getByLabelText("Valor por mês (BRL)"));
-  await user.type(inDialog().getByLabelText("Valor por mês (BRL)"), "abc");
-  await save();
-  expect(inDialog().getByText("Valor inválido.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
 });
 
@@ -179,7 +175,7 @@ it("meta por data: manda valor e mes, e pede o mes", async () => {
   const api = renderPage();
   await openDefine();
   await choose("Juntar até uma data");
-  await user.type(inDialog().getByLabelText("Meta (BRL)"), "6000");
+  await user.type(inDialog().getByLabelText("Meta (BRL)"), "600000");
   await save();
   expect(inDialog().getByText("Escolha o mês em que a meta precisa estar pronta.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
@@ -234,7 +230,7 @@ it("editar abre com o template atual e deixa tirar", async () => {
   await user.click(screen.getByRole("button", { name: "Ações do envelope Mercado" }));
   await user.click(screen.getByRole("menuitem", { name: "Mudar template" }));
   expect(inDialog().getByRole("radio", { name: /Juntar até uma data/ })).toBeChecked();
-  expect(inDialog().getByLabelText("Meta (BRL)")).toHaveValue("6000,00");
+  expect(inDialog().getByLabelText("Meta (BRL)")).toHaveValue("6.000,00");
   expect(inDialog().getByLabelText("Meta pronta até o mês")).toHaveValue("2026-06");
 
   await user.click(inDialog().getByRole("button", { name: "Tirar template" }));
@@ -246,11 +242,11 @@ it("editar abre com o template atual e deixa tirar", async () => {
 it("falha do servidor ao salvar aparece no topo da janela e nada se perde", async () => {
   const api = renderPage();
   await openDefine();
-  await user.type(inDialog().getByLabelText("Valor por mês (BRL)"), "50");
+  await user.type(inDialog().getByLabelText("Valor por mês (BRL)"), "5000");
   api.state.nextMutationError = { status: 500, code: "internal_error" };
   await save();
   expect(await inDialog().findByRole("alert")).toHaveTextContent("Algo deu errado do nosso lado");
-  expect(inDialog().getByLabelText("Valor por mês (BRL)")).toHaveValue("50");
+  expect(inDialog().getByLabelText("Valor por mês (BRL)")).toHaveValue("50,00");
 });
 
 it("valor com casas demais para a moeda aparece no campo", async () => {
