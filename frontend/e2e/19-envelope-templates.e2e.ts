@@ -17,11 +17,13 @@ const field = (page: Page, name: string) => page.getByLabel(`Distribuído para $
 // O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
 // do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+// Conta em cima do ano/mes de hoje (ja no fuso certo), sem passar por outro instante de Date: perto
+// da virada do mes, formatar um Date deslocado no fuso de Brasilia podia cair no mes anterior
+// (ex: 1 de janeiro 02h UTC e 31 de dezembro 23h em Brasilia)
 const monthsAhead = (count: number) => {
-  const date = new Date();
-  date.setDate(1);
-  date.setMonth(date.getMonth() + count);
-  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }).slice(0, 7);
+  const [year, month] = today().split("-").map(Number);
+  const total = year * 12 + (month - 1) + count;
+  return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, "0")}`;
 };
 
 const saved = { billId: "" };
