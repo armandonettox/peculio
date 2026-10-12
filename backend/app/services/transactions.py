@@ -24,7 +24,7 @@ from app.schemas.transaction import TransactionCreate, TransactionOut, Transacti
 from app.services.clearings import assert_unlocked, capture_clearings, clearing_states, restore_clearings
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
 from app.services.attachment_storage import storage_path
-from app.services.bills import find_matching_bill, get_owned_bill
+from app.services.recurrences import find_matching_recurrence, get_owned_bill_mode_recurrence
 from app.services.budgets import get_owned_budget
 from app.services.rule_defs import load_rule_defs
 from app.services.rules_engine import Fill, RuleDef, SplitFacts, apply_rules
@@ -215,7 +215,7 @@ def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destina
     if "bill_id" in data.model_fields_set:
         if data.bill_id is None:
             return None
-        bill = get_owned_bill(db, user.id, data.bill_id)
+        bill = get_owned_bill_mode_recurrence(db, user.id, data.bill_id)
         if not is_expense:
             raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Conta a pagar so vale para saidas para uma despesa")
         if data.currency_code != bill.currency_code:
@@ -223,7 +223,7 @@ def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destina
         return bill
     if not is_expense:
         return None
-    return find_matching_bill(
+    return find_matching_recurrence(
         db, user.id, data.currency_code, data.amount, [data.description, destination.name]
     )
 

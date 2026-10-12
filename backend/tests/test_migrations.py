@@ -1,3 +1,5 @@
+import uuid
+
 from alembic import command
 from sqlalchemy import text
 
@@ -9,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0030"
+    assert version == "0031"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -92,6 +94,74 @@ def test_migration_0030_turns_envelopes_into_budgets_with_carry_over(clean_schem
     assert (rows["Moradia fixa"].amount, rows["Moradia fixa"].carry_over, rows["Moradia fixa"].period) == (1900, True, "monthly")
     assert rows["Reserva"].carry_over is True
     assert rows["Reserva"].amount > 0
+
+
+def test_migration_0031_turns_bills_into_reminder_mode_recurrences(clean_schema):
+    """Quem tinha uma conta a pagar de verdade, ja com um lancamento ligado a ela (bill_id), nao
+    pode perder a ligacao nem travar o deploy: o id continua o mesmo, so muda de tabela."""
+    config = alembic_config()
+    command.upgrade(config, "0030")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('77777777-7777-4777-8777-777777777777', 'Ana', 'ana3@example.com', 'x')"
+            )
+        )
+        conn.execute(
+            text("INSERT INTO currencies (code, name, symbol, decimal_places) VALUES ('BRL', 'Real', 'R$', 2) ON CONFLICT DO NOTHING")
+        )
+        conn.execute(
+            text(
+                "INSERT INTO bills (id, user_id, name, currency_code, amount_min, amount_max, match_text, first_due_date, frequency, active) "
+                "VALUES ('88888888-8888-4888-8888-888888888888', '77777777-7777-4777-8777-777777777777', "
+                "'Aluguel', 'BRL', 1500.00, 1500.00, 'aluguel', '2026-01-05', 'monthly', true)"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO accounts (id, user_id, name, type, currency_code) VALUES "
+                "('99999999-9999-4999-8999-999999999999', '77777777-7777-4777-8777-777777777777', 'Conta', 'asset', 'BRL'), "
+                "('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '77777777-7777-4777-8777-777777777777', 'Aluguel (despesa)', 'expense', 'BRL')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO transactions (id, user_id, title) VALUES "
+                "('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '77777777-7777-4777-8777-777777777777', NULL)"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO transaction_splits (id, transaction_id, user_id, type, date, description, "
+                "source_account_id, destination_account_id, amount, currency_code, bill_id) VALUES "
+                "('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', "
+                "'77777777-7777-4777-8777-777777777777', 'withdrawal', '2026-01-05', 'Aluguel de janeiro', "
+                "'99999999-9999-4999-8999-999999999999', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 1500.00, 'BRL', "
+                "'88888888-8888-4888-8888-888888888888')"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        row = conn.execute(
+            text(
+                "SELECT name, auto_create, template, amount_min, amount_max, currency_code "
+                "FROM recurrences WHERE id = '88888888-8888-4888-8888-888888888888'"
+            )
+        ).one()
+        linked_bill_id = conn.execute(
+            text("SELECT bill_id FROM transaction_splits WHERE id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'")
+        ).scalar()
+        bills_table_exists = conn.execute(
+            text("SELECT to_regclass('bills')")
+        ).scalar()
+    assert (row.name, row.auto_create, row.template, row.amount_min, row.amount_max, row.currency_code) == (
+        "Aluguel", False, None, 1500, 1500, "BRL",
+    )
+    assert linked_bill_id == uuid.UUID("88888888-8888-4888-8888-888888888888")
+    assert bills_table_exists is None
 
 
 def test_models_match_migrations(clean_schema):

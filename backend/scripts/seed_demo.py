@@ -133,14 +133,15 @@ def seed(api: Api, today: date) -> dict:
     def bill(name, low, high, match, first, frequency="monthly"):
         body = {
             "name": name,
+            "auto_create": False,
             "currency_code": "BRL",
             "amount_min": low,
             "amount_max": high,
             "match_text": match,
-            "first_due_date": first.isoformat(),
+            "first_date": first.isoformat(),
             "frequency": frequency,
         }
-        return api.post("/bills", body)["id"]
+        return api.post("/recurrences", body)["id"]
 
     bill("Aluguel", "1800.00", "1900.00", "aluguel", month_day(today, MONTHS, 8))
     bill("Internet", "110.00", "130.00", "internet", month_day(today, MONTHS, 12))
@@ -241,7 +242,7 @@ def seed(api: Api, today: date) -> dict:
         split = {"type": kind, "date": first.isoformat(), "description": description, "amount": amount,
                  "currency_code": "BRL", "account_id": account_id, **extra}
         return api.post("/recurrences", {"name": name, "frequency": "monthly", "first_date": first.isoformat(),
-                                         "template": {"splits": [split]}})["id"]
+                                         "auto_create": True, "template": {"splits": [split]}})["id"]
 
     soon = month_day(today, -1, 5)
     recurrence("Salário mensal", soon, "Salário", "6800.00", checking, "deposit",

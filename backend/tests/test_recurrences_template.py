@@ -33,7 +33,7 @@ def make(client, headers, account_id, **split_extra):
         "counterparty_name": "Imobiliaria",
         **split_extra,
     }
-    body = {"name": "Aluguel", "frequency": "monthly", "first_date": FUTURE, "template": {"splits": [split]}}
+    body = {"name": "Aluguel", "frequency": "monthly", "first_date": FUTURE, "auto_create": True, "template": {"splits": [split]}}
     return client.post(URL, json=body, headers=headers)
 
 
@@ -58,9 +58,9 @@ def test_a_template_with_null_bill_id_comes_back_with_null(client, headers, acco
 
 def test_a_template_with_a_bill_id_keeps_it(client, headers, account_id):
     bill = client.post(
-        "/api/v1/bills",
-        json={"name": "Conta", "currency_code": "BRL", "amount_min": "10.00", "amount_max": "2000.00",
-              "first_due_date": FUTURE, "frequency": "monthly"},
+        "/api/v1/recurrences",
+        json={"name": "Conta", "auto_create": False, "currency_code": "BRL", "amount_min": "10.00", "amount_max": "2000.00",
+              "first_date": FUTURE, "frequency": "monthly"},
         headers=headers,
     ).json()["id"]
     split = stored_split(client, headers, make(client, headers, account_id, bill_id=bill).json())

@@ -4,7 +4,7 @@ import pytest
 
 from tests.conftest import auth_headers, make_user, register
 
-URL = "/api/v1/bills"
+URL = "/api/v1/recurrences"
 TX_URL = "/api/v1/transactions"
 ACCOUNTS_URL = "/api/v1/accounts"
 
@@ -18,11 +18,12 @@ def headers(client):
 def make_bill(client, headers, **overrides):
     body = {
         "name": "Netflix",
+        "auto_create": False,
         "currency_code": "BRL",
         "amount_min": "40.00",
         "amount_max": "60.00",
         "match_text": "netflix",
-        "first_due_date": "2026-03-05",
+        "first_date": "2026-03-05",
         "frequency": "monthly",
         **overrides,
     }
@@ -73,7 +74,7 @@ def test_create_returns_the_bill(client, headers):
     assert body["match_text"] == "netflix"
     assert (body["amount_min"], body["amount_max"]) == ("40.00", "60.00")
     assert body["frequency"] == "monthly"
-    assert body["first_due_date"] == "2026-03-05"
+    assert body["first_date"] == "2026-03-05"
     assert body["active"] is True
 
 
@@ -93,9 +94,8 @@ def test_blank_match_text_means_no_automatic_link(client, headers):
         {"amount_min": "10.555"},
         {"name": ""},
         {"name": "  "},
-        {"frequency": "daily"},
-        {"first_due_date": "05/03/2026"},
-        {"first_due_date": "2026-02-30"},
+        {"first_date": "05/03/2026"},
+        {"first_date": "2026-02-30"},
         {"currency_code": "BR"},
         {"unknown": 1},
     ],
@@ -150,7 +150,8 @@ def test_other_users_bill_is_404(client, headers, db_session):
         client.patch(f"{URL}/{bill_id}", json={"name": "X"}, headers=other),
         client.delete(f"{URL}/{bill_id}", headers=other),
     ):
-        assert call.status_code == 404 and call.json()["code"] == "bill_not_found"
+        # O endpoint direto de /recurrences/{id} e generico: o codigo nao diferencia o modo
+        assert call.status_code == 404 and call.json()["code"] == "recurrence_not_found"
     assert client.get(URL, headers=other).json()["total"] == 0
     assert client.get(f"{URL}/{uuid.uuid4()}", headers=headers).status_code == 404
 
@@ -158,9 +159,9 @@ def test_other_users_bill_is_404(client, headers, db_session):
 def test_patch_changes_only_what_was_sent(client, headers):
     bill_id = make_bill(client, headers).json()["id"]
     body = client.patch(
-        f"{URL}/{bill_id}", json={"frequency": "yearly", "first_due_date": "2026-06-01"}, headers=headers
+        f"{URL}/{bill_id}", json={"frequency": "yearly", "first_date": "2026-06-01"}, headers=headers
     ).json()
-    assert body["frequency"] == "yearly" and body["first_due_date"] == "2026-06-01"
+    assert body["frequency"] == "yearly" and body["first_date"] == "2026-06-01"
     assert body["name"] == "Netflix" and body["amount_min"] == "40.00" and body["match_text"] == "netflix"
 
 
@@ -385,8 +386,8 @@ def test_list_transactions_filters_by_bill(client, headers):
 # ---------- Situacao dos vencimentos ----------
 
 
-def test_before_the_first_due_date_the_bill_is_upcoming(client, headers):
-    make_bill(client, headers, first_due_date="2026-03-05")
+def test_before_the_first_date_the_bill_is_upcoming(client, headers):
+    make_bill(client, headers, first_date="2026-03-05")
     [item] = status(client, headers, on="2026-03-01").json()
     assert item["status"] == "upcoming"
     assert item["last_due_date"] is None
@@ -512,16 +513,16 @@ def test_a_paid_bill_has_no_overdue_run(client, headers):
 
 
 def test_an_upcoming_bill_has_no_overdue_run(client, headers):
-    make_bill(client, headers, first_due_date="2026-09-05")
+    make_bill(client, headers, first_date="2026-09-05")
     [item] = status(client, headers, on="2026-03-10").json()
     assert item["overdue_count"] == 0 and item["oldest_overdue_date"] is None
 
 
 def test_status_is_sorted_by_next_due_date(client, headers):
     # Nomes em ordem alfabetica contraria a dos vencimentos: so a ordenacao por data acerta
-    make_bill(client, headers, name="A tarde", first_due_date="2026-03-25")
-    make_bill(client, headers, name="B cedo", first_due_date="2026-03-12")
-    make_bill(client, headers, name="C meio", first_due_date="2026-03-18")
+    make_bill(client, headers, name="A tarde", first_date="2026-03-25")
+    make_bill(client, headers, name="B cedo", first_date="2026-03-12")
+    make_bill(client, headers, name="C meio", first_date="2026-03-18")
     assert [i["name"] for i in status(client, headers, on="2026-03-10").json()] == ["B cedo", "C meio", "A tarde"]
 
 
@@ -535,7 +536,7 @@ def test_status_hides_archived_unless_asked(client, headers):
 
 def test_status_is_empty_without_bills_and_defaults_to_today(client, headers):
     assert status(client, headers).json() == []
-    make_bill(client, headers, first_due_date="2020-01-15")
+    make_bill(client, headers, first_date="2020-01-15")
     [item] = status(client, headers).json()
     assert item["last_due_date"] <= item["next_due_date"]
 

@@ -53,6 +53,7 @@ def test_the_recurrence_endpoint_uses_the_app_clock_not_the_machine_clock(client
         "name": "Diaria",
         "frequency": "daily",
         "first_date": ahead_today.isoformat(),
+        "auto_create": True,
         "template": {
             "splits": [
                 {

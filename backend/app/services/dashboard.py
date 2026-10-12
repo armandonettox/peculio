@@ -12,7 +12,7 @@ from app.models.currency import Currency
 from app.models.recurrence import Recurrence
 from app.models.transaction import TransactionType
 from app.schemas.transaction import TransactionCreate
-from app.services import bills, recurrences
+from app.services import recurrences
 from app.services.accounts import quantize_money
 from app.services.ledger import monthly_changes
 
@@ -111,7 +111,7 @@ def _bill_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> li
     """Uma entrada por conta a pagar ativa: a atrasada (ultimo vencimento sem pagamento) tem
     prioridade; senao o proximo vencimento, se cair na janela e ainda nao estiver pago."""
     items = []
-    for bill in bills.status(db, user_id, as_of, include_archived=False):
+    for bill in recurrences.status(db, user_id, as_of, include_archived=False):
         last_due = bill["last_due_date"]
         if bill["status"] == "overdue":
             # Vencida hoje e ainda nao paga: o dia nao acabou, entao nao e atraso
@@ -139,7 +139,8 @@ def _bill_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> li
 
 def _recurrence_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> list[dict]:
     found = []
-    for recurrence in db.execute(select(Recurrence).where(Recurrence.user_id == user_id)).scalars():
+    statement = select(Recurrence).where(Recurrence.user_id == user_id, Recurrence.auto_create.is_(True))
+    for recurrence in db.execute(statement).scalars():
         day = recurrences.upcoming_date(recurrence)
         if day is None or day < as_of or day > limit:
             continue

@@ -400,10 +400,10 @@ def test_duplicate_keeps_the_budget(client, headers, account_id):
 
 def test_duplicate_does_not_pay_the_same_bill_again(client, headers, account_id):
     bill = client.post(
-        f"{API}/bills",
+        f"{API}/recurrences",
         json={
-            "name": "Netflix", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-            "match_text": "netflix", "first_due_date": "2026-03-05", "frequency": "monthly",
+            "name": "Netflix", "auto_create": False, "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
+            "match_text": "netflix", "first_date": "2026-03-05", "frequency": "monthly",
         },
         headers=headers,
     )

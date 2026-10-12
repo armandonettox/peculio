@@ -279,6 +279,7 @@ def test_recurrences_also_queue_the_created_event(client, headers, account_id, d
         "name": "Aluguel",
         "frequency": "daily",
         "first_date": "2026-01-01",
+        "auto_create": True,
         "template": {"splits": [split(account_id, amount="1000.00")]},
     }
     recurrence_id = client.post("/api/v1/recurrences", json=body, headers=headers).json()["id"]

@@ -9,7 +9,7 @@ from app.models.recurrence import Recurrence
 from tests.conftest import auth_headers, make_user, register
 
 URL = "/api/v1/dashboard/upcoming"
-BILLS_URL = "/api/v1/bills"
+BILLS_URL = "/api/v1/recurrences"
 RECURRENCES_URL = "/api/v1/recurrences"
 ACCOUNTS_URL = "/api/v1/accounts"
 TX_URL = "/api/v1/transactions"
@@ -44,10 +44,11 @@ def account_id(client, headers):
 def make_bill(client, headers, name="Netflix", first="2026-06-20", frequency="monthly", **overrides):
     body = {
         "name": name,
+        "auto_create": False,
         "currency_code": "BRL",
         "amount_min": "40.00",
         "amount_max": "60.00",
-        "first_due_date": first,
+        "first_date": first,
         "frequency": frequency,
         **overrides,
     }
@@ -91,6 +92,7 @@ def make_recurrence(client, headers, account_id, name="Aluguel", first="2026-06-
         "name": name,
         "frequency": frequency,
         "first_date": first,
+        "auto_create": True,
         "template": {"splits": splits or [recurrence_split(account_id)]},
         **extra,
     }

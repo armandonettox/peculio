@@ -2,10 +2,10 @@ from datetime import date, timedelta
 
 import pytest
 
-from app.models.bill import BillFrequency
-from app.services.bills import latest_index, occurrence, window
+from app.models.recurrence import RecurrenceFrequency
+from app.services.recurrences import latest_index, occurrence, window
 
-F = BillFrequency
+F = RecurrenceFrequency
 
 
 @pytest.mark.parametrize(
@@ -88,8 +88,9 @@ def test_latest_index_is_the_last_occurrence_not_after_the_date(first, frequency
 @pytest.mark.parametrize("frequency", list(F))
 @pytest.mark.parametrize("first", [date(2026, 1, 31), date(2026, 3, 5), date(2028, 2, 29)])
 def test_every_payment_date_falls_in_exactly_one_due_date_window(first, frequency):
-    # 200 janelas cobrem mais de 3 anos ate no caso semanal, o mais curto
-    windows = [window(first, frequency, k) for k in range(0, 200)]
+    # 1400 janelas cobrem mais de 3 anos ate no caso diario, o mais curto de todos agora
+    count = 1400 if frequency == F.daily else 200
+    windows = [window(first, frequency, k) for k in range(0, count)]
     for offset in range(-200, 900, 2):
         day = first + timedelta(days=offset)
         owners = [k for k, (low, high) in enumerate(windows) if (low is None or day > low) and day <= high]

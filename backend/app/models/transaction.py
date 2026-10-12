@@ -117,7 +117,7 @@ class TransactionSplit(Base):
     # Orcamento a que a saida pertence. Excluir o orcamento solta o lancamento, nao o apaga.
     budget_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("budgets.id", ondelete="SET NULL"))
     # Conta a pagar que esta saida quitou. Excluir a conta a pagar solta o lancamento.
-    bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("bills.id", ondelete="SET NULL"))
+    bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recurrences.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
     # De onde veio um lancamento importado: o identificador que o banco deu (FITID do OFX) e a conta em que
     # ele vale. Serve para nao importar o mesmo lancamento duas vezes. Lancamento comum fica sem os dois.

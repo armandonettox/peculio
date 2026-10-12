@@ -54,6 +54,7 @@ def make(client, headers, account_id, **overrides):
         "name": "Aluguel",
         "frequency": "monthly",
         "first_date": days(0),
+        "auto_create": True,
         "template": template(account_id),
         **overrides,
     }
@@ -536,9 +537,9 @@ def test_occurrences_link_to_budget_and_auto_match_bills(client, headers, accoun
         headers=headers,
     ).json()["id"]
     bill = client.post(
-        "/api/v1/bills",
-        json={"name": "Aluguel conta", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
-              "match_text": "aluguel", "first_due_date": days(-1), "frequency": "monthly"},
+        "/api/v1/recurrences",
+        json={"name": "Aluguel conta", "auto_create": False, "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
+              "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
         headers=headers,
     ).json()["id"]
     make(client, headers, account_id, template=template(account_id, budget_id=budget))
@@ -551,9 +552,9 @@ def test_occurrences_link_to_budget_and_auto_match_bills(client, headers, accoun
 
 def test_an_explicit_null_bill_in_the_template_is_respected(client, headers, account_id):
     client.post(
-        "/api/v1/bills",
-        json={"name": "Aluguel conta", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
-              "match_text": "aluguel", "first_due_date": days(-1), "frequency": "monthly"},
+        "/api/v1/recurrences",
+        json={"name": "Aluguel conta", "auto_create": False, "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
+              "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
         headers=headers,
     )
     make(client, headers, account_id, template=template(account_id, bill_id=None))

@@ -15,7 +15,6 @@ from app.routers import (
     api_tokens,
     attachments,
     auth,
-    bills,
     budgets,
     rules,
     categories,
@@ -78,7 +77,6 @@ api_v1.include_router(budgets.router)
 api_v1.include_router(reconciliation.router)
 api_v1.include_router(saved_reports.router)
 api_v1.include_router(rules.router)
-api_v1.include_router(bills.router)
 api_v1.include_router(recurrences.router)
 api_v1.include_router(piggy_banks.router)
 api_v1.include_router(transactions.router)

@@ -3,7 +3,6 @@ from app.models.account import Account  # noqa: F401
 from app.models.api_token import ApiToken  # noqa: F401
 from app.models.attachment import Attachment  # noqa: F401
 from app.models.auth_session import AuthSession  # noqa: F401
-from app.models.bill import Bill  # noqa: F401
 from app.models.budget import Budget  # noqa: F401
 from app.models.category import Category  # noqa: F401
 from app.models.currency import Currency  # noqa: F401

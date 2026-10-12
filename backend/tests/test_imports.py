@@ -557,10 +557,10 @@ def test_confirm_runs_the_rules_like_any_new_transaction(client, headers, accoun
 
 def test_confirm_links_a_matching_bill_like_any_new_transaction(client, headers, account_id):
     bill = {
-        "name": "Netflix", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-        "match_text": "netflix", "first_due_date": "2026-03-05", "frequency": "monthly",
+        "name": "Netflix", "auto_create": False, "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
+        "match_text": "netflix", "first_date": "2026-03-05", "frequency": "monthly",
     }
-    bill_id = client.post(f"{API}/bills", json=bill, headers=headers).json()["id"]
+    bill_id = client.post(f"{API}/recurrences", json=bill, headers=headers).json()["id"]
     confirm(client, headers, account_id, [{"date": "2026-03-06", "description": "Assinatura Netflix", "amount": "-55.90"}])
     items = client.get(TX, params={"account_id": account_id}, headers=headers).json()["items"]
     assert items[0]["splits"][0]["bill_id"] == bill_id

@@ -5,12 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
 from app.models.account import AccountRole
-from app.models.bill import BillFrequency
+from app.models.recurrence import RecurrenceFrequency
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.transaction import TransactionCreate
 from app.services.accounts import get_owned_account
-from app.services.bills import occurrence
+from app.services.recurrences import occurrence
 from app.services.transactions import create_transaction
 
 
@@ -34,7 +34,7 @@ def create_installments(db: Session, user: User, template: TransactionCreate, co
     group_id = uuid.uuid4()
     transactions = []
     for index in range(count):
-        installment_date = occurrence(split.date, BillFrequency.monthly, index)
+        installment_date = occurrence(split.date, RecurrenceFrequency.monthly, index)
         installment_split = split.model_copy(
             update={
                 "date": installment_date,

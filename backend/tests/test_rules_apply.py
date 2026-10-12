@@ -44,14 +44,15 @@ def make_budget(client, headers, name="Casa", currency="BRL"):
 
 def make_bill(client, headers, name="Netflix"):
     return post(
-        client, headers, "bills",
+        client, headers, "recurrences",
         {
             "name": name,
+            "auto_create": False,
             "currency_code": "BRL",
             "amount_min": "40.00",
             "amount_max": "60.00",
             "match_text": "zzz-nunca-casa",
-            "first_due_date": "2026-03-05",
+            "first_date": "2026-03-05",
             "frequency": "monthly",
         },
     )
@@ -421,7 +422,7 @@ def test_deleted_targets_are_ignored(client, headers):
             {"kind": "set_bill", "target_id": bill},
         ],
     )
-    for path, item in (("categories", category), ("tags", tag), ("budgets", budget), ("bills", bill)):
+    for path, item in (("categories", category), ("tags", tag), ("budgets", budget), ("recurrences", bill)):
         assert client.delete(f"{API}/{path}/{item}", headers=headers).status_code == 204
     response = client.post(TX, json={"splits": [split(account)]}, headers=headers)
     assert response.status_code == 201
@@ -490,6 +491,7 @@ def test_recurring_transactions_also_go_through_the_rules(client, headers):
         "name": "Mercado mensal",
         "frequency": "monthly",
         "first_date": start.isoformat(),
+        "auto_create": True,
         "template": {"splits": [split(account, date=start.isoformat())]},
     }
     response = client.post(f"{API}/recurrences", json=body, headers=headers)

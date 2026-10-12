@@ -163,14 +163,15 @@ def test_own_account_trigger_and_budget_and_bill_actions_are_accepted(client, he
         headers=headers,
     ).json()["id"]
     bill = client.post(
-        f"{API}/bills",
+        f"{API}/recurrences",
         json={
             "name": "Netflix",
+            "auto_create": False,
             "currency_code": "BRL",
             "amount_min": "40.00",
             "amount_max": "60.00",
             "match_text": "netflix",
-            "first_due_date": "2026-03-05",
+            "first_date": "2026-03-05",
             "frequency": "monthly",
         },
         headers=headers,

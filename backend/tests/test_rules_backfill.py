@@ -143,10 +143,10 @@ def test_tags_are_added_without_duplicates_and_keep_existing(client, headers):
 def test_bill_is_linked_and_invalid_targets_are_skipped(client, headers):
     account = make_account(client, headers)
     bill = post(
-        client, headers, "bills",
+        client, headers, "recurrences",
         {
-            "name": "Netflix", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-            "match_text": "zzz-nunca-casa", "first_due_date": "2026-03-05", "frequency": "monthly",
+            "name": "Netflix", "auto_create": False, "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
+            "match_text": "zzz-nunca-casa", "first_date": "2026-03-05", "frequency": "monthly",
         },
     )
     budget = post(client, headers, "budgets", {"name": "Casa", "currency_code": "BRL", "amount": "800.00", "period": "monthly"})

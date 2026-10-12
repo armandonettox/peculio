@@ -17,7 +17,7 @@ from app.schemas.rule import (
     TriggerIn,
 )
 from app.services.accounts import get_owned_account
-from app.services.bills import get_owned_bill
+from app.services.recurrences import get_owned_bill_mode_recurrence
 from app.services.budgets import get_owned_budget
 from app.services.rule_defs import rule_order
 from app.services.rules_engine import ActionKind, TriggerField
@@ -96,7 +96,7 @@ def _check_targets(db: Session, user_id: uuid.UUID, triggers: list[TriggerIn], a
             elif action.kind == ActionKind.set_budget:
                 get_owned_budget(db, user_id, action.target_id)
             elif action.kind == ActionKind.set_bill:
-                get_owned_bill(db, user_id, action.target_id)
+                get_owned_bill_mode_recurrence(db, user_id, action.target_id)
         get_owned_tags(db, user_id, [a.target_id for a in actions if a.kind == ActionKind.add_tag])
     except AppError as error:
         if error.status_code != 404:
