@@ -16,6 +16,11 @@ depends_on = None
 def upgrade() -> None:
     op.add_column("budgets", sa.Column("carry_over", sa.Boolean(), server_default=sa.false(), nullable=False))
 
+    # Sem isto, preencher o amount do envelope abaixo violaria a constraint antiga (envelope nao
+    # podia ter amount) antes mesmo de ela deixar de fazer sentido
+    op.drop_constraint(op.f("ck_budgets_mode_matches_amount"), "budgets", type_="check")
+    op.drop_constraint(op.f("ck_budgets_amount_positive"), "budgets", type_="check")
+
     # Envelope (sem limite): vira um orcamento com carry_over ligado, usando a ultima distribuicao
     # mensal como o novo limite fixo (0 se nunca distribuiu nada)
     op.execute(
@@ -38,8 +43,6 @@ def upgrade() -> None:
     op.drop_table("budget_templates")
     op.drop_table("budget_allocations")
 
-    op.drop_constraint(op.f("ck_budgets_mode_matches_amount"), "budgets", type_="check")
-    op.drop_constraint(op.f("ck_budgets_amount_positive"), "budgets", type_="check")
     op.alter_column("budgets", "amount", existing_type=sa.Numeric(precision=18, scale=2), nullable=False)
     op.create_check_constraint(op.f("ck_budgets_amount_positive"), "budgets", "amount > 0")
     op.create_check_constraint(op.f("ck_budgets_carry_over_is_monthly"), "budgets", "NOT carry_over OR period = 'monthly'")
@@ -56,8 +59,8 @@ def downgrade() -> None:
     op.drop_constraint(op.f("ck_budgets_amount_positive"), "budgets", type_="check")
     op.alter_column("budgets", "amount", existing_type=sa.Numeric(precision=18, scale=2), nullable=True)
     op.create_check_constraint(op.f("ck_budgets_amount_positive"), "budgets", "amount IS NULL OR amount > 0")
-    op.create_check_constraint(op.f("ck_budgets_mode_matches_amount"), "budgets", "(mode = 'fixed') = (amount IS NOT NULL)")
     op.execute("UPDATE budgets SET amount = NULL WHERE mode = 'envelope'")
+    op.create_check_constraint(op.f("ck_budgets_mode_matches_amount"), "budgets", "(mode = 'fixed') = (amount IS NOT NULL)")
     op.drop_column("budgets", "carry_over")
 
     op.create_table(
