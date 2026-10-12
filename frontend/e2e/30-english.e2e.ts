@@ -4,7 +4,9 @@ import { expect, test } from "@playwright/test";
 
 import { ADMIN, apiHeaders, apiPost, field } from "./helpers";
 
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 // Roda depois do 01 (que cria o administrador). Confere a ponta a ponta do idioma: o seletor na tela de
 // login, o app inteiro em ingles e o texto que o servidor gera (CSV) seguindo o Accept-Language do navegador.

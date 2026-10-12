@@ -14,10 +14,12 @@ const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação pr
 const card = (page: Page, name: string) =>
   main(page).getByRole("heading", { level: 3, name }).locator("xpath=ancestor::li[1]");
 
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso do
+// executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
 const isoDaysFromToday = (days: number) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toLocaleDateString("sv-SE");
+  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 };
 
 async function openPiggyBanks(page: Page) {

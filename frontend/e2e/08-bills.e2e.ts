@@ -11,10 +11,12 @@ const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
 const card = (page: Page) => main(page).getByRole("heading", { level: 3, name: NAME }).locator("xpath=ancestor::li[1]");
 
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso do
+// executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
 const isoDaysFromToday = (days: number) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toLocaleDateString("sv-SE");
+  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 };
 const brazilian = (iso: string) => iso.split("-").reverse().join("/");
 

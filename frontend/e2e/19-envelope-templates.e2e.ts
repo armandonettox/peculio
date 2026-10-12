@@ -14,12 +14,14 @@ const dialog = (page: Page) => page.getByRole("dialog");
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 const row = (page: Page, name: string) => main(page).getByRole("rowheader", { name: new RegExp(`^${name}`) }).locator("xpath=ancestor::tr[1]");
 const field = (page: Page, name: string) => page.getByLabel(`Distribuído para ${name}`);
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 const monthsAhead = (count: number) => {
   const date = new Date();
   date.setDate(1);
   date.setMonth(date.getMonth() + count);
-  return date.toLocaleDateString("sv-SE").slice(0, 7);
+  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" }).slice(0, 7);
 };
 
 const saved = { billId: "" };

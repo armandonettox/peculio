@@ -9,7 +9,9 @@ const NAME = "Mercado Orc E2E";
 const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
 const card = (page: Page) => main(page).getByRole("heading", { level: 3, name: NAME }).locator("xpath=ancestor::li[1]");
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 async function openBudgets(page: Page) {
   await loginAndWaitForDashboard(page);

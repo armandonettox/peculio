@@ -12,11 +12,13 @@ const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" 
 // O Intl separa o simbolo do numero com espaco sem quebra; a tela usa o mesmo formatador
 const money = (value: string) => brl.format(Number(value));
 
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 const addDays = (days: number) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
-  return date.toLocaleDateString("sv-SE");
+  return date.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 };
 
 async function openDashboard(page: Page) {

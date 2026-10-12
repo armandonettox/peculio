@@ -7,7 +7,9 @@ test.describe.configure({ mode: "serial" });
 
 const ACCOUNT = "Conta Personalizado E2E";
 const NAME = "Mensal Personalizado E2E";
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 const saved = (page: Page) => page.getByRole("region", { name: "Relatórios salvos" });
 const dialog = (page: Page) => page.getByRole("dialog");
 

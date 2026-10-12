@@ -9,7 +9,9 @@ test.describe.configure({ mode: "serial" });
 
 const ACCOUNT = "Conta Relatorios E2E";
 const main = (page: Page) => page.getByRole("main");
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 async function openReports(page: Page, { filterByAccount = false } = {}) {
   await loginAndWaitForDashboard(page);

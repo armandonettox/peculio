@@ -13,7 +13,9 @@ const dialog = (page: Page) => page.getByRole("dialog");
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 const row = (page: Page, name: string) => main(page).getByRole("rowheader", { name }).locator("xpath=ancestor::tr[1]");
 const field = (page: Page, name: string) => page.getByLabel(`Distribuído para ${name}`);
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 const thisMonth = () => today().slice(0, 7);
 
 // O que um passo descobre e os seguintes usam

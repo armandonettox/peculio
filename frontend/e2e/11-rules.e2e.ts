@@ -10,7 +10,9 @@ const GROUP = "Casa Regras E2E";
 const TOKEN = "padaria regra e2e";
 const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
-const today = () => new Date().toLocaleDateString("sv-SE");
+// O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
+// do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
+const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 
 async function openRules(page: Page) {
   await loginAndWaitForDashboard(page);
