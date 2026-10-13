@@ -1,7 +1,8 @@
-// Gera os icones do app (PWA) a partir da carteira da marca provisoria. Roda uma vez e os arquivos ficam no repositorio:
+// Gera os icones do app (PWA) a partir do porquinho da marca (brand/peculio-favicon.svg). Roda uma vez e os arquivos
+// ficam no repositorio:
 //   node scripts/make-icons.mjs
 // Usa o Chromium do Playwright so para transformar SVG em PNG.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,26 +12,28 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "public", "icons");
 mkdirSync(out, { recursive: true });
 
-const NAVY = "#1e3a6b";
+// O desenho do porquinho vem do SVG da marca: so os dois caminhos coloridos, sem o fundo
+const brandSvg = path.join(root, "..", "brand", "peculio-favicon.svg");
+const PIG = readFileSync(brandSvg, "utf8")
+  .split(/\r?\n/)
+  .filter((line) => line.includes("<path"))
+  .join("\n");
 
-// A carteira do lucide (a mesma da marca no menu lateral), desenhada em 24x24
-const WALLET = `
-  <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
-  <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>`;
-
-// Tudo desenhado numa tela de 512: `scale` diz quanto a carteira de 24 unidades cresce
+// Fundo branco: o broto e a orelha sao navy e sumiriam sobre um fundo navy.
+// Tudo desenhado numa tela de 512: `scale` diz quanto o porquinho (que ocupa quase a tela toda) encolhe.
 function svg({ rounded, scale }) {
-  const offset = (512 - 24 * scale) / 2;
+  const offset = 256 * (1 - scale);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" ${rounded ? 'rx="112"' : ""} fill="${NAVY}"/>
-  <g transform="translate(${offset} ${offset}) scale(${scale})" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${WALLET}
+  <rect width="512" height="512" ${rounded ? 'rx="112"' : ""} fill="#ffffff"/>
+  <g transform="translate(${offset} ${offset}) scale(${scale})">
+${PIG}
   </g>
 </svg>`;
 }
 
-// "any": cantos arredondados. "maskable": tela cheia e a carteira dentro da zona segura (o sistema recorta como quiser).
-const ANY = svg({ rounded: true, scale: 14 });
-const MASKABLE = svg({ rounded: false, scale: 11 });
+// "any": cantos arredondados. "maskable": tela cheia e o porquinho dentro da zona segura (o sistema recorta como quiser).
+const ANY = svg({ rounded: true, scale: 0.92 });
+const MASKABLE = svg({ rounded: false, scale: 0.68 });
 
 const files = [
   { name: "icon-192.png", size: 192, svg: ANY },
@@ -53,6 +56,6 @@ for (const file of files) {
 }
 await browser.close();
 
-// O favicon em SVG fica na raiz de public/ (o navegador pede /favicon.svg)
-writeFileSync(path.join(root, "public", "favicon.svg"), ANY.replace(" viewBox", ' width="64" height="64" viewBox'));
-console.log("gerado favicon.svg");
+// O favicon em SVG fica na raiz de public/ (o navegador pede /favicon.svg): e o proprio SVG da marca
+copyFileSync(brandSvg, path.join(root, "public", "favicon.svg"));
+console.log("copiado favicon.svg");
