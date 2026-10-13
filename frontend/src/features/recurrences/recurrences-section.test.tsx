@@ -156,6 +156,7 @@ it("sem recorrentes mostra o estado vazio com a acao de criar", async () => {
   expect(await screen.findByText("Nenhuma recorrente ainda")).toBeInTheDocument();
   const empty = screen.getByText("Nenhuma recorrente ainda").closest("div") as HTMLElement;
   await userEvent.click(within(empty).getByRole("button", { name: /Nova recorrente/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /Sim, valor fixo/ }));
   expect(await screen.findByRole("dialog", { name: "Nova recorrente" })).toBeInTheDocument();
 });
 
@@ -220,6 +221,7 @@ it("falha ao pausar mostra o erro", async () => {
 
 const openCreate = async () => {
   await userEvent.click(await screen.findByRole("button", { name: /Nova recorrente/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /Sim, valor fixo/ }));
   const form = await screen.findByRole("dialog", { name: "Nova recorrente" });
   // Espera as contas chegarem
   await waitFor(() => expect(within(form).getByLabelText("Conta")).toHaveValue(nubank.id));

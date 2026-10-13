@@ -138,7 +138,8 @@ it("sem recorrentes mostra o estado vazio com a acao de criar", async () => {
   renderPage([]);
   expect(await screen.findByText("Nenhuma recorrente ainda")).toBeInTheDocument();
   const empty = screen.getByText("Nenhuma recorrente ainda").closest("div") as HTMLElement;
-  await userEvent.click(within(empty).getByRole("button", { name: /Novo lembrete/ }));
+  await userEvent.click(within(empty).getByRole("button", { name: /Nova recorrente/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /Não, o valor varia/ }));
   expect(await screen.findByRole("dialog", { name: "Novo lembrete" })).toBeInTheDocument();
 });
 
@@ -207,7 +208,8 @@ it("falha ao arquivar mostra o erro", async () => {
 // ---------- Criar ----------
 
 const openCreate = async () => {
-  await userEvent.click(await screen.findByRole("button", { name: /Novo lembrete/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /Nova recorrente/ }));
+  await userEvent.click(await screen.findByRole("button", { name: /Não, o valor varia/ }));
   return await screen.findByRole("dialog", { name: "Novo lembrete" });
 };
 
@@ -477,4 +479,17 @@ it("a data de referencia e o dia do servidor, nao o do aparelho (aparelho com o 
   const api = renderPage();
   await screen.findByText("Netflix");
   expect(api.statusRequests().at(-1)?.query?.get("on")).toBe("2026-03-20");
+});
+
+// ---------- Escolha do tipo ----------
+
+it("Nova recorrente pergunta se o valor muda e cancelar nao abre formulario", async () => {
+  renderPage([]);
+  await userEvent.click(await screen.findByRole("button", { name: /Nova recorrente/ }));
+  const choice = await screen.findByRole("dialog", { name: "Nova recorrente" });
+  expect(within(choice).getByText("O valor é sempre o mesmo?")).toBeInTheDocument();
+  expect(within(choice).getByRole("button", { name: /Sim, valor fixo/ })).toBeInTheDocument();
+  expect(within(choice).getByRole("button", { name: /Não, o valor varia/ })).toBeInTheDocument();
+  await userEvent.click(within(choice).getByRole("button", { name: "Cancelar" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 });

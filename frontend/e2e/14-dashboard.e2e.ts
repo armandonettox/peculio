@@ -149,7 +149,8 @@ test("criar uma conta a pagar pela tela atualiza o painel ao voltar a ele", asyn
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("link", { name: "Recorrentes", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Recorrentes" })).toBeVisible();
-  await page.getByRole("button", { name: "Novo lembrete" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Não, o valor varia/ }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Nome", { exact: true }).fill("Gas Painel E2E");
   await dialog.getByLabel("Valor mínimo").fill("30,00");

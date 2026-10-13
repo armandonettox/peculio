@@ -93,14 +93,15 @@ for (const [sizeName, viewport] of Object.entries(SIZES)) {
 // Diálogos de criar e de ações de cada tela, abertos. Com um diálogo aberto o Radix esconde a página de propósito
 // (aria-hidden) e as regras de página inteira (main, h1, regiões) disparam por construção: por isso a varredura olha só o
 // conteúdo do diálogo.
-const DIALOGS: { route: string; opener: string; optional?: boolean }[] = [
+const DIALOGS: { route: string; opener: string; then?: string; optional?: boolean }[] = [
   { route: "/contas", opener: "Nova conta" },
   { route: "/transacoes", opener: "Novo lançamento" },
   { route: "/categorias", opener: "Nova categoria" },
   { route: "/categorias?aba=tags", opener: "Nova tag" },
   { route: "/orcamentos", opener: "Novo orçamento" },
-  { route: "/contas-a-pagar", opener: "Novo lembrete" },
-  { route: "/contas-a-pagar", opener: "Nova recorrente automática" },
+  { route: "/contas-a-pagar", opener: "Nova recorrente" },
+  { route: "/contas-a-pagar", opener: "Nova recorrente", then: "Não, o valor varia" },
+  { route: "/contas-a-pagar", opener: "Nova recorrente", then: "Sim, valor fixo" },
   { route: "/cofrinhos", opener: "Novo cofrinho" },
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
@@ -119,7 +120,7 @@ for (const theme of ["light", "dark"] as const) {
 
     const problems: string[] = [];
     let scanned = 0;
-    for (const { route, opener, optional } of DIALOGS) {
+    for (const { route, opener, then, optional } of DIALOGS) {
       await page.goto(route);
       await page.waitForLoadState("networkidle");
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -128,13 +129,17 @@ for (const theme of ["light", "dark"] as const) {
       if (optional && (await button.count()) === 0) continue;
       await button.click();
       await expect(page.getByRole("dialog")).toBeVisible();
+      if (then) {
+        await page.getByRole("dialog").getByRole("button", { name: new RegExp(then) }).click();
+        await expect(page.getByRole("dialog").getByRole("button", { name: new RegExp(then) })).toHaveCount(0);
+      }
       const result = await new AxeBuilder({ page })
         .include('[role="dialog"]')
         .disableRules(["landmark-one-main", "page-has-heading-one", "region", "aria-hidden-focus"])
         .withTags(TAGS)
         .analyze();
       scanned += 1;
-      problems.push(...result.violations.map((violation) => `${route} > ${opener}: ${violation.id}: ${violation.help}`));
+      problems.push(...result.violations.map((violation) => `${route} > ${opener}${then ? ` > ${then}` : ""}: ${violation.id}: ${violation.help}`));
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
     }
@@ -169,7 +174,7 @@ test("sem rolagem horizontal da pagina a 320 px, em todas as telas e nos dialogo
     if (extra > 1) problems.push(`${route}: a pagina passa ${extra}px da largura`);
   }
 
-  for (const { route, opener, optional } of DIALOGS) {
+  for (const { route, opener, then, optional } of DIALOGS) {
     await page.goto(route);
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -178,6 +183,10 @@ test("sem rolagem horizontal da pagina a 320 px, em todas as telas e nos dialogo
     await button.click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
+    if (then) {
+      await dialog.getByRole("button", { name: new RegExp(then) }).click();
+      await expect(page.getByRole("button", { name: new RegExp(then) })).toHaveCount(0);
+    }
     const sizes = await dialog.evaluate((element) => ({ scroll: element.scrollWidth, client: element.clientWidth }));
     if (sizes.scroll - sizes.client > 1) problems.push(`${route} > ${opener}: o dialogo passa ${sizes.scroll - sizes.client}px da largura`);
     await page.keyboard.press("Escape");

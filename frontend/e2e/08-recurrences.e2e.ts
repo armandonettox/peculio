@@ -42,7 +42,7 @@ async function menu(page: Page, name: string, item: string) {
 
 async function registerExpense(page: Page, description: string, amount: string, bill?: string) {
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
-  await page.getByRole("button", { name: "Novo lançamento" }).click();
+  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
   await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
   await dialog(page).getByLabel("Descrição", { exact: true }).fill(description);
   await dialog(page).getByLabel("Para quem", { exact: true }).fill("Streaming Bill");
@@ -96,7 +96,8 @@ test("sem recorrentes a pagina convida a criar a primeira", async ({ page }) => 
 
 test("cria um lembrete: sem pagamento, ele aparece como atrasado", async ({ page }) => {
   await openRecurrences(page);
-  await page.getByRole("button", { name: "Novo lembrete" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Não, o valor varia/ }).click();
   await dialog(page).getByLabel("Nome", { exact: true }).fill(NAME);
   await dialog(page).getByLabel("Valor mínimo").fill("40,00");
   await dialog(page).getByLabel("Valor máximo").fill("60,00");
@@ -112,7 +113,8 @@ test("cria um lembrete: sem pagamento, ele aparece como atrasado", async ({ page
 
 test("nome repetido e recusado no campo do nome", async ({ page }) => {
   await openRecurrences(page);
-  await page.getByRole("button", { name: "Novo lembrete" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Não, o valor varia/ }).click();
   await dialog(page).getByLabel("Nome", { exact: true }).fill(NAME.toUpperCase());
   await dialog(page).getByLabel("Valor mínimo").fill("10");
   await dialog(page).getByRole("button", { name: "Criar lembrete" }).click();
@@ -186,7 +188,8 @@ test("excluir o lembrete pede confirmacao; os lancamentos continuam, sem ligacao
 
 test("uma diaria que comecou ha dois dias cria os tres lancamentos e baixa o saldo", async ({ page }) => {
   await openRecurrences(page);
-  await page.getByRole("button", { name: "Nova recorrente automática" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Sim, valor fixo/ }).click();
   await fillRecurrence(page, { name: DAILY, description: "Assinatura diaria", firstDate: isoDaysFromToday(-2), amount: "10,00" });
   await dialog(page).getByLabel("Frequência").selectOption({ label: "Diária" });
   await expect(dialog(page).getByText(/Os lançamentos desde esta data até hoje serão criados agora/)).toBeVisible();
@@ -215,7 +218,8 @@ test("os lancamentos criados aparecem nas transacoes, um por dia, com as datas c
 
 test("com fim por quantidade ela termina sozinha depois de criar o numero pedido", async ({ page }) => {
   await openRecurrences(page);
-  await page.getByRole("button", { name: "Nova recorrente automática" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Sim, valor fixo/ }).click();
   await fillRecurrence(page, { name: LIMITED, description: "Parcela", firstDate: isoDaysFromToday(-5), amount: "5,00" });
   await dialog(page).getByLabel("Frequência").selectOption({ label: "Diária" });
   await dialog(page).getByLabel("Termina").selectOption({ label: "Depois de N vezes" });
@@ -232,7 +236,8 @@ test("com fim por quantidade ela termina sozinha depois de criar o numero pedido
 
 test("nome vazio e data final antes da primeira sao recusados", async ({ page }) => {
   await openRecurrences(page);
-  await page.getByRole("button", { name: "Nova recorrente automática" }).first().click();
+  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
+  await page.getByRole("button", { name: /Sim, valor fixo/ }).click();
   await dialog(page).getByRole("button", { name: "Criar recorrente" }).click();
   await expect(dialog(page).getByText("Informe o nome da recorrente.")).toBeVisible();
 

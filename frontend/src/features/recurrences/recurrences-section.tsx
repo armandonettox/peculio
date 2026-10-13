@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RecurrenceCard } from "@/features/recurrences/recurrence-card";
+import { RecurrenceKindDialog } from "@/features/recurrences/recurrence-kind-dialog";
 import { ReminderFormDialog } from "@/features/recurrences/reminder-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { appToday } from "@/lib/dates";
@@ -23,6 +24,7 @@ import { useTranslation } from "react-i18next";
 type Item = Recurrence | RecurrenceStatus;
 
 type DialogState =
+  | { kind: "choose" }
   | { kind: "create-auto" }
   | { kind: "create-reminder" }
   | { kind: "edit"; item: Item }
@@ -59,16 +61,10 @@ export function RecurrencesSection() {
   }
 
   const newButtons = (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" onClick={() => setDialog({ kind: "create-reminder" })}>
-        <Plus />
-        {t("pages.recurrences.novoLembrete")}
-      </Button>
-      <Button onClick={() => setDialog({ kind: "create-auto" })}>
-        <Plus />
-        {t("pages.recurrences.novaRecorrenteAutomatica")}
-      </Button>
-    </div>
+    <Button onClick={() => setDialog({ kind: "choose" })}>
+      <Plus />
+      {t("pages.recurrences.novaRecorrente")}
+    </Button>
   );
 
   let content;
@@ -158,6 +154,12 @@ export function RecurrencesSection() {
 
       {content}
 
+      {dialog?.kind === "choose" && (
+        <RecurrenceKindDialog
+          onPick={(kind) => setDialog({ kind: kind === "fixed" ? "create-auto" : "create-reminder" })}
+          onClose={() => setDialog(null)}
+        />
+      )}
       {dialog?.kind === "create-auto" && <TransactionFormDialog repeating onClose={() => setDialog(null)} />}
       {dialog?.kind === "create-reminder" && <ReminderFormDialog onClose={() => setDialog(null)} />}
       {editing && editing.auto_create && (
