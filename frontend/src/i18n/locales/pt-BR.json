@@ -326,6 +326,7 @@
   "components": {
     "appShell": {
       "pularParaOConteudo": "Pular para o conteúdo",
+      "irParaOPainel": "Ir para o painel inicial",
       "abrirMenu": "Abrir menu",
       "menu": "Menu",
       "navegacaoPrincipalDoAplicativo": "Navegação principal do aplicativo",

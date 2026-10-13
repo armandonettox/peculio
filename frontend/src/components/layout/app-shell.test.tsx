@@ -163,3 +163,20 @@ it("a gaveta do celular continua igual com o menu lateral oculto", async () => {
   await userEvent.click(openButton());
   expect(screen.getByRole("dialog", { name: "Menu" })).toBeInTheDocument();
 });
+
+it("a marca no menu lateral e um link que leva ao painel inicial", async () => {
+  mockMatchMedia(false);
+  const router = createMemoryRouter([{ path: "*", element: <AppShell><p>Conteúdo da página</p></AppShell> }], {
+    initialEntries: ["/contas"],
+  });
+  render(
+    <FakeAuth>
+      <RouterProvider router={router} />
+    </FakeAuth>,
+  );
+  const link = within(sidebar()).getByRole("link", { name: "Pecúlio" });
+  expect(link).toHaveAttribute("href", "/");
+  expect(link).toHaveAttribute("title", "Ir para o painel inicial");
+  await userEvent.click(link);
+  expect(router.state.location.pathname).toBe("/");
+});

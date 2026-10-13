@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <aside id={SIDEBAR_ID} className={`fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card ${hidden ? "" : "lg:flex"}`}>
         <div className="flex h-14 items-center border-b px-4">
-          <Brand />
+          <Brand to="/" />
         </div>
         <SidebarNav />
       </aside>
@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="flex h-14 items-center border-b px-4">
                 <SheetTitle className="sr-only">{t("components.appShell.menu")}</SheetTitle>
                 <SheetDescription className="sr-only">{t("components.appShell.navegacaoPrincipalDoAplicativo")}</SheetDescription>
-                <Brand />
+                <Brand to="/" onNavigate={() => setMenuOpen(false)} />
               </div>
               <SidebarNav onNavigate={() => setMenuOpen(false)} />
             </SheetContent>
@@ -76,10 +76,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             {hidden ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
 
-          <span className="text-base font-semibold text-primary-text lg:hidden">Pecúlio</span>
+          <span className="lg:hidden">
+            <Brand to="/" />
+          </span>
           {hidden && (
             <span className="hidden lg:block">
-              <Brand />
+              <Brand to="/" />
             </span>
           )}
 

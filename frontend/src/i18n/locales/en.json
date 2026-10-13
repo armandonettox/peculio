@@ -326,6 +326,7 @@
   "components": {
     "appShell": {
       "pularParaOConteudo": "Skip to content",
+      "irParaOPainel": "Go to the dashboard",
       "abrirMenu": "Open menu",
       "menu": "Menu",
       "navegacaoPrincipalDoAplicativo": "Main application navigation",
