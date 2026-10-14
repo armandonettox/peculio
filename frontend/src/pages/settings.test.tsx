@@ -82,7 +82,7 @@ it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
 it("a aba Webhooks fica disponivel para qualquer usuario", async () => {
   renderPage({ as: member });
   await openTab("Webhooks");
-  expect(await screen.findByRole("heading", { name: "Webhooks" })).toBeInTheDocument();
+  expect(await screen.findByText("Avisos automáticos para outros sistemas")).toBeInTheDocument();
   expect(screen.getByText("Nenhum webhook ainda")).toBeInTheDocument();
 });
 

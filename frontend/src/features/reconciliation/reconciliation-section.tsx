@@ -184,11 +184,7 @@ export function ReconciliationSection() {
 
   return (
     <>
-      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
-      <div className="mb-6 flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-primary-text">{t("pages.reconciliation.conciliar")}</h2>
-        <p className="text-sm text-muted-foreground">{t("pages.reconciliation.confiraOsLancamentosDa")}</p>
-      </div>
+      <p className="mb-6 text-sm text-muted-foreground">{t("pages.reconciliation.confiraOsLancamentosDa")}</p>
       <div className="flex flex-col gap-8">
         {form}
         {statement && <Work key={`${statement.accountId}|${statement.balance}|${statement.date}`} statement={statement} />}

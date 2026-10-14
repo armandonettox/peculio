@@ -47,12 +47,17 @@ export function ThisMonthBlock() {
             <section key={totals.currency_code} aria-label={t("dashboard.thisMonthBlock.thisMonthIn", { currency: totals.currency_code })} className="min-w-0">
               {currencies.length > 1 && <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{totals.currency_code}</h3>}
               <TableScroll label={t("dashboard.thisMonthBlock.caption", { currency: totals.currency_code })}>
-                <table className="w-full min-w-[22rem] border-collapse text-sm">
+                <table className="w-full min-w-[22rem] table-fixed border-collapse text-sm">
+                  <colgroup>
+                    <col className="w-[24%]" />
+                    <col className="w-[28%]" />
+                    <col />
+                  </colgroup>
                   <caption className="sr-only">
                     {t("dashboard.thisMonthBlock.caption", { currency: totals.currency_code })}
                   </caption>
                   <thead>
-                    <tr className="text-left text-xs text-muted-foreground">
+                    <tr className="text-left text-sm text-muted-foreground">
                       <th scope="col" className="py-1 font-normal">
                         {t("common.valor")}
                       </th>
@@ -76,7 +81,9 @@ export function ThisMonthBlock() {
                           </th>
                           <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{formatMoney(current, totals.currency_code)}</td>
                           <td className={`py-2 tabular-nums ${TREND_CLASS[trend]}`}>
-                            {formatDiff(comparison.diff, totals.currency_code)} · {formatPercent(comparison.percent)}
+                            {formatDiff(comparison.diff, totals.currency_code)}
+                            {/* Sem mes passado para comparar, o percentual nao existe: mostra so a diferenca */}
+                            {comparison.percent !== null && ` · ${formatPercent(comparison.percent)}`}
                           </td>
                         </tr>
                       );

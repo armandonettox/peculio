@@ -209,11 +209,7 @@ export function ImportSection() {
 
   return (
     <>
-      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
-      <div className="mb-6 flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-primary-text">{t("pages.import.importarExtrato")}</h2>
-        <p className="text-sm text-muted-foreground">{t("pages.import.tragaOsLancamentosDe")}</p>
-      </div>
+      <p className="mb-6 text-sm text-muted-foreground">{t("pages.import.tragaOsLancamentosDe")}</p>
 
       {showSteps && (
         <ol className="mb-6 flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={t("pages.import.passosDaImportacao")}>

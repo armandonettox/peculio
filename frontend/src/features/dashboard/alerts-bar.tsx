@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useBudgetsProgress } from "@/api/budgets";
@@ -37,7 +37,8 @@ export function AlertsBar() {
           className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:underline ${LEVEL_CLASS[alert.level]}`}
         >
           <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
-          {alert.text}
+          <span className="flex-1">{alert.text}</span>
+          <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
         </Link>
       ))}
     </section>

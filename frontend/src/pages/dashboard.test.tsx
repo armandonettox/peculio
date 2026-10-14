@@ -267,7 +267,9 @@ it("este mes: despesa zero no mes passado nao divide por zero, so nao mostra per
 
   const table = await screen.findByRole("table", { name: /mês em BRL/ });
   const rows = within(table).getAllByRole("row");
-  expect(within(rows[2]).getByText(/Sem base de comparação/)).toBeInTheDocument();
+  // Sem mes passado para comparar, fica so a diferenca, sem percentual nem aviso repetido
+  expect(within(rows[2]).getByText(/R\$ 150,00 a mais/)).toBeInTheDocument();
+  expect(within(table).queryByText(/Sem base de comparação/)).not.toBeInTheDocument();
 });
 
 it("este mes: resultado negativo que piora mostra diferenca negativa como ruim", async () => {
@@ -389,7 +391,7 @@ it("vencimentos: atrasada aparece com selo de texto, nao so pela cor", async () 
   const items = within(section).getAllByRole("listitem");
   expect(items[0].querySelector("svg.text-muted-foreground")).toBeInTheDocument();
   expect(items[1].querySelector("svg.text-positive")).toBeInTheDocument();
-  expect(within(section).getByRole("link", { name: "Ver contas a pagar" })).toHaveAttribute("href", "/contas-a-pagar");
+  expect(within(section).getByRole("link", { name: "Ver recorrentes" })).toHaveAttribute("href", "/contas-a-pagar");
 });
 
 it("vencimentos: faixa de valor quando minimo e maximo sao diferentes", async () => {

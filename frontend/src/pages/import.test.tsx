@@ -30,7 +30,7 @@ it("a pagina tem as duas abas, Importar extrato ja aberta", async () => {
   renderPage();
   expect(await screen.findByRole("heading", { level: 1, name: "Importar e conciliar" })).toBeInTheDocument();
   for (const title of ["Importar extrato", "Conciliar"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
-  expect(await screen.findByRole("heading", { name: "Importar extrato" })).toBeInTheDocument();
+  expect(await screen.findByText("Traga os lançamentos de um extrato do banco (CSV ou OFX)")).toBeInTheDocument();
   expect(screen.getByLabelText("Conta que recebe o extrato")).toBeInTheDocument();
 });
 
@@ -38,7 +38,7 @@ it("clicar na aba Conciliar troca o conteudo, mantendo o h1 da pagina", async ()
   renderPage();
   await screen.findByLabelText("Conta que recebe o extrato");
   await userEvent.click(screen.getByRole("tab", { name: "Conciliar" }));
-  expect(await screen.findByRole("heading", { name: "Conciliar" })).toBeInTheDocument();
+  expect(await screen.findByText(/Confira os lançamentos da conta com o extrato do banco/)).toBeInTheDocument();
   expect(screen.getByRole("heading", { level: 1, name: "Importar e conciliar" })).toBeInTheDocument();
   expect(screen.queryByText("Traga os lançamentos de um extrato do banco (CSV ou OFX)")).not.toBeInTheDocument();
 });

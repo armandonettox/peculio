@@ -52,6 +52,8 @@ export function BudgetsSection() {
   );
 
   let content;
+  const showToolbarButton = !query.isPending && !query.isError && items.length > 0;
+
   if (query.isPending) {
     content = (
       <div aria-busy="true" className="flex flex-col gap-3">
@@ -101,15 +103,6 @@ export function BudgetsSection() {
 
   return (
     <>
-      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-primary-text">{t("pages.budgets.orcamentos")}</h2>
-          <p className="text-sm text-muted-foreground">{t("pages.budgets.quantoVoceJaUsou")}</p>
-        </div>
-        {newButton}
-      </div>
-
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
           <Button
@@ -133,15 +126,19 @@ export function BudgetsSection() {
           )}
         </div>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={includeArchived}
-            onChange={(event) => setIncludeArchived(event.target.checked)}
-            className="accent-[var(--primary)]"
-          />
-          {t("pages.budgets.mostrarArquivados")}
-        </label>
+        <div className="flex flex-wrap items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={(event) => setIncludeArchived(event.target.checked)}
+              className="accent-[var(--primary)]"
+            />
+            {t("pages.budgets.mostrarArquivados")}
+          </label>
+          {/* So com a lista carregada e com itens; na vazia o botao ja aparece dentro do aviso */}
+          {showToolbarButton && newButton}
+        </div>
       </div>
 
       {actionError && (

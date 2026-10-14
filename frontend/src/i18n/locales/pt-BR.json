@@ -530,7 +530,7 @@
       "proximosVencimentos": "Próximos vencimentos",
       "nadaVencendoNosProximos": "Nada vencendo nos próximos 30 dias.",
       "atrasada": "Atrasada",
-      "verContasAPagar": "Ver contas a pagar"
+      "verContasAPagar": "Ver recorrentes"
     },
     "dashboardBlock": {
       "loading": "Carregando {{title}}..."
@@ -947,6 +947,8 @@
   },
   "recurrences": {
     "recurrenceCard": {
+      "automatica": "Automática",
+      "lembrete": "Lembrete",
       "pausada": "Pausada",
       "terminou": "Terminou",
       "pausar": "Pausar",

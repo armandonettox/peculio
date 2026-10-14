@@ -2,10 +2,10 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useUpcoming } from "@/api/dashboard";
-import { formatDate } from "@/lib/dates";
+import { appToday } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { DashboardBlock } from "./dashboard-block";
-import { directionText, upcomingAmountText } from "./presentation";
+import { directionText, shortDayLabel, upcomingAmountText } from "./presentation";
 import { useTranslation } from "react-i18next";
 
 /** Contas a pagar e recorrentes dos proximos 30 dias, com as atrasadas em destaque. */
@@ -13,6 +13,7 @@ export function UpcomingBlock() {
   const { t } = useTranslation();
   const query = useUpcoming({ days: 30 });
   const items = query.data?.items ?? [];
+  const today = appToday();
 
   return (
     <DashboardBlock
@@ -43,7 +44,7 @@ export function UpcomingBlock() {
                 )}
               </div>
               <p className={cn("text-xs text-muted-foreground", item.overdue && "text-destructive")}>
-                {formatDate(item.date)} · {directionText(item.direction)} · {upcomingAmountText(item)}
+                {shortDayLabel(item.date, today)} · {directionText(item.direction)} · {upcomingAmountText(item)}
               </p>
             </div>
           </li>

@@ -530,7 +530,7 @@
       "proximosVencimentos": "Upcoming due dates",
       "nadaVencendoNosProximos": "Nothing due in the next 30 days.",
       "atrasada": "Overdue",
-      "verContasAPagar": "View bills"
+      "verContasAPagar": "View recurring"
     },
     "dashboardBlock": {
       "loading": "Loading {{title}}..."
@@ -947,6 +947,8 @@
   },
   "recurrences": {
     "recurrenceCard": {
+      "automatica": "Automatic",
+      "lembrete": "Reminder",
       "pausada": "Paused",
       "terminou": "Ended",
       "pausar": "Pause",

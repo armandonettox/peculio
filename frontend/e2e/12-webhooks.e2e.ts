@@ -51,7 +51,7 @@ test.afterAll(async () => {
 async function openWebhooks(page: Page) {
   await loginAndWaitForDashboard(page);
   await openSettings(page, "Webhooks");
-  await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
+  await expect(page.getByText("Avisos automáticos para outros sistemas")).toBeVisible();
 }
 
 async function menu(page: Page, item: string) {

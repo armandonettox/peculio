@@ -67,6 +67,8 @@ export function RecurrencesSection() {
     </Button>
   );
 
+  const showToolbarButton = !isPending && !isError && items.length > 0;
+
   let content;
   if (isPending) {
     content = (
@@ -126,15 +128,7 @@ export function RecurrencesSection() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-primary-text">{t("pages.recurrences.titulo")}</h2>
-          <p className="text-sm text-muted-foreground">{t("pages.recurrences.descricao")}</p>
-        </div>
-        {newButtons}
-      </div>
-
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-4">
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -144,6 +138,8 @@ export function RecurrencesSection() {
           />
           {t("pages.recurrences.mostrarInativas")}
         </label>
+        {/* So com a lista carregada e com itens; na vazia o botao ja aparece dentro do aviso */}
+        {showToolbarButton && newButtons}
       </div>
 
       {actionError && (

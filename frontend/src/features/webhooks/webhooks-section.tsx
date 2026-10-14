@@ -77,6 +77,8 @@ export function WebhooksSection() {
     </Button>
   );
 
+  const showToolbarButton = !query.isPending && !query.isError && items.length > 0;
+
   let content;
   if (query.isPending) {
     content = (
@@ -130,13 +132,10 @@ export function WebhooksSection() {
 
   return (
     <>
-      {/* h2, nao h1: o h1 da pagina fica por conta de quem encaixa esta aba */}
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-primary-text">{t("pages.webhooks.webhooks")}</h2>
-          <p className="text-sm text-muted-foreground">{t("pages.webhooks.avisosAutomaticosParaOutros")}</p>
-        </div>
-        {newButton}
+        <p className="text-sm text-muted-foreground">{t("pages.webhooks.avisosAutomaticosParaOutros")}</p>
+        {/* So com a lista carregada e com itens; na vazia o botao ja aparece dentro do aviso */}
+        {showToolbarButton && newButton}
       </div>
 
       {actionError && (

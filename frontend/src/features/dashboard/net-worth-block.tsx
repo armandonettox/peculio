@@ -29,17 +29,17 @@ export function NetWorthBlock() {
             {currencies.length > 1 && <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{currency.currency_code}</h3>}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <p className="text-xs text-muted-foreground">{t("dashboard.netWorthBlock.liquido")}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.netWorthBlock.liquido")}</p>
                 <p className={`text-xl font-semibold tabular-nums ${isNegativeMoney(currency.net) ? "text-destructive" : "text-positive"}`}>
                   {formatMoney(currency.net, currency.currency_code)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("dashboard.netWorthBlock.ativos")}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.netWorthBlock.ativos")}</p>
                 <p className="text-xl font-semibold tabular-nums">{formatMoney(currency.assets, currency.currency_code)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{t("dashboard.netWorthBlock.dividas")}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.netWorthBlock.dividas")}</p>
                 <p className="text-xl font-semibold tabular-nums">{formatMoney(currency.liabilities, currency.currency_code)}</p>
               </div>
             </div>
@@ -50,7 +50,7 @@ export function NetWorthBlock() {
                 series={[netWorthSeries(currency)]}
                 formatValue={(value) => formatMoney(value, currency.currency_code)}
                 formatX={shortMonthLabel}
-                height={220}
+                height={160}
                 area
               />
             </div>
