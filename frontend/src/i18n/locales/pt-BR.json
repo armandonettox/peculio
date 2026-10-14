@@ -697,6 +697,7 @@
       "adicionarLinha": "Adicionar linha",
       "tudoDistribuido": "Tudo distribuído.",
       "contaAPagar": "Conta a pagar",
+      "recebimentoEsperado": "Recebimento esperado",
       "tags": "Tags",
       "dividirLancamento": "Dividir lançamento",
       "parcelarEmQuantasVezes": "Parcelar em quantas vezes?",
@@ -775,6 +776,7 @@
       "rowCategory": "Categoria da linha {{n}}",
       "rowBudget": "Orçamento da linha {{n}}",
       "rowBill": "Conta a pagar da linha {{n}}",
+      "rowBillIncome": "Recebimento esperado da linha {{n}}",
       "rowTags": "Tags da linha {{n}}"
     },
     "presentation": {
@@ -973,6 +975,7 @@
       "primeiroVencimento": "Primeiro vencimento",
       "textoParaLigarSozinho": "Texto para ligar sozinho",
       "quandoUmaSaidaTiver": "Quando uma saída tiver este texto na descrição ou no nome de quem recebeu, e o valor estiver na faixa, ela é ligada a este lembrete. Deixe em branco para ligar só à mão.",
+      "quandoUmaEntradaTiver": "Quando uma entrada tiver este texto na descrição ou no nome de quem pagou, e o valor estiver na faixa, ela é ligada a este lembrete. Deixe em branco para ligar só à mão.",
       "salvando": "Salvando...",
       "salvar": "Salvar",
       "criarLembrete": "Criar lembrete",

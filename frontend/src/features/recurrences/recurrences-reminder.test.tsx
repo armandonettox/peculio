@@ -228,6 +228,7 @@ it("cria uma conta com faixa de valor, texto e frequencia", async () => {
   expect(api.mutations()[0].body).toEqual({
     name: "Spotify",
     auto_create: false,
+    type: "withdrawal",
     frequency: "yearly",
     first_date: "2026-05-10",
     currency_code: "BRL",
@@ -236,6 +237,31 @@ it("cria uma conta com faixa de valor, texto e frequencia", async () => {
     match_text: "spotify",
   });
   expect(await screen.findByRole("heading", { level: 2, name: "Spotify" })).toBeInTheDocument();
+});
+
+it("cria um lembrete de receita escolhendo o tipo", async () => {
+  const api = renderPage([makeReminder({ name: "Outra" })]);
+  await openCreate();
+  await userEvent.click(inDialog().getByRole("radio", { name: "Receita" }));
+  await userEvent.type(inDialog().getByLabelText("Nome"), "Salario");
+  await userEvent.type(inDialog().getByLabelText("Valor mínimo"), "2800,00");
+  await userEvent.type(inDialog().getByLabelText("Valor máximo"), "3200,00");
+  fireDate("2026-05-05");
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar lembrete" }));
+
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(api.mutations()[0].body).toMatchObject({ type: "deposit" });
+});
+
+it("o tipo do lembrete nao muda ao editar", async () => {
+  renderPage([makeReminder({ name: "Salario", type: "deposit" })]);
+  await screen.findByText("Salario");
+  await openMenu("Salario");
+  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
+  await screen.findByRole("dialog", { name: "Editar lembrete" });
+  const incomeRadio = inDialog().getByRole("radio", { name: "Receita" }) as HTMLInputElement;
+  expect(incomeRadio.checked).toBe(true);
+  expect(incomeRadio).toBeDisabled();
 });
 
 function fireDate(value: string) {

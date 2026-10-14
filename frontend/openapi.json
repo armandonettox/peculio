@@ -3288,7 +3288,7 @@
       },
       "RecurrenceCreate": {
         "additionalProperties": false,
-        "description": "`auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja\ndata de cada linha e trocada pela data de cada ocorrencia). Desligado, pede `currency_code` e\na faixa de valor (`amount_min`/`amount_max`) para so lembrar o vencimento.",
+        "description": "`auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja\ndata de cada linha e trocada pela data de cada ocorrencia) e o tipo vem dele. Desligado, pede\n`type` (saida ou entrada), `currency_code` e a faixa de valor (`amount_min`/`amount_max`) para\nso lembrar o vencimento.",
         "properties": {
           "amount_max": {
             "anyOf": [
@@ -3400,6 +3400,21 @@
                 "type": "null"
               }
             ]
+          },
+          "type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "withdrawal",
+                  "deposit"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
           }
         },
         "required": [
@@ -3563,6 +3578,21 @@
                 "type": "null"
               }
             ]
+          },
+          "type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "withdrawal",
+                  "deposit"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
           }
         },
         "required": [
@@ -3575,6 +3605,7 @@
           "active",
           "auto_create",
           "template",
+          "type",
           "currency_code",
           "amount_min",
           "amount_max",
@@ -3776,6 +3807,21 @@
                 "type": "null"
               }
             ]
+          },
+          "type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "withdrawal",
+                  "deposit"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
           }
         },
         "required": [
@@ -3788,6 +3834,7 @@
           "active",
           "auto_create",
           "template",
+          "type",
           "currency_code",
           "amount_min",
           "amount_max",
@@ -3809,7 +3856,7 @@
       },
       "RecurrenceUpdate": {
         "additionalProperties": false,
-        "description": "`auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo\nautomatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que\nja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir\ndelas). `end_date` e `max_occurrences` enviados como null tiram o fim. `match_text` enviado\ncomo null apaga a ligacao automatica.",
+        "description": "`auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo\nautomatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que\nja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir\ndelas), mas o `type` (saida ou entrada) nao muda, como a moeda: trocaria o sentido dos\nlancamentos ja ligados. `end_date` e `max_occurrences` enviados como null tiram o fim.\n`match_text` enviado como null apaga a ligacao automatica.",
         "properties": {
           "active": {
             "anyOf": [

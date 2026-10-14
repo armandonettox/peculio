@@ -611,8 +611,12 @@ describe("conta a pagar", () => {
     expect(buildPayload(form({ billId: "d1" }), ctx).splits[0].bill_id).toBe("d1");
   });
 
+  it("entrada tambem leva bill_id, como a saida", () => {
+    expect(buildPayload(form({ kind: "deposit", billId: "none" }), ctx).splits[0]).toHaveProperty("bill_id", null);
+    expect(buildPayload(form({ kind: "deposit", billId: "d1" }), ctx).splits[0].bill_id).toBe("d1");
+  });
+
   it.each([
-    ["entrada", { kind: "deposit" as const }],
     ["transferencia", { kind: "transfer" as const, counterpartyAccountId: poupanca.id }],
     ["pagamento de divida", { ownCounterparty: true, counterpartyAccountId: divida.id }],
   ])("um valor que sobrou no estado nao vai junto em %s", (_label, overrides) => {
@@ -637,7 +641,7 @@ describe("conta a pagar", () => {
     expect(payload.splits[2]).not.toHaveProperty("bill_id");
   });
 
-  it("linhas de uma entrada dividida nao levam bill_id", () => {
+  it("linhas de uma entrada dividida levam bill_id, como numa saida", () => {
     const payload = buildPayload(
       form({
         kind: "deposit",
@@ -650,7 +654,8 @@ describe("conta a pagar", () => {
       }),
       ctx,
     );
-    expect(payload.splits.every((s) => !("bill_id" in s))).toBe(true);
+    expect(payload.splits[0].bill_id).toBe("d1");
+    expect(payload.splits[1]).toHaveProperty("bill_id", null);
   });
 
   it("editar reabre a conta ligada, e sem conta abre em Nao ligar", () => {
@@ -672,9 +677,14 @@ describe("conta a pagar", () => {
     expect(loaded.ok && loaded.state.splits?.map((row) => row.billId)).toEqual(["d1", "none"]);
   });
 
-  it("entrada e transferencia abrem sem o campo (vazio)", () => {
+  it("entrada sem conta ligada reabre em Nao ligar, como numa saida", () => {
     const deposit = formFromTransaction(makeTransaction({}, [deposit_()]), ctx);
-    expect(deposit.ok && deposit.state.billId).toBe("");
+    expect(deposit.ok && deposit.state.billId).toBe("none");
+  });
+
+  it("transferencia abre sem o campo (vazio): nao tem conta a pagar", () => {
+    const loaded = formFromTransaction(makeTransaction({}, [transfer()]), ctx);
+    expect(loaded.ok && loaded.state.billId).toBe("");
   });
 });
 

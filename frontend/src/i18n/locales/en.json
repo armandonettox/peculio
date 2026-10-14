@@ -697,6 +697,7 @@
       "adicionarLinha": "Add line",
       "tudoDistribuido": "Everything distributed.",
       "contaAPagar": "Bill",
+      "recebimentoEsperado": "Expected income",
       "tags": "Tags",
       "dividirLancamento": "Split transaction",
       "parcelarEmQuantasVezes": "Split into how many installments?",
@@ -775,6 +776,7 @@
       "rowCategory": "Category of line {{n}}",
       "rowBudget": "Budget of line {{n}}",
       "rowBill": "Bill of line {{n}}",
+      "rowBillIncome": "Expected income of line {{n}}",
       "rowTags": "Tags of line {{n}}"
     },
     "presentation": {
@@ -973,6 +975,7 @@
       "primeiroVencimento": "First due date",
       "textoParaLigarSozinho": "Text to auto-link",
       "quandoUmaSaidaTiver": "When an expense has this text in the description or in who received it, and the amount is in range, it's linked to this reminder. Leave it blank to link only by hand.",
+      "quandoUmaEntradaTiver": "When an income has this text in the description or in who paid it, and the amount is in range, it's linked to this reminder. Leave it blank to link only by hand.",
       "salvando": "Saving...",
       "salvar": "Save",
       "criarLembrete": "Create reminder",

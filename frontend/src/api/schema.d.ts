@@ -2734,8 +2734,9 @@ export interface components {
         /**
          * RecurrenceCreate
          * @description `auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja
-         *     data de cada linha e trocada pela data de cada ocorrencia). Desligado, pede `currency_code` e
-         *     a faixa de valor (`amount_min`/`amount_max`) para so lembrar o vencimento.
+         *     data de cada linha e trocada pela data de cada ocorrencia) e o tipo vem dele. Desligado, pede
+         *     `type` (saida ou entrada), `currency_code` e a faixa de valor (`amount_min`/`amount_max`) para
+         *     so lembrar o vencimento.
          */
         RecurrenceCreate: {
             /** Amount Max */
@@ -2764,6 +2765,8 @@ export interface components {
             /** Name */
             name: string;
             template?: components["schemas"]["TransactionCreate-Input"] | null;
+            /** Type */
+            type?: ("withdrawal" | "deposit") | null;
         };
         /**
          * RecurrenceFrequency
@@ -2815,6 +2818,8 @@ export interface components {
             /** Next Date */
             next_date: string | null;
             template: components["schemas"]["TransactionCreate-Output"] | null;
+            /** Type */
+            type: ("withdrawal" | "deposit") | null;
         };
         /**
          * RecurrenceStatusOut
@@ -2882,14 +2887,17 @@ export interface components {
              */
             status: "upcoming" | "paid" | "overdue";
             template: components["schemas"]["TransactionCreate-Output"] | null;
+            /** Type */
+            type: ("withdrawal" | "deposit") | null;
         };
         /**
          * RecurrenceUpdate
          * @description `auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo
          *     automatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que
          *     ja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir
-         *     delas). `end_date` e `max_occurrences` enviados como null tiram o fim. `match_text` enviado
-         *     como null apaga a ligacao automatica.
+         *     delas), mas o `type` (saida ou entrada) nao muda, como a moeda: trocaria o sentido dos
+         *     lancamentos ja ligados. `end_date` e `max_occurrences` enviados como null tiram o fim.
+         *     `match_text` enviado como null apaga a ligacao automatica.
          */
         RecurrenceUpdate: {
             /** Active */

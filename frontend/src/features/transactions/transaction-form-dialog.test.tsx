@@ -901,19 +901,44 @@ it("sem nenhuma conta a pagar cadastrada o campo nem aparece", async () => {
   expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
 });
 
-it("entrada, transferencia e pagamento de divida nao tem o campo", async () => {
+it("entrada sem recorrente de receita, transferencia e pagamento de divida nao tem o campo", async () => {
   renderPage();
   await openNew();
   await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toBeInTheDocument());
 
+  // So ha recorrentes de despesa nesta fixture: entrada nao acha nenhuma que combine
   await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
   expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+  expect(d().queryByLabelText("Recebimento esperado")).not.toBeInTheDocument();
   await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
   expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
 
   await userEvent.click(d().getByRole("radio", { name: "Saída" }));
   await userEvent.click(d().getByRole("button", { name: "Pagar uma dívida" }));
   expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+});
+
+it("entrada com uma recorrente de receita mostra o Recebimento esperado, nao a Conta a pagar", async () => {
+  const salaryBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b9", name: "Salario", type: "deposit" });
+  const { tx } = renderPage({ bills: [netflixBill, salaryBill] });
+  await openNew();
+  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
+
+  await waitFor(() => expect(d().getByLabelText("Recebimento esperado")).toBeInTheDocument());
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+  expect(
+    within(d().getByLabelText("Recebimento esperado")).getAllByRole("option").map((option) => option.textContent),
+  ).toEqual(["Ligar automaticamente", "Não ligar a nenhuma", "Salario"]);
+
+  await pick("Conta que recebe", "Nubank");
+  await type("Descrição", "Salario");
+  await type("De quem", "Empregador");
+  await type(/^Valor/, "300000");
+  await pick("Recebimento esperado", "Salario");
+  await submit();
+
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(salaryBill.id);
 });
 
 it("trocar o tipo e voltar para saida volta ao automatico", async () => {

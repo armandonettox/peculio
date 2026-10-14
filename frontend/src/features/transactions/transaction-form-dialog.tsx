@@ -46,6 +46,7 @@ import {
   validateForm,
   accountOf,
   budgetAllowed,
+  billAllowed,
   installmentsAllowed,
   type FormContext,
   type FormErrors,
@@ -265,9 +266,13 @@ function FormBody({
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
   const clearBudgets = (rows: SplitDraft[] | null) =>
     rows?.map((row) => ({ ...row, budgetId: "", billId: "" })) ?? null;
-  // Contas a pagar da moeda da conta; uma arquivada so aparece se ja for a escolhida
+  // Recorrentes (lembrete) do mesmo tipo e moeda da conta; uma arquivada so aparece se ja for a escolhida
   const billOptions = (selectedId: string) =>
-    bills.filter((bill) => bill.currency_code === currency && (bill.active || bill.id === selectedId));
+    bills.filter((bill) => bill.type === state.kind && bill.currency_code === currency && (bill.active || bill.id === selectedId));
+  // "Conta a pagar" so faz sentido em saida; em entrada e um recebimento esperado
+  const billFieldLabel = state.kind === "deposit"
+    ? t("transactions.transactionFormDialog.recebimentoEsperado")
+    : t("transactions.transactionFormDialog.contaAPagar");
 
   // Saida so mostra categoria de saida, entrada so de entrada; transferencia mostra as duas
   // (nao e nem uma coisa nem outra, e so dinheiro mudando de conta). A ja escolhida continua
@@ -926,8 +931,11 @@ function FormBody({
                     )}
                   </FormField>
                 )}
-                {budgetAllowed(state) && billOptions(row.billId).length > 0 && (
-                  <FormField id={`${row.key}-bill`} label={t("transactions.form.rowBill", { n: index + 1 })}>
+                {billAllowed(state) && billOptions(row.billId).length > 0 && (
+                  <FormField
+                    id={`${row.key}-bill`}
+                    label={t(state.kind === "deposit" ? "transactions.form.rowBillIncome" : "transactions.form.rowBill", { n: index + 1 })}
+                  >
                     {(props) => (
                       <Select
                         {...props}
@@ -1012,8 +1020,8 @@ function FormBody({
               )}
             </FormField>
           )}
-          {budgetAllowed(state) && billOptions(state.billId).length > 0 && (
-            <FormField id="tx-bill" label={t("transactions.transactionFormDialog.contaAPagar")}>
+          {billAllowed(state) && billOptions(state.billId).length > 0 && (
+            <FormField id="tx-bill" label={billFieldLabel}>
               {(props) => (
                 <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
                   <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>

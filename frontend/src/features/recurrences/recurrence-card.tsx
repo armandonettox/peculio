@@ -65,6 +65,9 @@ export function RecurrenceCard({ recurrence, today, onEdit, onToggleActive, onDe
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                 {t("recurrences.recurrenceCard.lembrete")}
               </span>
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                {recurrence.type === "deposit" ? t("common.receita") : t("common.despesa")}
+              </span>
               {!recurrence.active && (
                 <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                   {t("recurrences.recurrenceCard.arquivada")}

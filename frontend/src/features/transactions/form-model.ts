@@ -17,7 +17,7 @@ export type SplitDraft = {
   categoryId: string;
   // Orcamento da linha ("" = nenhum). So existe em saida para uma despesa.
   budgetId: string;
-  // Conta a pagar da linha: "" = automatico, "none" = nao ligar, ou o id de uma conta a pagar
+  // Recorrente (lembrete) da linha: "" = automatico, "none" = nao ligar, ou o id de uma recorrente
   billId: string;
   tagIds: string[];
   // Nao aparece na tela; guarda a nota de um lancamento criado pela API para nao perde-la ao salvar
@@ -165,6 +165,11 @@ export function budgetAllowed(state: FormState): boolean {
   return state.kind === "withdrawal" && !state.ownCounterparty;
 }
 
+/** Recorrente (lembrete) vale para saida ou entrada para um nome, nunca transferencia ou divida. */
+export function billAllowed(state: FormState): boolean {
+  return (state.kind === "withdrawal" || state.kind === "deposit") && !state.ownCounterparty;
+}
+
 export function isCreditCard(state: FormState, ctx: FormContext): boolean {
   return accountOf(ctx, state.accountId)?.role === "credit_card";
 }
@@ -174,9 +179,9 @@ export function installmentsAllowed(state: FormState, ctx: FormContext): boolean
   return state.kind === "withdrawal" && !state.splits && isCreditCard(state, ctx);
 }
 
-/** Campo bill_id do corpo: omitido no automatico, null em "nao ligar", ou o id. So vale onde ha orcamento. */
+/** Campo bill_id do corpo: omitido no automatico, null em "nao ligar", ou o id. So vale em saida ou entrada. */
 function billField(state: FormState, value: string): { bill_id?: string | null } {
-  if (!budgetAllowed(state) || value === "") return {};
+  if (!billAllowed(state) || value === "") return {};
   return { bill_id: value === "none" ? null : value };
 }
 
@@ -388,10 +393,10 @@ export type Loaded = { ok: true; state: FormState } | { ok: false; reason: strin
 const KINDS: Kind[] = ["withdrawal", "deposit", "transfer"];
 const toDraft = (value: string) => value.replace(".", ",");
 
-// Ao editar, o que ja esta salvo vale: sem conta a pagar vira "nao ligar", para um ajuste qualquer nao
-// religar sozinho o que a pessoa deixou solto. Fora de saida para um nome o campo nem existe.
+// Ao editar, o que ja esta salvo vale: sem recorrente vira "nao ligar", para um ajuste qualquer nao
+// religar sozinho o que a pessoa deixou solto. Fora de saida ou entrada para um nome o campo nem existe.
 function billOf(billId: string | null, kind: Kind, ownCounterparty: boolean): string {
-  if (kind !== "withdrawal" || ownCounterparty) return "";
+  if ((kind !== "withdrawal" && kind !== "deposit") || ownCounterparty) return "";
   return billId ?? "none";
 }
 

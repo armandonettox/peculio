@@ -35,6 +35,7 @@ export function makeRecurrence(overrides: Partial<Recurrence> = {}): Recurrence 
     active: true,
     auto_create: true,
     template: { splits: [makeTemplateSplit()] } as Template,
+    type: null,
     currency_code: null,
     amount_min: null,
     amount_max: null,
@@ -61,6 +62,7 @@ export function makeReminder(overrides: Partial<RecurrenceStatus> = {}): Recurre
     active: true,
     auto_create: false,
     template: null,
+    type: "withdrawal",
     currency_code: "BRL",
     amount_min: "40.00",
     amount_max: "60.00",
@@ -154,6 +156,7 @@ export function fakeRecurrencesApi(initial: Item[] = []) {
           })
         : makeReminder({
             name: String(body.name),
+            type: body.type as RecurrenceStatus["type"],
             currency_code: String(body.currency_code),
             amount_min: String(body.amount_min),
             amount_max: String(body.amount_max),

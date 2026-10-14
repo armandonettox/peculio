@@ -9,6 +9,7 @@ import {
   type Recurrence,
   type RecurrenceCreate,
   type RecurrenceFrequency,
+  type RecurrenceType,
   type RecurrenceUpdate,
 } from "@/api/recurrences";
 import { useAuth } from "@/auth/auth-context";
@@ -57,6 +58,7 @@ export function ReminderFormDialog({ recurrence, onClose }: Props) {
   const update = useUpdateRecurrence();
 
   const [name, setName] = useState(recurrence?.name ?? "");
+  const [type, setType] = useState<RecurrenceType>(recurrence?.type ?? "withdrawal");
   const [currency, setCurrency] = useState(recurrence?.currency_code ?? user?.default_currency ?? "BRL");
   const [min, setMin] = useState(recurrence ? toInputText(recurrence.amount_min ?? "0") : "");
   const [max, setMax] = useState(recurrence && recurrence.amount_max !== recurrence.amount_min ? toInputText(recurrence.amount_max ?? "0") : "");
@@ -136,6 +138,7 @@ export function ReminderFormDialog({ recurrence, onClose }: Props) {
         const body: RecurrenceCreate = {
           name: name.trim(),
           auto_create: false,
+          type,
           frequency,
           first_date: date,
           currency_code: currency,
@@ -189,6 +192,28 @@ export function ReminderFormDialog({ recurrence, onClose }: Props) {
               />
             )}
           </FormField>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(["withdrawal", "deposit"] as const).map((option) => (
+                <label
+                  key={option}
+                  className="flex cursor-pointer items-center justify-center gap-2 rounded-md border px-2 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                >
+                  <input
+                    type="radio"
+                    name="bill-type"
+                    className="sr-only"
+                    checked={type === option}
+                    disabled={editing}
+                    onChange={() => setType(option)}
+                  />
+                  {option === "withdrawal" ? t("common.despesa") : t("common.receita")}
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField id="bill-currency" label={t("common.moeda")}>
@@ -275,7 +300,11 @@ export function ReminderFormDialog({ recurrence, onClose }: Props) {
           <FormField
             id="bill-match"
             label={t("recurrences.reminderFormDialog.textoParaLigarSozinho")}
-            hint={t("recurrences.reminderFormDialog.quandoUmaSaidaTiver")}
+            hint={t(
+              type === "deposit"
+                ? "recurrences.reminderFormDialog.quandoUmaEntradaTiver"
+                : "recurrences.reminderFormDialog.quandoUmaSaidaTiver",
+            )}
           >
             {(props) => (
               <Input {...props} autoComplete="off" value={match} onChange={(event) => setMatch(event.target.value)} />
