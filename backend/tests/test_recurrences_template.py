@@ -59,7 +59,7 @@ def test_a_template_with_null_bill_id_comes_back_with_null(client, headers, acco
 def test_a_template_with_a_bill_id_keeps_it(client, headers, account_id):
     bill = client.post(
         "/api/v1/recurrences",
-        json={"name": "Conta", "auto_create": False, "currency_code": "BRL", "amount_min": "10.00", "amount_max": "2000.00",
+        json={"name": "Conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "10.00", "amount_max": "2000.00",
               "first_date": FUTURE, "frequency": "monthly"},
         headers=headers,
     ).json()["id"]

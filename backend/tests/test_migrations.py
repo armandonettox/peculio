@@ -11,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0031"
+    assert version == "0032"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -162,6 +162,53 @@ def test_migration_0031_turns_bills_into_reminder_mode_recurrences(clean_schema)
     )
     assert linked_bill_id == uuid.UUID("88888888-8888-4888-8888-888888888888")
     assert bills_table_exists is None
+
+
+def test_migration_0032_backfills_type_on_reminders_and_leaves_automatic_ones_null(clean_schema):
+    """Quem ja tinha um lembrete de verdade (so despesa, antes desta mudanca) nao pode ficar sem
+    tipo; quem tinha uma recorrente automatica nao pode ganhar um tipo que nao pediu."""
+    config = alembic_config()
+    command.upgrade(config, "0031")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'Ana', 'ana4@example.com', 'x')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO currencies (code, name, symbol, decimal_places) VALUES ('BRL', 'Real', 'R$', 2) ON CONFLICT DO NOTHING"
+            )
+        )
+        # Lembrete ja existente (modo antigo, sem tipo)
+        conn.execute(
+            text(
+                "INSERT INTO recurrences (id, user_id, name, frequency, first_date, active, auto_create, "
+                "next_index, currency_code, amount_min, amount_max, match_text) VALUES "
+                "('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', "
+                "'Aluguel', 'monthly', '2026-01-05', true, false, 0, 'BRL', 1500.00, 1500.00, 'aluguel')"
+            )
+        )
+        # Recorrente automatica ja existente (so tem template, nunca teve tipo)
+        conn.execute(
+            text(
+                "INSERT INTO recurrences (id, user_id, name, frequency, first_date, active, auto_create, "
+                "template, next_index) VALUES "
+                "('ffffffff-ffff-4fff-8fff-ffffffffffff', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', "
+                "'Salario', 'monthly', '2026-01-05', true, true, '{}', 0)"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        rows = {
+            row.id: row.type
+            for row in conn.execute(text("SELECT id, type FROM recurrences WHERE user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'"))
+        }
+    assert rows[uuid.UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")] == "withdrawal"
+    assert rows[uuid.UUID("ffffffff-ffff-4fff-8fff-ffffffffffff")] is None
 
 
 def test_models_match_migrations(clean_schema):

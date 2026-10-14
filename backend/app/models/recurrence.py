@@ -24,6 +24,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.models.transaction import TransactionType
 
 
 class RecurrenceFrequency(enum.StrEnum):
@@ -53,6 +54,8 @@ class Recurrence(Base):
             "OR (NOT auto_create AND amount_min IS NOT NULL AND amount_max IS NOT NULL AND currency_code IS NOT NULL)",
             name="mode_matches_fields",
         ),
+        CheckConstraint("type IS NULL OR type IN ('withdrawal', 'deposit')", name="type_is_withdrawal_or_deposit"),
+        CheckConstraint("(auto_create AND type IS NULL) OR (NOT auto_create AND type IS NOT NULL)", name="type_matches_mode"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -80,6 +83,9 @@ class Recurrence(Base):
     amount_max: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
     # Trecho procurado na descricao ou no nome de quem recebeu, para ligar sozinho. Vazio: so liga a mao.
     match_text: Mapped[str | None] = mapped_column(String(100))
+    # Saida (despesa) ou entrada (receita) que o lembrete espera. So no modo de lembrete; no
+    # automatico o sentido ja esta no template.
+    type: Mapped[TransactionType | None] = mapped_column(Enum(TransactionType, native_enum=False, length=32))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

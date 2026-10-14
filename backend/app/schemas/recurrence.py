@@ -6,10 +6,13 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.recurrence import RecurrenceFrequency
+from app.models.transaction import TransactionType
 from app.schemas.transaction import TransactionCreate
 
 Money = Annotated[Decimal, Field(max_digits=18, decimal_places=2)]
 PositiveMoney = Annotated[Decimal, Field(max_digits=18, decimal_places=2, gt=0)]
+# So faz sentido lembrar de uma saida ou de uma entrada; transferencia nao tem "a pagar"
+BillType = Literal[TransactionType.withdrawal, TransactionType.deposit]
 
 
 def _strip_name(value: str | None) -> str | None:
@@ -30,8 +33,9 @@ def _strip_match(value: str | None) -> str | None:
 
 class RecurrenceCreate(BaseModel):
     """`auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja
-    data de cada linha e trocada pela data de cada ocorrencia). Desligado, pede `currency_code` e
-    a faixa de valor (`amount_min`/`amount_max`) para so lembrar o vencimento."""
+    data de cada linha e trocada pela data de cada ocorrencia) e o tipo vem dele. Desligado, pede
+    `type` (saida ou entrada), `currency_code` e a faixa de valor (`amount_min`/`amount_max`) para
+    so lembrar o vencimento."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -42,6 +46,7 @@ class RecurrenceCreate(BaseModel):
     max_occurrences: int | None = Field(default=None, ge=1, le=100000)
     auto_create: bool = False
     template: TransactionCreate | None = None
+    type: BillType | None = None
     currency_code: str | None = Field(default=None, min_length=3, max_length=3)
     amount_min: PositiveMoney | None = None
     amount_max: PositiveMoney | None = None
@@ -64,11 +69,15 @@ class RecurrenceCreate(BaseModel):
         if self.auto_create:
             if self.template is None:
                 raise ValueError("Informe o modelo do lancamento")
+            if self.type is not None:
+                raise ValueError("O tipo vem do modelo do lancamento, nao se informa a parte")
         else:
             if self.currency_code is None or self.amount_min is None or self.amount_max is None:
                 raise ValueError("Informe a moeda e a faixa de valor")
             if self.amount_max < self.amount_min:
                 raise ValueError("O valor maximo nao pode ser menor que o minimo")
+            if self.type is None:
+                raise ValueError("Informe se o lembrete e de saida ou de entrada")
         return self
 
 
@@ -76,8 +85,9 @@ class RecurrenceUpdate(BaseModel):
     """`auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo
     automatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que
     ja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir
-    delas). `end_date` e `max_occurrences` enviados como null tiram o fim. `match_text` enviado
-    como null apaga a ligacao automatica."""
+    delas), mas o `type` (saida ou entrada) nao muda, como a moeda: trocaria o sentido dos
+    lancamentos ja ligados. `end_date` e `max_occurrences` enviados como null tiram o fim.
+    `match_text` enviado como null apaga a ligacao automatica."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -108,6 +118,7 @@ class RecurrenceOut(BaseModel):
     active: bool
     auto_create: bool
     template: TransactionCreate | None
+    type: BillType | None
     currency_code: str | None
     amount_min: Money | None
     amount_max: Money | None

@@ -203,32 +203,37 @@ def _check_budget(db: Session, user: User, data: TransactionSplitCreate, destina
     return budget
 
 
-def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, destination_id: uuid.UUID):
-    """Conta a pagar do split. Com `bill_id` no corpo (um id ou null) vale o que veio; sem ele, liga sozinho
-    quando exatamente uma conta a pagar combina. So saidas para uma despesa entram."""
-    if data.type != "withdrawal":
+def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, source_id: uuid.UUID, destination_id: uuid.UUID):
+    """Recorrente do modo de lembrete ligada ao split. Com `bill_id` no corpo (um id ou null) vale
+    o que veio; sem ele, liga sozinho quando exatamente uma combina. So entra saida para uma
+    despesa ou entrada de uma receita, do mesmo tipo do lembrete; transferencia nunca liga."""
+    expected = COUNTERPARTY_TYPE.get(data.type)
+    if expected is None:
         if data.bill_id is not None:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Conta a pagar so vale para saidas para uma despesa")
+            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Recorrente so vale para saida ou entrada, nunca transferencia")
         return None
-    destination = db.get(Account, destination_id)
-    is_expense = destination.type == AccountType.expense
+    counterparty_id = destination_id if data.type == "withdrawal" else source_id
+    counterparty = db.get(Account, counterparty_id)
+    matches = counterparty.type == expected
     if "bill_id" in data.model_fields_set:
         if data.bill_id is None:
             return None
         bill = get_owned_bill_mode_recurrence(db, user.id, data.bill_id)
-        if not is_expense:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Conta a pagar so vale para saidas para uma despesa")
+        if not matches or bill.type != data.type:
+            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Essa recorrente nao vale para este lancamento")
         if data.currency_code != bill.currency_code:
-            raise _mismatch(f"A moeda do lancamento deve ser a da conta a pagar ({bill.currency_code})")
+            raise _mismatch(f"A moeda do lancamento deve ser a da recorrente ({bill.currency_code})")
         return bill
-    if not is_expense:
+    if not matches:
         return None
     return find_matching_recurrence(
-        db, user.id, data.currency_code, data.amount, [data.description, destination.name]
+        db, user.id, data.type, data.currency_code, data.amount, [data.description, counterparty.name]
     )
 
 
-def vet_rule_fill(db: Session, user: User, data: TransactionSplitCreate, destination_id: uuid.UUID, fill: Fill) -> dict:
+def vet_rule_fill(
+    db: Session, user: User, data: TransactionSplitCreate, source_id: uuid.UUID, destination_id: uuid.UUID, fill: Fill
+) -> dict:
     """Do que as regras querem preencher, devolve so o que serve a este lancamento. Serve tanto
     para o lancamento novo quanto para a aplicacao sobre os antigos. Em `tag_ids` volta a lista
     completa (as que ja tinha mais as novas)."""
@@ -246,7 +251,7 @@ def vet_rule_fill(db: Session, user: User, data: TransactionSplitCreate, destina
     if fill.bill_id is not None and not ("bill_id" in data.model_fields_set and data.bill_id is None):
         try:
             candidate = data.model_copy(update={"bill_id": fill.bill_id})
-            if _resolve_bill(db, user, candidate, destination_id) is not None:
+            if _resolve_bill(db, user, candidate, source_id, destination_id) is not None:
                 changes["bill_id"] = fill.bill_id
         except AppError:
             pass
@@ -290,7 +295,7 @@ def _apply_rules(
             tag_ids=tuple(data.tag_ids),
         ),
     )
-    changes = vet_rule_fill(db, user, data, destination_id, fill)
+    changes = vet_rule_fill(db, user, data, source_id, destination_id, fill)
     return data.model_copy(update=changes) if changes else data
 
 
@@ -324,7 +329,7 @@ def _build_split(
             raise AppError(400, ErrorCode.CATEGORY_KIND_MISMATCH, message)
     tags = get_owned_tags(db, user.id, data.tag_ids)
     budget = _check_budget(db, user, data, destination_id) if data.budget_id is not None else None
-    bill = _resolve_bill(db, user, data, destination_id)
+    bill = _resolve_bill(db, user, data, source_id, destination_id)
 
     split = TransactionSplit(
         transaction_id=transaction_id,

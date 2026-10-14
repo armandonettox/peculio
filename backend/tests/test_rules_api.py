@@ -167,6 +167,7 @@ def test_own_account_trigger_and_budget_and_bill_actions_are_accepted(client, he
         json={
             "name": "Netflix",
             "auto_create": False,
+            "type": "withdrawal",
             "currency_code": "BRL",
             "amount_min": "40.00",
             "amount_max": "60.00",

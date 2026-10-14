@@ -19,6 +19,7 @@ def make_bill(client, headers, **overrides):
     body = {
         "name": "Netflix",
         "auto_create": False,
+        "type": "withdrawal",
         "currency_code": "BRL",
         "amount_min": "40.00",
         "amount_max": "60.00",
@@ -44,6 +45,20 @@ def spend(client, headers, account_id, amount="50.00", on="2026-03-06", descript
         "currency_code": "BRL",
         "account_id": account_id,
         "counterparty_name": "Streaming",
+        **overrides,
+    }
+    return client.post(TX_URL, json={"splits": [split]}, headers=headers)
+
+
+def receive(client, headers, account_id, amount="3000.00", on="2026-03-05", description="Pagamento salario", **overrides):
+    split = {
+        "type": "deposit",
+        "date": on,
+        "description": description,
+        "amount": amount,
+        "currency_code": "BRL",
+        "account_id": account_id,
+        "counterparty_name": "Empregador",
         **overrides,
     }
     return client.post(TX_URL, json={"splits": [split]}, headers=headers)
@@ -76,6 +91,7 @@ def test_create_returns_the_bill(client, headers):
     assert body["frequency"] == "monthly"
     assert body["first_date"] == "2026-03-05"
     assert body["active"] is True
+    assert body["type"] == "withdrawal"
 
 
 def test_blank_match_text_means_no_automatic_link(client, headers):
@@ -98,10 +114,20 @@ def test_blank_match_text_means_no_automatic_link(client, headers):
         {"first_date": "2026-02-30"},
         {"currency_code": "BR"},
         {"unknown": 1},
+        {"type": None},
+        {"type": "transfer"},
     ],
 )
 def test_create_validation_returns_422(client, headers, overrides):
     assert make_bill(client, headers, **overrides).status_code == 422
+
+
+def test_income_reminder_can_be_created(client, headers):
+    resp = make_bill(
+        client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00", match_text="empregador"
+    )
+    assert resp.status_code == 201
+    assert resp.json()["type"] == "deposit"
 
 
 def test_min_equal_to_max_is_a_fixed_price(client, headers):
@@ -191,6 +217,13 @@ def test_patch_cannot_change_the_currency_or_clash_names(client, headers):
     assert clash.status_code == 409 and clash.json()["code"] == "bill_name_taken"
 
 
+def test_patch_cannot_change_the_type(client, headers):
+    bill_id = make_bill(client, headers).json()["id"]
+    resp = client.patch(f"{URL}/{bill_id}", json={"type": "deposit"}, headers=headers)
+    # `type` nao existe no RecurrenceUpdate: um campo desconhecido e recusado como qualquer outro
+    assert resp.status_code == 422
+
+
 def test_delete_keeps_the_transactions_without_a_bill(client, headers):
     account_id = make_account(client, headers)
     bill = make_bill(client, headers).json()
@@ -241,6 +274,25 @@ def test_currency_must_match_the_bill(client, headers):
     bill = make_bill(client, headers).json()["id"]
     resp = spend(client, headers, usd_account, currency_code="USD", bill_id=bill)
     assert resp.status_code == 400 and resp.json()["code"] == "currency_mismatch"
+
+
+def test_a_deposit_can_be_linked_to_an_income_reminder(client, headers):
+    account_id = make_account(client, headers)
+    salary = make_bill(client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00").json()
+    resp = receive(client, headers, account_id, amount="3000.00", bill_id=salary["id"])
+    assert resp.status_code == 201
+    assert bill_id_of(resp) == salary["id"]
+
+
+def test_an_expense_reminder_refuses_a_deposit_and_an_income_reminder_refuses_a_withdrawal(client, headers):
+    account_id = make_account(client, headers)
+    expense = make_bill(client, headers, name="Netflix").json()["id"]
+    income = make_bill(client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00").json()["id"]
+
+    wrong_direction = receive(client, headers, account_id, amount="3000.00", bill_id=expense)
+    wrong_type = spend(client, headers, account_id, bill_id=income)
+    for resp in (wrong_direction, wrong_type):
+        assert resp.status_code == 400 and resp.json()["code"] == "bill_not_allowed"
 
 
 def test_explicit_null_blocks_the_automatic_link(client, headers):
@@ -334,6 +386,20 @@ def test_only_withdrawals_to_an_expense_are_matched(client, headers):
     assert bill_id_of(debt) is None
 
 
+def test_a_matching_deposit_is_linked_to_an_income_reminder_automatically(client, headers):
+    account_id = make_account(client, headers)
+    salary = make_bill(
+        client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00", match_text="empregador"
+    ).json()
+    assert bill_id_of(receive(client, headers, account_id, amount="3000.00")) == salary["id"]
+
+
+def test_an_income_reminder_does_not_match_a_withdrawal_even_with_the_same_text(client, headers):
+    account_id = make_account(client, headers)
+    make_bill(client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00", match_text="empregador")
+    assert bill_id_of(spend(client, headers, account_id, amount="3000.00", counterparty_name="Empregador")) is None
+
+
 def test_editing_without_bill_id_matches_again_and_with_null_keeps_it_unlinked(client, headers):
     account_id = make_account(client, headers)
     bill = make_bill(client, headers).json()["id"]
@@ -416,6 +482,14 @@ def test_a_linked_payment_marks_the_due_date_as_paid(client, headers):
     [item] = status(client, headers, on="2026-03-10").json()
     assert item["status"] == "paid"
     assert item["next_due_paid"] is False
+
+
+def test_an_income_reminder_is_paid_by_a_linked_deposit(client, headers):
+    account_id = make_account(client, headers)
+    salary = make_bill(client, headers, name="Salario", type="deposit", amount_min="2800.00", amount_max="3200.00").json()
+    receive(client, headers, account_id, amount="3000.00", on="2026-03-06", bill_id=salary["id"])
+    [item] = status(client, headers, on="2026-03-10").json()
+    assert item["status"] == "paid"
 
 
 def test_paying_a_few_days_early_counts_for_the_nearest_due_date(client, headers):

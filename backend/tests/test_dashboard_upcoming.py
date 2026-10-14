@@ -45,6 +45,7 @@ def make_bill(client, headers, name="Netflix", first="2026-06-20", frequency="mo
     body = {
         "name": name,
         "auto_create": False,
+        "type": "withdrawal",
         "currency_code": "BRL",
         "amount_min": "40.00",
         "amount_max": "60.00",

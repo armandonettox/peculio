@@ -145,7 +145,7 @@ def test_bill_is_linked_and_invalid_targets_are_skipped(client, headers):
     bill = post(
         client, headers, "recurrences",
         {
-            "name": "Netflix", "auto_create": False, "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
+            "name": "Netflix", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
             "match_text": "zzz-nunca-casa", "first_date": "2026-03-05", "frequency": "monthly",
         },
     )

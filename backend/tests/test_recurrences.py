@@ -131,6 +131,11 @@ def test_create_without_template_is_422(client, headers, account_id):
     assert client.post(URL, json=body, headers=headers).status_code == 422
 
 
+def test_automatic_recurrence_cannot_set_type(client, headers, account_id):
+    """O tipo do modo automatico vem do template; `type` e so do modo de lembrete."""
+    assert make(client, headers, account_id, type="withdrawal").status_code == 422
+
+
 def test_the_template_is_checked_like_a_real_transaction(client, headers, account_id):
     unknown_account = make(client, headers, account_id, template=template(str(uuid.uuid4())))
     assert unknown_account.status_code == 404 and unknown_account.json()["code"] == "account_not_found"
@@ -538,7 +543,7 @@ def test_occurrences_link_to_budget_and_auto_match_bills(client, headers, accoun
     ).json()["id"]
     bill = client.post(
         "/api/v1/recurrences",
-        json={"name": "Aluguel conta", "auto_create": False, "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
+        json={"name": "Aluguel conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
               "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
         headers=headers,
     ).json()["id"]
@@ -553,7 +558,7 @@ def test_occurrences_link_to_budget_and_auto_match_bills(client, headers, accoun
 def test_an_explicit_null_bill_in_the_template_is_respected(client, headers, account_id):
     client.post(
         "/api/v1/recurrences",
-        json={"name": "Aluguel conta", "auto_create": False, "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
+        json={"name": "Aluguel conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
               "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
         headers=headers,
     )

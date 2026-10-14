@@ -195,6 +195,7 @@ def create_recurrence(db: Session, user: User, data: RecurrenceCreate) -> Recurr
         max_occurrences=data.max_occurrences,
         auto_create=data.auto_create,
         template=_dump(data.template) if data.auto_create else None,
+        type=None if data.auto_create else data.type,
         next_index=0,
         currency_code=currency_code,
         amount_min=data.amount_min,
@@ -285,6 +286,7 @@ def recurrence_output(recurrence: Recurrence, places: int | None) -> dict:
         "active": recurrence.active,
         "auto_create": recurrence.auto_create,
         "template": recurrence.template,
+        "type": recurrence.type,
         "currency_code": recurrence.currency_code,
         "amount_min": None if recurrence.amount_min is None else quantize_money(recurrence.amount_min, places),
         "amount_max": None if recurrence.amount_max is None else quantize_money(recurrence.amount_max, places),
@@ -342,11 +344,12 @@ def status(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) ->
 
     indexes = {item.id: latest_index(item.first_date, item.frequency, on) for item in items_db}
     payments: dict[uuid.UUID, list[date]] = defaultdict(list)
+    # O tipo do split sempre bate com o da recorrente ligada (checado na criacao do lancamento),
+    # entao o bill_id ja basta: nao precisa repetir o filtro de tipo aqui
     rows = db.execute(
         select(TransactionSplit.bill_id, TransactionSplit.date).where(
             TransactionSplit.user_id == user_id,
             TransactionSplit.bill_id.in_([item.id for item in items_db]),
-            TransactionSplit.type == TransactionType.withdrawal,
         )
     ).all()
     for bill_id, day in rows:
@@ -389,17 +392,19 @@ def status(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) ->
 
 
 def find_matching_recurrence(
-    db: Session, user_id: uuid.UUID, currency_code: str, amount: Decimal, texts: Sequence[str]
+    db: Session, user_id: uuid.UUID, type_: TransactionType, currency_code: str, amount: Decimal, texts: Sequence[str]
 ) -> Recurrence | None:
-    """A recorrente do modo de lembrete que combina com a saida, ou None. So liga se exatamente UMA
-    combinar: com duas candidatas o app nao chuta, e a pessoa escolhe. Combina quem esta ativa, na
-    mesma moeda, com o valor dentro da faixa e o texto presente em alguma das `texts`."""
+    """A recorrente do modo de lembrete que combina com o lancamento, ou None. So liga se exatamente
+    UMA combinar: com duas candidatas o app nao chuta, e a pessoa escolhe. Combina quem esta ativa,
+    do mesmo tipo (saida ou entrada), na mesma moeda, com o valor dentro da faixa e o texto
+    presente em alguma das `texts`."""
     candidates = (
         db.execute(
             select(Recurrence).where(
                 Recurrence.user_id == user_id,
                 Recurrence.auto_create.is_(False),
                 Recurrence.active.is_(True),
+                Recurrence.type == type_,
                 Recurrence.currency_code == currency_code,
                 Recurrence.match_text.is_not(None),
                 Recurrence.amount_min <= amount,
