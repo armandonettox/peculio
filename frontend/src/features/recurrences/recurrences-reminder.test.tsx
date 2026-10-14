@@ -30,7 +30,7 @@ function renderPage(bills = [makeReminder({ name: "Netflix" })]) {
   return api;
 }
 
-const card = (name: string) => screen.getByRole("heading", { level: 3, name }).closest("li") as HTMLElement;
+const card = (name: string) => screen.getByRole("heading", { level: 2, name }).closest("li") as HTMLElement;
 const openMenu = async (name: string) => {
   await userEvent.click(screen.getByRole("button", { name: `Ações da recorrente ${name}` }));
 };
@@ -41,7 +41,7 @@ const inDialog = () => within(dialog());
 
 it("mostra nome, frequencia, faixa de valor e proximo vencimento", async () => {
   renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Netflix" });
+  await screen.findByRole("heading", { level: 2, name: "Netflix" });
   const item = card("Netflix");
   expect(within(item).getByText("Mensal · R$ 40,00 a R$ 60,00")).toBeInTheDocument();
   expect(within(item).getByText("Próximo vencimento: 05/04/2026 (em 21 dias)")).toBeInTheDocument();
@@ -131,7 +131,7 @@ it("mantem a ordem que o servidor mandou (proximo vencimento)", async () => {
     makeReminder({ name: "Meio", next_due_date: "2026-03-20" }),
   ]);
   await screen.findByText("Cedo");
-  expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Cedo", "Meio", "Tarde"]);
+  expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Cedo", "Meio", "Tarde"]);
 });
 
 it("sem recorrentes mostra o estado vazio com a acao de criar", async () => {
@@ -235,7 +235,7 @@ it("cria uma conta com faixa de valor, texto e frequencia", async () => {
     amount_max: "24.90",
     match_text: "spotify",
   });
-  expect(await screen.findByRole("heading", { level: 3, name: "Spotify" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Spotify" })).toBeInTheDocument();
 });
 
 function fireDate(value: string) {

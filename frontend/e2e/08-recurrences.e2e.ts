@@ -13,7 +13,7 @@ const LIMITED = "Parcelas E2E";
 const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
 const card = (page: Page, name: string = NAME) =>
-  main(page).getByRole("heading", { level: 3, name }).locator("xpath=ancestor::li[1]");
+  main(page).getByRole("heading", { level: 2, name }).locator("xpath=ancestor::li[1]");
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 
 // O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso do
@@ -157,7 +157,7 @@ test("editar a frequencia e o valor do lembrete", async ({ page }) => {
 test("arquivar esconde o lembrete; mostrar inativas e restaurar traz de volta", async ({ page }) => {
   await openRecurrences(page);
   await menu(page, NAME, "Arquivar");
-  await expect(main(page).getByRole("heading", { level: 3, name: NAME })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: NAME })).toHaveCount(0);
 
   await page.getByLabel("Mostrar inativas").check();
   await expect(card(page)).toContainText("Arquivada");
@@ -176,7 +176,7 @@ test("excluir o lembrete pede confirmacao; os lancamentos continuam, sem ligacao
   await menu(page, NAME, "Excluir");
   await dialog(page).getByRole("button", { name: "Excluir" }).click();
   await expect(dialog(page)).toBeHidden();
-  await expect(main(page).getByRole("heading", { level: 3, name: NAME })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: NAME })).toHaveCount(0);
 
   const headers = await apiHeaders(request, ADMIN);
   const list = await (await request.get("/api/v1/transactions", { headers, params: { q: "Netflix E2E" } })).json();
@@ -251,7 +251,7 @@ test("nome vazio e data final antes da primeira sao recusados", async ({ page })
 test("pausar esconde a recorrente; mostrar inativas e retomar traz de volta", async ({ page }) => {
   await openRecurrences(page);
   await menu(page, DAILY, "Pausar");
-  await expect(main(page).getByRole("heading", { level: 3, name: DAILY })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: DAILY })).toHaveCount(0);
 
   await page.getByLabel("Mostrar inativas").check();
   await expect(card(page, DAILY)).toContainText("Pausada");
@@ -285,7 +285,7 @@ test("excluir a recorrente automatica pede confirmacao; os lancamentos ja criado
   await menu(page, DAILY, "Excluir");
   await dialog(page).getByRole("button", { name: "Excluir" }).click();
   await expect(dialog(page)).toBeHidden();
-  await expect(main(page).getByRole("heading", { level: 3, name: DAILY })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: DAILY })).toHaveCount(0);
 
   const headers = await apiHeaders(request, ADMIN);
   const list = await (await request.get("/api/v1/transactions", { headers, params: { q: "Assinatura diaria" } })).json();
