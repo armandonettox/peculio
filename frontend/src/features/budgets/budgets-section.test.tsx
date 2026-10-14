@@ -31,7 +31,7 @@ function renderPage(budgets = [makeBudget({ name: "Mercado", spent: "350.50" })]
   return api;
 }
 
-const card = (name: string) => screen.getByRole("heading", { level: 3, name }).closest("li") as HTMLElement;
+const card = (name: string) => screen.getByRole("heading", { level: 2, name }).closest("li") as HTMLElement;
 const openMenu = async (name: string) => {
   await userEvent.click(screen.getByRole("button", { name: `Ações do orçamento ${name}` }));
 };
@@ -42,7 +42,7 @@ const inDialog = () => within(dialog());
 
 it("mostra nome, periodo, faixa de datas, gasto e quanto resta", async () => {
   renderPage();
-  const item = card(await screen.findByRole("heading", { level: 3, name: "Mercado" }).then(() => "Mercado"));
+  const item = card(await screen.findByRole("heading", { level: 2, name: "Mercado" }).then(() => "Mercado"));
   expect(within(item).getByText("Mensal · 01/03 a 31/03")).toBeInTheDocument();
   expect(within(item).getByText("R$ 350,50")).toBeInTheDocument();
   expect(within(item).getByText(/de R\$ 800,00/)).toBeInTheDocument();
@@ -109,7 +109,7 @@ it("moeda estrangeira aparece no periodo e no valor", async () => {
 it("lista em ordem alfabetica", async () => {
   renderPage([makeBudget({ name: "Viagem" }), makeBudget({ name: "Casa" }), makeBudget({ name: "lazer" })]);
   await screen.findByText("Casa");
-  const names = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+  const names = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
   expect(names).toEqual(["Casa", "lazer", "Viagem"]);
 });
 
@@ -235,7 +235,7 @@ it("cria um orcamento mensal com o valor no formato brasileiro", async () => {
     period: "monthly",
     carry_over: false,
   });
-  expect(await screen.findByRole("heading", { level: 3, name: "Mercado" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Mercado" })).toBeInTheDocument();
 });
 
 it("o periodo escolhido vai no corpo", async () => {
@@ -465,7 +465,7 @@ it("criar com carregar sobra manda carry_over no corpo", async () => {
 
 it("editar um orcamento de limite fixo nao mostra a escolha de tipo", async () => {
   renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Mercado" });
+  await screen.findByRole("heading", { level: 2, name: "Mercado" });
   await openMenu("Mercado");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   expect(inDialog().queryByRole("radio", { name: /Envelope/ })).not.toBeInTheDocument();

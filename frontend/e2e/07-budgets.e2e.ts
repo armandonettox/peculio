@@ -8,7 +8,7 @@ test.describe.configure({ mode: "serial" });
 const NAME = "Mercado Orc E2E";
 const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
-const card = (page: Page) => main(page).getByRole("heading", { level: 3, name: NAME }).locator("xpath=ancestor::li[1]");
+const card = (page: Page) => main(page).getByRole("heading", { level: 2, name: NAME }).locator("xpath=ancestor::li[1]");
 // O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso
 // do executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
 const today = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -149,14 +149,14 @@ test("carregar sobra trava o periodo em mensal e mostra o selo no card", async (
   await dialog(page).getByRole("button", { name: "Criar orçamento" }).click();
   await expect(dialog(page)).toBeHidden();
 
-  const card = main(page).getByRole("heading", { level: 3, name: "Reserva Orc E2E" }).locator("xpath=ancestor::li[1]");
+  const card = main(page).getByRole("heading", { level: 2, name: "Reserva Orc E2E" }).locator("xpath=ancestor::li[1]");
   await expect(card).toContainText("Carrega sobra");
 });
 
 test("arquivar esconde o orcamento; mostrar arquivados e restaurar traz de volta", async ({ page }) => {
   await openBudgets(page);
   await menu(page, "Arquivar");
-  await expect(main(page).getByRole("heading", { level: 3, name: NAME })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: NAME })).toHaveCount(0);
 
   await page.getByLabel("Mostrar arquivados").check();
   await expect(card(page)).toContainText("Arquivado");
@@ -175,7 +175,7 @@ test("excluir pede confirmacao; os lancamentos continuam, sem orcamento", async 
   await menu(page, "Excluir");
   await dialog(page).getByRole("button", { name: "Excluir" }).click();
   await expect(dialog(page)).toBeHidden();
-  await expect(main(page).getByRole("heading", { level: 3, name: NAME })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: NAME })).toHaveCount(0);
 
   const headers = await apiHeaders(request, ADMIN);
   const list = await (await request.get("/api/v1/transactions", { headers, params: { q: "Compra grande" } })).json();

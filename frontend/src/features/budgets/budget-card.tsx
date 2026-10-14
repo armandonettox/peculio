@@ -46,7 +46,7 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{budget.name}</h3>
+            <h2 className="min-w-0 max-w-full truncate text-base font-semibold">{budget.name}</h2>
             {budget.carry_over && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.carregaSobra")}</span>
             )}
