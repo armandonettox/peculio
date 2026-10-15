@@ -1,0 +1,19 @@
+# Usado SO na VPS, pela unit do systemd (deploy/systemd/peculio-compose.service), junto do docker-compose.yml.
+# Liga o backend ao PostgreSQL compartilhado do infra-deck (banco `peculio` na instancia de producao), em vez
+# do container `db` deste projeto. O desenvolvimento local e o CI continuam usando so o docker-compose.yml.
+#
+# O endereco vem de PECULIO_DATABASE_URL, definido em ~/peculio/.env (arquivo 600, fora do git):
+#   PECULIO_DATABASE_URL=postgresql+psycopg://peculio:SENHA@postgres-prod:5432/peculio
+# A rede infra-deck-data e criada pelo infra-deck (database/docker-compose.yml): suba o infra-deck antes.
+services:
+  backend:
+    environment:
+      DATABASE_URL: ${PECULIO_DATABASE_URL:?defina PECULIO_DATABASE_URL no ~/peculio/.env}
+    networks: [default, data]
+
+networks:
+  # O podman-compose exige declarar a rede default quando ela aparece numa lista de redes
+  default: {}
+  data:
+    name: infra-deck-data
+    external: true

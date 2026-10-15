@@ -103,8 +103,12 @@ Rodar o reset manualmente: `systemctl --user start peculio-demo-reset.service` (
   container solto: no podman-compose isso derruba a rede dos outros do mesmo pod.
 - Rollback manual: copie `~/peculio/.env.imagens.anterior` para `~/peculio/.env.imagens` e
   reinicie o serviço.
-- Backup do banco: `podman exec peculio_db_1 pg_dump -U peculio peculio | gzip > backup.sql.gz`
-  (confira o nome exato do container com `podman ps`).
+- Banco: desde 2026-10-15 o peculio usa o banco `peculio` da instancia PostgreSQL compartilhada do
+  infra-deck (`postgres-prod`, rede `infra-deck-data`), por `deploy/compose.vps.yml` e `PECULIO_DATABASE_URL`
+  no `~/peculio/.env`. O container `db` deste projeto ficou parado em uso (sem trafego) e o banco antigo foi
+  renomeado, nao apagado.
+- Backup do banco: o infra-deck ja faz backup diario com teste de restauracao de todos os bancos da instancia
+  (`~/backups-infra-deck`). Para um dump manual: `podman exec infra-deck-databases_postgres-prod_1 pg_dump -U infra_admin -Fc peculio > peculio.dump`.
 
 ## Riscos conhecidos
 

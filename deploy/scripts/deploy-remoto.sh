@@ -35,6 +35,16 @@ if [ ! -f .env ]; then
     echo "Falta ~/peculio/.env com POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, JWT_SECRET e ENCRYPTION_KEY (ver deploy/README.md)"
     exit 1
 fi
+# O banco e o PostgreSQL compartilhado do infra-deck. Sem estes dois itens o backend subiria sem banco,
+# ou (pior) um compose antigo voltaria ao banco local desatualizado: melhor falhar aqui, antes de mexer em algo
+if ! grep -q '^PECULIO_DATABASE_URL=' .env; then
+    echo "Falta PECULIO_DATABASE_URL em ~/peculio/.env (banco compartilhado do infra-deck; ver deploy/compose.vps.yml)"
+    exit 1
+fi
+if ! podman network exists infra-deck-data; then
+    echo "A rede infra-deck-data nao existe: suba o infra-deck (bancos) antes do peculio"
+    exit 1
+fi
 DISCO_LIVRE_GB=$(df --output=avail -BG "$HOME" | tail -1 | tr -dc '0-9')
 if [ "$DISCO_LIVRE_GB" -lt 3 ]; then
     echo "Pouco espaco em disco (${DISCO_LIVRE_GB}G livres); abortando"

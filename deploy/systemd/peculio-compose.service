@@ -21,8 +21,9 @@ WorkingDirectory=%h/peculio
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:%h/.local/bin
 Environment=COMPOSE_PARALLEL_LIMIT=1
 EnvironmentFile=-%h/peculio/.env.imagens
-ExecStart=%h/.local/bin/podman-compose up -d --no-build
-ExecStop=%h/.local/bin/podman-compose down
+# O arquivo compose.vps.yml liga o backend ao banco compartilhado do infra-deck (ver o proprio arquivo)
+ExecStart=%h/.local/bin/podman-compose -f docker-compose.yml -f deploy/compose.vps.yml up -d --no-build
+ExecStop=%h/.local/bin/podman-compose -f docker-compose.yml -f deploy/compose.vps.yml down
 
 [Install]
 WantedBy=default.target
