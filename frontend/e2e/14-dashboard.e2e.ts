@@ -65,11 +65,11 @@ test("prepara dados ficticios: conta, divida, orcamento perto do limite, conta a
     splits: [{ type: "withdrawal", date: today(), description: "Software Painel E2E", amount: "29.90", currency_code: "USD", account_id: wise.id, counterparty_name: "Loja Exterior Painel" }],
   });
   await apiPost(request, headers, "/recurrences", {
-    name: "Aluguel Painel E2E", auto_create: false, currency_code: "BRL", amount_min: "1200.00", amount_max: "1200.00",
+    name: "Aluguel Painel E2E", auto_create: false, type: "withdrawal", currency_code: "BRL", amount_min: "1200.00", amount_max: "1200.00",
     match_text: "zzz-nunca-casa-painel", first_date: addDays(-8), frequency: "monthly",
   });
   await apiPost(request, headers, "/recurrences", {
-    name: "Internet Painel E2E", auto_create: false, currency_code: "BRL", amount_min: "100.00", amount_max: "120.00",
+    name: "Internet Painel E2E", auto_create: false, type: "withdrawal", currency_code: "BRL", amount_min: "100.00", amount_max: "120.00",
     match_text: "zzz-nunca-casa-internet", first_date: addDays(6), frequency: "monthly",
   });
   await apiPost(request, headers, "/recurrences", {
