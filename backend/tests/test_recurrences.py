@@ -5,18 +5,20 @@ from datetime import date, timedelta
 import pytest
 from sqlalchemy import select, text
 
-from app.core import clock, scheduler
+from app.core import scheduler
 from app.core.database import SessionLocal
 from app.models.recurrence import Recurrence
 from app.models.transaction import Transaction
 from app.services import recurrences as service
-from tests.conftest import auth_headers, make_user, register
+from tests.conftest import SESSION_TODAY, auth_headers, make_user, register
 
 URL = "/api/v1/recurrences"
 TX_URL = "/api/v1/transactions"
 ACCOUNTS_URL = "/api/v1/accounts"
 
-TODAY = clock.today()
+# O mesmo dia que o app enxerga: clock.today() fica congelado nele (fixture frozen_today do conftest)
+TODAY = SESSION_TODAY
+pytestmark = pytest.mark.usefixtures("frozen_today")
 
 
 def days(offset: int) -> str:

@@ -21,6 +21,7 @@ from alembic.config import Config  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from app.core import clock  # noqa: E402
 from app.core.database import SessionLocal, engine  # noqa: E402
 from app.core.rate_limit import limiter  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
@@ -28,6 +29,21 @@ from app.main import app  # noqa: E402
 from app.models.user import User  # noqa: E402
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+
+# O dia em que a sessao de testes comecou, no fuso do app. Testes de data comparam as datas que montam com as
+# que o app calcula; se cada um lesse o relogio na sua hora, uma execucao longa que cruza a meia-noite do fuso
+# do app (03:00 UTC em Sao Paulo) faria os dois discordarem por um dia (visto no CI em 2026-10-15: 16 falhas).
+SESSION_TODAY = clock.today()
+
+
+@pytest.fixture
+def frozen_today(monkeypatch):
+    """Congela `clock.today()` em SESSION_TODAY. Quem passa um instante explicito continua valendo, entao
+    os testes do proprio relogio nao mudam. Use em modulo inteiro com
+    `pytestmark = pytest.mark.usefixtures("frozen_today")`."""
+    real_today = clock.today
+    monkeypatch.setattr(clock, "today", lambda now=None: SESSION_TODAY if now is None else real_today(now))
+    return SESSION_TODAY
 
 
 def alembic_config() -> Config:

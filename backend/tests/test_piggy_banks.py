@@ -10,13 +10,15 @@ from app.core.database import SessionLocal
 from app.models.account import Account
 from app.models.piggy_bank import PiggyBankEvent
 from app.services import piggy_banks as service
-from tests.conftest import auth_headers, make_user, register
+from tests.conftest import SESSION_TODAY, auth_headers, make_user, register
 
 URL = "/api/v1/piggy-banks"
 ACCOUNTS_URL = "/api/v1/accounts"
 TX_URL = "/api/v1/transactions"
 
-TODAY = clock.today()
+# O mesmo dia que o app enxerga: clock.today() fica congelado nele (fixture frozen_today do conftest)
+TODAY = SESSION_TODAY
+pytestmark = pytest.mark.usefixtures("frozen_today")
 
 
 @pytest.fixture
