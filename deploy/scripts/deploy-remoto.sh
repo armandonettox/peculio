@@ -52,7 +52,9 @@ if [ "$DISCO_LIVRE_GB" -lt 3 ]; then
 fi
 
 echo "=== Baixando as imagens ($TAG) ==="
-trap 'podman logout ghcr.io >/dev/null 2>&1 || true' EXIT
+# Copia temporaria do nginx (ver sincronizar_nginx): apagada em qualquer saida do script, inclusive por erro
+COPIA_NGINX=""
+trap 'podman logout ghcr.io >/dev/null 2>&1 || true; [ -z "$COPIA_NGINX" ] || rm -f "$COPIA_NGINX"' EXIT
 printf '%s' "$TOKEN_GHCR" | podman login ghcr.io -u "$USUARIO_GHCR" --password-stdin
 podman pull "$IMAGEM_BACKEND:$TAG"
 podman pull "$IMAGEM_FRONTEND:$TAG"
@@ -125,10 +127,9 @@ sincronizar_nginx() {
     sudo cp deploy/nginx/erros/50x.html /usr/share/nginx/peculio-erros/erro-50x.html
 
     local destino="/etc/nginx/conf.d/peculio.armandonetto.com.conf"
-    local copia=""
     if sudo test -f "$destino"; then
-        copia=$(mktemp)
-        sudo cp "$destino" "$copia"
+        COPIA_NGINX=$(mktemp)
+        sudo cp "$destino" "$COPIA_NGINX"
     fi
     sudo cp deploy/nginx/peculio.armandonetto.com.conf "$destino"
 
@@ -138,8 +139,8 @@ sincronizar_nginx() {
         sudo nginx -s reload
     else
         echo "nginx -t falhou; restaurando a configuracao anterior"
-        if [ -n "$copia" ]; then
-            sudo cp "$copia" "$destino"
+        if [ -n "$COPIA_NGINX" ]; then
+            sudo cp "$COPIA_NGINX" "$destino"
         else
             sudo rm -f "$destino"
         fi
