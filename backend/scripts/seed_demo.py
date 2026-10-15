@@ -133,6 +133,7 @@ def seed(api: Api, today: date) -> dict:
     def bill(name, low, high, match, first, frequency="monthly"):
         body = {
             "name": name,
+            "type": "withdrawal",
             "auto_create": False,
             "currency_code": "BRL",
             "amount_min": low,
