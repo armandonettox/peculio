@@ -45,7 +45,9 @@ function run(command, args, options = {}) {
 }
 
 function compose(...args) {
-  return run("docker", ["compose", "-p", project, "-f", path.join(repoRoot, "docker-compose.yml"), ...args], {
+  // O docker-compose.local.yml traz o banco (o docker-compose.yml nao tem mais)
+  const files = ["docker-compose.yml", "docker-compose.local.yml"].flatMap((f) => ["-f", path.join(repoRoot, f)]);
+  return run("docker", ["compose", "-p", project, ...files, ...args], {
     cwd: repoRoot,
   });
 }

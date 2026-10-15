@@ -45,16 +45,15 @@ aqui.
 mkdir -p ~/peculio
 # segredos da aplicacao (nao versionados, nao enviar para o git)
 umask 077 && cat > ~/peculio/.env <<'EOF'
-POSTGRES_USER=peculio
-POSTGRES_PASSWORD=cole_uma_senha_forte_aqui
-POSTGRES_DB=peculio
+# banco compartilhado do infra-deck (rede infra-deck-data); crie o banco e o usuario `peculio` la antes
+PECULIO_DATABASE_URL=postgresql+psycopg://peculio:cole_a_senha_do_banco_aqui@postgres-prod:5432/peculio
 JWT_SECRET=cole_um_valor_aleatorio_longo_aqui
 ENCRYPTION_KEY=cole_outro_valor_aleatorio_longo_aqui
 COOKIE_SECURE=true
 EOF
 ```
 
-Gerar valores aleatórios fortes para `JWT_SECRET`/`ENCRYPTION_KEY`/`POSTGRES_PASSWORD`:
+Gerar valores aleatórios fortes para `JWT_SECRET`/`ENCRYPTION_KEY` e a senha do banco:
 `openssl rand -base64 32`.
 
 ### 3. Secrets do GitHub
@@ -105,8 +104,8 @@ Rodar o reset manualmente: `systemctl --user start peculio-demo-reset.service` (
   reinicie o serviço.
 - Banco: desde 2026-10-15 o peculio usa o banco `peculio` da instancia PostgreSQL compartilhada do
   infra-deck (`postgres-prod`, rede `infra-deck-data`), por `deploy/compose.vps.yml` e `PECULIO_DATABASE_URL`
-  no `~/peculio/.env`. O container `db` deste projeto ficou parado em uso (sem trafego) e o banco antigo foi
-  renomeado, nao apagado.
+  no `~/peculio/.env`. O `docker-compose.yml` nao tem mais o container `db`: ele so existe no
+  `docker-compose.local.yml` (desenvolvimento local e CI). O banco antigo da VPS foi apagado.
 - Backup do banco: o infra-deck ja faz backup diario com teste de restauracao de todos os bancos da instancia
   (`~/backups-infra-deck`). Para um dump manual: `podman exec infra-deck-databases_postgres-prod_1 pg_dump -U infra_admin -Fc peculio > peculio.dump`.
 

@@ -10,7 +10,7 @@
 # O linger do usuario ja esta ativo por causa do hera (loginctl enable-linger).
 
 [Unit]
-Description=Peculio (banco, backend e frontend via podman-compose)
+Description=Peculio (backend e frontend via podman-compose; o banco e o PostgreSQL compartilhado do infra-deck)
 After=network-online.target
 Wants=network-online.target
 

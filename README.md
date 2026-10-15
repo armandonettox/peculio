@@ -17,7 +17,7 @@ Organizacao financeira pessoal, open source e self-hosted.
 ```bash
 cp .env.example .env
 # edite o .env e troque a senha do banco
-docker compose up --build
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 ```
 
 O app fica em http://localhost:8080 e a API responde em `/api/health`.

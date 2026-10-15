@@ -1,6 +1,7 @@
 # Usado SO na VPS, pela unit do systemd (deploy/systemd/peculio-compose.service), junto do docker-compose.yml.
 # Liga o backend ao PostgreSQL compartilhado do infra-deck (banco `peculio` na instancia de producao), em vez
-# do container `db` deste projeto. O desenvolvimento local e o CI continuam usando so o docker-compose.yml.
+# do container `db` que existia aqui (o docker-compose.yml nao tem mais banco). O desenvolvimento local e o CI usam
+# o docker-compose.local.yml, que traz o `db`.
 #
 # O endereco vem de PECULIO_DATABASE_URL, definido em ~/peculio/.env (arquivo 600, fora do git):
 #   PECULIO_DATABASE_URL=postgresql+psycopg://peculio:SENHA@postgres-prod:5432/peculio

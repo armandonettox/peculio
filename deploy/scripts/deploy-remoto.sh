@@ -32,7 +32,7 @@ cd "$DIR"
 
 echo "=== Conferindo pre-requisitos ==="
 if [ ! -f .env ]; then
-    echo "Falta ~/peculio/.env com POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, JWT_SECRET e ENCRYPTION_KEY (ver deploy/README.md)"
+    echo "Falta ~/peculio/.env com PECULIO_DATABASE_URL, JWT_SECRET e ENCRYPTION_KEY (ver deploy/README.md)"
     exit 1
 fi
 # O banco e o PostgreSQL compartilhado do infra-deck. Sem estes dois itens o backend subiria sem banco,
