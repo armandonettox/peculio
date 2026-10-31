@@ -34,12 +34,17 @@ const SIZES = {
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
 
+// Decisao do usuario (2026-10-31): o zoom fica travado no celular (user-scalable=no no index.html), porque o app e usado
+// como aplicativo e o zoom sem querer desconfigurava a tela. Isso quebra a regra meta-viewport do axe (WCAG 1.4.4); as
+// outras regras continuam valendo. Para voltar a permitir o zoom, tirar o travamento do index.html e esta linha.
+const DISABLED_RULES = ["meta-viewport"];
+
 async function scan(page: Page, route: string) {
   await page.goto(route);
   await page.waitForLoadState("networkidle");
   // Espera a tela terminar de carregar (a primeira pintura mostra o esqueleto)
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  const result = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  const result = await new AxeBuilder({ page }).disableRules(DISABLED_RULES).withTags(TAGS).analyze();
   return result.violations.map(
     (violation) =>
       `${route} ${violation.id} (${violation.impact}): ${violation.help} | ${violation.nodes
@@ -80,7 +85,7 @@ for (const [sizeName, viewport] of Object.entries(SIZES)) {
         await page.goto(route);
         await page.waitForLoadState("networkidle");
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        const result = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+        const result = await new AxeBuilder({ page }).disableRules(DISABLED_RULES).withTags(TAGS).analyze();
         problems.push(...result.violations.map((violation) => `${route} ${violation.id}: ${violation.help}`));
       }
       await context.close();
