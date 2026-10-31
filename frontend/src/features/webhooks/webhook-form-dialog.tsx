@@ -122,7 +122,7 @@ export function WebhookFormDialog({ webhook, onClose, onCreated }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent>
+      <DialogContent fullOnMobile>
         <DialogHeader>
           <DialogTitle>{editing ? t("webhooks.webhookFormDialog.editarWebhook") : t("webhooks.webhookFormDialog.novoWebhook")}</DialogTitle>
           <DialogDescription>

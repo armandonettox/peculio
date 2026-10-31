@@ -179,7 +179,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent fullOnMobile className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{editing ? t("rules.ruleFormDialog.editarRegra") : t("rules.ruleFormDialog.novaRegra")}</DialogTitle>
           <DialogDescription>

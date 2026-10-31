@@ -126,7 +126,7 @@ export function BudgetFormDialog({ budget, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent>
+      <DialogContent fullOnMobile>
         <DialogHeader>
           <DialogTitle>{editing ? t("budgets.budgetFormDialog.editarOrcamento") : t("budgets.budgetFormDialog.novoOrcamento")}</DialogTitle>
           <DialogDescription>

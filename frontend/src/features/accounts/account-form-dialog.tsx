@@ -213,7 +213,7 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent>
+      <DialogContent fullOnMobile>
         <DialogHeader>
           <DialogTitle>
             {editing

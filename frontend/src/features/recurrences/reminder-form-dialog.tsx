@@ -166,7 +166,7 @@ export function ReminderFormDialog({ recurrence, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent>
+      <DialogContent fullOnMobile>
         <DialogHeader>
           <DialogTitle>{editing ? t("recurrences.reminderFormDialog.editarLembrete") : t("recurrences.reminderFormDialog.novoLembrete")}</DialogTitle>
           <DialogDescription>

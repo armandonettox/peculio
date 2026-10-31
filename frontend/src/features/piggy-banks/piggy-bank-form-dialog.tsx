@@ -141,7 +141,7 @@ export function PiggyBankFormDialog({ piggy, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
-      <DialogContent>
+      <DialogContent fullOnMobile>
         <DialogHeader>
           <DialogTitle>{editing ? t("piggy-banks.piggyBankFormDialog.editarCofrinho") : t("piggy-banks.piggyBankFormDialog.novoCofrinho")}</DialogTitle>
           <DialogDescription>

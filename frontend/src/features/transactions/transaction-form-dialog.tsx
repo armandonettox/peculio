@@ -142,7 +142,7 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
 
   return (
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent fullOnMobile className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
             {recurring ? (editing ? t("transactions.transactionFormDialog.editarRecorrente") : t("transactions.transactionFormDialog.novaRecorrente")) : editing ? t("transactions.transactionFormDialog.editarLancamento") : t("transactions.transactionFormDialog.novoLancamento")}
@@ -558,7 +558,7 @@ function FormBody({
           {KIND_OPTIONS.map((option) => (
             <label
               key={option}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-md border px-2 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+              className="flex min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border px-1 py-2 text-center text-xs sm:flex-row sm:gap-2 sm:px-2 sm:text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
             >
               <input
                 type="radio"

@@ -21,18 +21,24 @@ if (typeof document !== "undefined") {
   });
 }
 
+// fullOnMobile: em tela pequena a janela ocupa a tela toda e os botoes do DialogFooter ficam fixos no rodape. E para as
+// janelas com formulario longo (o botao Salvar ficaria no fim de uma rolagem comprida). Do tamanho sm para cima nada muda.
 function DialogContent({
   className,
   children,
   onCloseAutoFocus,
+  fullOnMobile = false,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & { fullOnMobile?: boolean }) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/50" />
       <DialogPrimitive.Content
+        data-full-mobile={fullOnMobile ? "" : undefined}
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto rounded-lg border bg-card p-6 text-card-foreground shadow-lg focus-visible:outline-none",
+          "group/dialog fixed left-1/2 top-1/2 z-50 flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto overflow-x-hidden rounded-lg border bg-card p-6 text-card-foreground shadow-lg focus-visible:outline-none",
+          fullOnMobile &&
+            "max-sm:left-0 max-sm:top-0 max-sm:h-dvh max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0",
           className,
         )}
         {...props}
@@ -60,8 +66,13 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("flex flex-col gap-1.5 pr-6", className)} {...props} />;
 }
 
+// Numa janela fullOnMobile o rodape fica fixo na base da tela, com os botoes lado a lado, e cobre a largura toda
+// (os -mx/-mb desfazem o padding da janela)
+const FULL_MOBILE_FOOTER =
+  "group-data-[full-mobile]/dialog:max-sm:sticky group-data-[full-mobile]/dialog:max-sm:bottom-0 group-data-[full-mobile]/dialog:max-sm:z-10 group-data-[full-mobile]/dialog:max-sm:-mx-6 group-data-[full-mobile]/dialog:max-sm:-mb-6 group-data-[full-mobile]/dialog:max-sm:flex-row group-data-[full-mobile]/dialog:max-sm:border-t group-data-[full-mobile]/dialog:max-sm:bg-card group-data-[full-mobile]/dialog:max-sm:px-6 group-data-[full-mobile]/dialog:max-sm:py-3 group-data-[full-mobile]/dialog:max-sm:[&>*]:flex-1";
+
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)} {...props} />;
+  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", FULL_MOBILE_FOOTER, className)} {...props} />;
 }
 
 function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
