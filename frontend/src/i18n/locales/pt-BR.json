@@ -360,6 +360,18 @@
       "semConexaoOApp": "Sem conexão. O app precisa do servidor para mostrar e salvar seus dados; nada fica guardado no aparelho.",
       "novaVersaoDisponivel": "Nova versão disponível.",
       "atualizar": "Atualizar"
+    },
+    "installBanner": {
+      "instalarNoCelular": "Instalar no celular",
+      "textoConvite": "Instale o Pecúlio no seu celular para abrir direto da tela inicial, como um aplicativo.",
+      "comoInstalar": "Como instalar",
+      "dispensar": "Dispensar aviso de instalação",
+      "tituloPassos": "Instalar no iPhone",
+      "descricaoPassos": "São três toques e o Pecúlio fica na sua tela inicial.",
+      "passoCompartilhar": "Toque no botão Compartilhar, na barra do Safari.",
+      "passoAdicionar": "Role a lista e toque em Adicionar à Tela de Início.",
+      "passoConfirmar": "Toque em Adicionar. O ícone do Pecúlio aparece na tela inicial.",
+      "avisoSafari": "Se a opção não aparecer, abra este endereço no Safari e repita os passos."
     }
   },
   "nav": {

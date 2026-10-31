@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useAuth } from "@/auth/auth-context";
+import { InstallBanner } from "@/components/install-banner";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { MasonryColumns } from "@/components/masonry-columns";
@@ -37,6 +38,8 @@ export default function DashboardPage() {
         title={t("pages.dashboard.painel")}
         description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
       />
+
+      <InstallBanner />
 
       {accounts.isPending ? (
         <div aria-busy="true" className="h-32 animate-pulse rounded-lg border bg-muted" />

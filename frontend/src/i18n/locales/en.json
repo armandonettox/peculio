@@ -360,6 +360,18 @@
       "semConexaoOApp": "You're offline. The app needs the server to show and save your data; nothing is stored on the device.",
       "novaVersaoDisponivel": "New version available.",
       "atualizar": "Update"
+    },
+    "installBanner": {
+      "instalarNoCelular": "Install on your phone",
+      "textoConvite": "Install the app on your phone to open it straight from the home screen.",
+      "comoInstalar": "How to install",
+      "dispensar": "Dismiss install notice",
+      "tituloPassos": "Install on iPhone",
+      "descricaoPassos": "Three taps and the app is on your home screen.",
+      "passoCompartilhar": "Tap the Share button in the Safari toolbar.",
+      "passoAdicionar": "Scroll the list and tap Add to Home Screen.",
+      "passoConfirmar": "Tap Add. The app icon appears on your home screen.",
+      "avisoSafari": "If you don't see the option, open this address in Safari and repeat the steps."
     }
   },
   "nav": {
