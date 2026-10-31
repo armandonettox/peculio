@@ -144,6 +144,22 @@
     @apply border-border;
   }
 
+  /* Celular: sem zoom por toque duplo e sem o navegador aumentando o texto sozinho ao girar a tela */
+  html {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* O iOS aproxima a tela ao focar um campo com fonte menor que 16px. Em tela de toque os campos ficam em 16px */
+  @media (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

@@ -24,6 +24,7 @@ describe("classifyRequest", () => {
     ["/manifest.webmanifest", "static"],
     ["/favicon.svg", "static"],
     ["/theme-init.js", "static"],
+    ["/no-zoom.js", "static"],
   ])("arquivo da casca %s", (path, expected) => expect(classifyRequest(get(path), ORIGIN)).toBe(expected));
 
   it.each([
@@ -73,6 +74,7 @@ describe("caminhos", () => {
     ["/manifest.webmanifest", true],
     ["/favicon.svg", true],
     ["/theme-init.js", true],
+    ["/no-zoom.js", true],
     ["/", false],
     ["/assetsx", false],
     ["/icons", false],
