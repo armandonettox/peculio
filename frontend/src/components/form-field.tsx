@@ -17,7 +17,8 @@ export function FormField({ id, label, error, hint, children }: FormFieldProps) 
   const describedBy = [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className="flex flex-col gap-2">
+    // min-w-0: sem isso o campo (o de data do iPhone principalmente) alarga a coluna da grade e estoura a janela
+    <div className="flex min-w-0 flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
       {children({ id, "aria-invalid": Boolean(error), "aria-describedby": describedBy })}
       {hint && !error && (

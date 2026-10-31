@@ -144,24 +144,31 @@
     @apply border-border;
   }
 
-  /* Celular: sem zoom por toque duplo e sem o navegador aumentando o texto sozinho ao girar a tela */
+  /* Celular: sem o navegador aumentando o texto sozinho ao girar a tela */
   html {
-    touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
-  /* O iOS aproxima a tela ao focar um campo com fonte menor que 16px. Em tela de toque os campos ficam em 16px */
-  @media (pointer: coarse) {
-    input,
-    select,
-    textarea {
-      font-size: 16px;
-    }
+  /* Sem zoom por toque duplo. Em todos os elementos e nao so no html: dentro de um elemento com rolagem (as janelas
+     tem overflow-y: auto) o touch-action dos ancestrais acima dele nao vale */
+  * {
+    touch-action: manipulation;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* O iOS aproxima a tela ao focar um campo com fonte menor que 16px. Em tela de toque os campos ficam em 16px. Fora de
+   qualquer @layer de proposito: as classes do Tailwind (text-sm no Input, Select e Textarea) ficam numa camada que
+   vence a @layer base, e o texto de 14px dos campos continuaria valendo. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 
