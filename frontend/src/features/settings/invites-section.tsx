@@ -103,7 +103,7 @@ export function InvitesSection() {
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle as="h2">{t("settings.invitesSection.usuariosEConvites")}</CardTitle>
         <CardDescription>{t("settings.invitesSection.soQuemRecebeUm")}</CardDescription>

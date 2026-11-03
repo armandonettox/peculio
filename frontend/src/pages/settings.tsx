@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Tab, TabList } from "@/components/ui/tabs";
 import { AppearanceSection } from "@/features/settings/appearance-section";
 import { InvitesSection } from "@/features/settings/invites-section";
-import { PasswordSection } from "@/features/settings/password-section";
 import { ProfileSection } from "@/features/settings/profile-section";
 import { SecurityContactSection } from "@/features/settings/security-contact-section";
 import { SecuritySection } from "@/features/settings/security-section";
@@ -64,12 +63,7 @@ export default function SettingsPage() {
         )}
       </TabList>
 
-      {tab === "perfil" && (
-        <div className="columns-1 gap-6 xl:columns-2 [&>*]:mb-6 [&>*]:break-inside-avoid">
-          <ProfileSection />
-          <PasswordSection />
-        </div>
-      )}
+      {tab === "perfil" && <ProfileSection />}
 
       {tab === "aparencia" && <AppearanceSection />}
 
@@ -78,7 +72,7 @@ export default function SettingsPage() {
       {tab === "webhooks" && <WebhooksSection />}
 
       {tab === "administracao" && user?.is_admin && (
-        <div className="columns-1 gap-6 xl:columns-2 [&>*]:mb-6 [&>*]:break-inside-avoid">
+        <div className="grid gap-6 xl:grid-cols-2 [&>*]:h-full">
           <InvitesSection />
           <SecurityContactSection />
         </div>

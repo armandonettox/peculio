@@ -252,7 +252,7 @@
       "carregandoWebhooks": "Loading webhooks...",
       "nenhumWebhookAinda": "No webhooks yet",
       "umWebhookAvisaOutro": "A webhook notifies another system, like a spreadsheet or an automation, whenever a transaction is created, edited or deleted.",
-      "webhooks": "Webhooks",
+      "webhooks": "Webhooks & APIs",
       "avisosAutomaticosParaOutros": "Automatic notices for other systems",
       "excluirWebhook": "Delete webhook",
       "oHistoricoDeEntregas": "Its delivery history is also deleted and pending notices aren't sent."

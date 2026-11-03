@@ -118,7 +118,7 @@ export function SecurityContactSection() {
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle as="h2">{t("settings.securityContactSection.contatoDeSeguranca")}</CardTitle>
         <CardDescription>

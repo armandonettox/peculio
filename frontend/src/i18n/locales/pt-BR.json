@@ -252,7 +252,7 @@
       "carregandoWebhooks": "Carregando webhooks...",
       "nenhumWebhookAinda": "Nenhum webhook ainda",
       "umWebhookAvisaOutro": "Um webhook avisa outro sistema, como uma planilha ou uma automação, sempre que um lançamento é criado, editado ou excluído.",
-      "webhooks": "Webhooks",
+      "webhooks": "Webhooks e APIs",
       "avisosAutomaticosParaOutros": "Avisos automáticos para outros sistemas",
       "excluirWebhook": "Excluir webhook",
       "oHistoricoDeEntregas": "O histórico de entregas dele também é apagado e os avisos pendentes não são enviados."

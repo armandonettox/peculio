@@ -7,10 +7,10 @@ import { useTwoFactorStatus } from "@/api/two-factor";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ApiTokensSection } from "@/features/api-tokens/api-tokens-section";
 import { ConfirmTwoFactorDialog, type ConfirmMode } from "@/features/security/confirm-two-factor-dialog";
 import { DevicesSection } from "@/features/security/devices-section";
 import { EnableTwoFactorDialog } from "@/features/security/enable-two-factor-dialog";
+import { PasswordSection } from "@/features/settings/password-section";
 import { securityContactHref } from "./model";
 import { Trans, useTranslation } from "react-i18next";
 
@@ -108,7 +108,7 @@ export function SecuritySection() {
 
       <DevicesSection />
 
-      <ApiTokensSection />
+      <PasswordSection />
 
       {dialog === "enable" && <EnableTwoFactorDialog onClose={() => setDialog(null)} />}
       {(dialog === "disable" || dialog === "regenerate") && (

@@ -1,4 +1,5 @@
 import { Plus, Webhook as WebhookIcon } from "lucide-react";
+import { ApiTokensSection } from "@/features/api-tokens/api-tokens-section";
 import { useState } from "react";
 
 import { getErrorMessage } from "@/api/error-messages";
@@ -145,6 +146,8 @@ export function WebhooksSection() {
       )}
 
       {content}
+
+      <ApiTokensSection />
 
       {dialog?.kind === "create" && (
         <WebhookFormDialog
