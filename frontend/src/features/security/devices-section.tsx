@@ -118,7 +118,7 @@ export function DevicesSection() {
   }
 
   return (
-    <Card className="mt-6 max-w-2xl">
+    <Card className="mt-6">
       <CardHeader>
         <CardTitle as="h2">{t("security.devicesSection.aparelhosConectados")}</CardTitle>
         <CardDescription>

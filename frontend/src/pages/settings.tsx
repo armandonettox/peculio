@@ -71,22 +71,14 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {tab === "aparencia" && (
-        <div className="max-w-2xl">
-          <AppearanceSection />
-        </div>
-      )}
+      {tab === "aparencia" && <AppearanceSection />}
 
-      {tab === "seguranca" && (
-        <div className="max-w-2xl">
-          <SecuritySection />
-        </div>
-      )}
+      {tab === "seguranca" && <SecuritySection />}
 
       {tab === "webhooks" && <WebhooksSection />}
 
       {tab === "administracao" && user?.is_admin && (
-        <div className="flex max-w-2xl flex-col gap-6">
+        <div className="columns-1 gap-6 xl:columns-2 [&>*]:mb-6 [&>*]:break-inside-avoid">
           <InvitesSection />
           <SecurityContactSection />
         </div>

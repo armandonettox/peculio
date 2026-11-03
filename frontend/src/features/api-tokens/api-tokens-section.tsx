@@ -111,7 +111,7 @@ export function ApiTokensSection() {
 
   return (
     <>
-      <Card className="mt-6 max-w-2xl">
+      <Card className="mt-6">
         <CardHeader>
           <CardTitle as="h2">Tokens de API</CardTitle>
           <CardDescription>

@@ -98,7 +98,7 @@ export function SecuritySection() {
         </p>
       )}
 
-      <Card className="max-w-2xl">
+      <Card>
         <CardHeader>
           <CardTitle as="h2">{t("pages.security.verificacaoEmDuasEtapas")}</CardTitle>
           <CardDescription>{t("pages.security.umSegundoCodigoAlem")}</CardDescription>
