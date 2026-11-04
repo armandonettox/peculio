@@ -1,5 +1,5 @@
 import { useNetWorth } from "@/api/dashboard";
-import { LineChart } from "@/components/charts";
+import { BarChart } from "@/components/charts";
 import { shortMonthLabel } from "@/features/reports/presentation";
 import { formatMoney, isNegativeMoney } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
@@ -45,13 +45,12 @@ export function NetWorthBlock() {
             </div>
 
             <div className="mt-4 min-w-0">
-              <LineChart
+              <BarChart
                 title={t("dashboard.netWorthBlock.netWorthLiquidIn", { currency: currency.currency_code })}
                 series={[netWorthSeries(currency)]}
                 formatValue={(value) => formatMoney(value, currency.currency_code)}
                 formatX={shortMonthLabel}
                 height={160}
-                area
               />
             </div>
           </section>

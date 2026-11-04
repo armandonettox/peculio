@@ -1,3 +1,4 @@
+export { BarChart } from "./bar-chart";
 export { DonutChart } from "./donut-chart";
 export { LineChart } from "./line-chart";
 export { Sparkline } from "./sparkline";

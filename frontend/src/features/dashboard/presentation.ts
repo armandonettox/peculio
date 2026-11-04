@@ -24,12 +24,16 @@ function isZeroMoney(value: string): boolean {
 
 // ---------- Patrimonio ----------
 
-/** Serie "net" de uma moeda, pronta para o LineChart (um ponto por mes). */
+/** Serie "net" de uma moeda, filtrando meses iniciais sem movimento (saldo zero acumulado). */
 export function netWorthSeries(currency: NetWorthCurrency): LineSeries {
+  const all = currency.series.map((point) => ({ x: point.month, value: point.net }));
+  // Remove os pontos iniciais zerados (antes do usuario comecar a usar)
+  const firstNonZero = all.findIndex((point) => !/^-?0(\.0+)?$/.test(point.value));
+  const points = firstNonZero === -1 ? all : all.slice(firstNonZero);
   return {
     key: currency.currency_code,
     label: i18n.t("dashboard.presentation.net"),
-    points: currency.series.map((point) => ({ x: point.month, value: point.net })),
+    points,
   };
 }
 
