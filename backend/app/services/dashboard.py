@@ -1,3 +1,4 @@
+import calendar
 import uuid
 from collections import defaultdict
 from datetime import date, timedelta
@@ -44,7 +45,98 @@ def _month_label(index: int) -> str:
     return f"{index // 12:04d}-{index % 12 + 1:02d}"
 
 
-def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date) -> dict:
+def _occurrences_in_month(rec: Recurrence, year: int, month: int) -> int:
+    """Quantas ocorrencias da recorrencia `rec` caem no mes `year`-`month`."""
+    first_day = date(year, month, 1)
+    last_day = date(year, month, calendar.monthrange(year, month)[1])
+    start_index = recurrences.latest_index(rec.first_date, rec.frequency, first_day - timedelta(days=1))
+    start = 0 if start_index is None else start_index + 1
+    count = 0
+    for i in range(start, start + 400):
+        day = recurrences.occurrence(rec.first_date, rec.frequency, i)
+        if day > last_day:
+            break
+        if day >= first_day:
+            count += 1
+        if rec.max_occurrences and i + 1 >= rec.max_occurrences:
+            break
+        if rec.end_date and day >= rec.end_date:
+            break
+    return count
+
+
+def _net_worth_forecast(
+    db: Session,
+    user_id: uuid.UUID,
+    forecast_months: int,
+    as_of: date,
+    accounts: list[Account],
+    account_balances: dict[uuid.UUID, Decimal],
+    places: dict[str, int],
+) -> dict[str, list[dict]]:
+    """Projeta forecast_months meses futuros com base nas recorrencias auto_create ativas."""
+    account_map = {acc.id: acc for acc in accounts}
+    active_recs = list(
+        db.execute(
+            select(Recurrence).where(
+                Recurrence.user_id == user_id,
+                Recurrence.auto_create.is_(True),
+                Recurrence.active.is_(True),
+            )
+        ).scalars()
+    )
+
+    last = _month_index(as_of)
+    balances = dict(account_balances)
+    result: dict[str, list[dict]] = {acc.currency_code: [] for acc in accounts}
+
+    for offset in range(1, forecast_months + 1):
+        idx = last + offset
+        year, month = idx // 12, idx % 12 + 1
+
+        for rec in active_recs:
+            if rec.first_date > date(year, month, calendar.monthrange(year, month)[1]):
+                continue
+            count = _occurrences_in_month(rec, year, month)
+            if count == 0:
+                continue
+            try:
+                template = TransactionCreate.model_validate(rec.template)
+            except ValidationError:
+                continue
+            for split in template.splits:
+                acc = account_map.get(split.account_id)
+                if acc is None or acc.currency_code != split.currency_code:
+                    continue
+                signed = split.amount * count
+                if split.type == "withdrawal":
+                    balances[acc.id] = balances.get(acc.id, ZERO) - signed
+                elif split.type == "deposit":
+                    balances[acc.id] = balances.get(acc.id, ZERO) + signed
+
+        for code in result:
+            decimals = places.get(code, 2)
+            point_assets = sum(
+                (balances.get(acc.id, ZERO) for acc in accounts if acc.currency_code == code and acc.type == AccountType.asset),
+                ZERO,
+            )
+            point_liabilities = sum(
+                (balances.get(acc.id, ZERO) for acc in accounts if acc.currency_code == code and acc.type == AccountType.liability),
+                ZERO,
+            )
+            result[code].append(
+                {
+                    "month": _month_label(idx),
+                    "assets": quantize_money(point_assets, decimals),
+                    "liabilities": quantize_money(point_liabilities, decimals),
+                    "net": quantize_money(point_assets + point_liabilities, decimals),
+                    "forecast": True,
+                }
+            )
+    return result
+
+
+def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date, forecast_months: int = 0) -> dict:
     """Patrimonio por moeda: saldo de cada conta de ativo e passivo (arquivadas incluidas) no fim de
     cada um dos ultimos `months` meses. O mes de `as_of` fecha em `as_of`; o que e depois dele nao conta.
 
@@ -63,6 +155,7 @@ def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date) -> dict
     # Por moeda e por mes da janela: soma dos saldos dos ativos e dos passivos
     assets: dict[str, dict[int, Decimal]] = defaultdict(lambda: defaultdict(lambda: ZERO))
     liabilities: dict[str, dict[int, Decimal]] = defaultdict(lambda: defaultdict(lambda: ZERO))
+    account_balances: dict[uuid.UUID, Decimal] = {}
     for account in accounts:
         by_month = {y * 12 + m - 1: value for (y, m), value in changes[account.id].items()}
         # O que aconteceu antes da janela entra no saldo de partida
@@ -74,8 +167,15 @@ def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date) -> dict
         for index in range(first, last + 1):
             balance += by_month.get(index, ZERO)
             target[account.currency_code][index] += balance
+        account_balances[account.id] = balance
 
     places = _places(db, set(assets))
+    forecast_series = (
+        _net_worth_forecast(db, user_id, forecast_months, as_of, accounts, account_balances, places)
+        if forecast_months > 0
+        else {}
+    )
+
     currencies = []
     for code in sorted(assets):
         decimals = places[code]
@@ -89,9 +189,11 @@ def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date) -> dict
                     "assets": quantize_money(point_assets, decimals),
                     "liabilities": quantize_money(point_liabilities, decimals),
                     "net": quantize_money(point_assets + point_liabilities, decimals),
+                    "forecast": False,
                 }
             )
-        today_point = series[-1]
+        series.extend(forecast_series.get(code, []))
+        today_point = series[months - 1]
         currencies.append(
             {
                 "currency_code": code,

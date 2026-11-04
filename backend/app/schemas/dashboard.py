@@ -23,6 +23,8 @@ class NetWorthPoint(BaseModel):
     # Soma dos saldos das contas de passivo (dividas). Negativo quando se deve: o patrimonio e assets + liabilities
     liabilities: Money
     net: Money
+    # True quando o ponto e projetado (recorrencias futuras), False quando e historico real
+    forecast: bool = False
 
 
 class NetWorthCurrency(BaseModel):
