@@ -115,12 +115,15 @@ it("o menu lateral aparece por padrao, com o botao de ocultar", () => {
   expect(brandsInHeader()).toBe(1);
 });
 
-it("ocultar tira o menu e o recuo do conteudo, mostra a marca no cabecalho e troca o botao", async () => {
+it("colapsar reduz o menu para icones, ajusta o recuo do conteudo, mostra a marca no cabecalho e troca o botao", async () => {
   renderShell();
   await userEvent.click(sidebarToggle());
   expect(sidebarToggle()).toHaveAccessibleName("Mostrar menu lateral");
   expect(sidebarToggle()).toHaveAttribute("aria-expanded", "false");
-  expect(sidebar()).not.toHaveClass("lg:flex");
+  expect(sidebar()).toHaveClass("lg:flex");
+  expect(sidebar()).toHaveClass("w-16");
+  expect(sidebar()).not.toHaveClass("w-60");
+  expect(screen.getByRole("main").parentElement).toHaveClass("lg:pl-16");
   expect(screen.getByRole("main").parentElement).not.toHaveClass("lg:pl-60");
   expect(brandsInHeader()).toBe(2);
 });
@@ -140,7 +143,8 @@ it("a escolha fica guardada e o app abre do mesmo jeito", async () => {
   first.unmount();
   renderShell();
   expect(sidebarToggle()).toHaveAccessibleName("Mostrar menu lateral");
-  expect(sidebar()).not.toHaveClass("lg:flex");
+  expect(sidebar()).toHaveClass("w-16");
+  expect(sidebar()).not.toHaveClass("w-60");
 });
 
 it("Ctrl+B oculta e mostra o menu", async () => {
