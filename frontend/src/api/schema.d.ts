@@ -2407,6 +2407,12 @@ export interface components {
             month: string;
             /** Net */
             net: string;
+            /**
+             * Forecast
+             * @description True quando o ponto e projetado (recorrencias futuras)
+             * @default false
+             */
+            forecast?: boolean;
         };
         /** Page[AccountOut] */
         Page_AccountOut_: {
@@ -5083,6 +5089,7 @@ export interface operations {
         parameters: {
             query?: {
                 months?: number;
+                forecast_months?: number;
             };
             header?: never;
             path?: never;

@@ -144,6 +144,7 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
             const color = chartColorVar(pickColor(item.color, seriesIndex));
             return lookups[seriesIndex].map((text, xIndex) => {
               if (text === null) return null;
+              const isForecast = item.points[xIndex]?.forecast ?? false;
               const value = parseDecimal(text);
               const y = round2(yScale(value));
               const barTop = value >= 0 ? y : zeroY;
@@ -157,8 +158,9 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
                   width={round2(barWidth)}
                   height={barHeight}
                   rx={2}
-                  style={{ fill: color }}
-                  fillOpacity={isActive ? 1 : 0.85}
+                  style={{ fill: color, stroke: isForecast ? color : "none", strokeDasharray: isForecast ? "3 2" : undefined }}
+                  fillOpacity={isForecast ? (isActive ? 0.55 : 0.35) : isActive ? 1 : 0.85}
+                  strokeWidth={isForecast ? 1.5 : 0}
                   className="cursor-pointer transition-opacity"
                   onMouseEnter={() => setActive({ seriesIndex, xIndex })}
                   onMouseLeave={() => setActive(null)}

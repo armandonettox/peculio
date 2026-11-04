@@ -50,6 +50,12 @@ export function LineChart({ title, description, series, formatValue, formatX, he
     for (const point of item.points) byX.set(point.x, point.value);
     return xs.map((x) => byX.get(x) ?? null);
   });
+  // Flag de previsao por x
+  const forecastLookups = series.map((item) => {
+    const byX = new Map<string, boolean>();
+    for (const point of item.points) byX.set(point.x, point.forecast ?? false);
+    return xs.map((x) => byX.get(x) ?? false);
+  });
   const numbers = lookups.flatMap((values) => values.flatMap((text) => (text === null ? [] : [parseDecimal(text)])));
   const ticks = niceTicks(Math.min(...numbers), Math.max(...numbers));
   const hasNegative = numbers.some((value) => value < 0);
@@ -161,19 +167,59 @@ export function LineChart({ title, description, series, formatValue, formatX, he
             />
           ) : null}
 
-          {series.map((item, seriesIndex) => (
-            <path
-              key={item.key}
-              d={linePath(seriesPoints[seriesIndex])}
-              data-series={item.key}
-              fill="none"
-              strokeWidth={2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              strokeDasharray={dashPattern(seriesIndex) || undefined}
-              style={{ stroke: chartColorVar(pickColor(item.color, seriesIndex)) }}
-            />
-          ))}
+          {series.map((item, seriesIndex) => {
+            const color = chartColorVar(pickColor(item.color, seriesIndex));
+            const pts = seriesPoints[seriesIndex];
+            const fcast = forecastLookups[seriesIndex];
+            const splitIdx = fcast.findIndex(Boolean);
+            // Se nao ha pontos de previsao, renderiza o caminho unico normalmente
+            if (splitIdx === -1) {
+              return (
+                <path
+                  key={item.key}
+                  d={linePath(pts)}
+                  data-series={item.key}
+                  fill="none"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={dashPattern(seriesIndex) || undefined}
+                  style={{ stroke: color }}
+                />
+              );
+            }
+            // Parte real: do inicio ate o ultimo ponto antes da previsao (inclui o ponto de conexao)
+            const realPts = pts.map((pt, i) => (i <= splitIdx ? pt : null));
+            // Parte prevista: do ultimo ponto real ate o fim (sobrepoe em 1 ponto para conectar)
+            const forecastPts = pts.map((pt, i) => (i >= splitIdx - 1 ? pt : null));
+            const dash = dashPattern(seriesIndex);
+            return (
+              <>
+                <path
+                  key={`${item.key}-real`}
+                  d={linePath(realPts)}
+                  data-series={item.key}
+                  fill="none"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={dash || undefined}
+                  style={{ stroke: color }}
+                />
+                <path
+                  key={`${item.key}-forecast`}
+                  d={linePath(forecastPts)}
+                  fill="none"
+                  strokeWidth={2}
+                  strokeOpacity={0.5}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeDasharray={dash ? `${dash} 4 3` : "4 3"}
+                  style={{ stroke: color }}
+                />
+              </>
+            );
+          })}
         </svg>
 
         <svg
@@ -201,12 +247,14 @@ export function LineChart({ title, description, series, formatValue, formatX, he
           {series.map((item, seriesIndex) =>
             seriesPoints[seriesIndex].map((point, xIndex) => {
               if (!point) return null;
+              const isForecast = forecastLookups[seriesIndex][xIndex];
               const color = chartColorVar(pickColor(item.color, seriesIndex));
               const shape = markerShape(seriesIndex);
               return (
                 <path
                   key={`${item.key}:${xs[xIndex]}`}
                   d={markerPath(shape, point.x, point.y, MARKER_RADIUS)}
+                  fillOpacity={isForecast ? 0.45 : undefined}
                   ref={(element) => {
                     if (element) pointRefs.current.set(`${seriesIndex}:${xIndex}`, element);
                     else pointRefs.current.delete(`${seriesIndex}:${xIndex}`);

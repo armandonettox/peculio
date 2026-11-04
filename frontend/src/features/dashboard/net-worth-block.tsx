@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 /** Patrimonio de hoje por moeda (liquido, ativos e dividas) e a evolucao dos ultimos meses. */
 export function NetWorthBlock() {
   const { t } = useTranslation();
-  const query = useNetWorth({ months: 12 });
+  const query = useNetWorth({ months: 12, forecastMonths: 3 });
   const currencies = query.data?.currencies ?? [];
 
   return (

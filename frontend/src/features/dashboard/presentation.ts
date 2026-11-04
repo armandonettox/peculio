@@ -26,9 +26,9 @@ function isZeroMoney(value: string): boolean {
 
 /** Serie "net" de uma moeda, filtrando meses iniciais sem movimento (saldo zero acumulado). */
 export function netWorthSeries(currency: NetWorthCurrency): LineSeries {
-  const all = currency.series.map((point) => ({ x: point.month, value: point.net }));
-  // Remove os pontos iniciais zerados (antes do usuario comecar a usar)
-  const firstNonZero = all.findIndex((point) => !/^-?0(\.0+)?$/.test(point.value));
+  const all = currency.series.map((point) => ({ x: point.month, value: point.net, forecast: point.forecast ?? false }));
+  // Remove os pontos iniciais zerados (antes do usuario comecar a usar); pontos de previsao nunca sao zerados
+  const firstNonZero = all.findIndex((point) => point.forecast || !/^-?0(\.0+)?$/.test(point.value));
   const points = firstNonZero === -1 ? all : all.slice(firstNonZero);
   return {
     key: currency.currency_code,

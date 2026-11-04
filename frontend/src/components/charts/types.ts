@@ -14,6 +14,8 @@ export type ChartPoint = {
   x: string;
   // Texto decimal; pode ser negativo
   value: string;
+  // True quando o ponto e uma projecao futura (nao dados reais)
+  forecast?: boolean;
 };
 
 export type LineSeries = {

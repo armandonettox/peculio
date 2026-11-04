@@ -13,10 +13,15 @@ export type UpcomingItem = components["schemas"]["UpcomingItem"];
 export { dashboardKey };
 
 /** Patrimonio de hoje e a evolucao mes a mes, por moeda. */
-export function useNetWorth({ months = 12 }: { months?: number } = {}) {
+export function useNetWorth({ months = 12, forecastMonths = 0 }: { months?: number; forecastMonths?: number } = {}) {
   return useQuery({
-    queryKey: [...dashboardKey, "net-worth", { months }],
-    queryFn: () => unwrap(api.client.GET("/api/v1/dashboard/net-worth", { params: { query: { months } } })),
+    queryKey: [...dashboardKey, "net-worth", { months, forecastMonths }],
+    queryFn: () =>
+      unwrap(
+        api.client.GET("/api/v1/dashboard/net-worth", {
+          params: { query: { months, forecast_months: forecastMonths } },
+        }),
+      ),
   });
 }
 
