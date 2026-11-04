@@ -6,10 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { fakeApiTokensApi, makeApiToken } from "@/test-utils/api-tokens-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
-import { fakeInstanceApi } from "@/test-utils/instance-api";
-import { fakeSessionsApi } from "@/test-utils/sessions-api";
-import { fakeTwoFactorApi } from "@/test-utils/two-factor-api";
-import { SecuritySection } from "./security-section";
+import { ApiTokensSection } from "@/features/api-tokens/api-tokens-section";
 
 // "Hoje" fixo: a validade e o aviso de "perto de vencer" dependem do dia
 beforeEach(() => {
@@ -20,11 +17,11 @@ afterEach(() => vi.useRealTimers());
 
 function renderPage(tokens: ReturnType<typeof makeApiToken>[] = []) {
   const api = fakeApiTokensApi(tokens);
-  server.use(...api.handlers, ...fakeTwoFactorApi().handlers, ...fakeInstanceApi().handlers, ...fakeSessionsApi().handlers);
+  server.use(...api.handlers);
   render(
     <FakeAuth>
       <MemoryRouter>
-        <SecuritySection />
+        <ApiTokensSection />
       </MemoryRouter>
     </FakeAuth>,
   );

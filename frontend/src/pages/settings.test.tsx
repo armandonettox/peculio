@@ -7,11 +7,14 @@ import type { User } from "@/auth/auth-context";
 import { tokenStore } from "@/auth/token-store";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { THEME_STORAGE_KEY } from "@/hooks/use-theme";
+import { fakeApiTokensApi } from "@/test-utils/api-tokens-api";
 import { fakeAccountsApi } from "@/test-utils/accounts-api";
 import { fakeInstanceApi } from "@/test-utils/instance-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth, testUser } from "@/test-utils/providers";
 import { fakeAccountApi, fakeInvitesApi, makeInvite } from "@/test-utils/settings-api";
+import { fakeSessionsApi } from "@/test-utils/sessions-api";
+import { fakeTwoFactorApi } from "@/test-utils/two-factor-api";
 import { fakeWebhooksApi } from "@/test-utils/webhooks-api";
 import SettingsPage from "./settings";
 
@@ -49,6 +52,9 @@ function renderPage({
     ...instance.handlers,
     ...fakeAccountsApi([]).handlers,
     ...fakeWebhooksApi([]).handlers,
+    ...fakeTwoFactorApi().handlers,
+    ...fakeSessionsApi().handlers,
+    ...fakeApiTokensApi().handlers,
   );
   render(
     <FakeAuth user={as} updateUser={updateUser}>
@@ -73,15 +79,14 @@ async function openTab(name: string) {
 it("mostra as abas de qualquer usuario, Perfil ja aberta", async () => {
   renderPage({ as: member });
   expect(await screen.findByRole("heading", { level: 1, name: "Configurações" })).toBeInTheDocument();
-  for (const title of ["Perfil", "Aparência", "Segurança", "Webhooks"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
-  // Perfil e Senha vem juntas na aba que abre por padrao
+  for (const title of ["Perfil", "Aparência", "Segurança", "Webhooks e APIs"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "Perfil" })).toBeInTheDocument();
-  expect(screen.getByText("Senha")).toBeInTheDocument();
+  expect(screen.queryByText("Senha")).not.toBeInTheDocument();
 });
 
 it("a aba Webhooks fica disponivel para qualquer usuario", async () => {
   renderPage({ as: member });
-  await openTab("Webhooks");
+  await openTab("Webhooks e APIs");
   expect(await screen.findByText("Avisos automáticos para outros sistemas")).toBeInTheDocument();
   expect(screen.getByText("Nenhum webhook ainda")).toBeInTheDocument();
 });
@@ -189,6 +194,7 @@ async function fillPassword({ current = "SenhaAtual123", next = "NovaSenha456", 
 
 it("trocar a senha manda as duas, limpa o formulario, avisa e guarda o token novo", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await fillPassword();
   await user.click(screen.getByRole("button", { name: "Trocar senha" }));
@@ -203,6 +209,7 @@ it("trocar a senha manda as duas, limpa o formulario, avisa e guarda o token nov
 
 it("formulario vazio mostra os erros e nao chama o servidor", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await user.click(screen.getByRole("button", { name: "Trocar senha" }));
   expect(await screen.findByText("Informe a senha atual.")).toBeVisible();
@@ -213,6 +220,7 @@ it("formulario vazio mostra os erros e nao chama o servidor", async () => {
 
 it("a confirmacao diferente e recusada antes de ir ao servidor", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await fillPassword({ confirm: "Diferente789" });
   await user.click(screen.getByRole("button", { name: "Trocar senha" }));
@@ -223,6 +231,7 @@ it("a confirmacao diferente e recusada antes de ir ao servidor", async () => {
 
 it("a nova senha igual a atual e recusada", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await fillPassword({ current: "MesmaSenha1", next: "MesmaSenha1", confirm: "MesmaSenha1" });
   await user.click(screen.getByRole("button", { name: "Trocar senha" }));
@@ -232,6 +241,7 @@ it("a nova senha igual a atual e recusada", async () => {
 
 it("senha atual errada vira erro do campo, sem limpar o que foi digitado e sem trocar o token", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await fillPassword({ current: "Errada12345" });
   await user.click(screen.getByRole("button", { name: "Trocar senha" }));
@@ -244,6 +254,7 @@ it("senha atual errada vira erro do campo, sem limpar o que foi digitado e sem t
 
 it("outro erro do servidor (limite de tentativas) vira aviso do formulario", async () => {
   const { account } = renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   await fillPassword();
   account.state.nextError = { status: 429, code: "rate_limited" };
@@ -254,6 +265,7 @@ it("outro erro do servidor (limite de tentativas) vira aviso do formulario", asy
 
 it("os campos de senha tem o preenchimento automatico certo (gerenciador de senhas)", async () => {
   renderPage();
+  await openTab("Segurança");
   await screen.findByLabelText("Senha atual");
   expect(field("Senha atual")).toHaveAttribute("autocomplete", "current-password");
   expect(field("Nova senha")).toHaveAttribute("autocomplete", "new-password");

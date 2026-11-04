@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it, vi } from "vitest";
 
+import { fakeApiTokensApi } from "@/test-utils/api-tokens-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import { fakeWebhooksApi, FAKE_SECRET, makeDelivery, makeWebhook } from "@/test-utils/webhooks-api";
@@ -11,7 +12,7 @@ import { WebhooksSection } from "./webhooks-section";
 
 function renderPage(webhooks = [makeWebhook({ name: "Planilha" })], deliveries: Record<string, WebhookDelivery[]> = {}) {
   const api = fakeWebhooksApi(webhooks, deliveries);
-  server.use(...api.handlers);
+  server.use(...api.handlers, ...fakeApiTokensApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter>
