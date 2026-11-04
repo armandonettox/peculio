@@ -56,6 +56,8 @@ export type DonutChartProps = {
   // Acima disso, o resto vira uma fatia so
   maxSlices?: number;
   otherLabel?: string;
+  // Chamado ao clicar em uma fatia; nao chamado para a fatia agrupada "Outras"
+  onSliceClick?: (slice: DonutSlice) => void;
   className?: string;
 };
 

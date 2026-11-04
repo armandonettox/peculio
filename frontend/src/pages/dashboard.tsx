@@ -1,7 +1,9 @@
 import { Landmark } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
+import { type ReportPeriod } from "@/api/reports";
 import { getErrorMessage } from "@/api/error-messages";
 import { useAuth } from "@/auth/auth-context";
 import { InstallBanner } from "@/components/install-banner";
@@ -21,11 +23,19 @@ import { UpcomingBlock } from "@/features/dashboard/upcoming-block";
 import { appToday } from "@/lib/dates";
 import { useTranslation } from "react-i18next";
 
+const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
+  { value: "this-month", label: "Este mês" },
+  { value: "last-month", label: "Mês passado" },
+  { value: "last-3-months", label: "Últimos 3 meses" },
+  { value: "this-year", label: "Este ano" },
+];
+
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const firstName = user?.name.trim().split(/\s+/)[0];
   const today = appToday();
+  const [period, setPeriod] = useState<ReportPeriod>("this-month");
 
   // Enquanto nao houver nenhuma conta, o painel nao tem o que mostrar: nem dispara os
   // pedidos dos outros blocos (todos dependem, direto ou indireto, de uma conta existir)
@@ -69,6 +79,23 @@ export default function DashboardPage() {
           <div className="mb-6">
             <NetWorthBlock />
           </div>
+          {/* Seletor de periodo para os blocos de resumo e categorias */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {PERIOD_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setPeriod(option.value)}
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                  period === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
           {/*
             Colunas que se encaixam pela altura real de cada bloco, sem buraco ao lado de um bloco curto
             nem sobra no fim de uma coluna mais curta. A ordem do HTML continua a de leitura, so o lugar
@@ -76,7 +103,7 @@ export default function DashboardPage() {
           */}
           <MasonryColumns className="grid-cols-1 lg:grid-cols-2" data-testid="dashboard-columns">
             <ThisMonthBlock />
-            <CategoryBlock />
+            <CategoryBlock period={period} />
             <BudgetsBlock today={today} />
             <UpcomingBlock />
             <TransactionsBlock />

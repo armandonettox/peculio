@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import { useReportGrouped } from "@/api/reports";
-import { DonutChart } from "@/components/charts";
+import { useReportGrouped, type ReportPeriod } from "@/api/reports";
+import { DonutChart, type DonutSlice } from "@/components/charts";
 import { Select } from "@/components/ui/select";
 import { formatMoney } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
@@ -10,9 +10,10 @@ import { categorySlices, pickCurrency } from "./presentation";
 import { useTranslation } from "react-i18next";
 
 /** Para onde vai o dinheiro neste mes, por categoria (so despesas; as 6 maiores e "Outras"). */
-export function CategoryBlock() {
+export function CategoryBlock({ period = "this-month" }: { period?: ReportPeriod }) {
   const { t } = useTranslation();
-  const query = useReportGrouped("category", { period: "this-month" });
+  const navigate = useNavigate();
+  const query = useReportGrouped("category", { period });
   const [selected, setSelected] = useState<string | null>(null);
   const blocks = query.data?.currencies ?? [];
   const currency = pickCurrency(blocks, selected);
@@ -54,6 +55,13 @@ export function CategoryBlock() {
           centerValue={block ? formatMoney(block.expense, block.currency_code) : undefined}
           maxSlices={6}
           otherLabel="Outras"
+          onSliceClick={(slice: DonutSlice) => {
+            if (slice.key === "__sem_categoria__") {
+              void navigate("/transacoes");
+            } else {
+              void navigate(`/transacoes?categoria=${slice.key}`);
+            }
+          }}
         />
         <Link to="/relatorios" className="text-sm font-medium text-primary-text hover:underline">
           {t("dashboard.categoryBlock.verRelatorios")}

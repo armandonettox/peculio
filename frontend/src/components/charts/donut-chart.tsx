@@ -5,7 +5,7 @@ import { chartColorVar, pickColor } from "./chart-colors";
 import { nextListIndex } from "./chart-keyboard";
 import { round2, sumDecimals } from "./chart-numbers";
 import { ChartTable, ChartTooltip, EmptyChart } from "./chart-parts";
-import { arcMidpoint, DEFAULT_MAX_SLICES, groupSlices, ringSlicePath, roundedPercents, sliceAngles } from "./donut-geometry";
+import { arcMidpoint, DEFAULT_MAX_SLICES, groupSlices, OTHER_KEY, ringSlicePath, roundedPercents, sliceAngles } from "./donut-geometry";
 import { tooltipPlacement } from "./line-geometry";
 import type { DonutChartProps } from "./types";
 
@@ -32,6 +32,7 @@ export function DonutChart({
   centerValue,
   maxSlices = DEFAULT_MAX_SLICES,
   otherLabel = "Outras",
+  onSliceClick,
   className,
 }: DonutChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -120,7 +121,7 @@ export function DonutChart({
                 data-index={index}
                 role="img"
                 aria-label={`${item.label}: ${sliceText(index)}`}
-                className="pointer-events-auto cursor-pointer outline-none"
+                className={`pointer-events-auto outline-none ${onSliceClick && item.key !== OTHER_KEY ? "cursor-pointer" : "cursor-default"}`}
                 fill="transparent"
                 onFocus={() => {
                   setActiveIndex(index);
@@ -129,6 +130,12 @@ export function DonutChart({
                 onBlur={() => setActiveIndex(null)}
                 onMouseEnter={() => setActiveIndex(index)}
                 onMouseLeave={() => setActiveIndex(null)}
+                onClick={() => {
+                  if (onSliceClick && item.key !== OTHER_KEY) {
+                    const original = slices.find((s) => s.key === item.key);
+                    if (original) onSliceClick(original);
+                  }
+                }}
               />
             ))}
           </svg>
