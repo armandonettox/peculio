@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { chartColorVar, pickColor } from "./chart-colors";
+import { firstGridPoint, nextGridPoint, type GridPoint } from "./chart-keyboard";
 import { parseDecimal, round2, toDecimalText } from "./chart-numbers";
 import { ChartTable, ChartTooltip, EmptyChart } from "./chart-parts";
 import { linearScale, niceTicks } from "./chart-scale";
@@ -20,8 +21,11 @@ const BAR_GAP_RATIO = 0.25; // fracao da largura total por periodo que vira espa
  * Aceita as mesmas props que LineChart para ser intercambivel.
  */
 export function BarChart({ title, description, series, formatValue, formatX, height = 220, className }: LineChartProps) {
+  const keysHintId = useId();
   const { ref, width } = useContainerWidth<HTMLDivElement>();
   const [active, setActive] = useState<{ seriesIndex: number; xIndex: number } | null>(null);
+  const [tabStop, setTabStop] = useState<GridPoint | null>(null);
+  const pointRefs = useRef(new Map<string, SVGRectElement>());
 
   const xs = buildXValues(series);
   if (xs.length === 0) return <EmptyChart label={title} kind="line" className={className} />;
@@ -59,6 +63,10 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
   const barX = (xIndex: number, seriesIndex: number) =>
     round2(plotLeft + xIndex * slotWidth + slotWidth * (BAR_GAP_RATIO / 2) + seriesIndex * barWidth);
 
+  const presence = lookups.map((values) => values.map((text) => text !== null));
+  const stop = tabStop && presence[tabStop.seriesIndex]?.[tabStop.xIndex] ? tabStop : firstGridPoint(presence);
+  const manyPoints = presence.flat().filter(Boolean).length > 1;
+
   const activeValue =
     active !== null ? (lookups[active.seriesIndex][active.xIndex] ?? null) : null;
   const activePt =
@@ -66,9 +74,18 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
       ? { x: slotCenterX(active.xIndex), y: round2(yScale(parseDecimal(activeValue))) }
       : null;
 
+  const pointLabel = (seriesIndex: number, xIndex: number) =>
+    series.length > 1 ? `${series[seriesIndex].label}, ${xLabels[xIndex]}` : xLabels[xIndex];
+  const pointValue = (seriesIndex: number, xIndex: number) => formatValue(lookups[seriesIndex][xIndex] ?? "0");
+
   return (
     <div data-chart="bar" className={cn("flex flex-col gap-2", className)}>
       {description ? <span className="sr-only">{description}</span> : null}
+      {manyPoints ? (
+        <span id={keysHintId} className="sr-only">
+          Use as setas do teclado para percorrer os pontos, Home e End para ir ao primeiro e ao último.
+        </span>
+      ) : null}
 
       <div ref={ref} className="relative">
         <svg
@@ -149,6 +166,68 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
               );
             });
           })}
+        </svg>
+
+        <svg
+          role="group"
+          aria-label={`Pontos de ${title}`}
+          aria-describedby={manyPoints ? keysHintId : undefined}
+          width="100%"
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          className="pointer-events-none absolute inset-0 block"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setActive(null);
+              return;
+            }
+            const seriesIndex = Number(event.target instanceof Element ? event.target.getAttribute("data-si") : NaN);
+            const xIndex = Number(event.target instanceof Element ? event.target.getAttribute("data-xi") : NaN);
+            if (Number.isNaN(seriesIndex) || Number.isNaN(xIndex)) return;
+            const next = nextGridPoint(presence, { seriesIndex, xIndex }, event.key);
+            if (!next) return;
+            event.preventDefault();
+            pointRefs.current.get(`${next.seriesIndex}:${next.xIndex}`)?.focus();
+          }}
+        >
+          {series.map((item, seriesIndex) =>
+            lookups[seriesIndex].map((text, xIndex) => {
+              if (text === null) return null;
+              const value = parseDecimal(text);
+              const y = round2(yScale(value));
+              const barTop = value >= 0 ? y : zeroY;
+              const barHeight = Math.max(1, Math.abs(zeroY - y));
+              const isStop = stop?.seriesIndex === seriesIndex && stop?.xIndex === xIndex;
+              return (
+                <rect
+                  key={`${item.key}:${xs[xIndex]}`}
+                  x={barX(xIndex, seriesIndex)}
+                  y={barTop}
+                  width={round2(barWidth)}
+                  height={barHeight}
+                  ref={(element) => {
+                    if (element) pointRefs.current.set(`${seriesIndex}:${xIndex}`, element);
+                    else pointRefs.current.delete(`${seriesIndex}:${xIndex}`);
+                  }}
+                  tabIndex={isStop ? 0 : -1}
+                  role="img"
+                  aria-label={`${pointLabel(seriesIndex, xIndex)}: ${pointValue(seriesIndex, xIndex)}`}
+                  data-point={`${item.key}:${xs[xIndex]}`}
+                  data-si={seriesIndex}
+                  data-xi={xIndex}
+                  fill="transparent"
+                  className="pointer-events-auto cursor-pointer outline-none"
+                  onFocus={() => {
+                    setActive({ seriesIndex, xIndex });
+                    setTabStop({ seriesIndex, xIndex });
+                  }}
+                  onBlur={() => setActive(null)}
+                  onMouseEnter={() => setActive({ seriesIndex, xIndex })}
+                  onMouseLeave={() => setActive(null)}
+                />
+              );
+            }),
+          )}
         </svg>
 
         {active !== null && activePt ? (
