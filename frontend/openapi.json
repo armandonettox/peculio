@@ -2324,6 +2324,11 @@
             "title": "Assets",
             "type": "string"
           },
+          "forecast": {
+            "default": false,
+            "title": "Forecast",
+            "type": "boolean"
+          },
           "liabilities": {
             "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
             "title": "Liabilities",
@@ -5085,6 +5090,86 @@
           "revoked"
         ],
         "title": "SessionsRevoked",
+        "type": "object"
+      },
+      "SpendingForecastCurrency": {
+        "properties": {
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingForecastPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "currency_code",
+          "series"
+        ],
+        "title": "SpendingForecastCurrency",
+        "type": "object"
+      },
+      "SpendingForecastOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "currencies": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingForecastCurrency"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "months": {
+            "title": "Months",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "as_of",
+          "months",
+          "currencies"
+        ],
+        "title": "SpendingForecastOut",
+        "type": "object"
+      },
+      "SpendingForecastPoint": {
+        "description": "Receita e despesa projetadas para o mes `month` (AAAA-MM) com base nas recorrencias ativas.",
+        "properties": {
+          "expense": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Expense",
+            "type": "string"
+          },
+          "income": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Income",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "net": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Net",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "income",
+          "expense",
+          "net"
+        ],
+        "title": "SpendingForecastPoint",
         "type": "object"
       },
       "SplitIds": {
@@ -8523,7 +8608,7 @@
     },
     "/api/v1/dashboard/net-worth": {
       "get": {
-        "description": "Patrimonio de hoje e sua evolucao mes a mes, por moeda.",
+        "description": "Patrimonio de hoje e sua evolucao mes a mes, por moeda.\nCom forecast_months > 0, estende a serie com pontos projetados pelas recorrencias ativas.",
         "operationId": "get_net_worth_api_v1_dashboard_net_worth_get",
         "parameters": [
           {
@@ -8535,6 +8620,18 @@
               "maximum": 36,
               "minimum": 1,
               "title": "Months",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "forecast_months",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 6,
+              "minimum": 0,
+              "title": "Forecast Months",
               "type": "integer"
             }
           }
@@ -8567,6 +8664,57 @@
           }
         ],
         "summary": "Get Net Worth",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/v1/dashboard/spending-forecast": {
+      "get": {
+        "description": "Projecao de receitas e despesas dos proximos `months` meses pelas recorrencias auto_create ativas.",
+        "operationId": "get_spending_forecast_api_v1_dashboard_spending_forecast_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "months",
+            "required": false,
+            "schema": {
+              "default": 3,
+              "maximum": 6,
+              "minimum": 1,
+              "title": "Months",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendingForecastOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Spending Forecast",
         "tags": [
           "dashboard"
         ]

@@ -507,7 +507,8 @@
       "nenhumaDespesaComCategoria": "No expenses with a category this month yet.",
       "verRelatorios": "View reports",
       "noCategory": "No category",
-      "spendingByCategoryIn": "Spending by category in {{currency}}"
+      "spendingByCategoryIn": "Spending by category in {{currency}}",
+      "previsaoProximos3Meses": "Forecast for the next 3 months ({{currency}})"
     },
     "netWorthBlock": {
       "patrimonio": "Net worth",
@@ -562,7 +563,9 @@
       "overBudget_one": "{{count}} budget at its limit",
       "overBudget_other": "{{count}} budgets at their limit",
       "nearLimit_one": "{{count}} budget near its limit (above {{percent}}%)",
-      "nearLimit_other": "{{count}} budgets near their limit (above {{percent}}%)"
+      "nearLimit_other": "{{count}} budgets near their limit (above {{percent}}%)",
+      "despesa": "Expense",
+      "receita": "Income"
     }
   },
   "money": {

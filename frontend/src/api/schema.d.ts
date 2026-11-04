@@ -612,6 +612,7 @@ export interface paths {
         /**
          * Get Net Worth
          * @description Patrimonio de hoje e sua evolucao mes a mes, por moeda.
+         *     Com forecast_months > 0, estende a serie com pontos projetados pelas recorrencias ativas.
          */
         get: operations["get_net_worth_api_v1_dashboard_net_worth_get"];
         put?: never;
@@ -631,7 +632,7 @@ export interface paths {
         };
         /**
          * Get Spending Forecast
-         * @description Projecao de receitas e despesas dos proximos meses pelas recorrencias auto_create ativas.
+         * @description Projecao de receitas e despesas dos proximos `months` meses pelas recorrencias auto_create ativas.
          */
         get: operations["get_spending_forecast_api_v1_dashboard_spending_forecast_get"];
         put?: never;
@@ -2421,18 +2422,17 @@ export interface components {
         NetWorthPoint: {
             /** Assets */
             assets: string;
+            /**
+             * Forecast
+             * @default false
+             */
+            forecast: boolean;
             /** Liabilities */
             liabilities: string;
             /** Month */
             month: string;
             /** Net */
             net: string;
-            /**
-             * Forecast
-             * @description True quando o ponto e projetado (recorrencias futuras)
-             * @default false
-             */
-            forecast?: boolean;
         };
         /** Page[AccountOut] */
         Page_AccountOut_: {
@@ -3344,6 +3344,39 @@ export interface components {
             /** Revoked */
             revoked: number;
         };
+        /** SpendingForecastCurrency */
+        SpendingForecastCurrency: {
+            /** Currency Code */
+            currency_code: string;
+            /** Series */
+            series: components["schemas"]["SpendingForecastPoint"][];
+        };
+        /** SpendingForecastOut */
+        SpendingForecastOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Currencies */
+            currencies: components["schemas"]["SpendingForecastCurrency"][];
+            /** Months */
+            months: number;
+        };
+        /**
+         * SpendingForecastPoint
+         * @description Receita e despesa projetadas para o mes `month` (AAAA-MM) com base nas recorrencias ativas.
+         */
+        SpendingForecastPoint: {
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Month */
+            month: string;
+            /** Net */
+            net: string;
+        };
         /** SplitIds */
         SplitIds: {
             /** Split Ids */
@@ -3708,36 +3741,6 @@ export interface components {
             name: string;
             /** Overdue */
             overdue: boolean;
-        };
-        /** SpendingForecastPoint */
-        SpendingForecastPoint: {
-            /** Month */
-            month: string;
-            /** Income */
-            income: string;
-            /** Expense */
-            expense: string;
-            /** Net */
-            net: string;
-        };
-        /** SpendingForecastCurrency */
-        SpendingForecastCurrency: {
-            /** Currency Code */
-            currency_code: string;
-            /** Series */
-            series: components["schemas"]["SpendingForecastPoint"][];
-        };
-        /** SpendingForecastOut */
-        SpendingForecastOut: {
-            /**
-             * As Of
-             * Format: date
-             */
-            as_of: string;
-            /** Months */
-            months: number;
-            /** Currencies */
-            currencies: components["schemas"]["SpendingForecastCurrency"][];
         };
         /** UpcomingOut */
         UpcomingOut: {

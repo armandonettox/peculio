@@ -29,7 +29,7 @@ export function makeNetWorthCurrency(
   const months = monthsEndingAt(last, nets.length);
   const series = nets.map((net, index) => {
     const assets = (Number(net) + Number(debt)).toFixed(2);
-    return { month: months[index], assets, liabilities: (-Number(debt)).toFixed(2), net };
+    return { month: months[index], assets, liabilities: (-Number(debt)).toFixed(2), net, forecast: false };
   });
   const current = series[series.length - 1];
   return { currency_code: currency, assets: current.assets, liabilities: current.liabilities, net: current.net, series };
