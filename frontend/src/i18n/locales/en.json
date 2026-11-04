@@ -339,6 +339,14 @@
       "navegacaoPrincipal": "Main navigation",
       "emBreve": "Coming soon"
     },
+    "sidebarNewButton": {
+      "novo": "New",
+      "novoLancamento": "New transaction",
+      "despesa": "Expense",
+      "despesaCartao": "Card Expense",
+      "receita": "Income",
+      "transferencia": "Transfer"
+    },
     "userMenu": {
       "menuDoUsuario": "User menu",
       "instalarApp": "Install app",

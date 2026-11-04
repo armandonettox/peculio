@@ -97,25 +97,25 @@ describe("useSidebar", () => {
 
   it("comeca aparente e o toggle alterna e guarda", () => {
     const { result } = renderHook(() => useSidebar());
-    expect(result.current.hidden).toBe(false);
+    expect(result.current.collapsed).toBe(false);
     act(() => result.current.toggle());
-    expect(result.current.hidden).toBe(true);
+    expect(result.current.collapsed).toBe(true);
     expect(readSidebarHidden()).toBe(true);
     act(() => result.current.toggle());
-    expect(result.current.hidden).toBe(false);
+    expect(result.current.collapsed).toBe(false);
     expect(readSidebarHidden()).toBe(false);
   });
 
   it("abre oculto quando a ultima escolha foi ocultar", () => {
     saveSidebarHidden(true);
-    expect(renderHook(() => useSidebar()).result.current.hidden).toBe(true);
+    expect(renderHook(() => useSidebar()).result.current.collapsed).toBe(true);
   });
 
   it("Ctrl+B alterna e impede o atalho do navegador", () => {
     const { result } = renderHook(() => useSidebar());
     const event = press({ key: "b", ctrlKey: true });
     expect(event.defaultPrevented).toBe(true);
-    expect(result.current.hidden).toBe(true);
+    expect(result.current.collapsed).toBe(true);
   });
 
   it("dentro de um campo de texto o atalho nao toma a tecla", () => {
@@ -124,7 +124,7 @@ describe("useSidebar", () => {
     document.body.appendChild(input);
     const event = press({ key: "b", ctrlKey: true }, input);
     expect(event.defaultPrevented).toBe(false);
-    expect(result.current.hidden).toBe(false);
+    expect(result.current.collapsed).toBe(false);
     input.remove();
   });
 
@@ -133,7 +133,7 @@ describe("useSidebar", () => {
     press({ key: "b" });
     press({ key: "n", ctrlKey: true });
     press({ key: "b", ctrlKey: true, shiftKey: true });
-    expect(result.current.hidden).toBe(false);
+    expect(result.current.collapsed).toBe(false);
   });
 
   it("depois de desmontado o atalho nao responde mais", () => {

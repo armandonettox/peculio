@@ -69,6 +69,8 @@ type Props = {
   recurrence?: Recurrence;
   // Abre ja preenchido com um lancamento novo (ex: "marcar fatura como paga"), sem repetir
   initialTemplate?: { template: TransactionCreate; date: string };
+  // Tipo pre-selecionado ao criar (ignorado em modo de edicao)
+  defaultKind?: Kind;
   onClose: () => void;
 };
 
@@ -111,7 +113,7 @@ function TagPicker({
   );
 }
 
-export function TransactionFormDialog({ transaction, repeating = false, recurrence, initialTemplate, onClose }: Props) {
+export function TransactionFormDialog({ transaction, repeating = false, recurrence, initialTemplate, defaultKind, onClose }: Props) {
   const { t } = useTranslation();
   const recurring = repeating || recurrence !== undefined;
   const editing = transaction !== undefined || recurrence !== undefined;
@@ -178,6 +180,7 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
             createRecurrence={createRecurrence}
             updateRecurrence={updateRecurrence}
             initialTemplate={initialTemplate}
+            defaultKind={defaultKind}
             onClose={onClose}
           />
         )}
@@ -202,6 +205,7 @@ type BodyProps = {
   createRecurrence: ReturnType<typeof useCreateRecurrence>;
   updateRecurrence: ReturnType<typeof useUpdateRecurrence>;
   initialTemplate?: { template: TransactionCreate; date: string };
+  defaultKind?: Kind;
   onClose: () => void;
 };
 
@@ -220,6 +224,7 @@ function FormBody({
   createRecurrence,
   updateRecurrence,
   initialTemplate,
+  defaultKind,
   onClose,
 }: BodyProps) {
   const { t } = useTranslation();
@@ -234,7 +239,7 @@ function FormBody({
     return null;
   });
   const [state, setState] = useState<FormState>(() =>
-    initial?.ok ? initial.state : emptyForm(ctx),
+    initial?.ok ? initial.state : emptyForm(ctx, defaultKind ? { kind: defaultKind } : {}),
   );
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);

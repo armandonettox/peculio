@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import { UserMenu } from "@/components/user-menu";
 import { Brand } from "./brand";
 import { SidebarNav } from "./sidebar-nav";
+import { SidebarNewButton } from "./sidebar-new-button";
 import { useSidebar } from "./use-sidebar";
 import { useTranslation } from "react-i18next";
 
@@ -20,7 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
   // So vale no desktop: no celular o menu e a gaveta
-  const { hidden, toggle } = useSidebar();
+  const { collapsed, toggle } = useSidebar();
 
   // Fecha a gaveta quando a rota muda por qualquer caminho (clique, voltar, avancar)
   useEffect(() => {
@@ -36,14 +37,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         {t("components.appShell.pularParaOConteudo")}
       </a>
 
-      <aside id={SIDEBAR_ID} className={`fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-card ${hidden ? "" : "lg:flex"}`}>
-        <div className="flex h-14 items-center border-b px-4">
-          <Brand to="/" />
+      <aside
+        id={SIDEBAR_ID}
+        className={`fixed inset-y-0 left-0 z-30 hidden flex-col border-r bg-card lg:flex ${collapsed ? "w-16" : "w-60"}`}
+      >
+        <div className={`flex h-14 items-center border-b ${collapsed ? "justify-center px-0" : "px-4"}`}>
+          {!collapsed && <Brand to="/" />}
         </div>
-        <SidebarNav />
+        <SidebarNewButton collapsed={collapsed} />
+        <SidebarNav collapsed={collapsed} />
       </aside>
 
-      <div className={hidden ? "" : "lg:pl-60"}>
+      <div className={collapsed ? "lg:pl-16" : "lg:pl-60"}>
         <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
@@ -57,6 +62,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <SheetDescription className="sr-only">{t("components.appShell.navegacaoPrincipalDoAplicativo")}</SheetDescription>
                 <Brand to="/" onNavigate={() => setMenuOpen(false)} />
               </div>
+              <SidebarNewButton collapsed={false} />
               <SidebarNav onNavigate={() => setMenuOpen(false)} />
             </SheetContent>
           </Sheet>
@@ -67,19 +73,19 @@ export function AppShell({ children }: { children: ReactNode }) {
             size="icon"
             className="hidden lg:inline-flex"
             onClick={toggle}
-            aria-label={hidden ? t("components.appShell.mostrarMenuLateral") : t("components.appShell.ocultarMenuLateral")}
-            aria-expanded={!hidden}
+            aria-label={collapsed ? t("components.appShell.mostrarMenuLateral") : t("components.appShell.ocultarMenuLateral")}
+            aria-expanded={!collapsed}
             aria-controls={SIDEBAR_ID}
             aria-keyshortcuts="Control+B Meta+B"
-            title={hidden ? t("components.appShell.showSidebarTitle") : t("components.appShell.hideSidebarTitle")}
+            title={collapsed ? t("components.appShell.showSidebarTitle") : t("components.appShell.hideSidebarTitle")}
           >
-            {hidden ? <PanelLeftOpen /> : <PanelLeftClose />}
+            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
 
           <span className="lg:hidden">
             <Brand to="/" />
           </span>
-          {hidden && (
+          {collapsed && (
             <span className="hidden lg:block">
               <Brand to="/" />
             </span>

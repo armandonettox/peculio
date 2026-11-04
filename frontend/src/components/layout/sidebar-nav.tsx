@@ -11,11 +11,12 @@ type SidebarNavProps = {
   // Chamado ao clicar num item. A gaveta do celular usa para fechar, mesmo quando o
   // item clicado e a pagina atual (ai a rota nao muda e nada mais fecharia a gaveta).
   onNavigate?: () => void;
+  collapsed?: boolean;
   // So os testes trocam a lista (para conferir o item desabilitado, que hoje nenhum item de verdade usa)
   items?: NavItem[];
 };
 
-export function SidebarNav({ onNavigate, items = navItems }: SidebarNavProps) {
+export function SidebarNav({ onNavigate, collapsed = false, items = navItems }: SidebarNavProps) {
   const { t } = useTranslation();
   return (
     <nav aria-label={t("components.sidebarNav.navegacaoPrincipal")} className="flex-1 overflow-y-auto p-3">
@@ -27,9 +28,11 @@ export function SidebarNav({ onNavigate, items = navItems }: SidebarNavProps) {
                 to={to}
                 end={to === "/"}
                 onClick={onNavigate}
+                title={collapsed ? t(labelKey) : undefined}
                 className={({ isActive }) =>
                   cn(
                     itemClasses,
+                    collapsed && "justify-center px-0",
                     isActive
                       ? "bg-accent text-primary-text"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -37,16 +40,21 @@ export function SidebarNav({ onNavigate, items = navItems }: SidebarNavProps) {
                 }
               >
                 <Icon className="size-4 shrink-0" />
-                {t(labelKey)}
+                {!collapsed && t(labelKey)}
               </NavLink>
             ) : (
               <span
                 aria-disabled="true"
-                className={cn(itemClasses, "cursor-not-allowed text-muted-foreground opacity-60")}
+                title={collapsed ? t(labelKey) : undefined}
+                className={cn(itemClasses, collapsed && "justify-center px-0", "cursor-not-allowed text-muted-foreground opacity-60")}
               >
                 <Icon className="size-4 shrink-0" />
-                {t(labelKey)}
-                <span className="ml-auto shrink-0 whitespace-nowrap text-xs font-normal">{t("components.sidebarNav.emBreve")}</span>
+                {!collapsed && (
+                  <>
+                    {t(labelKey)}
+                    <span className="ml-auto shrink-0 whitespace-nowrap text-xs font-normal">{t("components.sidebarNav.emBreve")}</span>
+                  </>
+                )}
               </span>
             )}
           </li>

@@ -339,6 +339,14 @@
       "navegacaoPrincipal": "Navegação principal",
       "emBreve": "Em breve"
     },
+    "sidebarNewButton": {
+      "novo": "Novo",
+      "novoLancamento": "Novo lançamento",
+      "despesa": "Despesa",
+      "despesaCartao": "Despesa de Cartão",
+      "receita": "Receita",
+      "transferencia": "Transferência"
+    },
     "userMenu": {
       "menuDoUsuario": "Menu do usuário",
       "instalarApp": "Instalar app",

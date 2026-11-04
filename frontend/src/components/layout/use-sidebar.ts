@@ -14,9 +14,9 @@ export function readSidebarHidden(): boolean {
   }
 }
 
-export function saveSidebarHidden(hidden: boolean): void {
+export function saveSidebarHidden(collapsed: boolean): void {
   try {
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, hidden ? "1" : "0");
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, collapsed ? "1" : "0");
   } catch {
     // Sem armazenamento: a escolha vale so ate fechar a pagina
   }
@@ -35,11 +35,11 @@ export function isEditableTarget(target: EventTarget | null): boolean {
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
-export function useSidebar(): { hidden: boolean; toggle: () => void } {
-  const [hidden, setHidden] = useState(readSidebarHidden);
+export function useSidebar(): { collapsed: boolean; toggle: () => void } {
+  const [collapsed, setCollapsed] = useState(readSidebarHidden);
 
   const toggle = useCallback(() => {
-    setHidden((current) => {
+    setCollapsed((current) => {
       saveSidebarHidden(!current);
       return !current;
     });
@@ -56,5 +56,5 @@ export function useSidebar(): { hidden: boolean; toggle: () => void } {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [toggle]);
 
-  return { hidden, toggle };
+  return { collapsed, toggle };
 }
