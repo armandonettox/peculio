@@ -118,23 +118,27 @@ test("alertas: conta atrasada e orcamento perto do limite aparecem no topo e os 
 });
 
 test("patrimonio: os totais e a serie da tela batem com a API e o grafico tem tabela para leitor de tela", async ({ page, request }) => {
-  const data = await api(request, "/dashboard/net-worth?months=12");
+  // Chama com forecast_months=3, igual ao componente, para contar todas as linhas da tabela
+  const data = await api(request, "/dashboard/net-worth?months=12&forecast_months=3");
   const brlData = data.currencies.find((item: { currency_code: string }) => item.currency_code === "BRL");
+  // Para conferir os totais, usa os valores do mes atual (sem forecast)
+  const dataNoForecast = await api(request, "/dashboard/net-worth?months=12");
+  const brlNoForecast = dataNoForecast.currencies.find((item: { currency_code: string }) => item.currency_code === "BRL");
   await openDashboard(page);
   const section = page.getByRole("region", { name: "Patrimônio em BRL" });
-  await expect(section).toContainText(money(brlData.net));
-  await expect(section).toContainText(money(brlData.assets));
-  await expect(section).toContainText(money(brlData.liabilities));
-  // O grafico real (SVG) e a tabela equivalente com um ponto por mes
+  await expect(section).toContainText(money(brlNoForecast.net));
+  await expect(section).toContainText(money(brlNoForecast.assets));
+  await expect(section).toContainText(money(brlNoForecast.liabilities));
+  // O grafico real (SVG) e a tabela equivalente com um ponto por mes (incluindo forecast)
   const chart = section.getByRole("img", { name: /Patrimônio líquido em BRL/ }).first();
   await expect(chart).toBeVisible();
   const table = section.getByRole("table", { name: "Patrimônio líquido em BRL" });
-  const firstNonZero = brlData.series.findIndex((p: { net: string }) => !/^-?0(\.0+)?$/.test(p.net));
+  const firstNonZero = brlData.series.findIndex((p: { net: string; forecast: boolean }) => p.forecast || !/^-?0(\.0+)?$/.test(p.net));
   const seriesLen = firstNonZero === -1 ? brlData.series.length : brlData.series.length - firstNonZero;
   await expect(table.getByRole("row")).toHaveCount(seriesLen + 1);
-  expect(brlData.series).toHaveLength(12);
-  // O ultimo ponto da serie e o saldo de hoje
-  expect(brlData.series[11].net).toBe(brlData.net);
+  expect(brlNoForecast.series).toHaveLength(12);
+  // O ultimo ponto da serie (sem forecast) e o saldo de hoje
+  expect(brlNoForecast.series[11].net).toBe(brlNoForecast.net);
 });
 
 test("categorias: a rosca mostra a categoria do usuario e o link vai para os relatorios", async ({ page }) => {
@@ -189,9 +193,9 @@ test("no celular a pagina nao ganha rolagem horizontal e os blocos empilham", as
 });
 
 test("teclado: o grafico de patrimonio tem uma parada de Tab e as setas percorrem os pontos", async ({ page, request }) => {
-  const data = await api(request, "/dashboard/net-worth?months=12");
+  const data = await api(request, "/dashboard/net-worth?months=12&forecast_months=3");
   const brlData = data.currencies.find((item: { currency_code: string }) => item.currency_code === "BRL");
-  const firstNonZero = brlData.series.findIndex((p: { net: string }) => !/^-?0(\.0+)?$/.test(p.net));
+  const firstNonZero = brlData.series.findIndex((p: { net: string; forecast: boolean }) => p.forecast || !/^-?0(\.0+)?$/.test(p.net));
   const seriesLen = firstNonZero === -1 ? 0 : brlData.series.length - firstNonZero;
 
   await openDashboard(page);
