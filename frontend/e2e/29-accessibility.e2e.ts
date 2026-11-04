@@ -111,7 +111,7 @@ const DIALOGS: { route: string; opener: string; then?: string; optional?: boolea
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
   { route: "/configuracoes?aba=webhooks", opener: "Novo webhook" },
-  { route: "/configuracoes?aba=seguranca", opener: "Criar token" },
+  { route: "/configuracoes?aba=webhooks", opener: "Criar token" },
   { route: "/configuracoes?aba=seguranca", opener: "Ativar verificação em duas etapas", optional: true },
 ];
 
