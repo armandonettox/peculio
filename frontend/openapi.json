@@ -5952,7 +5952,8 @@
           "counterparty",
           "amount",
           "account",
-          "type"
+          "type",
+          "category"
         ],
         "title": "TriggerField",
         "type": "string"

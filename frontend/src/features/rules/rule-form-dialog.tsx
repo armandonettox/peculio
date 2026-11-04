@@ -152,6 +152,18 @@ export function RuleFormDialog({ rule, onClose }: Props) {
         </Select>
       );
     }
+    if (trigger.field === "category") {
+      return (
+        <Select id={id} aria-label={label} aria-invalid={invalid} value={trigger.value} onChange={(e) => patchTrigger(index, { value: e.target.value })}>
+          <option value="">{t("rules.ruleFormDialog.escolhaACategoria")}</option>
+          {(categories.data?.items ?? []).map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </Select>
+      );
+    }
     if (trigger.field === "type") {
       return (
         <Select id={id} aria-label={label} value={trigger.value} onChange={(e) => patchTrigger(index, { value: e.target.value })}>

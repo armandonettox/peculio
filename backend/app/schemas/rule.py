@@ -48,11 +48,12 @@ class TriggerIn(BaseModel):
             if amount >= Decimal(10) ** 16:
                 raise ValueError("Valor grande demais")
             value = format(amount.quantize(Decimal("0.01")), "f")
-        elif self.field == TriggerField.account:
+        elif self.field in (TriggerField.account, TriggerField.category):
             try:
                 value = str(uuid.UUID(value))
             except ValueError:
-                raise ValueError("Conta invalida") from None
+                label = "Conta" if self.field == TriggerField.account else "Categoria"
+                raise ValueError(f"{label} invalida") from None
         elif value not in TRANSACTION_TYPES:
             raise ValueError("Tipo invalido")
         self.value = value

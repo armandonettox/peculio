@@ -23,6 +23,7 @@ class TriggerField(enum.StrEnum):
     amount = "amount"
     account = "account"
     type = "type"
+    category = "category"
 
 
 class TriggerOp(enum.StrEnum):
@@ -50,6 +51,7 @@ VALID_OPS: dict[TriggerField, frozenset[TriggerOp]] = {
     TriggerField.amount: AMOUNT_OPS,
     TriggerField.account: frozenset({TriggerOp.is_}),
     TriggerField.type: frozenset({TriggerOp.is_}),
+    TriggerField.category: frozenset({TriggerOp.is_}),
 }
 
 
@@ -142,6 +144,8 @@ def trigger_matches(trigger: Trigger, facts: SplitFacts) -> bool:
         return _amount_matches(facts.amount, trigger.op, Decimal(trigger.value))
     if trigger.field == TriggerField.account:
         return facts.account_id == trigger.value
+    if trigger.field == TriggerField.category:
+        return facts.category_id is not None and facts.category_id == trigger.value
     return facts.type == str(trigger.value)
 
 

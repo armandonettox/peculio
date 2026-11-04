@@ -5,7 +5,7 @@ export type TriggerField = RuleTrigger["field"];
 export type TriggerOp = RuleTrigger["op"];
 export type ActionKind = RuleAction["kind"];
 
-export const FIELDS: TriggerField[] = ["description", "counterparty", "amount", "account", "type"];
+export const FIELDS: TriggerField[] = ["description", "counterparty", "amount", "account", "type", "category"];
 
 export function fieldLabel(field: TriggerField): string {
   return i18n.t(`rules.presentation.field.${field}`);
@@ -18,6 +18,7 @@ export const FIELD_OPS: Record<TriggerField, TriggerOp[]> = {
   amount: ["greater_than", "less_than", "equals"],
   account: ["is"],
   type: ["is"],
+  category: ["is"],
 };
 
 export function opLabel(op: TriggerOp): string {
@@ -66,6 +67,7 @@ export function triggerSummary(trigger: RuleTrigger, lookups: NameLookups): stri
   const op = opLabel(trigger.op);
   const removed = i18n.t("rules.presentation.itemRemovido");
   if (trigger.field === "account") return `${field} ${op} ${lookups.accounts.get(trigger.value) ?? removed}`;
+  if (trigger.field === "category") return `${field} ${op} ${lookups.categories.get(trigger.value) ?? removed}`;
   if (trigger.field === "type") return `${field} ${op} ${typeLabel(trigger.value) ?? trigger.value}`;
   if (trigger.field === "amount") return `${field} ${op} ${trigger.value.replace(".", ",")}`;
   return `${field} ${op} "${trigger.value}"`;

@@ -3595,7 +3595,7 @@ export interface components {
          * TriggerField
          * @enum {string}
          */
-        TriggerField: "description" | "counterparty" | "amount" | "account" | "type";
+        TriggerField: "description" | "counterparty" | "amount" | "account" | "type" | "category";
         /** TriggerIn */
         TriggerIn: {
             field: components["schemas"]["TriggerField"];

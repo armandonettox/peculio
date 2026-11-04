@@ -1432,6 +1432,7 @@
     },
     "ruleFormDialog": {
       "texto": "Text",
+      "escolhaACategoria": "Choose a category",
       "editarRegra": "Edit rule",
       "novaRegra": "New rule",
       "aRegraPreencheCategoria": "The rule fills in category, tags, budget or bill on transactions that match the triggers. It only fills in what's empty: what you chose on the transaction is never replaced.",
@@ -1462,7 +1463,8 @@
         "counterparty": "Who received or paid",
         "amount": "Amount",
         "account": "Account",
-        "type": "Type"
+        "type": "Type",
+        "category": "Category"
       },
       "op": {
         "contains": "contains",

@@ -96,6 +96,7 @@ const TARGET_REQUIRED: Record<ActionKind, string> = {
 
 function triggerError(trigger: TriggerDraft): string | undefined {
   if (trigger.field === "account") return trigger.value ? undefined : "Escolha uma conta.";
+  if (trigger.field === "category") return trigger.value ? undefined : "Escolha uma categoria.";
   if (trigger.field === "type") return undefined;
   if (trigger.field === "amount") {
     const parsed = parseMoneyInput(trigger.value, AMOUNT_PLACES);

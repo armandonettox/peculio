@@ -1432,6 +1432,7 @@
     },
     "ruleFormDialog": {
       "texto": "Texto",
+      "escolhaACategoria": "Escolha a categoria",
       "editarRegra": "Editar regra",
       "novaRegra": "Nova regra",
       "aRegraPreencheCategoria": "A regra preenche categoria, tags, orçamento ou conta a pagar nas transações que combinam com os gatilhos. Ela só preenche o que estiver vazio: o que você escolheu na transação nunca é trocado.",
@@ -1462,7 +1463,8 @@
         "counterparty": "Quem recebeu ou pagou",
         "amount": "Valor",
         "account": "Conta",
-        "type": "Tipo"
+        "type": "Tipo",
+        "category": "Categoria"
       },
       "op": {
         "contains": "contém",

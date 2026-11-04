@@ -29,7 +29,7 @@ def _to_trigger(raw: dict) -> Trigger:
     value: str | Decimal | uuid.UUID = trigger.value
     if trigger.field == TriggerField.amount:
         value = Decimal(trigger.value)
-    elif trigger.field == TriggerField.account:
+    elif trigger.field in (TriggerField.account, TriggerField.category):
         value = uuid.UUID(trigger.value)
     return Trigger(trigger.field, trigger.op, value)
 
