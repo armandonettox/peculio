@@ -725,23 +725,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invites/{invite_id}/renew": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Renew Invite */
-        post: operations["renew_invite_api_v1_invites__invite_id__renew_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/invites/{invite_id}": {
         parameters: {
             query?: never;
@@ -1444,23 +1427,6 @@ export interface paths {
         /** Upload Attachment */
         post: operations["upload_attachment_api_v1_transactions__transaction_id__attachments_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/users/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete User */
-        delete: operations["delete_user_api_v1_users__user_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2253,11 +2219,6 @@ export interface components {
             id: string;
             /** Used At */
             used_at: string | null;
-            /**
-             * Used By Id
-             * @default null
-             */
-            used_by_id: string | null;
         };
         /** InvoiceOut */
         InvoiceOut: {
@@ -3595,7 +3556,7 @@ export interface components {
          * TriggerField
          * @enum {string}
          */
-        TriggerField: "description" | "counterparty" | "amount" | "account" | "type" | "category";
+        TriggerField: "description" | "counterparty" | "amount" | "account" | "type";
         /** TriggerIn */
         TriggerIn: {
             field: components["schemas"]["TriggerField"];
@@ -5308,37 +5269,6 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InviteCreated"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    renew_invite_api_v1_invites__invite_id__renew_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invite_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7315,35 +7245,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AttachmentOut"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_user_api_v1_users__user_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

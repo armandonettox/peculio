@@ -1994,19 +1994,6 @@
               }
             ],
             "title": "Used At"
-          },
-          "used_by_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Used By Id"
           }
         },
         "required": [
@@ -5952,8 +5939,7 @@
           "counterparty",
           "amount",
           "account",
-          "type",
-          "category"
+          "type"
         ],
         "title": "TriggerField",
         "type": "string"
@@ -8878,54 +8864,6 @@
           }
         ],
         "summary": "Create Invite",
-        "tags": [
-          "invites"
-        ]
-      }
-    },
-    "/api/v1/invites/{invite_id}/renew": {
-      "post": {
-        "operationId": "renew_invite_api_v1_invites__invite_id__renew_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "invite_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Invite Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InviteCreated"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Renew Invite",
         "tags": [
           "invites"
         ]
@@ -13246,47 +13184,6 @@
         "summary": "Upload Attachment",
         "tags": [
           "attachments"
-        ]
-      }
-    },
-    "/api/v1/users/{user_id}": {
-      "delete": {
-        "operationId": "delete_user_api_v1_users__user_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "user_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "User Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Delete User",
-        "tags": [
-          "users"
         ]
       }
     },

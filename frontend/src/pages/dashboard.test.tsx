@@ -23,7 +23,7 @@ import DashboardPage from "./dashboard";
 
 // Os graficos sao provisorios (o trilho B os implementa em paralelo); aqui so se confere o que a
 // pagina PASSA pra eles (series, slices, formatValue...), nao o desenho em si
-const chartCalls = { donut: [] as DonutChartProps[], line: [] as LineChartProps[], sparkline: [] as SparklineProps[] };
+const chartCalls = { donut: [] as DonutChartProps[], line: [] as LineChartProps[], bar: [] as LineChartProps[], sparkline: [] as SparklineProps[] };
 
 vi.mock("@/components/charts", () => ({
   DonutChart: (props: DonutChartProps) => {
@@ -33,6 +33,10 @@ vi.mock("@/components/charts", () => ({
   LineChart: (props: LineChartProps) => {
     chartCalls.line.push(props);
     return <div role="img" aria-label={props.title} data-chart="line" data-stub className={props.className} />;
+  },
+  BarChart: (props: LineChartProps) => {
+    chartCalls.bar.push(props);
+    return <div role="img" aria-label={props.title} data-chart="bar" data-stub className={props.className} />;
   },
   Sparkline: (props: SparklineProps) => {
     chartCalls.sparkline.push(props);
@@ -46,6 +50,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 2, 15, 12));
   chartCalls.donut.length = 0;
   chartCalls.line.length = 0;
+  chartCalls.bar.length = 0;
   chartCalls.sparkline.length = 0;
 });
 afterEach(() => vi.useRealTimers());
@@ -560,16 +565,15 @@ function renderWithDashboard(
   );
 }
 
-it("o grafico de patrimonio pede a area sob a linha e nao repete um minigrafico", async () => {
+it("o grafico de patrimonio usa barras e nao repete um minigrafico", async () => {
   renderWithDashboard({
     netWorth: makeNetWorth({ currencies: [makeNetWorthCurrency("BRL", ["1000.00", "1200.00", "900.50"])] }),
     upcoming: makeUpcoming(),
   });
   await region("Patrimônio em BRL");
-  const line = chartCalls.line.at(-1)!;
-  expect(line.area).toBe(true);
-  expect(line.series[0].points.map((point) => point.value)).toEqual(["1000.00", "1200.00", "900.50"]);
-  // O grafico de linha ja mostra a serie: o painel nao repete um minigrafico solto sobre ele
+  const bar = chartCalls.bar.at(-1)!;
+  expect(bar.series[0].points.map((point) => point.value)).toEqual(["1000.00", "1200.00", "900.50"]);
+  // O grafico de barras ja mostra a serie: o painel nao repete um minigrafico solto sobre ele
   expect(chartCalls.sparkline).toHaveLength(0);
 });
 
