@@ -507,7 +507,8 @@
       "nenhumaDespesaComCategoria": "Nenhuma despesa com categoria neste mês ainda.",
       "verRelatorios": "Ver relatórios",
       "noCategory": "Sem categoria",
-      "spendingByCategoryIn": "Gastos por categoria em {{currency}}"
+      "spendingByCategoryIn": "Gastos por categoria em {{currency}}",
+      "previsaoProximos3Meses": "Previsão dos próximos 3 meses ({{currency}})"
     },
     "netWorthBlock": {
       "patrimonio": "Patrimônio",
@@ -562,7 +563,9 @@
       "overBudget_one": "{{count}} orçamento no limite",
       "overBudget_other": "{{count}} orçamentos no limite",
       "nearLimit_one": "{{count}} orçamento perto do limite (acima de {{percent}}%)",
-      "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)"
+      "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)",
+      "despesa": "Despesa",
+      "receita": "Receita"
     }
   },
   "money": {

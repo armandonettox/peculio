@@ -622,6 +622,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/spending-forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Spending Forecast
+         * @description Projecao de receitas e despesas dos proximos meses pelas recorrencias auto_create ativas.
+         */
+        get: operations["get_spending_forecast_api_v1_dashboard_spending_forecast_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboard/upcoming": {
         parameters: {
             query?: never;
@@ -3689,6 +3709,36 @@ export interface components {
             /** Overdue */
             overdue: boolean;
         };
+        /** SpendingForecastPoint */
+        SpendingForecastPoint: {
+            /** Month */
+            month: string;
+            /** Income */
+            income: string;
+            /** Expense */
+            expense: string;
+            /** Net */
+            net: string;
+        };
+        /** SpendingForecastCurrency */
+        SpendingForecastCurrency: {
+            /** Currency Code */
+            currency_code: string;
+            /** Series */
+            series: components["schemas"]["SpendingForecastPoint"][];
+        };
+        /** SpendingForecastOut */
+        SpendingForecastOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Months */
+            months: number;
+            /** Currencies */
+            currencies: components["schemas"]["SpendingForecastCurrency"][];
+        };
         /** UpcomingOut */
         UpcomingOut: {
             /**
@@ -5104,6 +5154,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NetWorthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_spending_forecast_api_v1_dashboard_spending_forecast_get: {
+        parameters: {
+            query?: {
+                months?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpendingForecastOut"];
                 };
             };
             /** @description Validation Error */

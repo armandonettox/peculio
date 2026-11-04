@@ -47,6 +47,26 @@ class NetWorthOut(BaseModel):
     currencies: list[NetWorthCurrency]
 
 
+class SpendingForecastPoint(BaseModel):
+    """Receita e despesa projetadas para o mes `month` (AAAA-MM) com base nas recorrencias ativas."""
+
+    month: str
+    income: Money
+    expense: Money
+    net: Money
+
+
+class SpendingForecastCurrency(BaseModel):
+    currency_code: str
+    series: list[SpendingForecastPoint]
+
+
+class SpendingForecastOut(BaseModel):
+    as_of: DateType
+    months: int
+    currencies: list[SpendingForecastCurrency]
+
+
 class UpcomingItem(BaseModel):
     kind: Literal["bill", "recurrence"]
     id: uuid.UUID

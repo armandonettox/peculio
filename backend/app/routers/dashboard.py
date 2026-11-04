@@ -5,7 +5,7 @@ from app.core import clock
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.dashboard import NetWorthOut, UpcomingOut
+from app.schemas.dashboard import NetWorthOut, SpendingForecastOut, UpcomingOut
 from app.services import dashboard as service
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -21,6 +21,16 @@ def get_net_worth(
     """Patrimonio de hoje e sua evolucao mes a mes, por moeda.
     Com forecast_months > 0, estende a serie com pontos projetados pelas recorrencias ativas."""
     return service.net_worth(db, user.id, months, clock.today(), forecast_months)
+
+
+@router.get("/spending-forecast", response_model=SpendingForecastOut)
+def get_spending_forecast(
+    months: int = Query(3, ge=1, le=6),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Projecao de receitas e despesas dos proximos `months` meses pelas recorrencias auto_create ativas."""
+    return service.spending_forecast(db, user.id, months, clock.today())
 
 
 @router.get("/upcoming", response_model=UpcomingOut)

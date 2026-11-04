@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useSpendingForecast } from "@/api/dashboard";
 import { useReportGrouped, type ReportPeriod } from "@/api/reports";
-import { DonutChart, type DonutSlice } from "@/components/charts";
+import { BarChart, DonutChart, type DonutSlice } from "@/components/charts";
 import { Select } from "@/components/ui/select";
+import { shortMonthLabel } from "@/features/reports/presentation";
 import { formatMoney } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
-import { categorySlices, pickCurrency } from "./presentation";
+import { categorySlices, pickCurrency, spendingForecastSeries } from "./presentation";
 import { useTranslation } from "react-i18next";
 
 /** Para onde vai o dinheiro neste mes, por categoria (so despesas; as 6 maiores e "Outras"). */
@@ -14,8 +16,10 @@ export function CategoryBlock({ period = "this-month" }: { period?: ReportPeriod
   const { t } = useTranslation();
   const navigate = useNavigate();
   const query = useReportGrouped("category", { period });
+  const forecastQuery = useSpendingForecast({ months: 3 });
   const [selected, setSelected] = useState<string | null>(null);
   const blocks = query.data?.currencies ?? [];
+  const forecastCurrencies = forecastQuery.data?.currencies ?? [];
   const currency = pickCurrency(blocks, selected);
   const block = blocks.find((item) => item.currency_code === currency);
   const slices = block ? categorySlices(block.rows, t("dashboard.categoryBlock.noCategory")) : [];
@@ -66,6 +70,18 @@ export function CategoryBlock({ period = "this-month" }: { period?: ReportPeriod
         <Link to="/relatorios" className="text-sm font-medium text-primary-text hover:underline">
           {t("dashboard.categoryBlock.verRelatorios")}
         </Link>
+        {forecastCurrencies.map((fc) => (
+          <div key={fc.currency_code} className="mt-2 min-w-0">
+            <p className="mb-1 text-xs text-muted-foreground">{t("dashboard.categoryBlock.previsaoProximos3Meses", { currency: fc.currency_code })}</p>
+            <BarChart
+              title={t("dashboard.categoryBlock.previsaoProximos3Meses", { currency: fc.currency_code })}
+              series={spendingForecastSeries(fc)}
+              formatValue={(value) => formatMoney(value, fc.currency_code)}
+              formatX={shortMonthLabel}
+              height={140}
+            />
+          </div>
+        ))}
       </div>
     </DashboardBlock>
   );

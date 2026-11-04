@@ -206,6 +206,76 @@ def net_worth(db: Session, user_id: uuid.UUID, months: int, as_of: date, forecas
     return {"as_of": as_of, "months": months, "currencies": currencies}
 
 
+# ---------- Previsao de gastos ----------
+
+
+def spending_forecast(db: Session, user_id: uuid.UUID, months: int, as_of: date) -> dict:
+    """Projeta receitas e despesas dos proximos `months` meses com base nas recorrencias auto_create ativas.
+
+    Withdrawal -> despesa; deposit -> receita. Transfers sao ignorados (nao mudam o resultado liquido do usuario).
+    O agrupamento e por moeda do primeiro split de cada recorrente."""
+    active_recs = list(
+        db.execute(
+            select(Recurrence).where(
+                Recurrence.user_id == user_id,
+                Recurrence.auto_create.is_(True),
+                Recurrence.active.is_(True),
+            )
+        ).scalars()
+    )
+
+    last = _month_index(as_of)
+    # income[code][month_index] e expense[code][month_index]
+    income: dict[str, dict[int, Decimal]] = defaultdict(lambda: defaultdict(lambda: ZERO))
+    expense: dict[str, dict[int, Decimal]] = defaultdict(lambda: defaultdict(lambda: ZERO))
+
+    for rec in active_recs:
+        try:
+            template = TransactionCreate.model_validate(rec.template)
+        except ValidationError:
+            continue
+        for offset in range(1, months + 1):
+            idx = last + offset
+            year, month = idx // 12, idx % 12 + 1
+            last_day = date(year, month, calendar.monthrange(year, month)[1])
+            if rec.first_date > last_day:
+                continue
+            count = _occurrences_in_month(rec, year, month)
+            if count == 0:
+                continue
+            for split in template.splits:
+                code = split.currency_code
+                signed = split.amount * count
+                if split.type == TransactionType.withdrawal:
+                    expense[code][idx] += signed
+                elif split.type == TransactionType.deposit:
+                    income[code][idx] += signed
+
+    all_codes = set(income) | set(expense)
+    if not all_codes:
+        return {"as_of": as_of, "months": months, "currencies": []}
+
+    places = _places(db, all_codes)
+    currencies = []
+    for code in sorted(all_codes):
+        decimals = places.get(code, 2)
+        series = []
+        for offset in range(1, months + 1):
+            idx = last + offset
+            inc = income[code][idx]
+            exp = expense[code][idx]
+            series.append(
+                {
+                    "month": _month_label(idx),
+                    "income": quantize_money(inc, decimals),
+                    "expense": quantize_money(exp, decimals),
+                    "net": quantize_money(inc - exp, decimals),
+                }
+            )
+        currencies.append({"currency_code": code, "series": series})
+    return {"as_of": as_of, "months": months, "currencies": currencies}
+
+
 # ---------- Proximos vencimentos ----------
 
 

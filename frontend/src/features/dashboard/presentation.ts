@@ -1,5 +1,5 @@
 import type { BudgetProgress } from "@/api/budgets";
-import type { NetWorthCurrency } from "@/api/dashboard";
+import type { NetWorthCurrency, SpendingForecastCurrency } from "@/api/dashboard";
 import type { ReportRow, ReportTotals } from "@/api/reports";
 import type { UpcomingItem } from "@/api/dashboard";
 import type { DonutSlice, LineSeries } from "@/components/charts";
@@ -35,6 +35,16 @@ export function netWorthSeries(currency: NetWorthCurrency): LineSeries {
     label: i18n.t("dashboard.presentation.net"),
     points,
   };
+}
+
+/** Series de previsao de despesa e receita de uma moeda (barras tracejadas para os proximos meses). */
+export function spendingForecastSeries(currency: SpendingForecastCurrency): LineSeries[] {
+  const expensePoints = currency.series.map((point) => ({ x: point.month, value: point.expense, forecast: true }));
+  const incomePoints = currency.series.map((point) => ({ x: point.month, value: point.income, forecast: true }));
+  return [
+    { key: `${currency.currency_code}-expense`, label: i18n.t("dashboard.presentation.despesa"), color: "negative", points: expensePoints },
+    { key: `${currency.currency_code}-income`, label: i18n.t("dashboard.presentation.receita"), color: "positive", points: incomePoints },
+  ];
 }
 
 // ---------- Este mes vs mes passado ----------

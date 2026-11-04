@@ -9,6 +9,9 @@ export type NetWorthCurrency = components["schemas"]["NetWorthCurrency"];
 export type NetWorthPoint = components["schemas"]["NetWorthPoint"];
 export type Upcoming = components["schemas"]["UpcomingOut"];
 export type UpcomingItem = components["schemas"]["UpcomingItem"];
+export type SpendingForecast = components["schemas"]["SpendingForecastOut"];
+export type SpendingForecastCurrency = components["schemas"]["SpendingForecastCurrency"];
+export type SpendingForecastPoint = components["schemas"]["SpendingForecastPoint"];
 
 export { dashboardKey };
 
@@ -20,6 +23,19 @@ export function useNetWorth({ months = 12, forecastMonths = 0 }: { months?: numb
       unwrap(
         api.client.GET("/api/v1/dashboard/net-worth", {
           params: { query: { months, forecast_months: forecastMonths } },
+        }),
+      ),
+  });
+}
+
+/** Projecao de receitas e despesas dos proximos meses pelas recorrencias auto_create ativas. */
+export function useSpendingForecast({ months = 3 }: { months?: number } = {}) {
+  return useQuery({
+    queryKey: [...dashboardKey, "spending-forecast", { months }],
+    queryFn: () =>
+      unwrap(
+        api.client.GET("/api/v1/dashboard/spending-forecast", {
+          params: { query: { months } },
         }),
       ),
   });
