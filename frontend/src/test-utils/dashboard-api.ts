@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 
-import type { NetWorth, NetWorthCurrency, Upcoming, UpcomingItem } from "@/api/dashboard";
+import type { NetWorth, NetWorthCurrency, SpendingForecast, Upcoming, UpcomingItem } from "@/api/dashboard";
 
 let counter = 0;
 
@@ -63,6 +63,10 @@ export function makeUpcoming(overrides: Partial<Upcoming> = {}): Upcoming {
   return { as_of: "2026-03-15", days: 30, items: [], ...overrides };
 }
 
+export function makeSpendingForecast(overrides: Partial<SpendingForecast> = {}): SpendingForecast {
+  return { as_of: "2026-03-15", months: 3, currencies: [], ...overrides };
+}
+
 type NextError = { status: number; code: string };
 type Recorded = { path: string; query: URLSearchParams };
 
@@ -70,10 +74,11 @@ type Recorded = { path: string; query: URLSearchParams };
  * API do painel de mentira: devolve o que o teste escolheu e guarda os pedidos para conferir os
  * parametros. `errors` falha o proximo pedido de cada rota, uma vez.
  */
-export function fakeDashboardApi(initial: { netWorth?: NetWorth; upcoming?: Upcoming } = {}) {
+export function fakeDashboardApi(initial: { netWorth?: NetWorth; upcoming?: Upcoming; spendingForecast?: SpendingForecast } = {}) {
   const state = {
     netWorth: initial.netWorth ?? makeNetWorth(),
     upcoming: initial.upcoming ?? makeUpcoming(),
+    spendingForecast: initial.spendingForecast ?? makeSpendingForecast(),
     requests: [] as Recorded[],
     netWorthError: null as NextError | null,
     upcomingError: null as NextError | null,
@@ -94,6 +99,10 @@ export function fakeDashboardApi(initial: { netWorth?: NetWorth; upcoming?: Upco
       const error = state.upcomingError;
       state.upcomingError = null;
       return error ? fail(error) : HttpResponse.json(state.upcoming);
+    }),
+    http.get("*/api/v1/dashboard/spending-forecast", ({ request }) => {
+      state.requests.push({ path: "spending-forecast", query: new URL(request.url).searchParams });
+      return HttpResponse.json(state.spendingForecast);
     }),
   ];
 
