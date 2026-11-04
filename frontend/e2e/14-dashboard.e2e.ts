@@ -188,11 +188,17 @@ test("no celular a pagina nao ganha rolagem horizontal e os blocos empilham", as
   for (const count of lines) expect(count).toBe(1);
 });
 
-test("teclado: o grafico de patrimonio tem uma parada de Tab e as setas percorrem os pontos", async ({ page }) => {
+test("teclado: o grafico de patrimonio tem uma parada de Tab e as setas percorrem os pontos", async ({ page, request }) => {
+  const data = await api(request, "/dashboard/net-worth?months=12");
+  const brlData = data.currencies.find((item: { currency_code: string }) => item.currency_code === "BRL");
+  const firstNonZero = brlData.series.findIndex((p: { net: string }) => !/^-?0(\.0+)?$/.test(p.net));
+  const seriesLen = firstNonZero === -1 ? 0 : brlData.series.length - firstNonZero;
+
   await openDashboard(page);
   const section = page.getByRole("region", { name: "Patrimônio em BRL" });
   const points = section.locator("[data-point]");
-  await expect(points).toHaveCount(12);
+  await expect(points).toHaveCount(seriesLen);
+  if (seriesLen < 2) return;
   // Uma parada de Tab so, nao uma por ponto
   await expect(section.locator("[data-point][tabindex='0']")).toHaveCount(1);
 

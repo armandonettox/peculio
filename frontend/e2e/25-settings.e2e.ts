@@ -59,7 +59,7 @@ test("o tema escolhido nas Configuracoes vale para o app e fica lembrado", async
 
 test("senha atual errada avisa no campo e nao troca nada", async ({ page, request }) => {
   await loginAndWaitForDashboard(page);
-  await openSettings(page);
+  await openSettings(page, "Segurança");
   await field(page, "Senha atual").fill("SenhaErrada000");
   await field(page, "Nova senha").fill(NEW_PASSWORD);
   await field(page, "Repita a nova senha").fill(NEW_PASSWORD);
@@ -76,7 +76,7 @@ test("trocar a senha mantem esta aba conectada e encerra as outras sessoes", asy
   const stale = await apiHeaders(request, ADMIN);
   expect((await request.get("/api/v1/auth/me", { headers: stale })).status()).toBe(200);
 
-  await openSettings(page);
+  await openSettings(page, "Segurança");
   await field(page, "Senha atual").fill(ADMIN.password);
   await field(page, "Nova senha").fill(NEW_PASSWORD);
   await field(page, "Repita a nova senha").fill(NEW_PASSWORD);
