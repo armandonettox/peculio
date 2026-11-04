@@ -16,7 +16,7 @@ const values = { reader: "", writer: "" };
 
 async function openSecurity(page: Page) {
   await loginAndWaitForDashboard(page);
-  await openSettings(page, "Segurança");
+  await openSettings(page, "Webhooks e APIs");
   await expect(page.getByRole("heading", { name: "Tokens de API" })).toBeVisible();
 }
 

@@ -112,7 +112,7 @@ test("trocar a senha encerra os outros aparelhos e mantem este", async ({ page, 
   const other = await secondDevice(browser);
   await loginPage(other.page, true);
 
-  await openSettings(page);
+  await openSettings(page, "Segurança");
   await field(page, "Senha atual").fill(ADMIN.password);
   await field(page, "Nova senha").fill("SenhaNova987");
   await field(page, "Repita a nova senha").fill("SenhaNova987");

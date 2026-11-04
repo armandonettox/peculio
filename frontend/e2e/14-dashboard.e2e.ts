@@ -129,7 +129,9 @@ test("patrimonio: os totais e a serie da tela batem com a API e o grafico tem ta
   const chart = section.getByRole("img", { name: /Patrimônio líquido em BRL/ }).first();
   await expect(chart).toBeVisible();
   const table = section.getByRole("table", { name: "Patrimônio líquido em BRL" });
-  await expect(table.getByRole("row")).toHaveCount(brlData.series.length + 1);
+  const firstNonZero = brlData.series.findIndex((p: { net: string }) => !/^-?0(\.0+)?$/.test(p.net));
+  const seriesLen = firstNonZero === -1 ? brlData.series.length : brlData.series.length - firstNonZero;
+  await expect(table.getByRole("row")).toHaveCount(seriesLen + 1);
   expect(brlData.series).toHaveLength(12);
   // O ultimo ponto da serie e o saldo de hoje
   expect(brlData.series[11].net).toBe(brlData.net);

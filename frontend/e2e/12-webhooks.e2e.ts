@@ -50,7 +50,7 @@ test.afterAll(async () => {
 // Webhooks virou a aba Webhooks de Configuracoes
 async function openWebhooks(page: Page) {
   await loginAndWaitForDashboard(page);
-  await openSettings(page, "Webhooks");
+  await openSettings(page, "Webhooks e APIs");
   await expect(page.getByText("Avisos automáticos para outros sistemas")).toBeVisible();
 }
 
