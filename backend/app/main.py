@@ -33,6 +33,7 @@ from app.routers import (
     tags,
     transactions,
     two_factor,
+    users,
     webhooks,
 )
 
@@ -80,6 +81,7 @@ api_v1.include_router(rules.router)
 api_v1.include_router(recurrences.router)
 api_v1.include_router(piggy_banks.router)
 api_v1.include_router(transactions.router)
+api_v1.include_router(users.router)
 api_v1.include_router(webhooks.router)
 api_v1.include_router(reports.router)
 api_v1.include_router(attachments.router)

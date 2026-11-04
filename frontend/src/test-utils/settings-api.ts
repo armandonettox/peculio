@@ -64,6 +64,7 @@ export function makeInvite(overrides: Partial<Invite> = {}): Invite {
     created_at: "2026-03-01T10:00:00Z",
     expires_at: "2026-03-08T10:00:00Z",
     used_at: null,
+    used_by_id: null,
     ...overrides,
   };
 }

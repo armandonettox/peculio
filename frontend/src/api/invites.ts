@@ -41,3 +41,13 @@ export function useRevokeInvite() {
     onSuccess: refresh,
   });
 }
+
+/** Gera novo token e renova a expiracao. O codigo novo aparece so nesta resposta. */
+export function useRenewInvite() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.client.POST("/api/v1/invites/{invite_id}/renew", { params: { path: { invite_id: id } } })),
+    onSuccess: refresh,
+  });
+}

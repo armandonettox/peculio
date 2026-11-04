@@ -2,7 +2,8 @@ import { Copy } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { getErrorMessage } from "@/api/error-messages";
-import { useCreateInvite, useInvites, useRevokeInvite, type Invite, type InviteCreated } from "@/api/invites";
+import { useCreateInvite, useInvites, useRenewInvite, useRevokeInvite, type Invite, type InviteCreated } from "@/api/invites";
+import { useDeleteUser } from "@/api/users";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { FormField } from "@/components/form-field";
 import { Alert } from "@/components/ui/alert";
@@ -20,13 +21,18 @@ export function InvitesSection() {
   const { t } = useTranslation();
   const invites = useInvites();
   const create = useCreateInvite();
+  const renew = useRenewInvite();
   const revoke = useRevokeInvite();
+  const deleteUser = useDeleteUser();
   const [email, setEmail] = useState("");
   const [emailProblem, setEmailProblem] = useState<string | undefined>();
   const [serverError, setServerError] = useState<string | null>(null);
   const [created, setCreated] = useState<InviteCreated | null>(null);
+  const [renewed, setRenewed] = useState<InviteCreated | null>(null);
   const [copied, setCopied] = useState(false);
+  const [renewedCopied, setRenewedCopied] = useState(false);
   const [removing, setRemoving] = useState<Invite | null>(null);
+  const [removingUser, setRemovingUser] = useState<Invite | null>(null);
   const now = new Date();
 
   async function submit(event: FormEvent) {
@@ -44,12 +50,22 @@ export function InvitesSection() {
     }
   }
 
-  async function copy(text: string) {
+  async function copy(text: string, setFlag: (v: boolean) => void) {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
+      setFlag(true);
     } catch {
       // Sem permissao para copiar: o link continua na tela para copiar a mao
+    }
+  }
+
+  async function handleRenew(invite: Invite) {
+    try {
+      const result = await renew.mutateAsync(invite.id);
+      setRenewed(result);
+      setRenewedCopied(false);
+    } catch (failure) {
+      setServerError(getErrorMessage(failure));
     }
   }
 
@@ -91,8 +107,30 @@ export function InvitesSection() {
               </span>
               <span className="text-xs text-muted-foreground">{t("settings.invitesSection.criadoEm", { date: formatDate(invite.created_at.slice(0, 10)) })}</span>
               {state.kind === "pending" && (
-                <Button size="sm" variant="outline" onClick={() => setRemoving(invite)} aria-label={t("settings.invitesSection.revogarOConviteDe", { email: invite.email })}>
-                  {t("common.revogar")}
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={renew.isPending}
+                    onClick={() => void handleRenew(invite)}
+                    aria-label={`${t("settings.invitesSection.renovar")} ${invite.email}`}
+                  >
+                    {renew.isPending ? t("settings.invitesSection.renovando") : t("settings.invitesSection.renovar")}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setRemoving(invite)} aria-label={t("settings.invitesSection.revogarOConviteDe", { email: invite.email })}>
+                    {t("common.revogar")}
+                  </Button>
+                </>
+              )}
+              {state.kind === "used" && invite.used_by_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive"
+                  onClick={() => setRemovingUser(invite)}
+                  aria-label={`${t("settings.invitesSection.removerAcesso")} ${invite.email}`}
+                >
+                  {t("settings.invitesSection.removerAcesso")}
                 </Button>
               )}
             </li>
@@ -145,9 +183,28 @@ export function InvitesSection() {
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <code className="min-w-0 flex-1 break-all rounded bg-muted px-2 py-1 text-xs">{inviteLink(window.location.origin, created.token)}</code>
-              <Button size="sm" variant="outline" onClick={() => void copy(inviteLink(window.location.origin, created.token))}>
+              <Button size="sm" variant="outline" onClick={() => void copy(inviteLink(window.location.origin, created.token), setCopied)}>
                 <Copy />
                 {copied ? t("settings.invitesSection.copiado") : t("settings.invitesSection.copiarLink")}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {renewed && (
+          <div role="status" className="flex flex-col gap-2 rounded-md border bg-accent/30 p-3 text-sm">
+            <p>
+              <Trans
+                i18nKey="settings.invitesSection.conviteRenovadoPara"
+                values={{ email: renewed.email }}
+                components={{ strong: <strong /> }}
+              />
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <code className="min-w-0 flex-1 break-all rounded bg-muted px-2 py-1 text-xs">{inviteLink(window.location.origin, renewed.token)}</code>
+              <Button size="sm" variant="outline" onClick={() => void copy(inviteLink(window.location.origin, renewed.token), setRenewedCopied)}>
+                <Copy />
+                {renewedCopied ? t("settings.invitesSection.copiado") : t("settings.invitesSection.copiarLink")}
               </Button>
             </div>
           </div>
@@ -163,6 +220,16 @@ export function InvitesSection() {
           consequence={t("settings.invitesSection.oLinkDeixaDe")}
           onConfirm={() => revoke.mutateAsync(removing.id)}
           onClose={() => setRemoving(null)}
+        />
+      )}
+
+      {removingUser && removingUser.used_by_id && (
+        <ConfirmDeleteDialog
+          title={t("settings.invitesSection.removerAcesso")}
+          itemName={t("settings.invitesSection.removerAcessoDe", { email: removingUser.email })}
+          consequence={t("settings.invitesSection.oUsuarioPerdera")}
+          onConfirm={() => deleteUser.mutateAsync(removingUser.used_by_id!)}
+          onClose={() => setRemovingUser(null)}
         />
       )}
     </Card>

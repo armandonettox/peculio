@@ -1605,7 +1605,13 @@
       "criadoEm": "Created on {{date}}",
       "revogarOConviteDe": "Revoke the invite for {{email}}",
       "conviteCriadoPara": "Invite created for <strong>{{email}}</strong>. Send this link: it only appears now, afterward only the invite remains in the list.",
-      "oConviteDe": "the invite for {{email}}"
+      "oConviteDe": "the invite for {{email}}",
+      "renovar": "Renew",
+      "renovando": "Renewing...",
+      "conviteRenovadoPara": "New link for <strong>{{email}}</strong>. Send this link: it only appears now.",
+      "removerAcesso": "Remove access",
+      "removerAcessoDe": "access for {{email}}",
+      "oUsuarioPerdera": "The user will lose access and all account data will be permanently deleted."
     },
     "passwordSection": {
       "aoTrocarVoceContinua": "When you change it, you stay signed in here and other sessions need to sign in again.",

@@ -1605,7 +1605,13 @@
       "criadoEm": "Criado em {{date}}",
       "revogarOConviteDe": "Revogar o convite de {{email}}",
       "conviteCriadoPara": "Convite criado para <strong>{{email}}</strong>. Envie este link: ele só aparece agora, depois só existe o convite na lista.",
-      "oConviteDe": "o convite de {{email}}"
+      "oConviteDe": "o convite de {{email}}",
+      "renovar": "Renovar",
+      "renovando": "Renovando...",
+      "conviteRenovadoPara": "Novo link para <strong>{{email}}</strong>. Envie este link: ele só aparece agora.",
+      "removerAcesso": "Remover acesso",
+      "removerAcessoDe": "acesso de {{email}}",
+      "oUsuarioPerdera": "O usuário perderá o acesso e todos os dados da conta serão excluídos permanentemente."
     },
     "passwordSection": {
       "aoTrocarVoceContinua": "Ao trocar, você continua conectado aqui e as outras sessões precisam entrar de novo.",

@@ -138,6 +138,7 @@ class InviteOut(BaseModel):
     expires_at: datetime
     used_at: datetime | None
     created_at: datetime
+    used_by_id: uuid.UUID | None = None
 
 
 class InviteCreated(InviteOut):
