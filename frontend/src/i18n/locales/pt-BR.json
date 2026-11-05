@@ -685,7 +685,12 @@
       "salvarFiltro": "Salvar filtro",
       "salvarFiltroAtual": "Salvar filtro atual",
       "nomeFiltro": "Nome do filtro",
-      "verResultados": "Ver resultados"
+      "verResultados": "Ver resultados",
+      "filtroDeTransacoes": "Filtro de transações",
+      "novoFiltro": "Novo filtro",
+      "nenhumFiltroSalvo": "Nenhum filtro salvo ainda.",
+      "cancelar": "Cancelar",
+      "aplicarFiltros": "Aplicar filtros"
     },
     "quickRowEditor": {
       "novoLancamento": "Novo lançamento",

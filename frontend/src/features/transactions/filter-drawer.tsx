@@ -1,5 +1,5 @@
-import { Bookmark, BookmarkCheck, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { BookmarkCheck, ChevronDown, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { Account } from "@/api/accounts";
@@ -8,8 +8,8 @@ import type { TransactionFilters } from "@/api/transactions";
 import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { SheetTitle } from "@/components/ui/sheet";
+import { Tab, TabList } from "@/components/ui/tabs";
 
 import type { KindFilter } from "./filters";
 import { deleteSavedFilter, loadSavedFilters, saveFilter, type SavedFilter } from "./saved-filters";
@@ -34,56 +34,15 @@ type Props = {
   onClose: () => void;
 };
 
-type QuickPeriod = {
-  labelKey: string;
-  range: () => { dateFrom: string; dateTo: string };
-};
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+function formatDateLabel(iso: string): string {
+  if (!iso) return "";
+  const [y, m, day] = iso.split("-");
+  const months = [
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+  ];
+  return `${parseInt(day)} ${months[parseInt(m) - 1]} ${y}`;
 }
-
-function firstOfMonthStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
-}
-
-function lastOfMonthStr(d: Date): string {
-  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return last.toISOString().slice(0, 10);
-}
-
-const QUICK_PERIODS: QuickPeriod[] = [
-  {
-    labelKey: "transactions.filterBar.esteMes",
-    range: () => {
-      const now = new Date();
-      return { dateFrom: firstOfMonthStr(now), dateTo: lastOfMonthStr(now) };
-    },
-  },
-  {
-    labelKey: "transactions.filterBar.mesPassado",
-    range: () => {
-      const now = new Date();
-      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      return { dateFrom: firstOfMonthStr(prev), dateTo: lastOfMonthStr(prev) };
-    },
-  },
-  {
-    labelKey: "transactions.filterBar.ultimos3Meses",
-    range: () => {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-      return { dateFrom: firstOfMonthStr(start), dateTo: lastOfMonthStr(now) };
-    },
-  },
-  {
-    labelKey: "transactions.filterBar.esteAno",
-    range: () => {
-      const now = new Date();
-      return { dateFrom: `${now.getFullYear()}-01-01`, dateTo: `${now.getFullYear()}-12-31` };
-    },
-  },
-];
 
 const KIND_OPTIONS: { value: KindFilter | null; labelKey: string }[] = [
   { value: null, labelKey: "pages.transactions.todas" },
@@ -92,254 +51,335 @@ const KIND_OPTIONS: { value: KindFilter | null; labelKey: string }[] = [
   { value: "transfer", labelKey: "pages.transactions.transferencias" },
 ];
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{children}</p>;
+// Select visual com fundo e chevron, sem o <select> nativo aparecendo feio
+type VisualSelectProps = {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+};
+
+function VisualSelect({ value, onChange, options, placeholder }: VisualSelectProps) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown className={`size-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover py-1 shadow-md">
+            {options.map((opt) => (
+              <li key={opt.value}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(opt.value); setOpen(false); }}
+                  className={`flex w-full px-3 py-2 text-left text-sm hover:bg-accent ${opt.value === value ? "font-semibold text-primary" : ""}`}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
 }
 
-export function FilterDrawer(props: Props) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{children}</p>;
+}
+
+function Divider() {
+  return <div className="border-t border-border" />;
+}
+
+// Aba "Novo filtro"
+function NewFilterTab(props: Props) {
   const { t } = useTranslation();
   const { filters, kind, minDraft, maxDraft, accounts, categories, tags } = props;
 
+  const accountOptions = useMemo(() => [
+    { value: "", label: t("common.todas") },
+    ...accounts.map((a) => ({
+      value: a.id,
+      label: a.active ? a.name : `${a.name} ${t("transactions.filterBar.arquivada")}`,
+    })),
+  ], [accounts, t]);
+
+  const categoryOptions = useMemo(() => [
+    { value: "", label: t("common.todas") },
+    { value: "none", label: t("transactions.filterBar.semCategoria") },
+    ...categories.map((c) => ({ value: c.id, label: c.name })),
+  ], [categories, t]);
+
+  const tagOptions = useMemo(() => [
+    { value: "", label: t("common.todas") },
+    ...tags.map((tg) => ({ value: tg.id, label: tg.name })),
+  ], [tags, t]);
+
+  return (
+    <div className="space-y-5 px-5 py-4">
+
+      {/* Periodo */}
+      <section>
+        <SectionLabel>{t("transactions.filterBar.periodo")}</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataInicial")}</label>
+            <Input
+              type="date"
+              value={filters.dateFrom ?? ""}
+              onChange={(e) => props.onChange({ dateFrom: e.target.value })}
+              className={props.dateError ? "border-destructive" : ""}
+            />
+            {filters.dateFrom && (
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{formatDateLabel(filters.dateFrom)}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataFinal")}</label>
+            <Input
+              type="date"
+              value={filters.dateTo ?? ""}
+              onChange={(e) => props.onChange({ dateTo: e.target.value })}
+            />
+            {filters.dateTo && (
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{formatDateLabel(filters.dateTo)}</p>
+            )}
+          </div>
+        </div>
+        {props.dateError && <p className="mt-1 text-xs text-destructive">{props.dateError}</p>}
+      </section>
+
+      <Divider />
+
+      {/* Tipo */}
+      <section>
+        <SectionLabel>{t("transactions.filterBar.tipo")}</SectionLabel>
+        <VisualSelect
+          value={kind ?? ""}
+          onChange={(v) => props.onKindChange((v as KindFilter) || null)}
+          options={KIND_OPTIONS.map((opt) => ({ value: opt.value ?? "", label: t(opt.labelKey as never) }))}
+          placeholder={t("pages.transactions.todas")}
+        />
+      </section>
+
+      <Divider />
+
+      {/* Conta */}
+      <section>
+        <SectionLabel>{t("common.conta")}</SectionLabel>
+        <VisualSelect
+          value={filters.accountId ?? ""}
+          onChange={(v) => props.onChange({ accountId: v })}
+          options={accountOptions}
+          placeholder={t("common.todas")}
+        />
+      </section>
+
+      {/* Categoria */}
+      <section>
+        <SectionLabel>{t("common.categoria")}</SectionLabel>
+        <VisualSelect
+          value={filters.categoryId ?? ""}
+          onChange={(v) => props.onChange({ categoryId: v })}
+          options={categoryOptions}
+          placeholder={t("common.todas")}
+        />
+      </section>
+
+      {/* Tag */}
+      <section>
+        <SectionLabel>{t("common.tag")}</SectionLabel>
+        <VisualSelect
+          value={filters.tagId ?? ""}
+          onChange={(v) => props.onChange({ tagId: v })}
+          options={tagOptions}
+          placeholder={t("common.todas")}
+        />
+      </section>
+
+      <Divider />
+
+      {/* Valor */}
+      <section>
+        <SectionLabel>{t("transactions.filterBar.valor")}</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMinimo")}</label>
+            <MoneyInput placeholder="0,00" places={2} value={minDraft} onChange={props.onMinChange} />
+            {props.minError && <p className="mt-1 text-xs text-destructive">{props.minError}</p>}
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMaximo")}</label>
+            <MoneyInput placeholder="0,00" places={2} value={maxDraft} onChange={props.onMaxChange} />
+            {props.maxError && <p className="mt-1 text-xs text-destructive">{props.maxError}</p>}
+          </div>
+        </div>
+      </section>
+
+    </div>
+  );
+}
+
+// Aba "Filtros salvos"
+function SavedFiltersTab(props: Props) {
+  const { t } = useTranslation();
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(loadSavedFilters);
   const [savingName, setSavingName] = useState("");
-  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [showInput, setShowInput] = useState(false);
 
   function handleSave() {
     const name = savingName.trim();
     if (!name) return;
-    saveFilter(name, filters, kind);
+    saveFilter(name, props.filters, props.kind);
     setSavedFilters(loadSavedFilters());
     setSavingName("");
-    setShowSaveInput(false);
+    setShowInput(false);
   }
 
-  function handleDeleteSaved(id: string) {
+  function handleDelete(id: string) {
     deleteSavedFilter(id);
     setSavedFilters(loadSavedFilters());
   }
 
-  function handleApplySaved(entry: SavedFilter) {
+  function handleApply(entry: SavedFilter) {
     props.onApplySaved(entry);
     props.onClose();
   }
 
   return (
+    <div className="px-5 py-4 space-y-4">
+
+      {/* Salvar filtro atual */}
+      <section>
+        <SectionLabel>{t("transactions.filterBar.salvarFiltro")}</SectionLabel>
+        {showInput ? (
+          <div className="flex gap-2">
+            <Input
+              autoFocus
+              placeholder={t("transactions.filterBar.nomeFiltro")}
+              value={savingName}
+              onChange={(e) => setSavingName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSave();
+                if (e.key === "Escape") setShowInput(false);
+              }}
+              className="flex-1"
+            />
+            <Button size="sm" onClick={handleSave} disabled={!savingName.trim()}>
+              <BookmarkCheck className="size-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowInput(false)}>
+              <X className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => setShowInput(true)}
+          >
+            {t("transactions.filterBar.salvarFiltroAtual")}
+          </Button>
+        )}
+      </section>
+
+      <Divider />
+
+      {/* Lista de filtros salvos */}
+      <section>
+        <SectionLabel>{t("transactions.filterBar.filtrosSalvos")}</SectionLabel>
+        {savedFilters.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("transactions.filterBar.nenhumFiltroSalvo")}</p>
+        ) : (
+          <ul className="space-y-2">
+            {savedFilters.map((entry) => (
+              <li key={entry.id} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
+                <button
+                  type="button"
+                  className="flex-1 text-left text-sm font-medium hover:text-primary"
+                  onClick={() => handleApply(entry)}
+                >
+                  {entry.name}
+                </button>
+                <button
+                  type="button"
+                  aria-label={t("common.excluir")}
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => handleDelete(entry.id)}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export function FilterDrawer(props: Props) {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<"new" | "saved">("new");
+
+  return (
     <div className="flex h-full flex-col">
-      {/* Cabecalho */}
-      <div className="flex items-center justify-between border-b px-5 py-4">
-        <SheetTitle className="text-base font-semibold">{t("transactions.filterBar.filtros")}</SheetTitle>
-        <Button size="icon" variant="ghost" className="size-8" onClick={props.onClose}>
-          <X className="size-4" />
-        </Button>
+
+      {/* Cabecalho com abas */}
+      <div className="shrink-0 border-b px-5 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <SheetTitle className="text-base font-semibold">
+            {t("transactions.filterBar.filtroDeTransacoes")}
+          </SheetTitle>
+          <Button size="icon" variant="ghost" className="size-8" onClick={props.onClose}>
+            <X className="size-4" />
+          </Button>
+        </div>
+        <TabList aria-label={t("transactions.filterBar.filtros")}>
+          <Tab active={activeTab === "new"} onSelect={() => setActiveTab("new")}>
+            {t("transactions.filterBar.novoFiltro")}
+          </Tab>
+          <Tab active={activeTab === "saved"} onSelect={() => setActiveTab("saved")}>
+            {t("transactions.filterBar.filtrosSalvos")}
+          </Tab>
+        </TabList>
       </div>
 
       {/* Corpo com scroll */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-
-        {/* Filtros salvos */}
-        {savedFilters.length > 0 && (
-          <section>
-            <SectionTitle>{t("transactions.filterBar.filtrosSalvos")}</SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              {savedFilters.map((entry) => (
-                <div key={entry.id} className="flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-xs">
-                  <button
-                    type="button"
-                    className="font-medium hover:text-primary"
-                    onClick={() => handleApplySaved(entry)}
-                  >
-                    {entry.name}
-                  </button>
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-destructive"
-                    aria-label={t("common.excluir")}
-                    onClick={() => handleDeleteSaved(entry.id)}
-                  >
-                    <X className="size-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
+      <div className="flex-1 overflow-y-auto">
+        {activeTab === "new" ? (
+          <NewFilterTab {...props} />
+        ) : (
+          <SavedFiltersTab {...props} />
         )}
-
-        {/* Periodo rapido */}
-        <section>
-          <SectionTitle>{t("transactions.filterBar.periodo")}</SectionTitle>
-          <div className="mb-3 flex flex-wrap gap-2">
-            {QUICK_PERIODS.map((qp) => {
-              const { dateFrom, dateTo } = qp.range();
-              const active = filters.dateFrom === dateFrom && filters.dateTo === dateTo;
-              return (
-                <button
-                  key={qp.labelKey}
-                  type="button"
-                  onClick={() => props.onChange({ dateFrom, dateTo })}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                    active
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  {t(qp.labelKey as never)}
-                </button>
-              );
-            })}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataInicial")}</label>
-              <Input
-                type="date"
-                value={filters.dateFrom ?? ""}
-                onChange={(e) => props.onChange({ dateFrom: e.target.value })}
-                className={props.dateError ? "border-destructive" : ""}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataFinal")}</label>
-              <Input
-                type="date"
-                value={filters.dateTo ?? ""}
-                onChange={(e) => props.onChange({ dateTo: e.target.value })}
-              />
-            </div>
-          </div>
-          {props.dateError && <p className="mt-1 text-xs text-destructive">{props.dateError}</p>}
-        </section>
-
-        {/* Tipo */}
-        <section>
-          <SectionTitle>{t("transactions.filterBar.tipo")}</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {KIND_OPTIONS.map((opt) => (
-              <button
-                key={opt.value ?? "todas"}
-                type="button"
-                onClick={() => props.onKindChange(opt.value)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  kind === opt.value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:border-primary hover:text-primary"
-                }`}
-              >
-                {t(opt.labelKey as never)}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Conta */}
-        <section>
-          <SectionTitle>{t("common.conta")}</SectionTitle>
-          <Select
-            value={filters.accountId ?? ""}
-            onChange={(e) => props.onChange({ accountId: e.target.value })}
-          >
-            <option value="">{t("common.todas")}</option>
-            {accounts.map((acc) => (
-              <option key={acc.id} value={acc.id}>
-                {acc.name}
-                {acc.active ? "" : ` ${t("transactions.filterBar.arquivada")}`}
-              </option>
-            ))}
-          </Select>
-        </section>
-
-        {/* Categoria */}
-        <section>
-          <SectionTitle>{t("common.categoria")}</SectionTitle>
-          <Select
-            value={filters.categoryId ?? ""}
-            onChange={(e) => props.onChange({ categoryId: e.target.value })}
-          >
-            <option value="">{t("common.todas")}</option>
-            <option value="none">{t("transactions.filterBar.semCategoria")}</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </Select>
-        </section>
-
-        {/* Tag */}
-        <section>
-          <SectionTitle>{t("common.tag")}</SectionTitle>
-          <Select
-            value={filters.tagId ?? ""}
-            onChange={(e) => props.onChange({ tagId: e.target.value })}
-          >
-            <option value="">{t("common.todas")}</option>
-            {tags.map((tag) => (
-              <option key={tag.id} value={tag.id}>{tag.name}</option>
-            ))}
-          </Select>
-        </section>
-
-        {/* Valor */}
-        <section>
-          <SectionTitle>{t("transactions.filterBar.valor")}</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMinimo")}</label>
-              <MoneyInput
-                placeholder="0,00"
-                places={2}
-                value={minDraft}
-                onChange={props.onMinChange}
-              />
-              {props.minError && <p className="mt-1 text-xs text-destructive">{props.minError}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMaximo")}</label>
-              <MoneyInput
-                placeholder="0,00"
-                places={2}
-                value={maxDraft}
-                onChange={props.onMaxChange}
-              />
-              {props.maxError && <p className="mt-1 text-xs text-destructive">{props.maxError}</p>}
-            </div>
-          </div>
-        </section>
-
-        {/* Salvar filtro */}
-        <section>
-          <SectionTitle>{t("transactions.filterBar.salvarFiltro")}</SectionTitle>
-          {showSaveInput ? (
-            <div className="flex gap-2">
-              <Input
-                autoFocus
-                placeholder={t("transactions.filterBar.nomeFiltro")}
-                value={savingName}
-                onChange={(e) => setSavingName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") setShowSaveInput(false); }}
-                className="flex-1"
-              />
-              <Button size="sm" onClick={handleSave} disabled={!savingName.trim()}>
-                <BookmarkCheck className="size-4" />
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowSaveInput(false)}>
-                <X className="size-4" />
-              </Button>
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" className="gap-2 w-full" onClick={() => setShowSaveInput(true)}>
-              <Bookmark className="size-4" />
-              {t("transactions.filterBar.salvarFiltroAtual")}
-            </Button>
-          )}
-        </section>
       </div>
 
       {/* Rodape fixo */}
-      <div className="flex gap-2 border-t px-5 py-4">
-        <Button variant="outline" className="flex-1 gap-2" onClick={props.onClear}>
-          <Trash2 className="size-4" />
-          {t("common.limparFiltros")}
+      <div className="shrink-0 flex gap-2 border-t px-5 py-4">
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={() => { props.onClear(); props.onClose(); }}
+        >
+          {t("transactions.filterBar.cancelar")}
         </Button>
         <Button className="flex-1" onClick={props.onClose}>
-          {t("transactions.filterBar.verResultados")}
+          {t("transactions.filterBar.aplicarFiltros")}
         </Button>
       </div>
     </div>

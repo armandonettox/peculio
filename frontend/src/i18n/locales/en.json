@@ -685,7 +685,12 @@
       "salvarFiltro": "Save filter",
       "salvarFiltroAtual": "Save current filter",
       "nomeFiltro": "Filter name",
-      "verResultados": "See results"
+      "verResultados": "See results",
+      "filtroDeTransacoes": "Transaction filter",
+      "novoFiltro": "New filter",
+      "nenhumFiltroSalvo": "No saved filters yet.",
+      "cancelar": "Cancel",
+      "aplicarFiltros": "Apply filters"
     },
     "quickRowEditor": {
       "novoLancamento": "New transaction",
