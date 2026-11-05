@@ -306,7 +306,15 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader title={t("pages.transactions.transacoes")} />
+      <PageHeader
+        title={t("pages.transactions.transacoes")}
+        actions={
+          <Button onClick={() => setDialog("new")}>
+            <Plus />
+            {t("transactions.transactionFormDialog.novoLancamento")}
+          </Button>
+        }
+      />
 
       {/* Barra de acoes */}
       <div className="mb-4 flex items-center gap-2">
