@@ -51,6 +51,13 @@ function lastOfMonth(date: string): string {
   return shiftDay(shiftMonth(date, 1), -1);
 }
 
+function splitMonthYear(date: string): { month: string; year: string } {
+  const full = formatMonthYear(date);
+  const match = full.match(/^(.+?)\s+(?:de\s+)?(\d{4})$/);
+  if (match) return { month: match[1], year: match[2] };
+  return { month: full, year: "" };
+}
+
 type KindLabelKey = "pages.transactions.todas" | "pages.transactions.despesas" | "pages.transactions.receitas" | "pages.transactions.transferencias";
 
 const KIND_OPTIONS: { value: KindFilter | null; labelKey: KindLabelKey }[] = [
@@ -287,7 +294,7 @@ export default function TransactionsPage() {
         {!searchOpen && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="default" className="gap-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button variant="default" className="gap-1 shrink-0 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90">
                 <ChevronDown className="size-3" />
                 {t(currentKindOption.labelKey)}
               </Button>
@@ -336,8 +343,8 @@ export default function TransactionsPage() {
           <div className="ml-auto flex items-center gap-1">
             <Button
               size="icon"
-              variant="ghost"
-              className="size-9"
+              variant="outline"
+              className="size-9 rounded-full"
               aria-label={t("transactions.filterBar.buscarLancamentos")}
               onClick={() => setSearchOpen(true)}
             >
@@ -347,8 +354,8 @@ export default function TransactionsPage() {
             {/* Funil: abre drawer lateral */}
             <Button
               size="icon"
-              variant={activeCount > 0 ? "outline" : "ghost"}
-              className="relative size-9"
+              variant="outline"
+              className={`relative size-9 rounded-full ${activeCount > 0 ? "border-primary text-primary" : ""}`}
               aria-label={t("transactions.filterBar.filters")}
               onClick={() => setFilterOpen(true)}
             >
@@ -363,7 +370,7 @@ export default function TransactionsPage() {
             {/* Mais opcoes */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="size-9" aria-label={t("transactions.filterBar.filtros")}>
+                <Button size="icon" variant="outline" className="size-9 rounded-full" aria-label={t("transactions.filterBar.filtros")}>
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -420,17 +427,23 @@ export default function TransactionsPage() {
       <TransactionsSummaryCards dateFrom={monthStart} dateTo={monthEnd} />
 
       {/* Navegador de mes */}
-      <div className="mb-4 flex items-center justify-center gap-3">
-        <Button size="icon" variant="ghost" className="size-8" onClick={() => navigateMonth(-1)}>
-          <ChevronLeft className="size-4" />
-        </Button>
-        <span className="min-w-36 text-center text-sm font-medium">
-          {formatMonthYear(monthStart)}
-        </span>
-        <Button size="icon" variant="ghost" className="size-8" onClick={() => navigateMonth(1)}>
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
+      {(() => {
+        const { month, year } = splitMonthYear(monthStart);
+        return (
+          <div className="mb-4 flex items-center justify-center gap-3">
+            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(-1)}>
+              <ChevronLeft className="size-4" />
+            </Button>
+            <span className="inline-flex items-center gap-1 rounded-full border border-primary px-5 py-1 text-sm font-medium">
+              <span>{month}</span>
+              {year && <span className="text-primary">{year}</span>}
+            </span>
+            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(1)}>
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        );
+      })()}
 
       {content}
 
