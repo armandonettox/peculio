@@ -96,11 +96,7 @@ export default function TransactionsPage() {
   const monthStart = firstOfMonth(monthAnchor);
   const monthEnd = lastOfMonth(monthStart);
 
-  // Se nao tiver filtro de data na URL, injeta o mes atual automaticamente
-  const effectiveFilters = useMemo(() => {
-    if (filters.dateFrom || filters.dateTo) return filters;
-    return { ...filters, dateFrom: monthStart, dateTo: monthEnd };
-  }, [filters, monthStart, monthEnd]);
+  const effectiveFilters = filters;
 
   const update = useCallback(
     (patch: Parameters<typeof writeFilters>[1]) =>
