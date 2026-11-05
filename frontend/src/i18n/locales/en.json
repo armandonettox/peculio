@@ -340,9 +340,7 @@
     "despesa": "Expense",
     "resultado": "Net",
     "concluir": "Done",
-    "revogar": "Revoke",
-    "anterior": "Previous",
-    "proxima": "Next"
+    "revogar": "Revoke"
   },
   "components": {
     "appShell": {

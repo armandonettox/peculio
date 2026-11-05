@@ -340,9 +340,7 @@
     "despesa": "Despesa",
     "resultado": "Resultado",
     "concluir": "Concluir",
-    "revogar": "Revogar",
-    "anterior": "Anterior",
-    "proxima": "Próxima"
+    "revogar": "Revogar"
   },
   "components": {
     "appShell": {

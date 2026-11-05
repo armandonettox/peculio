@@ -21,6 +21,8 @@ function account(overrides: Partial<Account>): Account {
     closing_day: null,
     due_day: null,
     credit_limit: null,
+    bank: null,
+    network: null,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };
