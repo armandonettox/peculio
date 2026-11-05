@@ -406,7 +406,7 @@ export default function TransactionsPage() {
 
       {/* Drawer lateral de filtros avancados */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetContent className="left-auto right-0 flex h-full w-80 flex-col border-l border-r-0 p-0">
+        <SheetContent className="left-auto right-0 flex h-full w-[420px] flex-col border-l border-r-0 p-0">
           <FilterDrawer
             filters={effectiveFilters}
             kind={kind}
