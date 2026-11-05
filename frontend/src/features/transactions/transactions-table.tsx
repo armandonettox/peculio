@@ -1,4 +1,4 @@
-import { Keyboard, Lock, Maximize2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Keyboard, Lock, Maximize2, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useCurrencies, type Account } from "@/api/accounts";
@@ -84,7 +84,6 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
   // Linha que recebe o foco quando o editor fecha
   const [pendingFocus, setPendingFocus] = useState<number | null>(null);
   const rows = useRef<(HTMLTableRowElement | null)[]>([]);
-  const newButton = useRef<HTMLButtonElement>(null);
   const stop = tabStop(active, items.length);
   const order = useMemo(() => items.map((item) => item.id), [items]);
   const count = selection.ids.size;
@@ -184,10 +183,6 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
           <Button type="button" size="sm" variant="outline" onClick={() => setShowShortcuts(true)}>
             <Keyboard />
             {t("transactions.transactionsTable.atalhos")}
-          </Button>
-          <Button ref={newButton} type="button" size="sm" variant="outline" onClick={startNew}>
-            <Plus />
-            {t("transactions.transactionsTable.novaLinha")}
           </Button>
         </div>
       </div>
@@ -298,7 +293,6 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
               onDone={(saved, closeAfter) => {
                 if (closeAfter) {
                   setCreating(null);
-                  newButton.current?.focus();
                 } else {
                   // A proxima linha segue na mesma data e conta, com o foco na descricao
                   setCreating({ id: Date.now(), initial: rowAfterAdd(saved, ctx), focus: "description" });
@@ -306,7 +300,6 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
               }}
               onCancel={() => {
                 setCreating(null);
-                newButton.current?.focus();
               }}
             />
           )}
