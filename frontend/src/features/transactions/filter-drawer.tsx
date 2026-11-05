@@ -50,8 +50,8 @@ function NewFilterTab(props: Props) {
 
   const [dateFromDraft, setDateFromDraft] = useState(filters.dateFrom ?? "");
   const [dateToDraft, setDateToDraft] = useState(filters.dateTo ?? "");
-  const dateFromTimer = useRef<ReturnType<typeof setTimeout>>();
-  const dateToTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dateFromTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const dateToTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => { setDateFromDraft(filters.dateFrom ?? ""); }, [filters.dateFrom]);
   useEffect(() => { setDateToDraft(filters.dateTo ?? ""); }, [filters.dateTo]);
