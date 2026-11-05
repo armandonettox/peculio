@@ -1585,8 +1585,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** CardNetwork */
-        CardNetwork: "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "other";
         /** AccountCreate */
         AccountCreate: {
             /** Account Number */
@@ -1595,6 +1593,8 @@ export interface components {
             bank?: string | null;
             /** Closing Day */
             closing_day?: number | null;
+            /** Color */
+            color?: string | null;
             /** Credit Limit */
             credit_limit?: number | string | null;
             /** Currency Code */
@@ -1610,6 +1610,7 @@ export interface components {
             in_envelopes: boolean;
             /** Name */
             name: string;
+            network?: components["schemas"]["CardNetwork"] | null;
             /** Notes */
             notes?: string | null;
             /**
@@ -1619,9 +1620,6 @@ export interface components {
             opening_balance: number | string;
             /** Opening Balance Date */
             opening_balance_date?: string | null;
-            network?: components["schemas"]["CardNetwork"] | null;
-            /** Color */
-            color?: string | null;
             role?: components["schemas"]["AccountRole"] | null;
             /**
              * Type
@@ -1641,6 +1639,8 @@ export interface components {
             bank: string | null;
             /** Closing Day */
             closing_day: number | null;
+            /** Color */
+            color: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1663,15 +1663,13 @@ export interface components {
             in_envelopes: boolean;
             /** Name */
             name: string;
+            network: components["schemas"]["CardNetwork"] | null;
             /** Notes */
             notes: string | null;
             /** Opening Balance */
             opening_balance: string;
             /** Opening Balance Date */
             opening_balance_date: string | null;
-            network: components["schemas"]["CardNetwork"] | null;
-            /** Color */
-            color: string | null;
             role: components["schemas"]["AccountRole"] | null;
             type: components["schemas"]["AccountType"];
         };
@@ -1695,6 +1693,8 @@ export interface components {
             bank?: string | null;
             /** Closing Day */
             closing_day?: number | null;
+            /** Color */
+            color?: string | null;
             /** Credit Limit */
             credit_limit?: number | string | null;
             /** Due Day */
@@ -1705,15 +1705,13 @@ export interface components {
             in_envelopes?: boolean | null;
             /** Name */
             name?: string | null;
+            network?: components["schemas"]["CardNetwork"] | null;
             /** Notes */
             notes?: string | null;
             /** Opening Balance */
             opening_balance?: number | string | null;
             /** Opening Balance Date */
             opening_balance_date?: string | null;
-            network?: components["schemas"]["CardNetwork"] | null;
-            /** Color */
-            color?: string | null;
             role?: components["schemas"]["AccountRole"] | null;
         };
         /** ActionIn */
@@ -1968,6 +1966,11 @@ export interface components {
             /** Created Ids */
             created_ids: string[];
         };
+        /**
+         * CardNetwork
+         * @enum {string}
+         */
+        CardNetwork: "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "other";
         /** CategoryCreate */
         CategoryCreate: {
             /** Color */

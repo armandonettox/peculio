@@ -15,6 +15,18 @@
             ],
             "title": "Account Number"
           },
+          "bank": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank"
+          },
           "closing_day": {
             "anyOf": [
               {
@@ -27,6 +39,18 @@
               }
             ],
             "title": "Closing Day"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
           },
           "credit_limit": {
             "anyOf": [
@@ -85,6 +109,16 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "network": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardNetwork"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "notes": {
             "anyOf": [
@@ -172,6 +206,17 @@
             "title": "Balance",
             "type": "string"
           },
+          "bank": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank"
+          },
           "closing_day": {
             "anyOf": [
               {
@@ -182,6 +227,17 @@
               }
             ],
             "title": "Closing Day"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
           },
           "created_at": {
             "format": "date-time",
@@ -239,6 +295,16 @@
             "title": "Name",
             "type": "string"
           },
+          "network": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardNetwork"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "notes": {
             "anyOf": [
               {
@@ -295,6 +361,9 @@
           "closing_day",
           "due_day",
           "credit_limit",
+          "bank",
+          "network",
+          "color",
           "opening_balance",
           "opening_balance_date",
           "balance",
@@ -355,6 +424,18 @@
             ],
             "title": "Active"
           },
+          "bank": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bank"
+          },
           "closing_day": {
             "anyOf": [
               {
@@ -367,6 +448,18 @@
               }
             ],
             "title": "Closing Day"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
           },
           "credit_limit": {
             "anyOf": [
@@ -432,6 +525,16 @@
               }
             ],
             "title": "Name"
+          },
+          "network": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardNetwork"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "notes": {
             "anyOf": [
@@ -1130,6 +1233,18 @@
         ],
         "title": "BulkOut",
         "type": "object"
+      },
+      "CardNetwork": {
+        "enum": [
+          "visa",
+          "mastercard",
+          "elo",
+          "amex",
+          "hipercard",
+          "other"
+        ],
+        "title": "CardNetwork",
+        "type": "string"
       },
       "CategoryCreate": {
         "additionalProperties": false,
