@@ -236,21 +236,11 @@ export default function TransactionsPage() {
   } else {
     content = (
       <>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="mb-4">
           <p className="text-sm text-muted-foreground">
             {total} {total === 1 ? t("pages.transactions.lancamento") : t("pages.transactions.lancamentos")}
             {activeCount > 0 ? ` ${t("pages.transactions.comOsFiltrosEscolhidos")}` : ""}
           </p>
-          <div role="group" aria-label={t("pages.transactions.comoMostrarOsLancamentos")} className="flex gap-1">
-            <Button size="sm" variant={view === "list" ? "default" : "outline"} aria-pressed={view === "list"} onClick={() => chooseView("list")}>
-              <LayoutList />
-              {t("pages.transactions.lista")}
-            </Button>
-            <Button size="sm" variant={view === "table" ? "default" : "outline"} aria-pressed={view === "table"} onClick={() => chooseView("table")}>
-              <Table2 />
-              {t("pages.transactions.tabela")}
-            </Button>
-          </div>
         </div>
         {view === "table" ? (
           <TransactionsTable
