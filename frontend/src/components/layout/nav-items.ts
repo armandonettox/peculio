@@ -2,6 +2,7 @@ import {
   ArrowLeftRight,
   BarChart3,
   Coins,
+  CreditCard,
   Landmark,
   LayoutDashboard,
   PiggyBank,
@@ -25,6 +26,7 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { labelKey: "nav.dashboard", icon: LayoutDashboard, to: "/" },
   { labelKey: "nav.accounts", icon: Landmark, to: "/contas" },
+  { labelKey: "nav.creditCards", icon: CreditCard, to: "/cartoes" },
   { labelKey: "nav.transactions", icon: ArrowLeftRight, to: "/transacoes" },
   { labelKey: "nav.import", icon: Upload, to: "/importar" },
   { labelKey: "nav.categories", icon: Tags, to: "/categorias" },

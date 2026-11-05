@@ -404,6 +404,7 @@
   "nav": {
     "dashboard": "Painel",
     "accounts": "Contas",
+    "creditCards": "Cartões de crédito",
     "transactions": "Transações",
     "import": "Importar extrato",
     "categories": "Categorias",

@@ -5,6 +5,7 @@ import { AuthLayout } from "@/components/layout/auth-layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/components/protected-route";
 import { PwaBanners } from "@/components/pwa-banners";
 import AccountsPage from "@/pages/accounts";
+import CreditCardsPage from "@/pages/credit-cards";
 import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
 import BillsRecurrencesPage from "@/pages/bills";
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="envelopes" element={<Navigate to="/orcamentos" replace />} />
             <Route path="regras" element={<RulesPage />} />
             <Route path="contas" element={<AccountsPage />} />
+            <Route path="cartoes" element={<CreditCardsPage />} />
             <Route path="contas/:accountId/fatura" element={<InvoicePage />} />
             <Route path="transacoes" element={<TransactionsPage />} />
             <Route path="importar" element={<ImportReconciliationPage />} />

@@ -404,6 +404,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "accounts": "Accounts",
+    "creditCards": "Credit cards",
     "transactions": "Transactions",
     "import": "Import statement",
     "categories": "Categories",
