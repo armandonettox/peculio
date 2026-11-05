@@ -122,6 +122,7 @@
       "despesas": "Despesas",
       "receitas": "Receitas",
       "transferencias": "Transferências",
+      "despesasCartao": "Despesas do cartão",
       "saldoAtual": "Saldo atual",
       "balanco": "Balanço mensal"
     },

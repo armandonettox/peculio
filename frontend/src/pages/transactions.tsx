@@ -60,13 +60,14 @@ function splitMonthYear(date: string): { month: string; year: string } {
   return { month: full, year: "" };
 }
 
-type KindLabelKey = "pages.transactions.todas" | "pages.transactions.despesas" | "pages.transactions.receitas" | "pages.transactions.transferencias";
+type KindLabelKey = "pages.transactions.todas" | "pages.transactions.despesas" | "pages.transactions.receitas" | "pages.transactions.transferencias" | "pages.transactions.despesasCartao";
 
 const KIND_OPTIONS: { value: KindFilter | null; labelKey: KindLabelKey }[] = [
   { value: null, labelKey: "pages.transactions.todas" },
   { value: "withdrawal", labelKey: "pages.transactions.despesas" },
   { value: "deposit", labelKey: "pages.transactions.receitas" },
   { value: "transfer", labelKey: "pages.transactions.transferencias" },
+  { value: "credit_card_expense", labelKey: "pages.transactions.despesasCartao" },
 ];
 
 export default function TransactionsPage() {
@@ -152,10 +153,19 @@ export default function TransactionsPage() {
   );
 
   const allItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
-  const items = useMemo(
-    () => (kind ? allItems.filter((item) => item.splits.some((s) => s.type === kind)) : allItems),
-    [allItems, kind],
+  const creditCardIds = useMemo(
+    () => new Set((accounts.data ?? []).filter((a) => a.role === "credit_card").map((a) => a.id)),
+    [accounts.data],
   );
+  const items = useMemo(() => {
+    if (!kind) return allItems;
+    if (kind === "credit_card_expense") {
+      return allItems.filter((item) =>
+        item.splits.some((s) => s.type === "withdrawal" && creditCardIds.has(s.source_account_id)),
+      );
+    }
+    return allItems.filter((item) => item.splits.some((s) => s.type === kind));
+  }, [allItems, kind, creditCardIds]);
   const total = query.data?.pages[0]?.total ?? 0;
   const groups = useMemo(() => groupByDay(items), [items]);
 

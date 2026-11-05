@@ -40,6 +40,7 @@ const KIND_OPTIONS: { value: KindFilter | null; labelKey: string }[] = [
   { value: "deposit", labelKey: "pages.transactions.receitas" },
   { value: "withdrawal", labelKey: "pages.transactions.despesas" },
   { value: "transfer", labelKey: "pages.transactions.transferencias" },
+  { value: "credit_card_expense", labelKey: "pages.transactions.despesasCartao" },
 ];
 
 // Select visual com fundo e chevron, sem o <select> nativo aparecendo feio

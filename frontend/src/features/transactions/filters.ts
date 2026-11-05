@@ -1,7 +1,7 @@
 import { i18n } from "@/i18n";
 import type { TransactionFilters } from "@/api/transactions";
 
-export type KindFilter = "withdrawal" | "deposit" | "transfer";
+export type KindFilter = "withdrawal" | "deposit" | "transfer" | "credit_card_expense";
 
 // Os filtros ficam na URL (/transacoes?conta=...&de=2026-03-01): o botao Voltar, o link
 // copiado e um atalho vindo de outra tela abrem a lista ja filtrada.
@@ -31,7 +31,7 @@ export function readFilters(params: URLSearchParams): TransactionFilters {
 
 export function readKind(params: URLSearchParams): KindFilter | null {
   const value = params.get(KIND_PARAM);
-  if (value === "withdrawal" || value === "deposit" || value === "transfer") return value;
+  if (value === "withdrawal" || value === "deposit" || value === "transfer" || value === "credit_card_expense") return value;
   return null;
 }
 

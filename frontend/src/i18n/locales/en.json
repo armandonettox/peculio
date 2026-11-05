@@ -122,6 +122,7 @@
       "despesas": "Expenses",
       "receitas": "Income",
       "transferencias": "Transfers",
+      "despesasCartao": "Credit card expenses",
       "saldoAtual": "Current balance",
       "balanco": "Monthly balance"
     },
