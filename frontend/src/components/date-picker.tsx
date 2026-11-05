@@ -10,6 +10,11 @@ const PT_BR_MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
+const PT_BR_MONTHS_SHORT = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+];
+
 const PT_BR_WEEKDAYS_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function isoToDate(iso: string): Date | undefined {
@@ -29,7 +34,7 @@ function dateToIso(date: Date): string {
 function formatDisplay(iso: string): string {
   const d = isoToDate(iso);
   if (!d) return "";
-  return `${d.getDate()} ${PT_BR_MONTHS[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
+  return `${d.getDate()} ${PT_BR_MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 type Props = {
@@ -61,15 +66,15 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
+        className="flex w-full items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-2 text-xs shadow-sm hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
       >
-        <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
-        <span className={cn("flex-1 text-left", selected ? "text-foreground" : "text-muted-foreground")}>
+        <CalendarDays className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className={cn("min-w-0 flex-1 truncate text-left", selected ? "text-foreground" : "text-muted-foreground")}>
           {selected ? formatDisplay(value) : placeholder}
         </span>
         {selected && (
           <X
-            className="size-3.5 shrink-0 text-muted-foreground hover:text-foreground"
+            className="size-3 shrink-0 text-muted-foreground hover:text-foreground"
             onClick={handleClear}
           />
         )}
