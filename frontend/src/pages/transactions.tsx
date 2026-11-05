@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, LayoutList, MoreHorizontal, Search, SlidersHorizontal, Table2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, MoreHorizontal, Search, Table2, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AttachmentsDialog } from "@/features/attachments/attachments-dialog";
 import { FilterBar } from "@/features/transactions/filter-bar";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
@@ -283,30 +284,33 @@ export default function TransactionsPage() {
       {/* Barra de acoes */}
       <div className="mb-4 flex items-center gap-2">
         {/* Filtro rapido por tipo */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="default" className="gap-1 bg-primary text-primary-foreground hover:bg-primary/90">
-              <ChevronDown className="size-3" />
-              {t(currentKindOption.labelKey)}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-44">
-            {KIND_OPTIONS.map((option) => (
-              <DropdownMenuItem
-                key={option.value ?? "all"}
-                onClick={() => setKind(option.value)}
-                className={option.value === kind ? "font-semibold" : ""}
-              >
-                {t(option.labelKey)}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {!searchOpen && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="default" className="gap-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+                <ChevronDown className="size-3" />
+                {t(currentKindOption.labelKey)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              {KIND_OPTIONS.map((option) => (
+                <DropdownMenuItem
+                  key={option.value ?? "all"}
+                  onClick={() => setKind(option.value)}
+                  className={option.value === kind ? "font-semibold" : ""}
+                >
+                  {t(option.labelKey)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
-        <div className="ml-auto flex items-center gap-1">
-          {/* Campo de busca expansivel */}
-          {searchOpen ? (
-            <div className="flex items-center gap-1">
+        {/* Campo de busca expansivel: ocupa toda a linha ao abrir */}
+        {searchOpen ? (
+          <div className="flex flex-1 items-center gap-1">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 ref={searchRef}
                 autoFocus
@@ -315,18 +319,21 @@ export default function TransactionsPage() {
                 placeholder={t("transactions.filterBar.buscarLancamentos")}
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
-                className="h-9 w-48"
+                className="h-9 pl-9"
               />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="size-9"
-                onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
-              >
-                <X className="size-4" />
-              </Button>
             </div>
-          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-9 shrink-0"
+              aria-label={t("common.fechar")}
+              onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="ml-auto flex items-center gap-1">
             <Button
               size="icon"
               variant="ghost"
@@ -336,71 +343,78 @@ export default function TransactionsPage() {
             >
               <Search className="size-4" />
             </Button>
-          )}
 
-          {/* Painel de filtros avancados */}
-          <Button
-            size="icon"
-            variant={activeCount > 0 ? "outline" : "ghost"}
-            className="relative size-9"
-            aria-label={t("transactions.filterBar.filters")}
-            onClick={() => setFilterOpen((v) => !v)}
-          >
-            <SlidersHorizontal className="size-4" />
-            {activeCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                {activeCount}
-              </span>
-            )}
-          </Button>
-
-          {/* Mais opcoes */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="size-9" aria-label={t("transactions.filterBar.filters")}>
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={() => chooseView(view === "list" ? "table" : "list")}>
-                {view === "list" ? (
-                  <><Table2 className="mr-2 size-4" />{t("pages.transactions.tabela")}</>
-                ) : (
-                  <><LayoutList className="mr-2 size-4" />{t("pages.transactions.lista")}</>
-                )}
-              </DropdownMenuItem>
+            {/* Funil: abre drawer lateral */}
+            <Button
+              size="icon"
+              variant={activeCount > 0 ? "outline" : "ghost"}
+              className="relative size-9"
+              aria-label={t("transactions.filterBar.filters")}
+              onClick={() => setFilterOpen(true)}
+            >
+              <Filter className="size-4" />
               {activeCount > 0 && (
-                <DropdownMenuItem onClick={clearFilters}>
-                  <X className="mr-2 size-4" />
-                  {t("common.limparFiltros")}
-                </DropdownMenuItem>
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                  {activeCount}
+                </span>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </Button>
+
+            {/* Mais opcoes */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="size-9" aria-label={t("transactions.filterBar.filtros")}>
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => chooseView(view === "list" ? "table" : "list")}>
+                  {view === "list" ? (
+                    <><Table2 className="mr-2 size-4" />{t("pages.transactions.tabela")}</>
+                  ) : (
+                    <><LayoutList className="mr-2 size-4" />{t("pages.transactions.lista")}</>
+                  )}
+                </DropdownMenuItem>
+                {(activeCount > 0 || kind) && (
+                  <DropdownMenuItem onClick={clearFilters}>
+                    <X className="mr-2 size-4" />
+                    {t("common.limparFiltros")}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
-      {/* Painel de filtros avancados (abre ao clicar no funil) */}
-      {filterOpen && (
-        <FilterBar
-          filters={effectiveFilters}
-          activeCount={activeCount}
-          searchDraft={searchDraft}
-          minDraft={minDraft}
-          maxDraft={maxDraft}
-          onSearchChange={setSearchDraft}
-          onMinChange={setMinDraft}
-          onMaxChange={setMaxDraft}
-          minError={amountError(minDraft)}
-          maxError={amountError(maxDraft)}
-          dateError={rangeError}
-          accounts={accounts.data ?? []}
-          categories={categoryList}
-          tags={tagList}
-          onChange={update}
-          onClear={clearFilters}
-        />
-      )}
+      {/* Drawer lateral de filtros avancados */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetContent className="left-auto right-0 w-80 overflow-y-auto border-l border-r-0 p-0">
+          <SheetTitle className="border-b px-6 py-4 text-base">
+            {t("transactions.filterBar.filtros")}
+          </SheetTitle>
+          <div className="p-4">
+            <FilterBar
+              filters={effectiveFilters}
+              activeCount={activeCount}
+              searchDraft={searchDraft}
+              minDraft={minDraft}
+              maxDraft={maxDraft}
+              onSearchChange={setSearchDraft}
+              onMinChange={setMinDraft}
+              onMaxChange={setMaxDraft}
+              minError={amountError(minDraft)}
+              maxError={amountError(maxDraft)}
+              dateError={rangeError}
+              accounts={accounts.data ?? []}
+              categories={categoryList}
+              tags={tagList}
+              onChange={update}
+              onClear={clearFilters}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Cards de resumo do mes */}
       <TransactionsSummaryCards dateFrom={monthStart} dateTo={monthEnd} />
