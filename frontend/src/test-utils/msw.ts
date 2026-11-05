@@ -10,6 +10,11 @@ export const server = setupServer(
     HttpResponse.json({ detail: "Sessao invalida, entre novamente", code: "session_invalid" }, { status: 401 }),
   ),
   http.post("*/api/v1/auth/logout", () => new HttpResponse(null, { status: 204 })),
+  // Resumo de relatorio: retorna vazio por padrao para nao quebrar testes que renderizam a
+  // pagina de transacoes sem precisar testar os cards de resumo
+  http.get("*/api/v1/reports/summary", () =>
+    HttpResponse.json({ date_from: "2026-01-01", date_to: "2026-01-31", currencies: [] }),
+  ),
 );
 
 export const sampleUser = {

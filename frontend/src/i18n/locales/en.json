@@ -77,7 +77,6 @@
       "cadastreSuaPrimeiraConta2": "Add your first account or turn on the option to see archived ones.",
       "saldoTotal": "Total balance",
       "contas": "Accounts",
-      "total": "Total",
       "ondeEstaOSeu": "Where your money is",
       "mostrarArquivadas": "Show archived",
       "nenhumCartaoAtivo": "No active cards",
@@ -106,14 +105,14 @@
       "faturaFechada": "Closed statement",
       "diaDeFechamento": "Closing day",
       "vencimento": "Due date",
-      "periodo": "Period",
       "marcarComoPaga": "Mark statement as paid",
       "nenhumaCompraNessaFatura": "No purchases on this statement",
       "contaNaoConfigurada": "This account doesn't have a closing and due day set up yet. Edit the account to see the statement.",
       "voltarParaContas": "Back to Accounts",
       "carregandoFatura": "Loading statement...",
       "descricaoDoPagamento": "{{name}} statement payment",
-      "contaNaoEncontrada": "Account not found."
+      "contaNaoEncontrada": "Account not found.",
+      "periodo": "Statement period"
     },
     "transactions": {
       "carregandoLancamentos": "Loading transactions...",
@@ -621,23 +620,17 @@
       "verTransacoes": "View transactions",
       "reajustarSaldo": "Adjust balance",
       "adicionarDespesa": "Add expense",
-      "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
       "limiteDisponivel2": "Available limit",
       "actionsFor": "Actions for account {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Current statement",
       "faturaAberta": "Open statement",
-      "fechaEm": "Closes on {{date}}",
       "fechaEmLabel": "Closes on",
       "valorParcial": "Partial amount",
-      "historicoFaturas": "Statement history",
       "faturaFechada": "Closed statement",
       "vencimento": "Due date",
-      "adicionarDespesa": "Add expense",
-      "usado": "Used {{value}}",
-      "disponivel": "Available {{value}}",
-      "limite": "Limit {{value}}"
+      "adicionarDespesa": "Add expense"
     },
     "accountFormDialog": {
       "editarConta": "Edit account",
@@ -652,7 +645,6 @@
       "buscarInstituicao": "Search by name",
       "nenhumaInstituicao": "No institution found",
       "altereOsDadosDa": "Change the account's details. The type and currency can't change.",
-      "cadastreUmaContaOnde": "Add an account (where you keep money) or a debt (what you owe).",
       "cadastreUmaContaBanco": "Enter the bank and opening balance for this account.",
       "cadastreUmCartaoDe": "Add a credit card, with limit, closing day and due day.",
       "categoriaDaConta": "Account category",
@@ -665,7 +657,6 @@
       "salvar": "Save",
       "criarConta": "Create account",
       "criarCartao": "Create card",
-      "criarDivida": "Create liability",
       "openingDebt": "How much you owe",
       "openingBalance": "Opening balance",
       "nameRequired": "Enter the account name.",
@@ -680,7 +671,7 @@
       "limiteHint": "Total credit limit. Leave blank if you don't want to track it.",
       "limiteInvalido": "Enter a limit greater than zero.",
       "banco": "Bank / Institution",
-      "bancoPlaceholder": "e.g. Nubank, Itaú, Bradesco",
+      "bancoPlaceholder": "e.g. Nubank, Itau, Bradesco",
       "bandeira": "Card network",
       "semBandeira": "No network",
       "outraBandeira": "Other",
@@ -737,7 +728,6 @@
       "valorMaximo": "Maximum amount",
       "filters": "Filters",
       "periodo": "Period",
-      "tipo": "Type",
       "valor": "Amount",
       "filtrosSalvos": "Saved filters",
       "salvarFiltro": "Save filter",
@@ -746,7 +736,6 @@
       "filtroDeTransacoes": "Transaction filter",
       "novoFiltro": "New filter",
       "nenhumFiltroSalvo": "No saved filters yet.",
-      "cancelar": "Cancel",
       "aplicarFiltros": "Apply filters"
     },
     "quickRowEditor": {

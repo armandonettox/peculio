@@ -70,16 +70,13 @@
     },
     "accounts": {
       "novaConta": "Nova conta",
-      "novaDivida": "Nova dívida",
       "novoCartao": "Novo cartão",
       "nenhumaContaAinda": "Nenhuma conta ainda",
       "nenhumaContaAtiva": "Nenhuma conta ativa",
-      "nenhumaDividaAtiva": "Nenhuma dívida cadastrada",
       "cadastreSuaPrimeiraConta": "Cadastre sua primeira conta para começar.",
       "cadastreSuaPrimeiraConta2": "Cadastre sua primeira conta ou ative a opção para ver as arquivadas.",
       "saldoTotal": "Saldo total",
       "contas": "Contas",
-      "total": "Total",
       "ondeEstaOSeu": "Onde está o seu dinheiro",
       "mostrarArquivadas": "Mostrar arquivadas",
       "nenhumCartaoAtivo": "Nenhum cartão ativo",
@@ -108,14 +105,14 @@
       "faturaFechada": "Fatura fechada",
       "diaDeFechamento": "Dia de fechamento",
       "vencimento": "Vencimento",
-      "periodo": "Período",
       "marcarComoPaga": "Marcar fatura como paga",
       "nenhumaCompraNessaFatura": "Nenhuma compra nessa fatura",
       "contaNaoConfigurada": "Esta conta ainda não tem dia de fechamento e de vencimento configurados. Edite a conta para ver a fatura.",
       "voltarParaContas": "Voltar para Contas",
       "carregandoFatura": "Carregando fatura...",
       "descricaoDoPagamento": "Pagamento da fatura de {{name}}",
-      "contaNaoEncontrada": "Conta não encontrada."
+      "contaNaoEncontrada": "Conta não encontrada.",
+      "periodo": "Período da fatura"
     },
     "transactions": {
       "carregandoLancamentos": "Carregando lançamentos...",
@@ -623,23 +620,17 @@
       "verTransacoes": "Ver transações",
       "reajustarSaldo": "Reajustar saldo",
       "adicionarDespesa": "Adicionar despesa",
-      "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
       "limiteDisponivel2": "Limite disponível",
       "actionsFor": "Ações da conta {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Fatura atual",
       "faturaAberta": "Fatura aberta",
-      "fechaEm": "Fecha em {{date}}",
       "fechaEmLabel": "Fecha em",
       "valorParcial": "Valor parcial",
-      "historicoFaturas": "Histórico de faturas",
       "faturaFechada": "Fatura fechada",
       "vencimento": "Vencimento",
-      "adicionarDespesa": "Adicionar despesa",
-      "usado": "Usado {{value}}",
-      "disponivel": "Disponível {{value}}",
-      "limite": "Limite {{value}}"
+      "adicionarDespesa": "Adicionar despesa"
     },
     "accountFormDialog": {
       "editarConta": "Editar conta",
@@ -654,7 +645,6 @@
       "buscarInstituicao": "Buscar por nome",
       "nenhumaInstituicao": "Nenhuma instituição encontrada",
       "altereOsDadosDa": "Altere os dados da conta. O tipo e a moeda não podem mudar.",
-      "cadastreUmaContaOnde": "Cadastre uma conta (onde você guarda dinheiro) ou uma dívida (o que você deve).",
       "cadastreUmaContaBanco": "Informe o banco e o saldo inicial da conta.",
       "cadastreUmCartaoDe": "Cadastre um cartão de crédito, com limite, fechamento e vencimento.",
       "categoriaDaConta": "Categoria da conta",
@@ -667,7 +657,6 @@
       "salvar": "Salvar",
       "criarConta": "Criar conta",
       "criarCartao": "Criar cartão",
-      "criarDivida": "Criar dívida",
       "openingDebt": "Quanto você deve",
       "openingBalance": "Saldo inicial",
       "nameRequired": "Informe o nome da conta.",
@@ -739,7 +728,6 @@
       "valorMaximo": "Valor máximo",
       "filters": "Filtros",
       "periodo": "Período",
-      "tipo": "Tipo",
       "valor": "Valor",
       "filtrosSalvos": "Filtros salvos",
       "salvarFiltro": "Salvar filtro",
@@ -748,7 +736,6 @@
       "filtroDeTransacoes": "Filtro de transações",
       "novoFiltro": "Novo filtro",
       "nenhumFiltroSalvo": "Nenhum filtro salvo ainda.",
-      "cancelar": "Cancelar",
       "aplicarFiltros": "Aplicar filtros"
     },
     "quickRowEditor": {

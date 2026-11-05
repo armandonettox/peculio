@@ -105,6 +105,7 @@ export default function InvoicePage() {
           />
           <KpiCard icon={CalendarDays} label={t("pages.invoice.diaDeFechamento")} value={closingDateFormatted} />
           <KpiCard icon={CalendarCheck} label={t("pages.invoice.vencimento")} value={formatDate(data.due_date)} />
+          <KpiCard icon={CalendarDays} label={t("pages.invoice.periodo")} value={`${formatDate(data.period_start)} – ${formatDate(data.period_end)}`} />
         </div>
 
         <div>

@@ -1,11 +1,10 @@
-import { BookmarkCheck, ChevronDown, Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { BookmarkCheck, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { Account } from "@/api/accounts";
 import type { Category, Tag } from "@/api/labels";
 import type { TransactionFilters } from "@/api/transactions";
-import { DatePicker } from "@/components/date-picker";
 import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,59 +34,6 @@ type Props = {
   onClose: () => void;
 };
 
-const KIND_OPTIONS: { value: KindFilter | null; labelKey: string }[] = [
-  { value: null, labelKey: "pages.transactions.todas" },
-  { value: "deposit", labelKey: "pages.transactions.receitas" },
-  { value: "withdrawal", labelKey: "pages.transactions.despesas" },
-  { value: "transfer", labelKey: "pages.transactions.transferencias" },
-  { value: "credit_card_expense", labelKey: "pages.transactions.despesasCartao" },
-];
-
-// Select visual com fundo e chevron, sem o <select> nativo aparecendo feio
-type VisualSelectProps = {
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  placeholder: string;
-};
-
-function VisualSelect({ value, onChange, options, placeholder }: VisualSelectProps) {
-  const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value);
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
-          {selected ? selected.label : placeholder}
-        </span>
-        <ChevronDown className={`size-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover py-1 shadow-md">
-            {options.map((opt) => (
-              <li key={opt.value}>
-                <button
-                  type="button"
-                  onClick={() => { onChange(opt.value); setOpen(false); }}
-                  className={`flex w-full px-3 py-2 text-left text-sm hover:bg-accent ${opt.value === value ? "font-semibold text-primary" : ""}`}
-                >
-                  {opt.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </div>
-  );
-}
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{children}</p>;
@@ -100,7 +46,15 @@ function Divider() {
 // Aba "Novo filtro"
 function NewFilterTab(props: Props) {
   const { t } = useTranslation();
-  const { filters, kind, minDraft, maxDraft, accounts, categories, tags } = props;
+  const { filters, minDraft, maxDraft, accounts, categories, tags } = props;
+
+  const [dateFromDraft, setDateFromDraft] = useState(filters.dateFrom ?? "");
+  const [dateToDraft, setDateToDraft] = useState(filters.dateTo ?? "");
+  const dateFromTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dateToTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => { setDateFromDraft(filters.dateFrom ?? ""); }, [filters.dateFrom]);
+  useEffect(() => { setDateToDraft(filters.dateTo ?? ""); }, [filters.dateTo]);
 
   const accountOptions = useMemo(() => [
     { value: "", label: t("common.todas") },
@@ -129,20 +83,34 @@ function NewFilterTab(props: Props) {
         <SectionLabel>{t("transactions.filterBar.periodo")}</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataInicial")}</label>
-            <DatePicker
-              value={filters.dateFrom ?? ""}
-              onChange={(v) => props.onChange({ dateFrom: v })}
-              placeholder={t("common.dataInicial")}
-              className={props.dateError ? "[&>button]:border-destructive" : ""}
+            <label htmlFor="filter-date-from" className="mb-1 block text-xs text-muted-foreground">{t("common.dataInicial")}</label>
+            <input
+              id="filter-date-from"
+              type="date"
+              value={dateFromDraft}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDateFromDraft(v);
+                clearTimeout(dateFromTimer.current);
+                dateFromTimer.current = setTimeout(() => props.onChange({ dateFrom: v }), 400);
+              }}
+              aria-invalid={props.dateError ? true : undefined}
+              className={`w-full rounded-md border bg-background px-2.5 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-ring ${props.dateError ? "border-destructive" : "border-input"}`}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataFinal")}</label>
-            <DatePicker
-              value={filters.dateTo ?? ""}
-              onChange={(v) => props.onChange({ dateTo: v })}
-              placeholder={t("common.dataFinal")}
+            <label htmlFor="filter-date-to" className="mb-1 block text-xs text-muted-foreground">{t("common.dataFinal")}</label>
+            <input
+              id="filter-date-to"
+              type="date"
+              value={dateToDraft}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDateToDraft(v);
+                clearTimeout(dateToTimer.current);
+                dateToTimer.current = setTimeout(() => props.onChange({ dateTo: v }), 400);
+              }}
+              className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         </div>
@@ -151,50 +119,49 @@ function NewFilterTab(props: Props) {
 
       <Divider />
 
-      {/* Tipo */}
-      <section>
-        <SectionLabel>{t("transactions.filterBar.tipo")}</SectionLabel>
-        <VisualSelect
-          value={kind ?? ""}
-          onChange={(v) => props.onKindChange((v as KindFilter) || null)}
-          options={KIND_OPTIONS.map((opt) => ({ value: opt.value ?? "", label: t(opt.labelKey as never) }))}
-          placeholder={t("pages.transactions.todas")}
-        />
-      </section>
-
-      <Divider />
-
       {/* Conta */}
       <section>
-        <SectionLabel>{t("common.conta")}</SectionLabel>
-        <VisualSelect
+        <label htmlFor="filter-account" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("common.conta")}</label>
+        <select
+          id="filter-account"
           value={filters.accountId ?? ""}
-          onChange={(v) => props.onChange({ accountId: v })}
-          options={accountOptions}
-          placeholder={t("common.todas")}
-        />
+          onChange={(e) => props.onChange({ accountId: e.target.value })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {accountOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </section>
 
       {/* Categoria */}
       <section>
-        <SectionLabel>{t("common.categoria")}</SectionLabel>
-        <VisualSelect
+        <label htmlFor="filter-category" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("common.categoria")}</label>
+        <select
+          id="filter-category"
           value={filters.categoryId ?? ""}
-          onChange={(v) => props.onChange({ categoryId: v })}
-          options={categoryOptions}
-          placeholder={t("common.todas")}
-        />
+          onChange={(e) => props.onChange({ categoryId: e.target.value })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {categoryOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </section>
 
       {/* Tag */}
       <section>
-        <SectionLabel>{t("common.tag")}</SectionLabel>
-        <VisualSelect
+        <label htmlFor="filter-tag" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("common.tag")}</label>
+        <select
+          id="filter-tag"
           value={filters.tagId ?? ""}
-          onChange={(v) => props.onChange({ tagId: v })}
-          options={tagOptions}
-          placeholder={t("common.todas")}
-        />
+          onChange={(e) => props.onChange({ tagId: e.target.value })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {tagOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </section>
 
       <Divider />
@@ -204,13 +171,13 @@ function NewFilterTab(props: Props) {
         <SectionLabel>{t("transactions.filterBar.valor")}</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMinimo")}</label>
-            <MoneyInput placeholder="0,00" places={2} value={minDraft} onChange={props.onMinChange} />
+            <label htmlFor="filter-min" className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMinimo")}</label>
+            <MoneyInput id="filter-min" placeholder="0,00" places={2} value={minDraft} onChange={props.onMinChange} aria-invalid={props.minError ? true : undefined} />
             {props.minError && <p className="mt-1 text-xs text-destructive">{props.minError}</p>}
           </div>
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMaximo")}</label>
-            <MoneyInput placeholder="0,00" places={2} value={maxDraft} onChange={props.onMaxChange} />
+            <label htmlFor="filter-max" className="mb-1 block text-xs text-muted-foreground">{t("transactions.filterBar.valorMaximo")}</label>
+            <MoneyInput id="filter-max" placeholder="0,00" places={2} value={maxDraft} onChange={props.onMaxChange} aria-invalid={props.maxError ? true : undefined} />
             {props.maxError && <p className="mt-1 text-xs text-destructive">{props.maxError}</p>}
           </div>
         </div>
@@ -360,9 +327,9 @@ export function FilterDrawer(props: Props) {
         <Button
           variant="outline"
           className="flex-1"
-          onClick={() => { props.onClear(); props.onClose(); }}
+          onClick={props.onClear}
         >
-          {t("transactions.filterBar.cancelar")}
+          {t("common.limparFiltros")}
         </Button>
         <Button className="flex-1" onClick={props.onClose}>
           {t("transactions.filterBar.aplicarFiltros")}

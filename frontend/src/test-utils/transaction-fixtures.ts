@@ -1,3 +1,4 @@
+import { appToday } from "@/lib/dates";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
 
 let counter = 0;
@@ -7,7 +8,7 @@ export function makeSplit(overrides: Partial<TransactionSplit> = {}): Transactio
   return {
     id: uuid("30000000"),
     type: "withdrawal",
-    date: "2026-03-10",
+    date: appToday(),
     description: "Compra no mercado",
     source_account_id: "a0000000-0000-4000-8000-000000000001",
     destination_account_id: "e0000000-0000-4000-8000-000000000001",

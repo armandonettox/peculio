@@ -48,6 +48,7 @@ describe("arquivos de traducao", () => {
   const SAME_IN_BOTH = new Set([
     "components.appShell.menu",
     "pages.accounts.total",
+    "pages.invoice.status",
     "common.tag",
     "pages.labels.tags",
     "transactions.transactionFormDialog.tags",

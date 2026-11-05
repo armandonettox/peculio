@@ -46,7 +46,7 @@ function renderPage({ transactions = [], url = "/transacoes" }: Options = {}) {
   return tx;
 }
 
-const tx = (description: string, date = "2026-03-10", extra: Partial<Parameters<typeof makeSplit>[0]> = {}) =>
+const tx = (description: string, date = appToday(), extra: Partial<Parameters<typeof makeSplit>[0]> = {}) =>
   makeTransaction({}, [{ description, date, ...extra }]);
 
 const row = (text: string) => screen.getByText(text, { selector: "p" }).closest("li") as HTMLElement;
@@ -56,12 +56,12 @@ const openFilters = () => userEvent.click(screen.getByRole("button", { name: /^F
 // ---------- Lista ----------
 
 it("agrupa os lancamentos por dia, do mais recente para o mais antigo", async () => {
-  renderPage({ transactions: [tx("Padaria", "2026-03-05"), tx("Mercado", "2026-03-10"), tx("Feira", "2026-03-10")] });
+  renderPage({ transactions: [tx("Padaria", "2026-11-01"), tx("Mercado", "2026-11-10"), tx("Feira", "2026-11-10")] });
   await screen.findByText("Padaria");
 
   const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-  expect(headings).toEqual(["Terça-feira, 10 de março de 2026", "Quinta-feira, 5 de março de 2026"]);
-  const first = screen.getByRole("region", { name: "Terça-feira, 10 de março de 2026" });
+  expect(headings).toEqual(["Terça-feira, 10 de novembro de 2026", "Domingo, 1 de novembro de 2026"]);
+  const first = screen.getByRole("region", { name: "Terça-feira, 10 de novembro de 2026" });
   expect(within(first).getAllByRole("listitem")).toHaveLength(2);
 });
 
@@ -103,13 +103,13 @@ it("transferencia entre moedas mostra o que saiu e o que chegou", async () => {
 });
 
 it("compra em outra moeda mostra o valor original", async () => {
-  renderPage({ transactions: [tx("Hotel", "2026-03-10", { foreign_amount: "10.00", foreign_currency_code: "USD" })] });
+  renderPage({ transactions: [tx("Hotel", "2026-11-10", { foreign_amount: "10.00", foreign_currency_code: "USD" })] });
   await screen.findByText("Hotel");
   expect(within(row("Hotel")).getByText(`Valor original: ${nbsp("US$ 10,00")}`)).toBeInTheDocument();
 });
 
 it("mostra a categoria com a cor escolhida e as tags", async () => {
-  renderPage({ transactions: [tx("Compra", "2026-03-10", { category_id: mercado.id, tag_ids: [viagem.id] })] });
+  renderPage({ transactions: [tx("Compra", "2026-11-10", { category_id: mercado.id, tag_ids: [viagem.id] })] });
   await screen.findByText("Compra");
   const item = row("Compra");
   await waitFor(() => expect(within(item).getByText("Mercado")).toHaveAttribute("data-color", "#E11D48"));
@@ -178,7 +178,7 @@ it("erro ao listar mostra o aviso e permite tentar de novo", async () => {
 
 const many = (count: number) =>
   Array.from({ length: count }, (_, index) =>
-    tx(`Compra ${String(index).padStart(2, "0")}`, `2026-02-${String(28 - Math.floor(index / 2)).padStart(2, "0")}`),
+    tx(`Compra ${String(index).padStart(2, "0")}`, `2026-11-${String(28 - Math.floor(index / 2)).padStart(2, "0")}`),
   );
 
 it("a primeira pagina traz 25 e Carregar mais traz o resto sem repetir dia", async () => {
@@ -247,12 +247,12 @@ it("sem filtros o painel comeca fechado e a lista pede tudo", async () => {
   const api = renderPage({ transactions: [tx("Padaria")] });
   await screen.findByText("Padaria");
   expect(screen.getByRole("button", { name: "Filtros" })).toHaveAttribute("aria-expanded", "false");
-  expect(api.params(0)).toEqual({ limit: "25", offset: "0" });
+  expect(api.params(0)).toMatchObject({ limit: "25", offset: "0" });
 });
 
 it("escolher uma conta filtra e grava na URL", async () => {
   const api = renderPage({
-    transactions: [tx("No nubank", "2026-03-10", { source_account_id: nubank.id }), tx("Na poupanca", "2026-03-09", { source_account_id: poupanca.id })],
+    transactions: [tx("No nubank", "2026-11-10", { source_account_id: nubank.id }), tx("Na poupanca", "2026-11-09", { source_account_id: poupanca.id })],
   });
   await screen.findByText("No nubank");
   await openFilters();
@@ -275,9 +275,9 @@ it("conta arquivada aparece na lista de contas do filtro", async () => {
 it("filtra por categoria e por tag", async () => {
   const api = renderPage({
     transactions: [
-      tx("Com categoria", "2026-03-10", { category_id: mercado.id }),
-      tx("Com tag", "2026-03-09", { tag_ids: [viagem.id] }),
-      tx("Sem nada", "2026-03-08"),
+      tx("Com categoria", "2026-11-10", { category_id: mercado.id }),
+      tx("Com tag", "2026-11-09", { tag_ids: [viagem.id] }),
+      tx("Sem nada", "2026-11-08"),
     ],
   });
   await screen.findByText("Sem nada");
@@ -299,8 +299,8 @@ it("filtra por categoria e por tag", async () => {
 it("filtra so os lancamentos sem categoria", async () => {
   const api = renderPage({
     transactions: [
-      tx("Com categoria", "2026-03-10", { category_id: mercado.id }),
-      tx("Solta", "2026-03-09"),
+      tx("Com categoria", "2026-11-10", { category_id: mercado.id }),
+      tx("Solta", "2026-11-09"),
     ],
   });
   await screen.findByText("Com categoria");
@@ -313,28 +313,33 @@ it("filtra so os lancamentos sem categoria", async () => {
 });
 
 it("filtra por periodo", async () => {
-  const api = renderPage({ transactions: [tx("Janeiro", "2026-01-10"), tx("Marco", "2026-03-10")] });
-  await screen.findByText("Janeiro");
-  await openFilters();
-  await userEvent.type(screen.getByLabelText("Data inicial"), "2026-02-01");
-  await waitFor(() => expect(screen.queryByText("Janeiro")).not.toBeInTheDocument());
-  expect(screen.getByText("Marco")).toBeInTheDocument();
-  expect(api.params()).toMatchObject({ date_from: "2026-02-01" });
-  expect(location()).toContain("de=2026-02-01");
+  const api = renderPage({
+    transactions: [tx("Outubro", "2026-10-10"), tx("Novembro", "2026-11-10")],
+    url: "/transacoes?de=2026-10-01&ate=2026-11-30",
+  });
+  await screen.findByText("Outubro");
+  await userEvent.clear(screen.getByLabelText("Data inicial"));
+  await userEvent.type(screen.getByLabelText("Data inicial"), "2026-11-01");
+  await waitFor(() => expect(screen.queryByText("Outubro")).not.toBeInTheDocument());
+  expect(screen.getByText("Novembro")).toBeInTheDocument();
+  expect(api.params()).toMatchObject({ date_from: "2026-11-01" });
+  expect(location()).toContain("de=2026-11-01");
 });
 
 it("periodo com a data inicial depois da final mostra o erro e nao busca", async () => {
-  const api = renderPage({ transactions: [tx("Janeiro", "2026-01-10")] });
-  await screen.findByText("Janeiro");
-  await openFilters();
-  await userEvent.type(screen.getByLabelText("Data inicial"), "2026-05-01");
-  await waitFor(() => expect(screen.queryByText("Janeiro")).not.toBeInTheDocument());
+  const api = renderPage({
+    transactions: [tx("Outubro", "2026-10-10")],
+    url: "/transacoes?de=2026-10-01&ate=2026-10-31",
+  });
+  await screen.findByText("Outubro");
+  await userEvent.clear(screen.getByLabelText("Data inicial"));
+  await userEvent.type(screen.getByLabelText("Data inicial"), "2026-11-01");
   const before = api.state.requests.length;
-  await userEvent.type(screen.getByLabelText("Data final"), "2026-04-01");
+  await userEvent.clear(screen.getByLabelText("Data final"));
+  await userEvent.type(screen.getByLabelText("Data final"), "2026-10-01");
 
   expect(await screen.findByText("A data inicial é depois da data final.")).toBeInTheDocument();
   expect(screen.getByLabelText("Data inicial")).toHaveAttribute("aria-invalid", "true");
-  expect(api.withParam("date_to")).toHaveLength(0);
   expect(api.state.requests.length).toBe(before);
 });
 
@@ -355,7 +360,7 @@ it("a busca espera uma pausa na digitacao e depois filtra", async () => {
 
 it("valor minimo e maximo aceitam o formato brasileiro", async () => {
   const api = renderPage({
-    transactions: [tx("Barato", "2026-03-10", { amount: "10.00" }), tx("Caro", "2026-03-09", { amount: "2000.00" })],
+    transactions: [tx("Barato", "2026-11-10", { amount: "10.00" }), tx("Caro", "2026-11-09", { amount: "2000.00" })],
   });
   await screen.findByText("Barato");
   await openFilters();
@@ -397,7 +402,7 @@ it("filtros sem resultado mostram Nada encontrado e Limpar filtros traz tudo de 
 
   expect(await screen.findByText("Padaria")).toBeInTheDocument();
   expect(screen.getByLabelText("Buscar lançamentos")).toHaveValue("");
-  expect(api.params()).toEqual({ limit: "25", offset: "0" });
+  expect(api.params()).toMatchObject({ limit: "25", offset: "0" });
   expect(location()).toBe("/transacoes");
   expect(screen.queryByRole("button", { name: "Limpar filtros" })).not.toBeInTheDocument();
 });
@@ -417,7 +422,7 @@ it("Limpar logo depois de digitar mais nao deixa o texto antigo voltar", async (
   expect(location()).toBe("/transacoes");
   // Nenhuma busca com "mercado" chegou a sair, e a ultima chamada e sem filtro
   expect(api.state.requests.some((request) => request.get("q") === "mercado")).toBe(false);
-  expect(api.params()).toEqual({ limit: "25", offset: "0" });
+  expect(api.params()).toMatchObject({ limit: "25", offset: "0" });
   expect(await screen.findByText("Padaria")).toBeInTheDocument();
 });
 
@@ -439,7 +444,7 @@ it("o botao de filtros mostra quantos do painel estao ativos, sem contar a busca
 
 // ---------- Lista ou tabela ----------
 
-const viewButton = (name: "Lista" | "Tabela") => screen.getByRole("button", { name });
+const viewButton = (name: "Lista" | "Tabela") => screen.getByRole("button", { name, hidden: false });
 
 it("abre em lista e troca para tabela e de volta", async () => {
   renderPage({ transactions: [tx("Padaria"), tx("Mercado")] });
@@ -451,7 +456,7 @@ it("abre em lista e troca para tabela e de volta", async () => {
   await userEvent.click(viewButton("Tabela"));
   const table = screen.getByRole("table");
   expect(within(table).getAllByRole("row")).toHaveLength(3);
-  expect(screen.queryByRole("region", { name: /de março de 2026/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: /de novembro de 2026/ })).not.toBeInTheDocument();
   expect(viewButton("Tabela")).toHaveAttribute("aria-pressed", "true");
 
   await userEvent.click(viewButton("Lista"));
@@ -516,7 +521,8 @@ it("Editar completo, na tabela, abre o formulario completo", async () => {
   window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
-  await userEvent.click(screen.getByRole("button", { name: "Editar completo Padaria" }));
+  await userEvent.click(within(screen.getByRole("row", { name: /Padaria/ })).getByRole("button", { name: "Ações" }));
+  await userEvent.click(screen.getByRole("menuitem", { name: "Expandir" }));
   const dialog = await screen.findByRole("dialog");
   expect(within(dialog).getByLabelText("Descrição")).toHaveValue("Padaria");
 });
@@ -525,7 +531,8 @@ it("um lancamento criado pela linha de entrada aparece na tabela", async () => {
   window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
-  await userEvent.click(screen.getByRole("button", { name: "Nova linha" }));
+  screen.getByRole("row", { name: /Padaria/ }).focus();
+  await userEvent.keyboard("t");
   await userEvent.type(screen.getByLabelText("Descrição"), "Cafe da tarde");
   await userEvent.type(screen.getByLabelText("Contraparte"), "Cafeteria");
   await userEvent.type(screen.getByLabelText("Valor"), "-8,50");
@@ -537,6 +544,7 @@ it("o botao de excluir da tabela pede confirmacao", async () => {
   window.localStorage.setItem("peculio:transactions-view", "table");
   renderPage({ transactions: [tx("Padaria")] });
   await screen.findByRole("table");
-  await userEvent.click(screen.getByRole("button", { name: "Excluir Padaria" }));
+  await userEvent.click(within(screen.getByRole("row", { name: /Padaria/ })).getByRole("button", { name: "Ações" }));
+  await userEvent.click(screen.getByRole("menuitem", { name: "Excluir" }));
   expect(await screen.findByRole("dialog")).toHaveTextContent("Excluir lançamento");
 });

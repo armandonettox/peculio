@@ -45,7 +45,8 @@ const field = (label: string) => screen.getByLabelText(label) as HTMLInputElemen
 const newRow = () => screen.getByRole("row", { name: "Novo lançamento" });
 
 async function openNewRow() {
-  await user.click(screen.getByRole("button", { name: "Nova linha" }));
+  rows()[0].focus();
+  await user.keyboard("t");
   return newRow();
 }
 
@@ -60,9 +61,10 @@ async function fillNewRow({ description = "Padaria", counterparty = "Padaria do 
 it("mostra uma linha por lancamento, com as colunas do dia a dia", () => {
   renderTable([tx("Mercado do mes", [{ amount: "50.00", category_id: "c1", destination_account_name: "Supermercado", source_account_name: "Nubank" }])]);
   const cells = within(rows()[0]).getAllByRole("cell");
+  const today = appToday().split("-").reverse().join("/");
   expect(cells.map((cell) => cell.textContent?.replace(/\s/g, " "))).toEqual([
     "",
-    "10/03/2026",
+    today,
     "Mercado do mes",
     "Supermercado",
     "Nubank",
@@ -149,7 +151,7 @@ it("letras com Ctrl ou outras teclas nao fazem nada", async () => {
 
 it("a tecla apertada dentro de um botao da linha e do botao, nao da tabela", async () => {
   renderTable([tx("A"), tx("B")]);
-  const edit = screen.getByRole("button", { name: "Editar A" });
+  const edit = within(rowOf(/^A/)).getByRole("button", { name: "Ações" });
   edit.focus();
   await user.keyboard("j");
   await user.keyboard("t");
@@ -281,14 +283,13 @@ it("valor sem sinal grava uma entrada", async () => {
   expect(api.state.writes[0].body.splits[0]).toMatchObject({ type: "deposit", amount: "1000.00" });
 });
 
-it("Ctrl+Enter grava e fecha a linha, devolvendo o foco ao botao Nova linha", async () => {
+it("Ctrl+Enter grava e fecha a linha", async () => {
   const { api } = renderTable([tx("A")]);
   await openNewRow();
   await fillNewRow();
   await user.keyboard("{Control>}{Enter}{/Control}");
   await waitFor(() => expect(api.state.writes).toHaveLength(1));
   await waitFor(() => expect(screen.queryByRole("row", { name: "Novo lançamento" })).not.toBeInTheDocument());
-  expect(screen.getByRole("button", { name: "Nova linha" })).toHaveFocus();
 });
 
 it("Ctrl+Enter numa linha em branco so fecha", async () => {
@@ -413,9 +414,11 @@ it("Esc cancela a edicao, descarta o que foi digitado e volta o foco para a mesm
 it("o lapis edita na linha e Editar completo abre o formulario", async () => {
   const items = [tx("Mercado")];
   const { onOpen } = renderTable(items);
-  await user.click(screen.getByRole("button", { name: "Editar completo Mercado" }));
+  await user.click(within(rowOf(/Mercado/)).getByRole("button", { name: "Ações" }));
+  await user.click(screen.getByRole("menuitem", { name: "Expandir" }));
   expect(onOpen).toHaveBeenCalledWith(items[0]);
-  await user.click(screen.getByRole("button", { name: "Editar Mercado" }));
+  await user.click(within(rowOf(/Mercado/)).getByRole("button", { name: "Ações" }));
+  await user.click(screen.getByRole("menuitem", { name: "Editar" }));
   expect(screen.getByRole("row", { name: "Editando Mercado" })).toBeInTheDocument();
   expect(onOpen).toHaveBeenCalledTimes(1);
 });
@@ -447,7 +450,8 @@ it("abrir outra linha para editar fecha a anterior", async () => {
   renderTable([tx("Mercado"), tx("Padaria")]);
   rowOf(/^Mercado/).focus();
   await user.keyboard("{Enter}");
-  await user.click(screen.getByRole("button", { name: "Editar Padaria" }));
+  await user.click(within(rowOf(/Padaria/)).getByRole("button", { name: "Ações" }));
+  await user.click(screen.getByRole("menuitem", { name: "Editar" }));
   expect(screen.queryByRole("row", { name: "Editando Mercado" })).not.toBeInTheDocument();
   expect(screen.getByRole("row", { name: "Editando Padaria" })).toBeInTheDocument();
 });
@@ -455,10 +459,14 @@ it("abrir outra linha para editar fecha a anterior", async () => {
 it("a linha nova e a edicao nao ficam abertas juntas", async () => {
   renderTable([tx("Mercado")]);
   await openNewRow();
-  await user.click(screen.getByRole("button", { name: "Editar Mercado" }));
+  await user.click(within(rowOf(/Mercado/)).getByRole("button", { name: "Ações" }));
+  await user.click(screen.getByRole("menuitem", { name: "Editar" }));
   expect(screen.queryByRole("row", { name: "Novo lançamento" })).not.toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Nova linha" }));
-  expect(screen.queryByRole("row", { name: /^Editando/ })).not.toBeInTheDocument();
+  await user.keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("row", { name: /^Editando/ })).not.toBeInTheDocument());
+  rows()[0].focus();
+  await user.keyboard("t");
+  await screen.findByRole("row", { name: "Novo lançamento" });
 });
 
 // ---------- Atalhos ----------
@@ -525,6 +533,7 @@ it("uma conta arquivada nao aparece na linha nova", async () => {
       <TransactionsTable items={[tx("A")]} total={1} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
     </QueryClientProvider>,
   );
-  await user.click(screen.getByRole("button", { name: "Nova linha" }));
+  rows()[0].focus();
+  await user.keyboard("t");
   expect([...(field("Conta") as HTMLSelectElement).options].map((option) => option.text)).toEqual(["Escolha", "Nubank"]);
 });

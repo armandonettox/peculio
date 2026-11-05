@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { appToday } from "@/lib/dates";
 import { makeAccount } from "@/test-utils/accounts-api";
 import { deposit, makeSplit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
 import { emptyForm, type FormContext } from "./form-model";
@@ -216,7 +217,7 @@ describe("quickFromTransaction", () => {
     const loaded = quickFromTransaction(makeTransaction({}, [{ source_account_id: "a1", amount: "50.00", category_id: "c1" }]), ctx);
     expect(loaded.ok).toBe(true);
     if (loaded.ok) {
-      expect(loaded.row).toMatchObject({ date: "2026-03-10", accountId: "a1", categoryId: "c1", amount: "-50,00" });
+      expect(loaded.row).toMatchObject({ date: appToday(), accountId: "a1", categoryId: "c1", amount: "-50,00" });
       expect(loaded.base.kind).toBe("withdrawal");
     }
   });

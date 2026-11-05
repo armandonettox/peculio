@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, MoreHorizontal, Search, Table2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, Plus, Search, Table2, X } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -78,13 +78,19 @@ export default function TransactionsPage() {
   const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(() => Boolean(readFilters(searchParams).q));
+  const [filterOpen, setFilterOpen] = useState(() => {
+    const { q: _q, ...pf } = readFilters(searchParams);
+    return countActiveFilters(pf) > 0;
+  });
   const searchRef = useRef<HTMLInputElement>(null);
 
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const kind = useMemo(() => readKind(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
+  // Badge no botao de filtros: exclui a busca (q), que tem controle proprio
+  const { q: _q, ...panelFilters } = filters;
+  const badgeCount = countActiveFilters(panelFilters);
 
   // Mes navegado: usa dateFrom da URL ou o mes atual
   const today = appToday();
@@ -231,6 +237,12 @@ export default function TransactionsPage() {
           icon={Search}
           title={t("pages.transactions.nenhumLancamentoAinda")}
           description={t("pages.transactions.osLancamentosQueVoce")}
+          action={
+            <Button onClick={() => setDialog("new")}>
+              <Plus />
+              {t("transactions.transactionFormDialog.novoLancamento")}
+            </Button>
+          }
         />
       );
   } else {
@@ -296,7 +308,15 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader title={t("pages.transactions.transacoes")} />
+      <PageHeader
+        title={t("pages.transactions.transacoes")}
+        actions={
+          <Button onClick={() => setDialog("new")}>
+            <Plus />
+            {t("transactions.transactionFormDialog.novoLancamento")}
+          </Button>
+        }
+      />
 
       {/* Barra de acoes */}
       <div className="mb-4 flex items-center gap-2">
@@ -324,8 +344,8 @@ export default function TransactionsPage() {
         )}
 
         {/* Campo de busca expansivel: ocupa toda a linha ao abrir */}
-        {searchOpen ? (
-          <div className="flex flex-1 items-center gap-1">
+        <div className={`flex items-center gap-1 ${searchOpen ? "flex-1" : "ml-auto"}`}>
+          {searchOpen ? (
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -339,18 +359,7 @@ export default function TransactionsPage() {
                 className="h-9 pl-9"
               />
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-9 shrink-0"
-              aria-label={t("common.fechar")}
-              onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="ml-auto flex items-center gap-1">
+          ) : (
             <Button
               size="icon"
               variant="outline"
@@ -360,52 +369,65 @@ export default function TransactionsPage() {
             >
               <Search className="size-4" />
             </Button>
+          )}
 
-            {/* Funil: abre drawer lateral */}
+          {/* Funil: abre drawer lateral */}
+          <Button
+            size="icon"
+            variant="outline"
+            className={`relative size-9 rounded-full ${badgeCount > 0 ? "border-primary text-primary" : ""}`}
+            aria-label={badgeCount > 0 ? `${t("transactions.filterBar.filters")} (${badgeCount})` : t("transactions.filterBar.filters")}
+            aria-expanded={filterOpen}
+            onClick={() => setFilterOpen(true)}
+          >
+            <Filter className="size-4" />
+            {badgeCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                {badgeCount}
+              </span>
+            )}
+          </Button>
+
+          {searchOpen ? (
             <Button
               size="icon"
-              variant="outline"
-              className={`relative size-9 rounded-full ${activeCount > 0 ? "border-primary text-primary" : ""}`}
-              aria-label={t("transactions.filterBar.filters")}
-              onClick={() => setFilterOpen(true)}
+              variant="ghost"
+              className="size-9 shrink-0"
+              aria-label={t("common.fechar")}
+              onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
             >
-              <Filter className="size-4" />
-              {activeCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
-                  {activeCount}
-                </span>
-              )}
+              <X className="size-4" />
             </Button>
-
-            {/* Mais opcoes */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="outline" className="size-9 rounded-full" aria-label={t("transactions.filterBar.filtros")}>
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => chooseView(view === "list" ? "table" : "list")}>
-                  {view === "list" ? (
-                    <><Table2 className="mr-2 size-4" />{t("pages.transactions.tabela")}</>
-                  ) : (
-                    <><LayoutList className="mr-2 size-4" />{t("pages.transactions.lista")}</>
-                  )}
-                </DropdownMenuItem>
-                {(activeCount > 0 || kind) && (
-                  <DropdownMenuItem onClick={clearFilters}>
-                    <X className="mr-2 size-4" />
-                    {t("common.limparFiltros")}
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+          ) : (
+            <>
+              {/* Alternar entre lista e tabela */}
+              <Button
+                size="icon"
+                variant="outline"
+                className="size-9 rounded-full"
+                aria-label={t("pages.transactions.lista")}
+                aria-pressed={view === "list"}
+                onClick={() => chooseView("list")}
+              >
+                <LayoutList className="size-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="size-9 rounded-full"
+                aria-label={t("pages.transactions.tabela")}
+                aria-pressed={view === "table"}
+                onClick={() => chooseView("table")}
+              >
+                <Table2 className="size-4" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Drawer lateral de filtros avancados */}
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen} modal={false}>
         <SheetContent className="left-auto right-0 flex h-full w-[420px] flex-col border-l border-r-0 p-0">
           <FilterDrawer
             filters={effectiveFilters}
@@ -441,8 +463,7 @@ export default function TransactionsPage() {
               <ChevronLeft className="size-4" />
             </Button>
             <span className="inline-flex items-center gap-1 rounded-full border border-primary px-5 py-1 text-sm font-medium">
-              <span>{month}</span>
-              {year && <span className="text-primary">{year}</span>}
+              {month}{year && <> <span className="text-primary">{year}</span></>}
             </span>
             <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(1)}>
               <ChevronRight className="size-4" />
