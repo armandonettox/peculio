@@ -35,47 +35,14 @@ it("lista as contas com o saldo formatado em reais", async () => {
   expect(within(card("Nubank")).getByText("Conta corrente")).toBeInTheDocument();
 });
 
-it("separa Contas e Dividas, com o total de cada grupo", async () => {
+it("mostra todas as contas numa lista unica, sem separacao por tipo", async () => {
   renderPage([
     makeAccount({ name: "Nubank", balance: "1000.00" }),
     makeAccount({ name: "Poupanca", role: "savings", balance: "250.50" }),
-    makeAccount({ name: "Financiamento", type: "liability", role: "mortgage", balance: "-400.00" }),
   ]);
   await screen.findByRole("heading", { level: 3, name: "Nubank" });
-
-  const assets = screen.getByRole("region", { name: "Contas" });
-  expect(within(assets).getByText("R$ 1.250,50")).toBeInTheDocument();
-  expect(within(assets).queryByText("Financiamento")).not.toBeInTheDocument();
-
-  const debts = screen.getByRole("region", { name: "Dívidas" });
-  expect(within(debts).getByRole("heading", { level: 3, name: "Financiamento" })).toBeInTheDocument();
-  expect(within(debts).getByText("Total devido:")).toBeInTheDocument();
-  expect(within(debts).getAllByText("R$ 400,00").length).toBeGreaterThan(0);
-});
-
-it("divida mostra o valor devido positivo, nao o saldo negativo", async () => {
-  renderPage([makeAccount({ name: "Emprestimo", type: "liability", role: "loan", balance: "-5000.00" })]);
-  await screen.findByRole("heading", { level: 3, name: "Emprestimo" });
-  const item = card("Emprestimo");
-  expect(within(item).getByText("R$ 5.000,00")).toBeInTheDocument();
-  expect(within(item).getByText("Valor devido")).toBeInTheDocument();
-  expect(within(item).queryByText(/-R\$/)).not.toBeInTheDocument();
-});
-
-it("mostra o patrimonio liquido so quando ha dividas", async () => {
-  renderPage([
-    makeAccount({ name: "Nubank", balance: "1000.00" }),
-    makeAccount({ name: "Divida", type: "liability", role: "debt", balance: "-300.00" }),
-  ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
-  expect(screen.getByText("Patrimônio líquido:")).toBeInTheDocument();
-  expect(screen.getByText("R$ 700,00")).toBeInTheDocument();
-});
-
-it("sem dividas nao mostra patrimonio liquido", async () => {
-  renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
-  expect(screen.queryByText("Patrimônio líquido:")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 3, name: "Poupanca" })).toBeInTheDocument();
+  expect(screen.queryByText("Dívidas")).not.toBeInTheDocument();
 });
 
 it("saldo negativo de uma conta aparece em destaque de erro", async () => {
@@ -90,7 +57,7 @@ it("totais de moedas diferentes ficam separados", async () => {
     makeAccount({ name: "Wise", currency_code: "USD", balance: "50.00" }),
   ]);
   await screen.findByRole("heading", { level: 3, name: "Nubank" });
-  const total = screen.getByText("Total:").closest("p") as HTMLElement;
+  const total = screen.getByText("Saldo total:").closest("p") as HTMLElement;
   expect(total).toHaveTextContent("R$ 100,00 · US$ 50,00");
 });
 
@@ -137,11 +104,13 @@ it("erro ao listar mostra o aviso e tenta de novo", async () => {
 
 const dialog = () => screen.getByRole("dialog");
 const nameField = () => within(dialog()).getByLabelText("Nome");
-const openingField = () => within(dialog()).getByLabelText(/Saldo inicial|Quanto você deve/);
+const openingField = () => within(dialog()).getByLabelText(/Saldo inicial/);
 
 async function openCreate() {
   await screen.findByRole("heading", { level: 3, name: "Nubank" });
   await userEvent.click(screen.getAllByRole("button", { name: "Nova conta" })[0]);
+  await userEvent.click(screen.getByRole("button", { name: /Manualmente/ }));
+  await userEvent.click(screen.getByRole("button", { name: /Outra/ }));
 }
 
 it("cria uma conta com saldo inicial no formato brasileiro", async () => {
@@ -186,25 +155,6 @@ it("a data do saldo so aparece quando ha saldo", async () => {
   expect(within(dialog()).getByLabelText("Data do saldo")).toBeInTheDocument();
 });
 
-it("cria uma divida: o campo vira Quanto voce deve e os papeis mudam", async () => {
-  const api = renderPage();
-  await openCreate();
-
-  await userEvent.click(within(dialog()).getByRole("radio", { name: "Dívida" }));
-  expect(within(dialog()).getByLabelText("Quanto você deve")).toBeInTheDocument();
-  const roles = within(within(dialog()).getByLabelText("Categoria da conta"))
-    .getAllByRole("option")
-    .map((option) => option.textContent);
-  expect(roles).toEqual(["Empréstimo", "Dívida", "Financiamento"]);
-
-  await userEvent.type(nameField(), "Carro");
-  await userEvent.type(openingField(), "1200000");
-  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-
-  await screen.findByRole("heading", { level: 3, name: "Carro" });
-  expect(api.mutations()[0].body).toMatchObject({ type: "liability", role: "debt", opening_balance: "12000.00" });
-  expect(within(card("Carro")).getByText("R$ 12.000,00")).toBeInTheDocument();
-});
 
 it("o papel escolhido e enviado", async () => {
   const api = renderPage();
@@ -267,14 +217,6 @@ it("saldo em branco e tratado como zero (nao exige digitar nada)", async () => {
   expect(api.mutations()[0].body).toMatchObject({ opening_balance: "0" });
 });
 
-it("campo de divida nao aceita o sinal de negativo", async () => {
-  renderPage();
-  await openCreate();
-  await userEvent.click(within(dialog()).getByRole("radio", { name: "Dívida" }));
-  await userEvent.type(nameField(), "Carro");
-  await userEvent.type(openingField(), "-100");
-  expect(openingField()).toHaveValue("1,00");
-});
 
 it("conta de ativo aceita saldo inicial negativo", async () => {
   const api = renderPage();
@@ -450,17 +392,6 @@ it("conta sem saldo inicial abre com o campo vazio e nao manda nada se nao for p
   expect(api.mutations()).toHaveLength(0);
 });
 
-it("editar uma divida mostra so os papeis de divida", async () => {
-  renderPage([makeAccount({ name: "Carro", type: "liability", role: "loan", balance: "-10.00" })]);
-  await screen.findByRole("heading", { level: 3, name: "Carro" });
-  await openMenu("Carro");
-  await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
-  const roles = within(within(dialog()).getByLabelText("Categoria da conta"))
-    .getAllByRole("option")
-    .map((option) => option.textContent);
-  expect(roles).toEqual(["Empréstimo", "Dívida", "Financiamento"]);
-  expect(within(dialog()).getByLabelText("Categoria da conta")).toHaveValue("loan");
-});
 
 // ---------- Arquivar ----------
 
@@ -497,7 +428,7 @@ it("conta arquivada nao entra no total", async () => {
   await screen.findByRole("heading", { level: 3, name: "Ativa" });
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
   await screen.findByRole("heading", { level: 3, name: "Velha" });
-  expect(screen.getByText("Total:").closest("p")).toHaveTextContent("R$ 10,00");
+  expect(screen.getByText("Saldo total:").closest("p")).toHaveTextContent("R$ 10,00");
 });
 
 it("falha ao arquivar mostra o aviso na pagina", async () => {
@@ -570,13 +501,6 @@ it("conta de ativo nova vem com Entra nos envelopes marcado e envia o valor esco
   expect(api.mutations()[0].body).toMatchObject({ name: "Reserva longa", in_envelopes: false });
 });
 
-it("divida nao mostra a opcao de entrar nos envelopes", async () => {
-  renderPage();
-  await openCreate();
-  expect(within(dialog()).getByLabelText(/Entra nos envelopes/)).toBeInTheDocument();
-  await userEvent.click(within(dialog()).getByRole("radio", { name: /Dívida/ }));
-  expect(within(dialog()).queryByLabelText(/Entra nos envelopes/)).not.toBeInTheDocument();
-});
 
 it("editar mostra o valor atual e so manda in_envelopes quando muda", async () => {
   const api = renderPage([makeAccount({ name: "Poupanca", in_envelopes: false })]);
