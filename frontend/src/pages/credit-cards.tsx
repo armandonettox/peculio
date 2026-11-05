@@ -1,10 +1,11 @@
-import { CreditCard, Plus, Sparkles } from "lucide-react";
+import { CreditCard, DollarSign, Plus, Sparkles, Wallet } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAccounts, useCurrencies, useUpdateAccount, type Account } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { EmptyState } from "@/components/layout/empty-state";
+import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,9 @@ import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { CreditCardCard } from "@/features/accounts/credit-card-card";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
-import { formatMoney, negateMoney } from "@/lib/money";
+import { formatMoney, isNegativeMoney, negateMoney, placesOf, sumMoney } from "@/lib/money";
+
+type InvoiceMode = "abertas" | "fechadas";
 
 type DialogState =
   | { kind: "create-card" }
@@ -58,6 +61,7 @@ function OpenFinanceBanner() {
 export default function CreditCardsPage() {
   const { t } = useTranslation();
   const [showArchived, setShowArchived] = useState(false);
+  const [invoiceMode, setInvoiceMode] = useState<InvoiceMode>("abertas");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const accounts = useAccounts({ includeArchived: showArchived });
@@ -123,18 +127,43 @@ export default function CreditCardsPage() {
       </div>
     );
   } else {
-    const faturas = totalsByCurrency(creditCards, places).map((item) => ({
-      currency: item.currency,
-      total: negateMoney(item.total),
-    }));
+    const activeCards = creditCards.filter((c) => c.active);
+    const mainCurrency = activeCards[0]?.currency_code ?? "BRL";
+    const mainPlaces = placesOf(mainCurrency, places);
+
+    const limiteDisponivel = activeCards
+      .filter((c) => c.credit_limit != null && c.currency_code === mainCurrency)
+      .reduce((acc, c) => {
+        const avail = sumMoney([c.credit_limit!, c.balance], placesOf(c.currency_code, places));
+        return sumMoney([acc, avail], mainPlaces);
+      }, "0.00");
+
+    const valorTotalFaturas = activeCards
+      .filter((c) => c.currency_code === mainCurrency && isNegativeMoney(c.balance))
+      .reduce((acc, c) => sumMoney([acc, negateMoney(c.balance)], mainPlaces), "0.00");
+
+    const melhorCartao = activeCards
+      .filter((c) => c.credit_limit != null)
+      .sort((a, b) => {
+        const availA = parseFloat(sumMoney([a.credit_limit!, a.balance], placesOf(a.currency_code, places)));
+        const availB = parseFloat(sumMoney([b.credit_limit!, b.balance], placesOf(b.currency_code, places)));
+        return availB - availA;
+      })[0];
+
     content = (
-      <div className="flex flex-col gap-8">
-        <Totals label={t("pages.accounts.totalFaturas")} totals={faturas} />
+      <div className="flex flex-col gap-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <KpiCard icon={CreditCard} label={t("pages.accounts.melhorCartaoHoje")} value={melhorCartao?.name ?? "-"} />
+          <KpiCard icon={Wallet} label={t("pages.accounts.limiteDisponivelTotal")} value={formatMoney(limiteDisponivel, mainCurrency)} valueColor="positive" iconClassName="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" />
+          <KpiCard icon={DollarSign} label={t("pages.accounts.totalFaturas")} value={formatMoney(valorTotalFaturas, mainCurrency)} valueColor={parseFloat(valorTotalFaturas) > 0 ? "destructive" : "default"} iconClassName="bg-destructive/10 text-destructive" />
+        </div>
+
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {creditCards.map((account) => (
             <CreditCardCard
               key={account.id}
               account={account}
+              invoiceMode={invoiceMode}
               onEdit={(target) => setDialog({ kind: "edit", account: target })}
               onToggleArchive={toggleArchive}
               onDelete={(target) => setDialog({ kind: "delete", account: target })}
@@ -154,15 +183,34 @@ export default function CreditCardsPage() {
         actions={newCardButton}
       />
 
-      <label className="mb-6 flex w-fit cursor-pointer items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={showArchived}
-          onChange={(event) => setShowArchived(event.target.checked)}
-          className="size-4 accent-[var(--primary)]"
-        />
-        {t("pages.accounts.mostrarArquivadas")}
-      </label>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex overflow-hidden rounded-lg border text-sm">
+          <button
+            type="button"
+            onClick={() => setInvoiceMode("abertas")}
+            className={invoiceMode === "abertas" ? "bg-primary px-4 py-1.5 font-medium text-primary-foreground" : "px-4 py-1.5 text-muted-foreground hover:bg-muted"}
+          >
+            {t("pages.accounts.faturasAbertas")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setInvoiceMode("fechadas")}
+            className={invoiceMode === "fechadas" ? "bg-primary px-4 py-1.5 font-medium text-primary-foreground" : "px-4 py-1.5 text-muted-foreground hover:bg-muted"}
+          >
+            {t("pages.accounts.faturasFechadas")}
+          </button>
+        </div>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(event) => setShowArchived(event.target.checked)}
+            className="size-4 accent-[var(--primary)]"
+          />
+          {t("pages.accounts.mostrarArquivadas")}
+        </label>
+      </div>
 
       {actionError && (
         <Alert variant="destructive" className="mb-4">

@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, List, MoreVertical, Pencil, Receipt, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, List, MoreVertical, Pencil, Plus, Receipt, SlidersHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -33,9 +33,10 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
 
   return (<>
     <li
-      className="flex items-start justify-between gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
+      className="flex flex-col rounded-lg border bg-card text-card-foreground shadow-sm"
       style={account.color ? { borderLeftColor: account.color, borderLeftWidth: "3px" } : undefined}
     >
+      <div className="flex items-start justify-between gap-3 p-4">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="min-w-0 max-w-full truncate text-base font-semibold">{account.name}</h3>
@@ -110,6 +111,17 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
+
+      {account.active && (
+        <Link
+          to={`/transacoes?conta=${account.id}`}
+          className="flex items-center justify-center gap-1.5 border-t py-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Plus className="size-3" />
+          {t("accounts.accountCard.adicionarDespesa")}
+        </Link>
+      )}
     </li>
 
     {showAdjust && <BalanceAdjustDialog account={account} onClose={() => setShowAdjust(false)} />}

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Receipt } from "lucide-react";
+import { CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, CircleX, Receipt, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useInvoice } from "@/api/invoices";
 import { EmptyState } from "@/components/layout/empty-state";
+import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -82,23 +83,28 @@ export default function InvoicePage() {
     );
   } else {
     const data = invoice.data!;
+    const isClosed = data.period_end < appToday();
+    const statusLabel = isClosed ? t("pages.invoice.faturaFechada") : t("pages.invoice.faturaAberta");
+    const closingDateFormatted = account.closing_day != null
+      ? new Date(Date.UTC(
+          parseInt(month.slice(0, 4)),
+          parseInt(month.slice(5, 7)) - 1,
+          account.closing_day,
+        )).toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" })
+      : "-";
+
     content = (
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 sm:grid-cols-3">
-          <div>
-            <p className="text-xs text-muted-foreground">{t("pages.invoice.total")}</p>
-            <p className="text-2xl font-semibold tracking-tight">{formatMoney(data.total, data.currency_code)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("pages.invoice.periodo")}</p>
-            <p className="text-sm font-medium">
-              {formatDate(data.period_start)} - {formatDate(data.period_end)}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">{t("pages.invoice.vencimento")}</p>
-            <p className="text-sm font-medium">{formatDate(data.due_date)}</p>
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <KpiCard icon={Wallet} label={t("pages.invoice.total")} value={formatMoney(data.total, data.currency_code)} />
+          <KpiCard
+            icon={isClosed ? CircleX : CircleCheck}
+            iconClassName={isClosed ? "bg-muted text-muted-foreground" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"}
+            label={t("pages.invoice.status")}
+            value={statusLabel}
+          />
+          <KpiCard icon={CalendarDays} label={t("pages.invoice.diaDeFechamento")} value={closingDateFormatted} />
+          <KpiCard icon={CalendarCheck} label={t("pages.invoice.vencimento")} value={formatDate(data.due_date)} />
         </div>
 
         <div>

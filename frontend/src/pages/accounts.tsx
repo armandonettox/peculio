@@ -1,10 +1,11 @@
-import { Landmark, Plus } from "lucide-react";
+import { Landmark, Plus, TrendingDown, Wallet } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAccounts, useCurrencies, useUpdateAccount, type Account } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { EmptyState } from "@/components/layout/empty-state";
+import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { AccountCard } from "@/features/accounts/account-card";
 import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
-import { formatMoney, negateMoney } from "@/lib/money";
+import { formatMoney, negateMoney, sumMoney, placesOf } from "@/lib/money";
 
 type DialogState =
   | { kind: "create" }
@@ -103,9 +104,26 @@ export default function AccountsPage() {
       />
     );
   } else {
+    const activeAssets = assets.filter((a) => a.active);
+    const activeLiabilities = liabilities.filter((a) => a.active);
+    const mainCurrency = activeAssets[0]?.currency_code ?? activeLiabilities[0]?.currency_code ?? "BRL";
+    const mainPlaces = placesOf(mainCurrency, places);
+    const saldoAtual = activeAssets.length > 0
+      ? sumMoney(activeAssets.filter(a => a.currency_code === mainCurrency).map(a => a.balance), mainPlaces)
+      : "0.00";
+    const totalDividas = activeLiabilities.length > 0
+      ? sumMoney(activeLiabilities.filter(a => a.currency_code === mainCurrency).map(a => negateMoney(a.balance)), mainPlaces)
+      : "0.00";
     const netTotals = totalsByCurrency(items, places);
     content = (
       <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <KpiCard icon={Wallet} label={t("pages.accounts.saldoAtual")} value={formatMoney(saldoAtual, mainCurrency)} valueColor={parseFloat(saldoAtual) < 0 ? "destructive" : "default"} />
+          {activeLiabilities.length > 0 && (
+            <KpiCard icon={TrendingDown} label={t("pages.accounts.totalDevido")} value={formatMoney(totalDividas, mainCurrency)} valueColor="destructive" iconClassName="bg-destructive/10 text-destructive" />
+          )}
+        </div>
+
         {liabilities.length > 0 && <Totals label={t("pages.accounts.patrimonioLiquido")} totals={netTotals} />}
 
         {assets.length > 0 && (

@@ -1,10 +1,11 @@
-import { CreditCard, Receipt } from "lucide-react";
+import { CreditCard, Plus, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { appToday } from "@/lib/dates";
+import { appToday, firstOfMonth, shiftMonth } from "@/lib/dates";
 
 import type { Account } from "@/api/accounts";
+import { useInvoice } from "@/api/invoices";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,7 @@ import { Archive, ArchiveRestore, MoreVertical, Pencil, Trash2 } from "lucide-re
 
 type Props = {
   account: Account;
+  invoiceMode?: "abertas" | "fechadas";
   onEdit: (account: Account) => void;
   onToggleArchive: (account: Account) => void;
   onDelete: (account: Account) => void;
@@ -83,7 +85,36 @@ function nextClosingDate(closingDay: number): string {
   return new Date(Date.UTC(year, month, closingDay)).toISOString().slice(0, 10);
 }
 
-export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: Props) {
+function ClosedInvoiceSummary({ account }: { account: Account }) {
+  const { t } = useTranslation();
+  const lastMonth = shiftMonth(firstOfMonth(appToday()), -1);
+  const invoice = useInvoice({ accountId: account.id, on: lastMonth });
+
+  if (invoice.isPending) {
+    return <p className="mt-3 text-xs text-muted-foreground">{t("common.carregando")}</p>;
+  }
+  if (invoice.isError || !invoice.data) {
+    return null;
+  }
+
+  const data = invoice.data;
+  const total = isNegativeMoney(data.total) ? negateMoney(data.total) : data.total;
+
+  return (
+    <div className="mt-3 flex flex-col gap-1 rounded-lg bg-muted/50 p-3 text-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-muted-foreground">{t("accounts.creditCard.faturaFechada")}</span>
+        <span className="font-semibold">{formatMoney(total, data.currency_code)}</span>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{t("accounts.creditCard.vencimento")}: {new Date(data.due_date + "T00:00:00Z").toLocaleDateString("pt-BR", { day: "numeric", month: "short", timeZone: "UTC" })}</span>
+        <Link to={`/contas/${account.id}/fatura`} className="text-primary hover:underline">{t("accounts.accountCard.verFatura")}</Link>
+      </div>
+    </div>
+  );
+}
+
+export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onToggleArchive, onDelete }: Props) {
   const { t } = useTranslation();
   const fatura = isNegativeMoney(account.balance) ? negateMoney(account.balance) : "0";
   const fechaEm = account.closing_day != null ? nextClosingDate(account.closing_day) : null;
@@ -131,7 +162,7 @@ export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: P
                 {t("accounts.accountCard.verFatura")}
               </Link>
             </DropdownMenuItem>
-<DropdownMenuItem onSelect={() => onEdit(account)}>
+            <DropdownMenuItem onSelect={() => onEdit(account)}>
               <Pencil />
               {t("common.editar")}
             </DropdownMenuItem>
@@ -148,25 +179,39 @@ export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: P
         </DropdownMenu>
       </div>
 
-      <div className="mt-3">
-        <p className="text-xs text-muted-foreground">{t("accounts.creditCard.faturaAtual")}</p>
-        <p className={cn("text-2xl font-semibold tracking-tight", isNegativeMoney(account.balance) && "text-destructive")}>
-          {formatMoney(fatura, account.currency_code)}
-        </p>
-        {fechaEm && (
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t("accounts.creditCard.fechaEm", { date: new Date(fechaEm + "T00:00:00Z").toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" }) })}
-          </p>
-        )}
-      </div>
+      {invoiceMode === "fechadas" ? (
+        <ClosedInvoiceSummary account={account} />
+      ) : (
+        <>
+          <div className="mt-3">
+            <p className="text-xs text-muted-foreground">{t("accounts.creditCard.faturaAtual")}</p>
+            <p className={cn("text-2xl font-semibold tracking-tight", isNegativeMoney(account.balance) && "text-destructive")}>
+              {formatMoney(fatura, account.currency_code)}
+            </p>
+            {fechaEm && (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t("accounts.creditCard.fechaEm", { date: new Date(fechaEm + "T00:00:00Z").toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" }) })}
+              </p>
+            )}
+          </div>
 
-      {account.credit_limit != null && (
-        <LimitBar
-          used={account.balance}
-          limit={account.credit_limit}
-          currency={account.currency_code}
-        />
+          {account.credit_limit != null && (
+            <LimitBar
+              used={account.balance}
+              limit={account.credit_limit}
+              currency={account.currency_code}
+            />
+          )}
+        </>
       )}
+
+      <Link
+        to={`/transacoes?conta=${account.id}`}
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-dashed py-2 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+      >
+        <Plus className="size-3" />
+        {t("accounts.creditCard.adicionarDespesa")}
+      </Link>
     </li>
   );
 }
