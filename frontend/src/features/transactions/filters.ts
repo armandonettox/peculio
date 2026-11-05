@@ -1,6 +1,8 @@
 import { i18n } from "@/i18n";
 import type { TransactionFilters } from "@/api/transactions";
 
+export type KindFilter = "withdrawal" | "deposit" | "transfer";
+
 // Os filtros ficam na URL (/transacoes?conta=...&de=2026-03-01): o botao Voltar, o link
 // copiado e um atalho vindo de outra tela abrem a lista ja filtrada.
 const PARAM = {
@@ -14,6 +16,8 @@ const PARAM = {
   maxAmount: "max",
 } as const satisfies Record<keyof TransactionFilters, string>;
 
+const KIND_PARAM = "tipo";
+
 const FIELDS = Object.keys(PARAM) as (keyof TransactionFilters)[];
 
 export function readFilters(params: URLSearchParams): TransactionFilters {
@@ -23,6 +27,19 @@ export function readFilters(params: URLSearchParams): TransactionFilters {
     if (value) filters[field] = value;
   }
   return filters;
+}
+
+export function readKind(params: URLSearchParams): KindFilter | null {
+  const value = params.get(KIND_PARAM);
+  if (value === "withdrawal" || value === "deposit" || value === "transfer") return value;
+  return null;
+}
+
+export function writeKind(params: URLSearchParams, kind: KindFilter | null): URLSearchParams {
+  const next = new URLSearchParams(params);
+  if (kind) next.set(KIND_PARAM, kind);
+  else next.delete(KIND_PARAM);
+  return next;
 }
 
 /** Aplica mudancas aos filtros: valor vazio ou undefined remove o filtro da URL. */

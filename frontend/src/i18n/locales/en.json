@@ -117,7 +117,13 @@
       "transacoes": "Transactions",
       "tudoOQueEntrou": "Everything that came in, went out or moved between accounts",
       "excluirLancamento": "Delete transaction",
-      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it."
+      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it.",
+      "todas": "All",
+      "despesas": "Expenses",
+      "receitas": "Income",
+      "transferencias": "Transfers",
+      "saldoAtual": "Current balance",
+      "balanco": "Monthly balance"
     },
     "budgets": {
       "novoOrcamento": "New budget",

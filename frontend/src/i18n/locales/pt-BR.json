@@ -117,7 +117,13 @@
       "transacoes": "Transações",
       "tudoOQueEntrou": "Tudo o que entrou, saiu ou mudou de conta",
       "excluirLancamento": "Excluir lançamento",
-      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele."
+      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele.",
+      "todas": "Todas",
+      "despesas": "Despesas",
+      "receitas": "Receitas",
+      "transferencias": "Transferências",
+      "saldoAtual": "Saldo atual",
+      "balanco": "Balanço mensal"
     },
     "budgets": {
       "novoOrcamento": "Novo orçamento",

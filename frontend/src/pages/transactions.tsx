@@ -1,6 +1,7 @@
-import { ArrowLeftRight, LayoutList, Plus, Search, Table2 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, LayoutList, MoreHorizontal, Search, SlidersHorizontal, Table2, X } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
@@ -11,25 +12,26 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AttachmentsDialog } from "@/features/attachments/attachments-dialog";
 import { FilterBar } from "@/features/transactions/filter-bar";
-import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "@/features/transactions/filters";
+import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { TransactionsTable } from "@/features/transactions/transactions-table";
+import { TransactionsSummaryCards } from "@/features/transactions/transactions-summary-cards";
 import { useDraftFilter } from "@/features/transactions/use-draft-filter";
 import { readViewMode, saveViewMode, type ViewMode } from "@/features/transactions/view-mode";
+import { appToday, firstOfMonth, formatMonthYear, shiftDay, shiftMonth } from "@/lib/dates";
 import { parseMoneyInput } from "@/lib/money";
-import { useTranslation } from "react-i18next";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-// Os filtros de valor valem para qualquer moeda; a API aceita ate 2 casas
 const FILTER_PLACES = 2;
 
 const trimmed = (draft: string): string | null => draft.trim();
 const asIs = (committed: string) => committed;
 
-// Valor digitado ("1.234,50") -> valor do filtro ("1234.50"). null se for invalido.
 function amountToCommitted(draft: string): string | null {
   if (draft.trim() === "") return "";
   const parsed = parseMoneyInput(draft, FILTER_PLACES);
@@ -44,23 +46,65 @@ function amountError(draft: string): string | undefined {
   return parsed.ok ? undefined : parsed.error;
 }
 
+function lastOfMonth(date: string): string {
+  return shiftDay(shiftMonth(date, 1), -1);
+}
+
+type KindLabelKey = "pages.transactions.todas" | "pages.transactions.despesas" | "pages.transactions.receitas" | "pages.transactions.transferencias";
+
+const KIND_OPTIONS: { value: KindFilter | null; labelKey: KindLabelKey }[] = [
+  { value: null, labelKey: "pages.transactions.todas" },
+  { value: "withdrawal", labelKey: "pages.transactions.despesas" },
+  { value: "deposit", labelKey: "pages.transactions.receitas" },
+  { value: "transfer", labelKey: "pages.transactions.transferencias" },
+];
+
 export default function TransactionsPage() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  // "new": dialogo de criar; um lancamento: dialogo de editar
   const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
   const [removing, setRemoving] = useState<Transaction | null>(null);
   const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
+  const kind = useMemo(() => readKind(searchParams), [searchParams]);
   const activeCount = countActiveFilters(filters);
+
+  // Mes navegado: usa dateFrom da URL ou o mes atual
+  const today = appToday();
+  const monthAnchor = filters.dateFrom ?? firstOfMonth(today);
+  const monthStart = firstOfMonth(monthAnchor);
+  const monthEnd = lastOfMonth(monthStart);
+
+  // Se nao tiver filtro de data na URL, injeta o mes atual automaticamente
+  const effectiveFilters = useMemo(() => {
+    if (filters.dateFrom || filters.dateTo) return filters;
+    return { ...filters, dateFrom: monthStart, dateTo: monthEnd };
+  }, [filters, monthStart, monthEnd]);
 
   const update = useCallback(
     (patch: Parameters<typeof writeFilters>[1]) =>
       setSearchParams((previous) => writeFilters(previous, patch), { replace: true }),
     [setSearchParams],
   );
+
+  function navigateMonth(delta: number) {
+    const newStart = shiftMonth(monthStart, delta);
+    const newEnd = lastOfMonth(newStart);
+    setSearchParams(
+      (previous) => writeFilters(previous, { dateFrom: newStart, dateTo: newEnd }),
+      { replace: true },
+    );
+  }
+
+  function setKind(value: KindFilter | null) {
+    setSearchParams((previous) => writeKind(previous, value), { replace: true });
+  }
 
   const [searchDraft, setSearchDraft] = useDraftFilter({
     committed: filters.q ?? "",
@@ -81,11 +125,11 @@ export default function TransactionsPage() {
     onCommit: (draft) => update({ maxAmount: amountToCommitted(draft) ?? "" }),
   });
 
-  const rangeError = dateRangeError(filters);
+  const rangeError = dateRangeError(effectiveFilters);
   const accounts = useAccounts({ includeArchived: true });
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
-  const query = useTransactions(filters, { enabled: !rangeError });
+  const query = useTransactions(effectiveFilters, { enabled: !rangeError });
 
   const categoryList = categories.data?.items ?? [];
   const tagList = tags.data?.items ?? [];
@@ -97,7 +141,11 @@ export default function TransactionsPage() {
     [categoryList, tagList],
   );
 
-  const items = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const allItems = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const items = useMemo(
+    () => (kind ? allItems.filter((item) => item.splits.some((s) => s.type === kind)) : allItems),
+    [allItems, kind],
+  );
   const total = query.data?.pages[0]?.total ?? 0;
   const groups = useMemo(() => groupByDay(items), [items]);
 
@@ -109,6 +157,8 @@ export default function TransactionsPage() {
   function clearFilters() {
     setSearchParams(new URLSearchParams(), { replace: true });
   }
+
+  const currentKindOption = KIND_OPTIONS.find((o) => o.value === kind) ?? KIND_OPTIONS[0];
 
   let content;
   if (rangeError) {
@@ -137,7 +187,7 @@ export default function TransactionsPage() {
     );
   } else if (items.length === 0) {
     content =
-      activeCount > 0 ? (
+      activeCount > 0 || kind ? (
         <EmptyState
           icon={Search}
           title={t("pages.transactions.nadaEncontrado")}
@@ -150,15 +200,9 @@ export default function TransactionsPage() {
         />
       ) : (
         <EmptyState
-          icon={ArrowLeftRight}
+          icon={Search}
           title={t("pages.transactions.nenhumLancamentoAinda")}
           description={t("pages.transactions.osLancamentosQueVoce")}
-          action={
-            <Button onClick={() => setDialog("new")}>
-              <Plus />
-              {t("pages.transactions.novoLancamento")}
-            </Button>
-          }
         />
       );
   } else {
@@ -190,26 +234,26 @@ export default function TransactionsPage() {
             onRemove={setRemoving}
           />
         ) : (
-        <div className="flex flex-col gap-6">
-          {groups.map((group) => (
-            <section key={group.date} aria-label={group.label}>
-              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">{group.label}</h2>
-              <ul className="flex flex-col gap-2">
-                {group.items.map((transaction) => (
-                  <TransactionRow
-                    key={transaction.id}
-                    transaction={transaction}
-                    categories={lookups.categories}
-                    tags={lookups.tags}
-                    onEdit={setDialog}
-                    onRemove={setRemoving}
-                    onAttachments={setAttaching}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+          <div className="flex flex-col gap-6">
+            {groups.map((group) => (
+              <section key={group.date} aria-label={group.label}>
+                <h2 className="mb-2 text-sm font-semibold text-muted-foreground">{group.label}</h2>
+                <ul className="flex flex-col gap-2">
+                  {group.items.map((transaction) => (
+                    <TransactionRow
+                      key={transaction.id}
+                      transaction={transaction}
+                      categories={lookups.categories}
+                      tags={lookups.tags}
+                      onEdit={setDialog}
+                      onRemove={setRemoving}
+                      onAttachments={setAttaching}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         )}
 
         {query.isError && (
@@ -234,35 +278,145 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t("pages.transactions.transacoes")}
-        description={t("pages.transactions.tudoOQueEntrou")}
-        actions={
-          <Button onClick={() => setDialog("new")}>
-            <Plus />
-            {t("pages.transactions.novoLancamento")}
-          </Button>
-        }
-      />
+      <PageHeader title={t("pages.transactions.transacoes")} />
 
-      <FilterBar
-        filters={filters}
-        activeCount={activeCount}
-        searchDraft={searchDraft}
-        minDraft={minDraft}
-        maxDraft={maxDraft}
-        onSearchChange={setSearchDraft}
-        onMinChange={setMinDraft}
-        onMaxChange={setMaxDraft}
-        minError={amountError(minDraft)}
-        maxError={amountError(maxDraft)}
-        dateError={rangeError}
-        accounts={accounts.data ?? []}
-        categories={categoryList}
-        tags={tagList}
-        onChange={update}
-        onClear={clearFilters}
-      />
+      {/* Barra de acoes */}
+      <div className="mb-4 flex items-center gap-2">
+        {/* Filtro rapido por tipo */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" className="gap-1 bg-primary text-primary-foreground hover:bg-primary/90">
+              <ChevronDown className="size-3" />
+              {t(currentKindOption.labelKey)}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-44">
+            {KIND_OPTIONS.map((option) => (
+              <DropdownMenuItem
+                key={option.value ?? "all"}
+                onClick={() => setKind(option.value)}
+                className={option.value === kind ? "font-semibold" : ""}
+              >
+                {t(option.labelKey)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="ml-auto flex items-center gap-1">
+          {/* Campo de busca expansivel */}
+          {searchOpen ? (
+            <div className="flex items-center gap-1">
+              <Input
+                ref={searchRef}
+                autoFocus
+                type="search"
+                aria-label={t("transactions.filterBar.buscarLancamentos")}
+                placeholder={t("transactions.filterBar.buscarLancamentos")}
+                value={searchDraft}
+                onChange={(e) => setSearchDraft(e.target.value)}
+                className="h-9 w-48"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-9"
+                onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-9"
+              aria-label={t("transactions.filterBar.buscarLancamentos")}
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="size-4" />
+            </Button>
+          )}
+
+          {/* Painel de filtros avancados */}
+          <Button
+            size="icon"
+            variant={activeCount > 0 ? "outline" : "ghost"}
+            className="relative size-9"
+            aria-label={t("transactions.filterBar.filters")}
+            onClick={() => setFilterOpen((v) => !v)}
+          >
+            <SlidersHorizontal className="size-4" />
+            {activeCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </Button>
+
+          {/* Mais opcoes */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" className="size-9" aria-label={t("transactions.filterBar.filters")}>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onClick={() => chooseView(view === "list" ? "table" : "list")}>
+                {view === "list" ? (
+                  <><Table2 className="mr-2 size-4" />{t("pages.transactions.tabela")}</>
+                ) : (
+                  <><LayoutList className="mr-2 size-4" />{t("pages.transactions.lista")}</>
+                )}
+              </DropdownMenuItem>
+              {activeCount > 0 && (
+                <DropdownMenuItem onClick={clearFilters}>
+                  <X className="mr-2 size-4" />
+                  {t("common.limparFiltros")}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Painel de filtros avancados (abre ao clicar no funil) */}
+      {filterOpen && (
+        <FilterBar
+          filters={effectiveFilters}
+          activeCount={activeCount}
+          searchDraft={searchDraft}
+          minDraft={minDraft}
+          maxDraft={maxDraft}
+          onSearchChange={setSearchDraft}
+          onMinChange={setMinDraft}
+          onMaxChange={setMaxDraft}
+          minError={amountError(minDraft)}
+          maxError={amountError(maxDraft)}
+          dateError={rangeError}
+          accounts={accounts.data ?? []}
+          categories={categoryList}
+          tags={tagList}
+          onChange={update}
+          onClear={clearFilters}
+        />
+      )}
+
+      {/* Cards de resumo do mes */}
+      <TransactionsSummaryCards dateFrom={monthStart} dateTo={monthEnd} />
+
+      {/* Navegador de mes */}
+      <div className="mb-4 flex items-center justify-center gap-3">
+        <Button size="icon" variant="ghost" className="size-8" onClick={() => navigateMonth(-1)}>
+          <ChevronLeft className="size-4" />
+        </Button>
+        <span className="min-w-36 text-center text-sm font-medium">
+          {formatMonthYear(monthStart)}
+        </span>
+        <Button size="icon" variant="ghost" className="size-8" onClick={() => navigateMonth(1)}>
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
 
       {content}
 
