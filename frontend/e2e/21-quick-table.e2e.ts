@@ -90,7 +90,8 @@ test("a tabela mostra os lancamentos e o teclado anda entre as linhas", async ({
 
 test("a linha de entrada pede o que falta e so grava quando esta completa", async ({ page, request }) => {
   await openTable(page);
-  await page.getByRole("button", { name: "Nova linha" }).click();
+  await page.locator("tbody tr[tabindex]").first().focus();
+  await page.keyboard.press("t");
   await expect(entry(page).getByLabel("Data")).toBeFocused();
 
   await entry(page).getByLabel("Descrição").fill("Cafe Tabela E2E");
@@ -102,7 +103,8 @@ test("a linha de entrada pede o que falta e so grava quando esta completa", asyn
 
 test("Enter grava e deixa uma linha nova na mesma data e conta; Ctrl+Enter grava e fecha", async ({ page, request }) => {
   await openTable(page);
-  await page.getByRole("button", { name: "Nova linha" }).click();
+  await page.locator("tbody tr[tabindex]").first().focus();
+  await page.keyboard.press("t");
   await fillEntry(page, { description: "Cafe Tabela E2E", counterparty: "Cafeteria", amount: "-25,00" });
   await entry(page).getByLabel("Valor").press("Enter");
 
@@ -121,13 +123,13 @@ test("Enter grava e deixa uma linha nova na mesma data e conta; Ctrl+Enter grava
 
   await expect(entry(page)).toHaveCount(0);
   await expect(rowOf(page, "Salario Tabela E2E")).toContainText("+R$");
-  await expect(page.getByRole("button", { name: "Nova linha" })).toBeFocused();
   expect(await balance(request)).toBe("1345.00");
 });
 
 test("Esc cancela a linha de entrada sem gravar", async ({ page, request }) => {
   await openTable(page);
-  await page.getByRole("button", { name: "Nova linha" }).click();
+  await page.locator("tbody tr[tabindex]").first().focus();
+  await page.keyboard.press("t");
   await fillEntry(page, { description: "Descartada Tabela E2E", counterparty: "Loja", amount: "-1,00" });
   await entry(page).getByLabel("Valor").press("Escape");
   await expect(entry(page)).toHaveCount(0);
