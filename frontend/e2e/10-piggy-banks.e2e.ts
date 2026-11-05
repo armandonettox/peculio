@@ -12,7 +12,7 @@ const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 const card = (page: Page, name: string) =>
-  main(page).getByRole("heading", { level: 3, name }).locator("xpath=ancestor::li[1]");
+  main(page).getByRole("heading", { level: 2, name }).locator("xpath=ancestor::li[1]");
 
 // O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso do
 // executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
@@ -89,7 +89,7 @@ test("guardar reserva o valor sem tirar dinheiro do saldo da conta", async ({ pa
 
   // O saldo da conta continua inteiro
   await nav(page).getByRole("link", { name: "Contas", exact: true }).click();
-  const account = main(page).getByRole("heading", { level: 3, name: ACCOUNT }).locator("xpath=ancestor::li[1]");
+  const account = main(page).getByRole("heading", { level: 2, name: ACCOUNT }).locator("xpath=ancestor::li[1]");
   await expect(account).toContainText("R$ 1.000,00");
 });
 
@@ -163,7 +163,7 @@ test("excluir pede confirmacao e libera o valor guardado na conta", async ({ pag
   await action(page, TRIP, "Excluir");
   await dialog(page).getByRole("button", { name: "Excluir" }).click();
   await expect(dialog(page)).toBeHidden();
-  await expect(main(page).getByRole("heading", { level: 3, name: TRIP })).toHaveCount(0);
+  await expect(main(page).getByRole("heading", { level: 2, name: TRIP })).toHaveCount(0);
   // Os 200 que estavam guardados voltam a ficar disponiveis: 50 + 200
   await expect(card(page, RESERVE)).toContainText(`Disponível em ${ACCOUNT}: R$ 250,00`);
 });

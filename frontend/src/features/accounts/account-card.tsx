@@ -39,7 +39,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
       <div className="flex items-start justify-between gap-3 p-4">
         <div className="flex items-center gap-3 min-w-0">
           <div
-            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", account.color ? "text-white" : "bg-primary/10 text-primary")}
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", account.color ? "text-white" : "bg-primary/10 text-primary-text")}
             style={account.color ? { backgroundColor: account.color } : undefined}
           >
             <Landmark className="size-5" />
@@ -125,7 +125,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
       {account.active && (
         <Link
           to={`/transacoes?conta=${account.id}`}
-          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary hover:bg-primary/5 transition-colors uppercase tracking-wide"
+          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary-text hover:bg-primary/5 transition-colors uppercase tracking-wide"
         >
           <Plus className="size-3" />
           {t("accounts.accountCard.adicionarDespesa")}

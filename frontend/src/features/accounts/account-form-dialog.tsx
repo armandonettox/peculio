@@ -236,7 +236,7 @@ function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void;
           onClick={onSelect}
           className="flex items-center gap-4 rounded-xl border p-4 text-left transition-colors hover:border-primary hover:bg-accent"
         >
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-text">
             <Landmark className="size-5" />
           </div>
           <div>

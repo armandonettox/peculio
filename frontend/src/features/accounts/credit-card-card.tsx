@@ -71,7 +71,7 @@ function ClosedInvoiceSummary({ account }: { account: Account }) {
       </div>
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{t("accounts.creditCard.vencimento")}</span>
-        <Link to={`/contas/${account.id}/fatura`} className="text-xs text-primary hover:underline">
+        <Link to={`/contas/${account.id}/fatura`} className="text-xs text-primary-text hover:underline">
           {new Date(data.due_date + "T00:00:00Z").toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" })}
         </Link>
       </div>
@@ -103,7 +103,7 @@ export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onTog
       <div className="flex items-start justify-between gap-3 p-4 pb-3">
         <div className="flex items-center gap-3 min-w-0">
           <div
-            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", account.color ? "text-white" : "bg-primary/10 text-primary")}
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", account.color ? "text-white" : "bg-primary/10 text-primary-text")}
             style={account.color ? { backgroundColor: account.color } : undefined}
           >
             <CreditCard className="size-5" />
@@ -213,7 +213,7 @@ export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onTog
       {account.active && (
         <Link
           to={`/transacoes?conta=${account.id}`}
-          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary hover:bg-primary/5 transition-colors uppercase tracking-wide"
+          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary-text hover:bg-primary/5 transition-colors uppercase tracking-wide"
         >
           <Plus className="size-3" />
           {t("accounts.creditCard.adicionarDespesa")}

@@ -263,7 +263,7 @@ test("no celular o painel de filtros abre e cabe na tela", async ({ page }) => {
   await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Transações" }).click();
   await expect(main(page).getByText("32 lançamentos")).toBeVisible();
 
-  const toggle = page.getByRole("button", { name: "Filtros" });
+  const toggle = page.getByRole("button", { name: "Filtros" }).first();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
