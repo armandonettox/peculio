@@ -1,4 +1,4 @@
-import { Landmark, WifiOff, Zap } from "lucide-react";
+import { ChevronLeft, Landmark, Search, Zap } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -56,6 +56,102 @@ type Props = {
   presetCreditCard?: boolean;
   onClose: () => void;
 };
+
+type Institution = { id: string; name: string; color: string; initials: string };
+
+const INSTITUTIONS: Institution[] = [
+  { id: "santander",    name: "Santander",     color: "#EC0000", initials: "SA" },
+  { id: "nubank",       name: "Nubank",         color: "#820AD1", initials: "NU" },
+  { id: "itau",         name: "Itaú",           color: "#EC7000", initials: "IT" },
+  { id: "bb",           name: "Banco do Brasil",color: "#F7CB09", initials: "BB" },
+  { id: "caixa",        name: "Caixa",          color: "#005CA9", initials: "CX" },
+  { id: "bradesco",     name: "Bradesco",       color: "#CC092F", initials: "BD" },
+  { id: "inter",        name: "Banco Inter",    color: "#FF7A00", initials: "IN" },
+  { id: "c6",           name: "C6 Bank",        color: "#1A1A1A", initials: "C6" },
+  { id: "mercadopago",  name: "Mercado Pago",   color: "#009EE3", initials: "MP" },
+  { id: "picpay",       name: "PicPay",         color: "#11C76F", initials: "PP" },
+  { id: "sicoob",       name: "Sicoob",         color: "#007A4D", initials: "SC" },
+  { id: "sicredi",      name: "Sicredi",        color: "#00843D", initials: "SI" },
+  { id: "other",        name: "Outra",          color: "#64748b", initials: "??" },
+];
+
+function InstitutionStep({
+  onSelect,
+  onBack,
+  isCreditCard,
+}: {
+  onSelect: (name: string) => void;
+  onBack: () => void;
+  isCreditCard: boolean;
+}) {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+  const filtered = query.trim()
+    ? INSTITUTIONS.filter((i) => i.name.toLowerCase().includes(query.toLowerCase()))
+    : INSTITUTIONS;
+
+  return (
+    <>
+      <DialogHeader>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+            aria-label={t("common.voltar")}
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <div>
+            <DialogTitle>
+              {isCreditCard ? t("accounts.accountFormDialog.novoCartao") : t("accounts.accountFormDialog.novaConta")}
+            </DialogTitle>
+            <DialogDescription>
+              {t("accounts.accountFormDialog.qualInstituicao")}
+            </DialogDescription>
+          </div>
+        </div>
+      </DialogHeader>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("accounts.accountFormDialog.buscarInstituicao")}
+          className="w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          autoFocus
+        />
+      </div>
+
+      <ul className="flex max-h-72 flex-col overflow-y-auto">
+        {filtered.map((inst) => (
+          <li key={inst.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(inst.id === "other" ? "" : inst.name)}
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-accent"
+            >
+              <div
+                className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                style={{ backgroundColor: inst.color }}
+              >
+                {inst.initials}
+              </div>
+              <span className="text-sm font-medium">{inst.name}</span>
+            </button>
+          </li>
+        ))}
+        {filtered.length === 0 && (
+          <li className="py-6 text-center text-sm text-muted-foreground">
+            {t("accounts.accountFormDialog.nenhumaInstituicao")}
+          </li>
+        )}
+      </ul>
+    </>
+  );
+}
 
 function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void; onClose: () => void; isCreditCard: boolean }) {
   const { t } = useTranslation();
@@ -119,7 +215,7 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   const update = useUpdateAccount();
 
   // Na criacao, comecar no step de escolha manual/automatica
-  const [step, setStep] = useState<"method" | "form">(editing ? "form" : "method");
+  const [step, setStep] = useState<"method" | "institution" | "form">(editing ? "form" : "method");
 
   const [kind, setKind] = useState<AccountKind>(account?.type === "liability" ? "liability" : "asset");
   const [name, setName] = useState(account?.name ?? "");
@@ -277,8 +373,17 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
       <DialogContent fullOnMobile>
         {step === "method" ? (
           <MethodStep
-            onSelect={() => setStep("form")}
+            onSelect={() => setStep(presetCreditCard ? "form" : "institution")}
             onClose={onClose}
+            isCreditCard={presetCreditCard}
+          />
+        ) : step === "institution" ? (
+          <InstitutionStep
+            onSelect={(institutionName) => {
+              setBank(institutionName);
+              setStep("form");
+            }}
+            onBack={() => setStep("method")}
             isCreditCard={presetCreditCard}
           />
         ) : (
