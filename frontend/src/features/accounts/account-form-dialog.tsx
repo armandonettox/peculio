@@ -1,4 +1,6 @@
+import { Landmark, WifiOff, Zap } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   useCreateAccount,
@@ -25,7 +27,6 @@ import { appToday } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { DEFAULT_ROLE, kindLabel, roleLabel, ROLES_BY_KIND, type AccountKind } from "./labels";
-import { useTranslation } from "react-i18next";
 
 type Field = "name" | "opening" | "openingDate" | "closingDay" | "dueDay" | "creditLimit";
 type Errors = Partial<Record<Field, string>>;
@@ -33,7 +34,6 @@ type Role = NonNullable<Account["role"]>;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-// O backend usa ponto nos centavos; na tela mostramos virgula
 const toInputText = (value: string) => value.replace(".", ",");
 
 const SERVER_FIELDS: Record<string, Field> = {
@@ -45,7 +45,6 @@ const SERVER_FIELDS: Record<string, Field> = {
   credit_limit: "creditLimit",
 };
 
-// 1 a 31, sem casas decimais nem espaco
 function parseDay(text: string): number | null {
   if (!/^\d{1,2}$/.test(text.trim())) return null;
   const value = Number(text.trim());
@@ -53,12 +52,63 @@ function parseDay(text: string): number | null {
 }
 
 type Props = {
-  // Sem `account` o dialogo cria; com `account` edita
   account?: Account;
-  // Pula o tipo/papel: cria direto como cartao de credito. So vale na criacao.
   presetCreditCard?: boolean;
   onClose: () => void;
 };
+
+function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void; onClose: () => void; isCreditCard: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {isCreditCard ? t("accounts.accountFormDialog.novoCartao") : t("accounts.accountFormDialog.novaConta")}
+        </DialogTitle>
+        <DialogDescription>
+          {t("accounts.accountFormDialog.comoDesejaAdicionar")}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-3 py-2">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="flex items-center gap-4 rounded-xl border p-4 text-left transition-colors hover:border-primary hover:bg-accent"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Landmark className="size-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">{t("accounts.accountFormDialog.manual")}</p>
+            <p className="text-xs text-muted-foreground">{t("accounts.accountFormDialog.manualDesc")}</p>
+          </div>
+        </button>
+
+        <div className="flex items-center gap-4 rounded-xl border p-4 opacity-50 cursor-not-allowed">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Zap className="size-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold">{t("accounts.accountFormDialog.automatica")}</p>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                Em breve
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">{t("accounts.accountFormDialog.automaticaDesc")}</p>
+          </div>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onClose}>
+          {t("common.cancelar")}
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
 
 export function AccountFormDialog({ account, presetCreditCard = false, onClose }: Props) {
   const { t } = useTranslation();
@@ -68,11 +118,13 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   const create = useCreateAccount();
   const update = useUpdateAccount();
 
+  // Na criacao, comecar no step de escolha manual/automatica
+  const [step, setStep] = useState<"method" | "form">(editing ? "form" : "method");
+
   const [kind, setKind] = useState<AccountKind>(account?.type === "liability" ? "liability" : "asset");
   const [name, setName] = useState(account?.name ?? "");
   const [role, setRole] = useState<Role>(account?.role ?? (presetCreditCard ? "credit_card" : DEFAULT_ROLE[kind]));
   const [currency, setCurrency] = useState(account?.currency_code ?? user?.default_currency ?? "BRL");
-  // Conta criada sem saldo inicial nao tem data: o campo comeca vazio
   const hadOpening = account?.opening_balance_date != null;
   const initialOpening = hadOpening ? toInputText(account.opening_balance) : "";
   const [opening, setOpening] = useState(initialOpening);
@@ -119,7 +171,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
       (field) => serverErrors[field],
     );
     if (first) document.getElementById(`account-${first}`)?.focus();
-    // Erro que nao e de um campo (moeda desconhecida, falha do servidor) vai no aviso do topo
     if (!first || error.code === "validation_error") setFormError(message);
   }
 
@@ -171,7 +222,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
           currency_code: currency,
           in_envelopes: inEnvelopes,
           notes: notes.trim() || null,
-          // Zero nao cria transacao de saldo inicial no backend: e o mesmo que nao informar
           opening_balance: openingValue ?? "0",
           ...(openingValue !== null ? { opening_balance_date: openingDate } : {}),
           ...(role === "credit_card"
@@ -183,7 +233,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
         };
         await create.mutateAsync(body);
       } else {
-        // Manda so o que mudou, para nao sobrescrever sem querer
         const body: AccountUpdate = {};
         if (name.trim() !== account.name) body.name = name.trim();
         if (role !== account.role) body.role = role;
@@ -196,7 +245,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
           }
           if (creditLimitValue !== account.credit_limit) body.credit_limit = creditLimitValue;
         } else if (account.closing_day !== null || account.due_day !== null || account.credit_limit !== null) {
-          // Saiu de cartao de credito: limpa fechamento/vencimento/limite
           body.closing_day = null;
           body.due_day = null;
           body.credit_limit = null;
@@ -207,7 +255,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
             body.opening_balance_date = openingDate;
           }
         } else if (hadOpening) {
-          // Apagou o campo: remove o saldo inicial
           const zero = parseMoneyInput("0", places);
           body.opening_balance = zero.ok ? zero.value : "0.00";
         }
@@ -228,299 +275,308 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   return (
     <Dialog open onOpenChange={(open) => !open && !submitting && onClose()}>
       <DialogContent fullOnMobile>
-        <DialogHeader>
-          <DialogTitle>
-            {editing
-              ? t("accounts.accountFormDialog.editarConta")
-              : presetCreditCard
-                ? t("accounts.accountFormDialog.novoCartao")
-                : t("accounts.accountFormDialog.novaConta")}
-          </DialogTitle>
-          <DialogDescription>
-            {editing
-              ? t("accounts.accountFormDialog.altereOsDadosDa")
-              : presetCreditCard
-                ? t("accounts.accountFormDialog.cadastreUmCartaoDe")
-                : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-          {formError && <Alert variant="destructive">{formError}</Alert>}
-
-          {!editing && !presetCreditCard && (
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
-              <div className="grid grid-cols-2 gap-2">
-                {(["asset", "liability"] as const).map((option) => (
-                  <label
-                    key={option}
-                    className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                  >
-                    <input
-                      type="radio"
-                      name="account-kind"
-                      value={option}
-                      checked={kind === option}
-                      onChange={() => chooseKind(option)}
-                      className="accent-[var(--primary)]"
-                    />
-                    {kindLabel(option)}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          )}
-
-          <FormField id="account-name" label={t("common.nome")} error={errors.name}>
-            {(props) => (
-              <Input
-                {...props}
-                autoComplete="off"
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  clearError("name");
-                }}
-              />
-            )}
-          </FormField>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
-              {(props) => (
-                <Input
-                  {...props}
-                  autoComplete="off"
-                  placeholder={t("accounts.accountFormDialog.bancoPlaceholder")}
-                  value={bank}
-                  onChange={(event) => setBank(event.target.value)}
-                />
-              )}
-            </FormField>
-
-            {role === "credit_card" && (
-              <FormField id="account-network" label={t("accounts.accountFormDialog.bandeira")}>
-                {(props) => (
-                  <Select {...props} value={network} onChange={(event) => setNetwork(event.target.value as CardNetwork | "")}>
-                    <option value="">{t("accounts.accountFormDialog.semBandeira")}</option>
-                    <option value="visa">Visa</option>
-                    <option value="mastercard">Mastercard</option>
-                    <option value="elo">Elo</option>
-                    <option value="amex">American Express</option>
-                    <option value="hipercard">Hipercard</option>
-                    <option value="other">{t("accounts.accountFormDialog.outraBandeira")}</option>
-                  </Select>
-                )}
-              </FormField>
-            )}
-          </div>
-
-          <FormField id="account-color" label={t("accounts.accountFormDialog.cor")}>
-            {() => (
-              <div className="flex flex-wrap gap-2">
-                {["", "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#64748b"].map((hex) => (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => setColor(hex)}
-                    className={cn(
-                      "size-7 rounded-full border-2 transition-transform hover:scale-110",
-                      color === hex ? "border-foreground scale-110" : "border-transparent",
-                      !hex && "border-border bg-muted",
-                    )}
-                    style={hex ? { backgroundColor: hex } : undefined}
-                    aria-label={hex || t("accounts.accountFormDialog.semCor")}
-                    aria-pressed={color === hex}
-                  >
-                    {!hex && <span className="sr-only">{t("accounts.accountFormDialog.semCor")}</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </FormField>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {!presetCreditCard && (
-              <FormField id="account-role" label={t("accounts.accountFormDialog.categoriaDaConta")}>
-                {(props) => (
-                  <Select {...props} value={role} onChange={(event) => setRole(event.target.value as Role)}>
-                    {ROLES_BY_KIND[kind].map((option) => (
-                      <option key={option} value={option}>
-                        {roleLabel(option)}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </FormField>
-            )}
-
-            <FormField id="account-currency" label={t("common.moeda")}>
-              {(props) => (
-                <Select
-                  {...props}
-                  value={currency}
-                  disabled={editing}
-                  onChange={(event) => setCurrency(event.target.value)}
-                >
-                  {/* Enquanto a lista carrega, mostra so a moeda atual */}
-                  {(currencies.data ?? [{ code: currency, name: currency }]).map((option) => (
-                    <option key={option.code} value={option.code}>
-                      {option.code} - {option.name}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </FormField>
-          </div>
-
-          {role === "credit_card" && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                id="account-closingDay"
-                label={t("accounts.accountFormDialog.diaDeFechamento")}
-                error={errors.closingDay}
-                hint={t("accounts.accountFormDialog.diaDeFechamentoHint")}
-              >
-                {(props) => (
-                  <Input
-                    {...props}
-                    type="number"
-                    min={1}
-                    max={31}
-                    inputMode="numeric"
-                    value={closingDay}
-                    onChange={(event) => {
-                      setClosingDay(event.target.value);
-                      clearError("closingDay");
-                    }}
-                  />
-                )}
-              </FormField>
-
-              <FormField
-                id="account-dueDay"
-                label={t("accounts.accountFormDialog.diaDeVencimento")}
-                error={errors.dueDay}
-                hint={t("accounts.accountFormDialog.diaDeVencimentoHint")}
-              >
-                {(props) => (
-                  <Input
-                    {...props}
-                    type="number"
-                    min={1}
-                    max={31}
-                    inputMode="numeric"
-                    value={dueDay}
-                    onChange={(event) => {
-                      setDueDay(event.target.value);
-                      clearError("dueDay");
-                    }}
-                  />
-                )}
-              </FormField>
-            </div>
-          )}
-
-          {role === "credit_card" && (
-            <FormField
-              id="account-creditLimit"
-              label={t("accounts.accountFormDialog.limite")}
-              error={errors.creditLimit}
-              hint={t("accounts.accountFormDialog.limiteHint")}
-            >
-              {(props) => (
-                <MoneyInput
-                  {...props}
-                  placeholder="0,00"
-                  places={places}
-                  value={creditLimit}
-                  onChange={(text) => {
-                    setCreditLimit(text);
-                    clearError("creditLimit");
-                  }}
-                />
-              )}
-            </FormField>
-          )}
-
-          <FormField
-            id="account-opening"
-            label={openingLabel}
-            error={errors.opening}
-            hint={
-              kind === "liability"
-                ? t("accounts.accountFormDialog.valorQueVoceAinda")
-                : t("accounts.accountFormDialog.quantoVoceTemHoje")
-            }
-          >
-            {(props) => (
-              <MoneyInput
-                {...props}
-                signed={kind === "asset"}
-                placeholder="0,00"
-                places={places}
-                value={opening}
-                onChange={(text) => {
-                  setOpening(text);
-                  clearError("opening");
-                }}
-              />
-            )}
-          </FormField>
-
-          {opening.trim() !== "" && (
-            <FormField id="account-openingDate" label={t("accounts.accountFormDialog.dataDoSaldo")} error={errors.openingDate}>
-              {(props) => (
-                <Input
-                  {...props}
-                  type="date"
-                  value={openingDate}
-                  onChange={(event) => {
-                    setOpeningDate(event.target.value);
-                    clearError("openingDate");
-                  }}
-                />
-              )}
-            </FormField>
-          )}
-
-          <FormField id="account-notes" label={t("accounts.accountFormDialog.notas")}>
-            {(props) => <Textarea {...props} value={notes} onChange={(event) => setNotes(event.target.value)} />}
-          </FormField>
-
-          {kind === "asset" && (
-            <label className="flex cursor-pointer items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={inEnvelopes}
-                onChange={(event) => setInEnvelopes(event.target.checked)}
-                className="mt-0.5 accent-[var(--primary)]"
-              />
-              <span>
-                {t("accounts.accountFormDialog.inEnvelopes")}
-                <span className="block text-xs text-muted-foreground">
-                  {t("accounts.accountFormDialog.oDinheiroDestaConta")}
-                </span>
-              </span>
-            </label>
-          )}
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-              {t("common.cancelar")}
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting
-                ? t("accounts.accountFormDialog.salvando")
-                : editing
-                  ? t("accounts.accountFormDialog.salvar")
+        {step === "method" ? (
+          <MethodStep
+            onSelect={() => setStep("form")}
+            onClose={onClose}
+            isCreditCard={presetCreditCard}
+          />
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>
+                {editing
+                  ? t("accounts.accountFormDialog.editarConta")
                   : presetCreditCard
-                    ? t("accounts.accountFormDialog.criarCartao")
-                    : t("accounts.accountFormDialog.criarConta")}
-            </Button>
-          </DialogFooter>
-        </form>
+                    ? t("accounts.accountFormDialog.novoCartao")
+                    : t("accounts.accountFormDialog.novaConta")}
+              </DialogTitle>
+              <DialogDescription>
+                {editing
+                  ? t("accounts.accountFormDialog.altereOsDadosDa")
+                  : presetCreditCard
+                    ? t("accounts.accountFormDialog.cadastreUmCartaoDe")
+                    : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+              {formError && <Alert variant="destructive">{formError}</Alert>}
+
+              {!editing && !presetCreditCard && (
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["asset", "liability"] as const).map((option) => (
+                      <label
+                        key={option}
+                        className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                      >
+                        <input
+                          type="radio"
+                          name="account-kind"
+                          value={option}
+                          checked={kind === option}
+                          onChange={() => chooseKind(option)}
+                          className="accent-[var(--primary)]"
+                        />
+                        {kindLabel(option)}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+
+              <FormField id="account-name" label={t("common.nome")} error={errors.name}>
+                {(props) => (
+                  <Input
+                    {...props}
+                    autoComplete="off"
+                    value={name}
+                    onChange={(event) => {
+                      setName(event.target.value);
+                      clearError("name");
+                    }}
+                  />
+                )}
+              </FormField>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
+                  {(props) => (
+                    <Input
+                      {...props}
+                      autoComplete="off"
+                      placeholder={t("accounts.accountFormDialog.bancoPlaceholder")}
+                      value={bank}
+                      onChange={(event) => setBank(event.target.value)}
+                    />
+                  )}
+                </FormField>
+
+                {role === "credit_card" && (
+                  <FormField id="account-network" label={t("accounts.accountFormDialog.bandeira")}>
+                    {(props) => (
+                      <Select {...props} value={network} onChange={(event) => setNetwork(event.target.value as CardNetwork | "")}>
+                        <option value="">{t("accounts.accountFormDialog.semBandeira")}</option>
+                        <option value="visa">Visa</option>
+                        <option value="mastercard">Mastercard</option>
+                        <option value="elo">Elo</option>
+                        <option value="amex">American Express</option>
+                        <option value="hipercard">Hipercard</option>
+                        <option value="other">{t("accounts.accountFormDialog.outraBandeira")}</option>
+                      </Select>
+                    )}
+                  </FormField>
+                )}
+              </div>
+
+              <FormField id="account-color" label={t("accounts.accountFormDialog.cor")}>
+                {() => (
+                  <div className="flex flex-wrap gap-2">
+                    {["", "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#64748b"].map((hex) => (
+                      <button
+                        key={hex}
+                        type="button"
+                        onClick={() => setColor(hex)}
+                        className={cn(
+                          "size-7 rounded-full border-2 transition-transform hover:scale-110",
+                          color === hex ? "border-foreground scale-110" : "border-transparent",
+                          !hex && "border-border bg-muted",
+                        )}
+                        style={hex ? { backgroundColor: hex } : undefined}
+                        aria-label={hex || t("accounts.accountFormDialog.semCor")}
+                        aria-pressed={color === hex}
+                      >
+                        {!hex && <span className="sr-only">{t("accounts.accountFormDialog.semCor")}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </FormField>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {!presetCreditCard && (
+                  <FormField id="account-role" label={t("accounts.accountFormDialog.categoriaDaConta")}>
+                    {(props) => (
+                      <Select {...props} value={role} onChange={(event) => setRole(event.target.value as Role)}>
+                        {ROLES_BY_KIND[kind].map((option) => (
+                          <option key={option} value={option}>
+                            {roleLabel(option)}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
+                  </FormField>
+                )}
+
+                <FormField id="account-currency" label={t("common.moeda")}>
+                  {(props) => (
+                    <Select
+                      {...props}
+                      value={currency}
+                      disabled={editing}
+                      onChange={(event) => setCurrency(event.target.value)}
+                    >
+                      {(currencies.data ?? [{ code: currency, name: currency }]).map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.code} - {option.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </FormField>
+              </div>
+
+              {role === "credit_card" && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField
+                    id="account-closingDay"
+                    label={t("accounts.accountFormDialog.diaDeFechamento")}
+                    error={errors.closingDay}
+                    hint={t("accounts.accountFormDialog.diaDeFechamentoHint")}
+                  >
+                    {(props) => (
+                      <Input
+                        {...props}
+                        type="number"
+                        min={1}
+                        max={31}
+                        inputMode="numeric"
+                        value={closingDay}
+                        onChange={(event) => {
+                          setClosingDay(event.target.value);
+                          clearError("closingDay");
+                        }}
+                      />
+                    )}
+                  </FormField>
+
+                  <FormField
+                    id="account-dueDay"
+                    label={t("accounts.accountFormDialog.diaDeVencimento")}
+                    error={errors.dueDay}
+                    hint={t("accounts.accountFormDialog.diaDeVencimentoHint")}
+                  >
+                    {(props) => (
+                      <Input
+                        {...props}
+                        type="number"
+                        min={1}
+                        max={31}
+                        inputMode="numeric"
+                        value={dueDay}
+                        onChange={(event) => {
+                          setDueDay(event.target.value);
+                          clearError("dueDay");
+                        }}
+                      />
+                    )}
+                  </FormField>
+                </div>
+              )}
+
+              {role === "credit_card" && (
+                <FormField
+                  id="account-creditLimit"
+                  label={t("accounts.accountFormDialog.limite")}
+                  error={errors.creditLimit}
+                  hint={t("accounts.accountFormDialog.limiteHint")}
+                >
+                  {(props) => (
+                    <MoneyInput
+                      {...props}
+                      placeholder="0,00"
+                      places={places}
+                      value={creditLimit}
+                      onChange={(text) => {
+                        setCreditLimit(text);
+                        clearError("creditLimit");
+                      }}
+                    />
+                  )}
+                </FormField>
+              )}
+
+              <FormField
+                id="account-opening"
+                label={openingLabel}
+                error={errors.opening}
+                hint={
+                  kind === "liability"
+                    ? t("accounts.accountFormDialog.valorQueVoceAinda")
+                    : t("accounts.accountFormDialog.quantoVoceTemHoje")
+                }
+              >
+                {(props) => (
+                  <MoneyInput
+                    {...props}
+                    signed={kind === "asset"}
+                    placeholder="0,00"
+                    places={places}
+                    value={opening}
+                    onChange={(text) => {
+                      setOpening(text);
+                      clearError("opening");
+                    }}
+                  />
+                )}
+              </FormField>
+
+              {opening.trim() !== "" && (
+                <FormField id="account-openingDate" label={t("accounts.accountFormDialog.dataDoSaldo")} error={errors.openingDate}>
+                  {(props) => (
+                    <Input
+                      {...props}
+                      type="date"
+                      value={openingDate}
+                      onChange={(event) => {
+                        setOpeningDate(event.target.value);
+                        clearError("openingDate");
+                      }}
+                    />
+                  )}
+                </FormField>
+              )}
+
+              <FormField id="account-notes" label={t("accounts.accountFormDialog.notas")}>
+                {(props) => <Textarea {...props} value={notes} onChange={(event) => setNotes(event.target.value)} />}
+              </FormField>
+
+              {kind === "asset" && (
+                <label className="flex cursor-pointer items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={inEnvelopes}
+                    onChange={(event) => setInEnvelopes(event.target.checked)}
+                    className="mt-0.5 accent-[var(--primary)]"
+                  />
+                  <span>
+                    {t("accounts.accountFormDialog.inEnvelopes")}
+                    <span className="block text-xs text-muted-foreground">
+                      {t("accounts.accountFormDialog.oDinheiroDestaConta")}
+                    </span>
+                  </span>
+                </label>
+              )}
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
+                  {t("common.cancelar")}
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting
+                    ? t("accounts.accountFormDialog.salvando")
+                    : editing
+                      ? t("accounts.accountFormDialog.salvar")
+                      : presetCreditCard
+                        ? t("accounts.accountFormDialog.criarCartao")
+                        : t("accounts.accountFormDialog.criarConta")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

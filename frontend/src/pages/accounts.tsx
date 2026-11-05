@@ -14,6 +14,7 @@ import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
 import { formatMoney, negateMoney, sumMoney, placesOf } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 type DialogState =
   | { kind: "create" }
@@ -36,9 +37,12 @@ function Totals({ label, totals }: { label: string; totals: { currency: string; 
   );
 }
 
+type AccountTab = "contas" | "dividas";
+
 export default function AccountsPage() {
   const { t } = useTranslation();
   const [showArchived, setShowArchived] = useState(false);
+  const [tab, setTab] = useState<AccountTab>("contas");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const accounts = useAccounts({ includeArchived: showArchived });
@@ -115,8 +119,9 @@ export default function AccountsPage() {
       ? sumMoney(activeLiabilities.filter(a => a.currency_code === mainCurrency).map(a => negateMoney(a.balance)), mainPlaces)
       : "0.00";
     const netTotals = totalsByCurrency(items, places);
+    const visibleList = tab === "contas" ? assets : liabilities;
     content = (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <KpiCard icon={Wallet} label={t("pages.accounts.saldoAtual")} value={formatMoney(saldoAtual, mainCurrency)} valueColor={parseFloat(saldoAtual) < 0 ? "destructive" : "default"} />
           {activeLiabilities.length > 0 && (
@@ -126,54 +131,40 @@ export default function AccountsPage() {
 
         {liabilities.length > 0 && <Totals label={t("pages.accounts.patrimonioLiquido")} totals={netTotals} />}
 
-        {assets.length > 0 && (
-          <section aria-labelledby="accounts-heading" className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 id="accounts-heading" className="text-lg font-semibold">
-                {t("pages.accounts.contas")}
-              </h2>
-              <Totals label={t("pages.accounts.total")} totals={totalsByCurrency(assets, places)} />
-            </div>
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {assets.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  account={account}
-                  onEdit={(target) => setDialog({ kind: "edit", account: target })}
-                  onToggleArchive={toggleArchive}
-                  onDelete={(target) => setDialog({ kind: "delete", account: target })}
-                />
-              ))}
-            </ul>
-          </section>
-        )}
+        <div className="flex items-center gap-1 rounded-lg bg-muted p-1 w-fit">
+          {(["contas", "dividas"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setTab(option)}
+              className={cn(
+                "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                tab === option
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {option === "contas" ? t("pages.accounts.contas") : t("pages.accounts.dividas")}
+            </button>
+          ))}
+        </div>
 
-        {liabilities.length > 0 && (
-          <section aria-labelledby="debts-heading" className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 id="debts-heading" className="text-lg font-semibold">
-                {t("pages.accounts.dividas")}
-              </h2>
-              <Totals
-                label={t("pages.accounts.totalDevido")}
-                totals={totalsByCurrency(liabilities, places).map((t) => ({
-                  currency: t.currency,
-                  total: negateMoney(t.total),
-                }))}
+        {visibleList.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {tab === "contas" ? t("pages.accounts.nenhumaContaAtiva") : t("pages.accounts.nenhumaDividaAtiva")}
+          </p>
+        ) : (
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {visibleList.map((account) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                onEdit={(target) => setDialog({ kind: "edit", account: target })}
+                onToggleArchive={toggleArchive}
+                onDelete={(target) => setDialog({ kind: "delete", account: target })}
               />
-            </div>
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {liabilities.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  account={account}
-                  onEdit={(target) => setDialog({ kind: "edit", account: target })}
-                  onToggleArchive={toggleArchive}
-                  onDelete={(target) => setDialog({ kind: "delete", account: target })}
-                />
-              ))}
-            </ul>
-          </section>
+            ))}
+          </ul>
         )}
       </div>
     );
