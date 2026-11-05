@@ -778,7 +778,9 @@
       "conciliado": "Reconciled",
       "conferido": "Cleared",
       "excluirLancamentos": "Delete transactions",
-      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before them, and the attachments are deleted too."
+      "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before them, and the attachments are deleted too.",
+      "linhasPorPagina": "Rows per page",
+      "de": "of"
     },
     "form": {
       "kind": {

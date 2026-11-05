@@ -1,4 +1,4 @@
-import { Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useCurrencies, type Account } from "@/api/accounts";
@@ -84,8 +84,18 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
   const [bulkError, setBulkError] = useState<BulkError | null>(null);
   // Linha que recebe o foco quando o editor fecha
   const [pendingFocus, setPendingFocus] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const rows = useRef<(HTMLTableRowElement | null)[]>([]);
-  const stop = tabStop(active, items.length);
+
+  const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageItems = useMemo(
+    () => items.slice(safePage * pageSize, safePage * pageSize + pageSize),
+    [items, safePage, pageSize],
+  );
+
+  const stop = tabStop(active, pageItems.length);
   const order = useMemo(() => items.map((item) => item.id), [items]);
   const count = selection.ids.size;
   const tooMany = overLimit(count);
@@ -97,10 +107,10 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
   const categoryList = useMemo(() => [...categories.values()], [categories]);
 
   useEffect(() => {
-    if (pendingFocus === null || editing || items.length === 0) return;
-    rows.current[Math.min(pendingFocus, items.length - 1)]?.focus();
+    if (pendingFocus === null || editing || pageItems.length === 0) return;
+    rows.current[Math.min(pendingFocus, pageItems.length - 1)]?.focus();
     setPendingFocus(null);
-  }, [pendingFocus, editing, items.length]);
+  }, [pendingFocus, editing, pageItems.length]);
 
   // O que saiu da lista (excluido, filtrado fora) sai da selecao
   useEffect(() => {
@@ -126,14 +136,14 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
     const action = navAction(event);
     if (!action) return;
     event.preventDefault();
-    const id = items[index].id;
+    const id = pageItems[index].id;
     if (action.kind === "new") return startNew();
-    if (action.kind === "open") return startEdit(items[index]);
+    if (action.kind === "open") return startEdit(pageItems[index]);
     if (action.kind === "select") return setSelection((current) => toggle(current, id));
     if (action.kind === "range") return setSelection((current) => selectRange(current, id, order));
     if (action.kind === "all") return setSelection((current) => toggleAll(current, order));
     if (action.kind === "clear") return setSelection(EMPTY_SELECTION);
-    const target = nextIndex(index, items.length, action);
+    const target = nextIndex(index, pageItems.length, action);
     if (target === null) return;
     setActive(target);
     rows.current[target]?.focus();
@@ -172,7 +182,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
     setBulkError(null);
   }
 
-  const allSelected = items.length > 0 && items.every((item) => selection.ids.has(item.id));
+  const allSelected = pageItems.length > 0 && pageItems.every((item) => selection.ids.has(item.id));
 
   return (
     <div className="relative overflow-x-auto rounded-lg border bg-card">
@@ -252,7 +262,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                   if (element) element.indeterminate = count > 0 && !allSelected;
                 }}
                 onChange={() => setSelection((current) => toggleAll(current, order))}
-                disabled={items.length === 0}
+                disabled={pageItems.length === 0}
                 aria-label={t("transactions.transactionsTable.selecionarTodosOsCarregados")}
                 className="accent-[var(--primary)]"
               />
@@ -304,7 +314,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
               }}
             />
           )}
-          {items.map((transaction, index) => {
+          {pageItems.map((transaction, index) => {
             if (editing?.id === transaction.id) {
               return (
                 <QuickRowEditor
@@ -419,6 +429,47 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
           })}
         </tbody>
       </table>
+
+      {/* Rodape de paginacao */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t px-3 py-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span>{t("transactions.transactionsTable.linhasPorPagina")}</span>
+          <select
+            value={pageSize}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+            className="rounded border border-input bg-background px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {[10, 25, 50].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>
+            {safePage * pageSize + 1}–{Math.min(safePage * pageSize + pageSize, items.length)} {t("transactions.transactionsTable.de")} {items.length}
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              disabled={safePage === 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="flex size-7 items-center justify-center rounded-md border border-input bg-background hover:bg-accent disabled:opacity-40"
+              aria-label={t("common.anterior")}
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              type="button"
+              disabled={safePage >= pageCount - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="flex size-7 items-center justify-center rounded-md border border-input bg-background hover:bg-accent disabled:opacity-40"
+              aria-label={t("common.proxima")}
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {bulkDialog === "category" && (
         <BulkCategoryDialog

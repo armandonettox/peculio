@@ -778,7 +778,9 @@
       "conciliado": "Conciliado",
       "conferido": "Conferido",
       "excluirLancamentos": "Excluir lançamentos",
-      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes deles, e os anexos também são apagados."
+      "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes deles, e os anexos também são apagados.",
+      "linhasPorPagina": "Linhas por página",
+      "de": "de"
     },
     "form": {
       "kind": {
