@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, MoreVertical, Pencil, Receipt, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, List, MoreVertical, Pencil, Receipt, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import type { Account } from "@/api/accounts";
@@ -31,6 +31,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
   return (
     <li
       className="flex items-start justify-between gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
+      style={account.color ? { borderLeftColor: account.color, borderLeftWidth: "3px" } : undefined}
     >
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -81,6 +82,12 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
               </Link>
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem asChild>
+            <Link to={`/transacoes?conta=${account.id}`}>
+              <List />
+              {t("accounts.accountCard.verTransacoes")}
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onEdit(account)}>
             <Pencil />
             {t("common.editar")}

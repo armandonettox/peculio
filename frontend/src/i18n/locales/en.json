@@ -82,8 +82,6 @@
       "totalDevido": "Total owed",
       "ondeEstaOSeu": "Where your money is and what you owe",
       "mostrarArquivadas": "Show archived",
-      "abaContas": "Accounts",
-      "abaCartoes": "Credit cards",
       "nenhumCartaoAtivo": "No active cards",
       "nenhumCartaoAinda": "No cards yet",
       "cadastreSeuPrimeiroCartao": "Add a credit card to track your statement and limit.",
@@ -116,16 +114,13 @@
       "nenhumLancamentoAtendeAos": "No transaction matches the chosen filters.",
       "nenhumLancamentoAinda": "No transactions yet",
       "osLancamentosQueVoce": "The transactions you record show up here, grouped by day.",
-      "novoLancamento": "New transaction",
       "lancamento": "transaction",
       "lancamentos": "transactions",
       "comOsFiltrosEscolhidos": "with the chosen filters",
-      "comoMostrarOsLancamentos": "How to show transactions",
       "lista": "List",
       "tabela": "Table",
       "carregarMais": "Load more",
       "transacoes": "Transactions",
-      "tudoOQueEntrou": "Everything that came in, went out or moved between accounts",
       "excluirLancamento": "Delete transaction",
       "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it.",
       "todas": "All",
@@ -615,11 +610,13 @@
       "arquivar": "Archive",
       "restaurar": "Restore",
       "verFatura": "View statement",
+      "verTransacoes": "View transactions",
       "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
       "actionsFor": "Actions for account {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Current statement",
+      "fechaEm": "Closes on {{date}}",
       "usado": "Used {{value}}",
       "disponivel": "Available {{value}}",
       "limite": "Limit {{value}}"
@@ -658,7 +655,9 @@
       "bancoPlaceholder": "e.g. Nubank, Itaú, Bradesco",
       "bandeira": "Card network",
       "semBandeira": "No network",
-      "outraBandeira": "Other"
+      "outraBandeira": "Other",
+      "cor": "Account color",
+      "semCor": "No color"
     },
     "deleteAccountDialog": {
       "excluirConta": "Delete account",
@@ -702,15 +701,10 @@
       "periodo": "Period",
       "tipo": "Type",
       "valor": "Amount",
-      "esteMes": "This month",
-      "mesPassado": "Last month",
-      "ultimos3Meses": "Last 3 months",
-      "esteAno": "This year",
       "filtrosSalvos": "Saved filters",
       "salvarFiltro": "Save filter",
       "salvarFiltroAtual": "Save current filter",
       "nomeFiltro": "Filter name",
-      "verResultados": "See results",
       "filtroDeTransacoes": "Transaction filter",
       "novoFiltro": "New filter",
       "nenhumFiltroSalvo": "No saved filters yet.",
@@ -788,7 +782,6 @@
     "transactionsTable": {
       "comOFocoNuma": "With focus on a row: arrows or J and K move, Enter edits, T creates, Space selects.",
       "atalhos": "Shortcuts",
-      "novaLinha": "New row",
       "acoesEmMassa": "Bulk actions",
       "mudarCategoria": "Change category",
       "mudarData": "Change date",
@@ -892,10 +885,7 @@
     "table": {
       "locked": "Locked: {{list}}.",
       "select": "Select {{title}}",
-      "edit": "Edit {{title}}",
-      "editFull": "Edit {{title}} in the full form",
-      "expandir": "Expand",
-      "delete": "Delete {{title}}"
+      "expandir": "Expand"
     },
     "row": {
       "attachments_one": "{{count}} attachment, open the attachments of {{title}}",

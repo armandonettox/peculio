@@ -2,6 +2,8 @@ import { CreditCard, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { appToday } from "@/lib/dates";
+
 import type { Account } from "@/api/accounts";
 import {
   DropdownMenu,
@@ -54,15 +56,31 @@ function LimitBar({ used, limit, currency }: { used: string; limit: string; curr
   );
 }
 
+function nextClosingDate(closingDay: number): string {
+  const today = appToday();
+  const [year, month, day] = today.split("-").map(Number);
+  if (day < closingDay) {
+    return new Date(Date.UTC(year, month - 1, closingDay)).toISOString().slice(0, 10);
+  }
+  return new Date(Date.UTC(year, month, closingDay)).toISOString().slice(0, 10);
+}
+
 export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: Props) {
   const { t } = useTranslation();
   const fatura = isNegativeMoney(account.balance) ? negateMoney(account.balance) : "0";
+  const fechaEm = account.closing_day != null ? nextClosingDate(account.closing_day) : null;
 
   return (
-    <li className="flex flex-col rounded-xl border bg-card p-4 shadow-sm">
+    <li
+      className="flex flex-col rounded-xl border bg-card p-4 shadow-sm"
+      style={account.color ? { borderLeftColor: account.color, borderLeftWidth: "3px" } : undefined}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", account.color ? "text-white" : "bg-primary/10 text-primary")}
+            style={account.color ? { backgroundColor: account.color } : undefined}
+          >
             <CreditCard className="size-5" />
           </div>
           <div className="min-w-0">
@@ -114,6 +132,11 @@ export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: P
         <p className={cn("text-2xl font-semibold tracking-tight", isNegativeMoney(account.balance) && "text-destructive")}>
           {formatMoney(fatura, account.currency_code)}
         </p>
+        {fechaEm && (
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("accounts.creditCard.fechaEm", { date: new Date(fechaEm + "T00:00:00Z").toLocaleDateString("pt-BR", { day: "numeric", month: "long", timeZone: "UTC" }) })}
+          </p>
+        )}
       </div>
 
       {account.credit_limit != null && (

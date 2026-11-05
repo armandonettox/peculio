@@ -1620,6 +1620,8 @@ export interface components {
             /** Opening Balance Date */
             opening_balance_date?: string | null;
             network?: components["schemas"]["CardNetwork"] | null;
+            /** Color */
+            color?: string | null;
             role?: components["schemas"]["AccountRole"] | null;
             /**
              * Type
@@ -1668,6 +1670,8 @@ export interface components {
             /** Opening Balance Date */
             opening_balance_date: string | null;
             network: components["schemas"]["CardNetwork"] | null;
+            /** Color */
+            color: string | null;
             role: components["schemas"]["AccountRole"] | null;
             type: components["schemas"]["AccountType"];
         };
@@ -1708,6 +1712,8 @@ export interface components {
             /** Opening Balance Date */
             opening_balance_date?: string | null;
             network?: components["schemas"]["CardNetwork"] | null;
+            /** Color */
+            color?: string | null;
             role?: components["schemas"]["AccountRole"] | null;
         };
         /** ActionIn */

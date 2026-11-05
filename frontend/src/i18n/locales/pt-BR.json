@@ -82,8 +82,6 @@
       "totalDevido": "Total devido",
       "ondeEstaOSeu": "Onde está o seu dinheiro e o que você deve",
       "mostrarArquivadas": "Mostrar arquivadas",
-      "abaContas": "Contas",
-      "abaCartoes": "Cartões de crédito",
       "nenhumCartaoAtivo": "Nenhum cartão ativo",
       "nenhumCartaoAinda": "Nenhum cartão ainda",
       "cadastreSeuPrimeiroCartao": "Adicione um cartão de crédito para acompanhar a fatura e o limite.",
@@ -116,16 +114,13 @@
       "nenhumLancamentoAtendeAos": "Nenhum lançamento atende aos filtros escolhidos.",
       "nenhumLancamentoAinda": "Nenhum lançamento ainda",
       "osLancamentosQueVoce": "Os lançamentos que você registrar aparecem aqui, agrupados por dia.",
-      "novoLancamento": "Novo lançamento",
       "lancamento": "lançamento",
       "lancamentos": "lançamentos",
       "comOsFiltrosEscolhidos": "com os filtros escolhidos",
-      "comoMostrarOsLancamentos": "Como mostrar os lançamentos",
       "lista": "Lista",
       "tabela": "Tabela",
       "carregarMais": "Carregar mais",
       "transacoes": "Transações",
-      "tudoOQueEntrou": "Tudo o que entrou, saiu ou mudou de conta",
       "excluirLancamento": "Excluir lançamento",
       "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele.",
       "todas": "Todas",
@@ -615,11 +610,13 @@
       "arquivar": "Arquivar",
       "restaurar": "Restaurar",
       "verFatura": "Ver fatura",
+      "verTransacoes": "Ver transações",
       "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
       "actionsFor": "Ações da conta {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Fatura atual",
+      "fechaEm": "Fecha em {{date}}",
       "usado": "Usado {{value}}",
       "disponivel": "Disponível {{value}}",
       "limite": "Limite {{value}}"
@@ -658,7 +655,9 @@
       "bancoPlaceholder": "Ex: Nubank, Itaú, Bradesco...",
       "bandeira": "Bandeira",
       "semBandeira": "Sem bandeira",
-      "outraBandeira": "Outra"
+      "outraBandeira": "Outra",
+      "cor": "Cor da conta",
+      "semCor": "Sem cor"
     },
     "deleteAccountDialog": {
       "excluirConta": "Excluir conta",
@@ -702,15 +701,10 @@
       "periodo": "Período",
       "tipo": "Tipo",
       "valor": "Valor",
-      "esteMes": "Este mês",
-      "mesPassado": "Mês passado",
-      "ultimos3Meses": "Últimos 3 meses",
-      "esteAno": "Este ano",
       "filtrosSalvos": "Filtros salvos",
       "salvarFiltro": "Salvar filtro",
       "salvarFiltroAtual": "Salvar filtro atual",
       "nomeFiltro": "Nome do filtro",
-      "verResultados": "Ver resultados",
       "filtroDeTransacoes": "Filtro de transações",
       "novoFiltro": "Novo filtro",
       "nenhumFiltroSalvo": "Nenhum filtro salvo ainda.",
@@ -788,7 +782,6 @@
     "transactionsTable": {
       "comOFocoNuma": "Com o foco numa linha: setas ou J e K andam, Enter edita, T cria, Espaço marca.",
       "atalhos": "Atalhos",
-      "novaLinha": "Nova linha",
       "acoesEmMassa": "Ações em massa",
       "mudarCategoria": "Mudar categoria",
       "mudarData": "Mudar data",
@@ -892,10 +885,7 @@
     "table": {
       "locked": "Travados: {{list}}.",
       "select": "Selecionar {{title}}",
-      "edit": "Editar {{title}}",
-      "editFull": "Editar completo {{title}}",
-      "expandir": "Expandir",
-      "delete": "Excluir {{title}}"
+      "expandir": "Expandir"
     },
     "row": {
       "attachments_one": "{{count}} anexo, abrir anexos de {{title}}",

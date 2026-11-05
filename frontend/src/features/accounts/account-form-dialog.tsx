@@ -23,6 +23,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { appToday } from "@/lib/dates";
 import { parseMoneyInput, placesOf } from "@/lib/money";
+import { cn } from "@/lib/utils";
 import { DEFAULT_ROLE, kindLabel, roleLabel, ROLES_BY_KIND, type AccountKind } from "./labels";
 import { useTranslation } from "react-i18next";
 
@@ -83,6 +84,7 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   const [creditLimit, setCreditLimit] = useState(account?.credit_limit != null ? toInputText(account.credit_limit) : "");
   const [bank, setBank] = useState(account?.bank ?? "");
   const [network, setNetwork] = useState<CardNetwork | "">(account?.network ?? "");
+  const [color, setColor] = useState(account?.color ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -177,6 +179,7 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
             : {}),
           bank: bank.trim() || null,
           network: (network || null) as CardNetwork | null,
+          color: color || null,
         };
         await create.mutateAsync(body);
       } else {
@@ -212,6 +215,8 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
         if (bankVal !== account.bank) body.bank = bankVal;
         const networkVal = (network || null) as CardNetwork | null;
         if (networkVal !== account.network) body.network = networkVal;
+        const colorVal = color || null;
+        if (colorVal !== account.color) body.color = colorVal;
         if (Object.keys(body).length > 0) await update.mutateAsync({ id: account.id, body });
       }
       onClose();
@@ -310,6 +315,30 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
               </FormField>
             )}
           </div>
+
+          <FormField id="account-color" label={t("accounts.accountFormDialog.cor")}>
+            {() => (
+              <div className="flex flex-wrap gap-2">
+                {["", "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#64748b"].map((hex) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() => setColor(hex)}
+                    className={cn(
+                      "size-7 rounded-full border-2 transition-transform hover:scale-110",
+                      color === hex ? "border-foreground scale-110" : "border-transparent",
+                      !hex && "border-border bg-muted",
+                    )}
+                    style={hex ? { backgroundColor: hex } : undefined}
+                    aria-label={hex || t("accounts.accountFormDialog.semCor")}
+                    aria-pressed={color === hex}
+                  >
+                    {!hex && <span className="sr-only">{t("accounts.accountFormDialog.semCor")}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </FormField>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {!presetCreditCard && (
