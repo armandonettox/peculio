@@ -50,11 +50,14 @@ function NewFilterTab(props: Props) {
 
   const [dateFromDraft, setDateFromDraft] = useState(filters.dateFrom ?? "");
   const [dateToDraft, setDateToDraft] = useState(filters.dateTo ?? "");
-  const dateFromTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const dateToTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Refs para capturar o valor atual nos callbacks do timer sem dependencias de closure
+  const dateFromDraftRef = useRef(filters.dateFrom ?? "");
+  const dateToDraftRef = useRef(filters.dateTo ?? "");
+  // Timer unico: quando uma das datas muda, envia as duas juntas apos o debounce
+  const dateTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => { setDateFromDraft(filters.dateFrom ?? ""); }, [filters.dateFrom]);
-  useEffect(() => { setDateToDraft(filters.dateTo ?? ""); }, [filters.dateTo]);
+  useEffect(() => { setDateFromDraft(filters.dateFrom ?? ""); dateFromDraftRef.current = filters.dateFrom ?? ""; }, [filters.dateFrom]);
+  useEffect(() => { setDateToDraft(filters.dateTo ?? ""); dateToDraftRef.current = filters.dateTo ?? ""; }, [filters.dateTo]);
 
   const accountOptions = useMemo(() => [
     { value: "", label: t("common.todas") },
@@ -91,8 +94,9 @@ function NewFilterTab(props: Props) {
               onChange={(e) => {
                 const v = e.target.value;
                 setDateFromDraft(v);
-                clearTimeout(dateFromTimer.current);
-                dateFromTimer.current = setTimeout(() => props.onChange({ dateFrom: v }), 400);
+                dateFromDraftRef.current = v;
+                clearTimeout(dateTimer.current);
+                dateTimer.current = setTimeout(() => props.onChange({ dateFrom: dateFromDraftRef.current, dateTo: dateToDraftRef.current }), 400);
               }}
               aria-invalid={props.dateError ? true : undefined}
               className={`w-full rounded-md border bg-background px-2.5 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-ring ${props.dateError ? "border-destructive" : "border-input"}`}
@@ -107,8 +111,9 @@ function NewFilterTab(props: Props) {
               onChange={(e) => {
                 const v = e.target.value;
                 setDateToDraft(v);
-                clearTimeout(dateToTimer.current);
-                dateToTimer.current = setTimeout(() => props.onChange({ dateTo: v }), 400);
+                dateToDraftRef.current = v;
+                clearTimeout(dateTimer.current);
+                dateTimer.current = setTimeout(() => props.onChange({ dateFrom: dateFromDraftRef.current, dateTo: dateToDraftRef.current }), 400);
               }}
               className="w-full rounded-md border border-input bg-background px-2.5 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />

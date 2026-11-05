@@ -46,7 +46,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5">
-              <h3 className="truncate text-sm font-semibold">{account.name}</h3>
+              <h2 className="truncate text-sm font-semibold">{account.name}</h2>
               {!account.active && (
                 <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("accounts.accountCard.arquivada")}</span>
               )}
@@ -107,7 +107,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
       <div className="flex flex-col gap-2 px-4 pb-3">
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{isLiability ? t("accounts.accountCard.valorDevido") : t("pages.accounts.saldoAtual")}</span>
-          <span className={cn("text-sm font-semibold", isNegative && "text-destructive", isPositive && "text-green-600 dark:text-green-400")}>
+          <span className={cn("text-sm font-semibold", isNegative && "text-destructive", isPositive && "text-green-700 dark:text-green-400")}>
             {formatMoney(shown, account.currency_code)}
           </span>
         </div>
@@ -115,7 +115,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
         {account.role === "credit_card" && account.credit_limit != null && (
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{t("accounts.accountCard.limiteDisponivel2")}</span>
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">
+            <span className="text-sm font-medium text-green-700 dark:text-green-400">
               {formatMoney(sumMoney([account.credit_limit, account.balance], placesOf(account.currency_code)), account.currency_code)}
             </span>
           </div>

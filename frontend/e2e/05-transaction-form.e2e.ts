@@ -28,7 +28,7 @@ async function openNewTransaction(page: Page) {
 
 async function expectBalance(page: Page, account: string, text: string) {
   await goTo(page, "Contas");
-  const card = main(page).getByRole("heading", { level: 3, name: account }).locator("xpath=ancestor::li[1]");
+  const card = main(page).getByRole("heading", { level: 2, name: account }).locator("xpath=ancestor::li[1]");
   await expect(card).toContainText(text);
   await goTo(page, "Transações");
 }
@@ -197,7 +197,7 @@ test("excluir pede confirmacao; cancelar mantem e confirmar devolve o saldo", as
 test("a conta Poupanca continua zerada: nada vazou para outra conta", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await goTo(page, "Contas");
-  const card = main(page).getByRole("heading", { level: 3, name: SAVINGS }).locator("xpath=ancestor::li[1]");
+  const card = main(page).getByRole("heading", { level: 2, name: SAVINGS }).locator("xpath=ancestor::li[1]");
   await expect(card).toContainText("R$ 0,00");
 });
 

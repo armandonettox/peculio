@@ -21,7 +21,7 @@ function renderPage(accounts = [makeAccount({ name: "Nubank", balance: "1234.50"
   return api;
 }
 
-const card = (name: string) => screen.getByRole("heading", { level: 3, name }).closest("li") as HTMLElement;
+const card = (name: string) => screen.getByRole("heading", { level: 2, name }).closest("li") as HTMLElement;
 const openMenu = async (name: string) => {
   await userEvent.click(screen.getByRole("button", { name: `Ações da conta ${name}` }));
 };
@@ -30,7 +30,7 @@ const openMenu = async (name: string) => {
 
 it("lista as contas com o saldo formatado em reais", async () => {
   renderPage();
-  expect(await screen.findByRole("heading", { level: 3, name: "Nubank" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Nubank" })).toBeInTheDocument();
   expect(within(card("Nubank")).getByText("R$ 1.234,50")).toBeInTheDocument();
   expect(within(card("Nubank")).getByText("Conta corrente")).toBeInTheDocument();
 });
@@ -40,14 +40,14 @@ it("mostra todas as contas numa lista unica, sem separacao por tipo", async () =
     makeAccount({ name: "Nubank", balance: "1000.00" }),
     makeAccount({ name: "Poupanca", role: "savings", balance: "250.50" }),
   ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
-  expect(screen.getByRole("heading", { level: 3, name: "Poupanca" })).toBeInTheDocument();
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
+  expect(screen.getByRole("heading", { level: 2, name: "Poupanca" })).toBeInTheDocument();
   expect(screen.queryByText("Dívidas")).not.toBeInTheDocument();
 });
 
 it("saldo negativo de uma conta aparece em destaque de erro", async () => {
   renderPage([makeAccount({ name: "Cheque especial", balance: "-50.00" })]);
-  await screen.findByRole("heading", { level: 3, name: "Cheque especial" });
+  await screen.findByRole("heading", { level: 2, name: "Cheque especial" });
   expect(within(card("Cheque especial")).getByText(/R\$\s?50,00/)).toHaveClass("text-destructive");
 });
 
@@ -56,14 +56,14 @@ it("totais de moedas diferentes ficam separados", async () => {
     makeAccount({ name: "Nubank", balance: "100.00" }),
     makeAccount({ name: "Wise", currency_code: "USD", balance: "50.00" }),
   ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   const total = screen.getByText("Saldo total:").closest("p") as HTMLElement;
   expect(total).toHaveTextContent("R$ 100,00 · US$ 50,00");
 });
 
 it("conta em outra moeda mostra o codigo da moeda", async () => {
   renderPage([makeAccount({ name: "Wise", currency_code: "USD", balance: "50.00" })]);
-  await screen.findByRole("heading", { level: 3, name: "Wise" });
+  await screen.findByRole("heading", { level: 2, name: "Wise" });
   expect(within(card("Wise")).getByText(/USD/)).toBeInTheDocument();
 });
 
@@ -89,7 +89,7 @@ it("mostra o carregamento enquanto busca", () => {
 
 it("erro ao listar mostra o aviso e tenta de novo", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   // Liga o erro so depois da primeira busca; o interruptor forca uma nova
   api.state.listError = true;
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
@@ -97,7 +97,7 @@ it("erro ao listar mostra o aviso e tenta de novo", async () => {
 
   api.state.listError = false;
   await userEvent.click(screen.getByRole("button", { name: "Tentar de novo" }));
-  expect(await screen.findByRole("heading", { level: 3, name: "Nubank" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Nubank" })).toBeInTheDocument();
 });
 
 // ---------- Criar ----------
@@ -107,7 +107,7 @@ const nameField = () => within(dialog()).getByLabelText("Nome");
 const openingField = () => within(dialog()).getByLabelText(/Saldo inicial/);
 
 async function openCreate() {
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await userEvent.click(screen.getAllByRole("button", { name: "Nova conta" })[0]);
   await userEvent.click(screen.getByRole("button", { name: /Manualmente/ }));
   await userEvent.click(screen.getByRole("button", { name: /Outra/ }));
@@ -121,7 +121,7 @@ it("cria uma conta com saldo inicial no formato brasileiro", async () => {
   await userEvent.type(openingField(), "3.200,50");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
 
-  expect(await screen.findByRole("heading", { level: 3, name: "Itau" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Itau" })).toBeInTheDocument();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(within(card("Itau")).getByText("R$ 3.200,50")).toBeInTheDocument();
   expect(api.mutations()[0].body).toMatchObject({
@@ -141,7 +141,7 @@ it("sem saldo inicial envia zero e nenhuma data", async () => {
   await userEvent.type(nameField(), "Carteira");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
 
-  await screen.findByRole("heading", { level: 3, name: "Carteira" });
+  await screen.findByRole("heading", { level: 2, name: "Carteira" });
   expect(api.mutations()[0].body).toMatchObject({ opening_balance: "0" });
   expect(api.mutations()[0].body).not.toHaveProperty("opening_balance_date");
 });
@@ -161,7 +161,7 @@ it("o papel escolhido e enviado", async () => {
   await userEvent.selectOptions(within(dialog()).getByLabelText("Categoria da conta"), "savings");
   await userEvent.type(nameField(), "Reserva");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-  await screen.findByRole("heading", { level: 3, name: "Reserva" });
+  await screen.findByRole("heading", { level: 2, name: "Reserva" });
   expect(api.mutations()[0].body).toMatchObject({ role: "savings" });
 });
 
@@ -173,7 +173,7 @@ it("a moeda escolhida e enviada e o iene nao mostra separador decimal", async ()
   await userEvent.type(openingField(), "100");
   expect(openingField()).toHaveValue("100");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-  await screen.findByRole("heading", { level: 3, name: "Toquio" });
+  await screen.findByRole("heading", { level: 2, name: "Toquio" });
   expect(api.mutations()[0].body).toMatchObject({ currency_code: "JPY", opening_balance: "100" });
 });
 
@@ -189,7 +189,7 @@ it("notas em branco viram nulo e notas preenchidas sao enviadas", async () => {
   await userEvent.type(nameField(), "Com nota");
   await userEvent.type(within(dialog()).getByLabelText("Notas"), "  principal  ");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-  await screen.findByRole("heading", { level: 3, name: "Com nota" });
+  await screen.findByRole("heading", { level: 2, name: "Com nota" });
   expect(api.mutations()[0].body).toMatchObject({ notes: "principal" });
 });
 
@@ -212,7 +212,7 @@ it("saldo em branco e tratado como zero (nao exige digitar nada)", async () => {
   await userEvent.type(nameField(), "X");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
 
-  await screen.findByRole("heading", { level: 3, name: "X" });
+  await screen.findByRole("heading", { level: 2, name: "X" });
   expect(api.mutations()[0].body).toMatchObject({ opening_balance: "0" });
 });
 
@@ -223,7 +223,7 @@ it("conta de ativo aceita saldo inicial negativo", async () => {
   await userEvent.type(nameField(), "Cheque especial");
   await userEvent.type(openingField(), "-50,00");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Criar conta" }));
-  await screen.findByRole("heading", { level: 3, name: "Cheque especial" });
+  await screen.findByRole("heading", { level: 2, name: "Cheque especial" });
   expect(api.mutations()[0].body).toMatchObject({ opening_balance: "-50.00" });
 });
 
@@ -316,7 +316,7 @@ it("editar abre com os dados atuais e nao deixa mudar tipo nem moeda", async () 
       balance: "1234.50",
     }),
   ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
 
@@ -331,20 +331,20 @@ it("editar abre com os dados atuais e nao deixa mudar tipo nem moeda", async () 
 
 it("editar so o nome envia so o nome", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   await userEvent.clear(nameField());
   await userEvent.type(nameField(), "Nubank Roxinho");
   await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
 
-  expect(await screen.findByRole("heading", { level: 3, name: "Nubank Roxinho" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Nubank Roxinho" })).toBeInTheDocument();
   expect(api.mutations()[0].body).toEqual({ name: "Nubank Roxinho" });
 });
 
 it("salvar sem mudar nada fecha sem chamar a API", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
@@ -356,7 +356,7 @@ it("mudar o saldo inicial envia o valor e a data", async () => {
   const api = renderPage([
     makeAccount({ name: "Nubank", opening_balance: "100.00", opening_balance_date: "2026-01-10", balance: "100.00" }),
   ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   await userEvent.clear(openingField());
@@ -371,7 +371,7 @@ it("apagar o saldo inicial envia zero para remove-lo", async () => {
   const api = renderPage([
     makeAccount({ name: "Nubank", opening_balance: "100.00", opening_balance_date: "2026-01-10", balance: "100.00" }),
   ]);
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   await userEvent.clear(openingField());
@@ -383,7 +383,7 @@ it("apagar o saldo inicial envia zero para remove-lo", async () => {
 
 it("conta sem saldo inicial abre com o campo vazio e nao manda nada se nao for preenchido", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   expect(openingField()).toHaveValue("");
@@ -396,55 +396,55 @@ it("conta sem saldo inicial abre com o campo vazio e nao manda nada se nao for p
 
 it("arquivar tira a conta da lista", async () => {
   const api = renderPage([makeAccount({ name: "Antiga" }), makeAccount({ name: "Atual" })]);
-  await screen.findByRole("heading", { level: 3, name: "Antiga" });
+  await screen.findByRole("heading", { level: 2, name: "Antiga" });
   await openMenu("Antiga");
   await userEvent.click(screen.getByRole("menuitem", { name: "Arquivar" }));
 
-  await screen.findByRole("heading", { level: 3, name: "Atual" });
-  expect(screen.queryByRole("heading", { level: 3, name: "Antiga" })).not.toBeInTheDocument();
+  await screen.findByRole("heading", { level: 2, name: "Atual" });
+  expect(screen.queryByRole("heading", { level: 2, name: "Antiga" })).not.toBeInTheDocument();
   expect(api.mutations()[0].body).toEqual({ active: false });
 });
 
 it("mostrar arquivadas traz a conta de volta com a marca e a opcao Restaurar", async () => {
   renderPage([makeAccount({ name: "Antiga", active: false }), makeAccount({ name: "Atual" })]);
-  await screen.findByRole("heading", { level: 3, name: "Atual" });
-  expect(screen.queryByRole("heading", { level: 3, name: "Antiga" })).not.toBeInTheDocument();
+  await screen.findByRole("heading", { level: 2, name: "Atual" });
+  expect(screen.queryByRole("heading", { level: 2, name: "Antiga" })).not.toBeInTheDocument();
 
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
-  expect(await screen.findByRole("heading", { level: 3, name: "Antiga" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Antiga" })).toBeInTheDocument();
   expect(within(card("Antiga")).getByText("Arquivada")).toBeInTheDocument();
 
   await openMenu("Antiga");
   await userEvent.click(screen.getByRole("menuitem", { name: "Restaurar" }));
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
-  expect(await screen.findByRole("heading", { level: 3, name: "Antiga" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 2, name: "Antiga" })).toBeInTheDocument();
   expect(within(card("Antiga")).queryByText("Arquivada")).not.toBeInTheDocument();
 });
 
 it("conta arquivada nao entra no total", async () => {
   renderPage([makeAccount({ name: "Ativa", balance: "10.00" }), makeAccount({ name: "Velha", active: false, balance: "999.00" })]);
-  await screen.findByRole("heading", { level: 3, name: "Ativa" });
+  await screen.findByRole("heading", { level: 2, name: "Ativa" });
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
-  await screen.findByRole("heading", { level: 3, name: "Velha" });
+  await screen.findByRole("heading", { level: 2, name: "Velha" });
   expect(screen.getByText("Saldo total:").closest("p")).toHaveTextContent("R$ 10,00");
 });
 
 it("falha ao arquivar mostra o aviso na pagina", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   api.state.nextMutationError = { status: 500, code: "internal_error" };
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Arquivar" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Algo deu errado do nosso lado");
-  expect(screen.getByRole("heading", { level: 3, name: "Nubank" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 2, name: "Nubank" })).toBeInTheDocument();
 });
 
 // ---------- Excluir ----------
 
 it("excluir pede confirmacao e remove a conta", async () => {
   const api = renderPage([makeAccount({ name: "Descartavel" }), makeAccount({ name: "Fica" })]);
-  await screen.findByRole("heading", { level: 3, name: "Descartavel" });
+  await screen.findByRole("heading", { level: 2, name: "Descartavel" });
   await openMenu("Descartavel");
   await userEvent.click(screen.getByRole("menuitem", { name: "Excluir" }));
 
@@ -453,25 +453,25 @@ it("excluir pede confirmacao e remove a conta", async () => {
   expect(api.mutations()).toHaveLength(0);
 
   await userEvent.click(within(dialog()).getByRole("button", { name: "Excluir" }));
-  await screen.findByRole("heading", { level: 3, name: "Fica" });
-  expect(screen.queryByRole("heading", { level: 3, name: "Descartavel" })).not.toBeInTheDocument();
+  await screen.findByRole("heading", { level: 2, name: "Fica" });
+  expect(screen.queryByRole("heading", { level: 2, name: "Descartavel" })).not.toBeInTheDocument();
   expect(api.mutations()[0].method).toBe("DELETE");
 });
 
 it("cancelar a exclusao nao apaga nada", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Excluir" }));
   await userEvent.click(within(dialog()).getByRole("button", { name: "Cancelar" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
-  expect(screen.getByRole("heading", { level: 3, name: "Nubank" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 2, name: "Nubank" })).toBeInTheDocument();
 });
 
 it("conta com transacoes nao exclui: explica e oferece arquivar", async () => {
   const api = renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   api.state.nextMutationError = { status: 409, code: "account_has_transactions" };
   await openMenu("Nubank");
   await userEvent.click(screen.getByRole("menuitem", { name: "Excluir" }));
@@ -503,7 +503,7 @@ it("conta de ativo nova vem com Entra nos envelopes marcado e envia o valor esco
 
 it("editar mostra o valor atual e so manda in_envelopes quando muda", async () => {
   const api = renderPage([makeAccount({ name: "Poupanca", in_envelopes: false })]);
-  await screen.findByRole("heading", { level: 3, name: "Poupanca" });
+  await screen.findByRole("heading", { level: 2, name: "Poupanca" });
   await openMenu("Poupanca");
   await userEvent.click(screen.getByRole("menuitem", { name: "Editar" }));
   const box = within(dialog()).getByLabelText(/Entra nos envelopes/);
@@ -560,7 +560,7 @@ it("cria um cartao de credito com fechamento e vencimento", async () => {
 
 it("conta comum nao mostra o link Ver fatura", async () => {
   renderPage();
-  await screen.findByRole("heading", { level: 3, name: "Nubank" });
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
   await openMenu("Nubank");
   expect(screen.queryByRole("menuitem", { name: "Ver fatura" })).not.toBeInTheDocument();
 });

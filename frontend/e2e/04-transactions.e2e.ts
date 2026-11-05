@@ -251,7 +251,7 @@ test("o saldo das contas na tela de Contas bate com os lancamentos", async ({ pa
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas", exact: true }).click();
   const card = (name: string) =>
-    page.getByRole("heading", { level: 3, name, exact: true }).locator("xpath=ancestor::li");
+    page.getByRole("heading", { level: 2, name, exact: true }).locator("xpath=ancestor::li");
   await expect(card("Conta E2E")).toContainText("R$ 10.900,00");
   await expect(card("Dolar E2E")).toContainText("US$ 100,00");
 });

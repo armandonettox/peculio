@@ -54,7 +54,7 @@ async function registerExpense(page: Page, description: string, amount: string, 
 
 async function balanceOf(page: Page, account: string) {
   await nav(page).getByRole("link", { name: "Contas", exact: true }).click();
-  return main(page).getByRole("heading", { level: 3, name: account }).locator("xpath=ancestor::li[1]");
+  return main(page).getByRole("heading", { level: 2, name: account }).locator("xpath=ancestor::li[1]");
 }
 
 async function fillRecurrence(

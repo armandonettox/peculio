@@ -15,13 +15,15 @@ async function openAccounts(page: Page) {
 
 const dialog = (page: Page, name: string) => page.getByRole("dialog", { name });
 const card = (page: Page, name: string) =>
-  page.getByRole("heading", { level: 3, name, exact: true }).locator("xpath=ancestor::li");
+  page.getByRole("heading", { level: 2, name, exact: true }).locator("xpath=ancestor::li");
 
 async function createAccount(
   page: Page,
   { name, opening, kind = "Conta", currency }: { name: string; opening?: string; kind?: "Conta" | "Dívida"; currency?: string },
 ) {
   await page.getByRole("button", { name: "Nova conta" }).first().click();
+  await page.getByRole("button", { name: /Manualmente/ }).click();
+  await page.getByRole("button", { name: /Outra/ }).click();
   const form = dialog(page, "Nova conta");
   if (kind === "Dívida") await form.getByRole("radio", { name: "Dívida" }).check();
   if (currency) await form.getByLabel("Moeda").selectOption(currency);
@@ -93,7 +95,7 @@ test("nome repetido mostra o erro no campo e nao cria a conta", async ({ page })
   await expect(dialog(page, "Nova conta").getByText("Já existe uma conta com esse nome.")).toBeVisible();
   await expect(dialog(page, "Nova conta").getByLabel("Nome", { exact: true })).toBeFocused();
   await dialog(page, "Nova conta").getByRole("button", { name: "Cancelar" }).click();
-  await expect(page.getByRole("heading", { level: 3, name: /^nubank$/i })).toHaveCount(1);
+  await expect(page.getByRole("heading", { level: 2, name: /^nubank$/i })).toHaveCount(1);
 });
 
 test("valor invalido e recusado no formulario, sem chamar o servidor", async ({ page }) => {
@@ -120,14 +122,14 @@ test("edita o nome e o saldo inicial", async ({ page }) => {
   await form.getByRole("button", { name: "Salvar" }).click();
 
   await expect(card(page, "Nubank Roxinho")).toContainText("R$ 4.000,00");
-  await expect(page.getByRole("heading", { level: 3, name: "Nubank", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 2, name: "Nubank", exact: true })).toHaveCount(0);
 });
 
 test("arquivar tira da lista e restaurar traz de volta", async ({ page }) => {
   await openAccounts(page);
   await card(page, "Wise").getByRole("button", { name: "Ações da conta Wise" }).click();
   await page.getByRole("menuitem", { name: "Arquivar" }).click();
-  await expect(page.getByRole("heading", { level: 3, name: "Wise", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 2, name: "Wise", exact: true })).toHaveCount(0);
 
   await page.getByLabel("Mostrar arquivadas").check();
   await expect(card(page, "Wise")).toContainText("Arquivada");
@@ -151,7 +153,7 @@ test("excluir pede confirmacao e remove a conta", async ({ page }) => {
   await page.getByRole("menuitem", { name: "Excluir" }).click();
   await dialog(page, "Excluir conta").getByRole("button", { name: "Excluir" }).click();
 
-  await expect(page.getByRole("heading", { level: 3, name: "Wise", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 2, name: "Wise", exact: true })).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Contas" })).not.toContainText("US$");
 });
 

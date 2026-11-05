@@ -110,7 +110,7 @@ export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onTog
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5">
-              <h3 className="truncate text-sm font-semibold">{account.name}</h3>
+              <h2 className="truncate text-sm font-semibold">{account.name}</h2>
               <NetworkBadge network={account.network} />
               {!account.active && (
                 <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
@@ -200,7 +200,7 @@ export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onTog
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{t("accounts.accountCard.limiteDisponivel2")}</span>
-                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                  <span className="text-sm font-medium text-green-700 dark:text-green-400">
                     {formatMoney(available!, account.currency_code)}
                   </span>
                 </div>

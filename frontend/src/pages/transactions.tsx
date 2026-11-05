@@ -435,13 +435,13 @@ export default function TransactionsPage() {
         const { month, year } = splitMonthYear(monthStart);
         return (
           <div className="mb-4 flex items-center justify-center gap-3">
-            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(-1)}>
+            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(-1)} aria-label={t("pages.budgets.mesAnterior")}>
               <ChevronLeft className="size-4" />
             </Button>
             <span className="inline-flex items-center gap-1 rounded-full border border-primary px-5 py-1 text-sm font-medium">
               {month}{year && <> <span className="text-primary">{year}</span></>}
             </span>
-            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(1)}>
+            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(1)} aria-label={t("pages.budgets.proximoMes")}>
               <ChevronRight className="size-4" />
             </Button>
           </div>

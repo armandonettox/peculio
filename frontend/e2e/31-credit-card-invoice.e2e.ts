@@ -47,9 +47,9 @@ test("cartao de credito mostra a fatura do mes com a compra, o periodo e o venci
   });
 
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas", exact: true }).click();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Cartões de crédito" }).click();
   await page
-    .getByRole("heading", { level: 3, name: "Cartao E2E" })
+    .getByRole("heading", { level: 2, name: "Cartao E2E" })
     .locator("xpath=ancestor::li")
     .getByRole("button", { name: "Ações da conta Cartao E2E" })
     .click();
@@ -65,9 +65,9 @@ test("mes sem compras mostra o aviso vazio e a navegacao troca de mes", async ({
   const card = await createCard(request, "Cartao Vazio E2E");
 
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Contas", exact: true }).click();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Cartões de crédito" }).click();
   await page
-    .getByRole("heading", { level: 3, name: "Cartao Vazio E2E" })
+    .getByRole("heading", { level: 2, name: "Cartao Vazio E2E" })
     .locator("xpath=ancestor::li")
     .getByRole("button", { name: "Ações da conta Cartao Vazio E2E" })
     .click();
