@@ -1,6 +1,7 @@
-import { ArrowLeftRight, Landmark, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeftRight, ChevronRight, Landmark, TrendingDown, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
 import { useReportSummary } from "@/api/reports";
@@ -24,28 +25,34 @@ type CardProps = {
   value: string;
   currency: string;
   colorClass: string;
+  onClick?: () => void;
 };
 
-function SummaryCard({ icon, label, value, currency, colorClass }: CardProps) {
+function SummaryCard({ icon, label, value, currency, colorClass, onClick }: CardProps) {
   const amount = parseFloat(value);
   const formatted = formatMoney(value, currency);
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
+    <div
+      className={`flex items-center gap-3 rounded-xl border bg-card p-4 ${onClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""}`}
+      onClick={onClick}
+    >
       <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${colorClass}`}>
         {icon}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className={`text-sm font-semibold tabular-nums ${amount < 0 ? "text-destructive" : ""}`}>
           {formatted}
         </p>
       </div>
+      {onClick && <ChevronRight className="size-4 shrink-0 text-muted-foreground" />}
     </div>
   );
 }
 
 export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const accounts = useAccounts({ includeArchived: false });
   const summary = useReportSummary({ dateFrom, dateTo });
 
@@ -79,6 +86,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={currentBalance}
         currency={mainCurrency}
         colorClass="bg-blue-500"
+        onClick={() => navigate("/contas")}
       />
       <SummaryCard
         icon={<TrendingUp className="size-5 text-white" />}
@@ -86,6 +94,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.income ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-green-500"
+        onClick={() => navigate(`/transacoes?tipo=deposit&de=${dateFrom}&ate=${dateTo}`)}
       />
       <SummaryCard
         icon={<TrendingDown className="size-5 text-white" />}
@@ -93,6 +102,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.expense ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-red-500"
+        onClick={() => navigate(`/transacoes?tipo=withdrawal&de=${dateFrom}&ate=${dateTo}`)}
       />
       <SummaryCard
         icon={<ArrowLeftRight className="size-5 text-white" />}
@@ -100,6 +110,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.net ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-teal-600"
+        onClick={() => navigate(`/transacoes?de=${dateFrom}&ate=${dateTo}`)}
       />
     </div>
   );
