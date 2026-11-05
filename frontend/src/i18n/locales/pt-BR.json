@@ -868,6 +868,7 @@
       "select": "Selecionar {{title}}",
       "edit": "Editar {{title}}",
       "editFull": "Editar completo {{title}}",
+      "expandir": "Expandir",
       "delete": "Excluir {{title}}"
     },
     "row": {

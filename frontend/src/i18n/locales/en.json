@@ -868,6 +868,7 @@
       "select": "Select {{title}}",
       "edit": "Edit {{title}}",
       "editFull": "Edit {{title}} in the full form",
+      "expandir": "Expand",
       "delete": "Delete {{title}}"
     },
     "row": {

@@ -1,4 +1,4 @@
-import { Keyboard, Lock, Maximize2, Pencil, Trash2 } from "lucide-react";
+import { Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useCurrencies, type Account } from "@/api/accounts";
@@ -9,6 +9,7 @@ import type { Category } from "@/api/labels";
 import { useCreateTransaction, useUpdateTransaction, type Transaction } from "@/api/transactions";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { BulkCategoryDialog, BulkDateDialog } from "./bulk-dialogs";
@@ -385,31 +386,32 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                   {amount}
                 </td>
                 <td className="px-3 py-1">
-                  <div className="flex justify-end gap-1">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(transaction)}
-                      aria-label={t("transactions.table.edit", { title })}
-                      className={cn(iconButton, "text-muted-foreground hover:text-foreground")}
-                    >
-                      <Pencil className="size-4" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onOpen(transaction)}
-                      aria-label={t("transactions.table.editFull", { title })}
-                      className={cn(iconButton, "text-muted-foreground hover:text-foreground")}
-                    >
-                      <Maximize2 className="size-4" aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(transaction)}
-                      aria-label={t("transactions.table.delete", { title })}
-                      className={cn(iconButton, "text-destructive")}
-                    >
-                      <Trash2 className="size-4" aria-hidden="true" />
-                    </button>
+                  <div className="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={t("transactions.transactionsTable.acoes")}
+                          className={cn(iconButton, "text-muted-foreground hover:text-foreground")}
+                        >
+                          <MoreHorizontal className="size-4" aria-hidden="true" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => startEdit(transaction)}>
+                          <Pencil className="mr-2 size-4" />
+                          {t("common.editar")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onOpen(transaction)}>
+                          <Maximize2 className="mr-2 size-4" />
+                          {t("transactions.table.expandir")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onRemove(transaction)} className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 size-4" />
+                          {t("common.excluir")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </td>
               </tr>
