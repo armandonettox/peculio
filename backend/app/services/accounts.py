@@ -231,6 +231,8 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         closing_day=data.closing_day,
         due_day=data.due_day,
         credit_limit=data.credit_limit,
+        bank=data.bank,
+        network=data.network,
     )
     try:
         with db.begin_nested():
@@ -272,7 +274,7 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
         account.active = data.active
     if "in_envelopes" in provided and data.in_envelopes is not None:
         account.in_envelopes = data.in_envelopes
-    for field in ("iban", "account_number", "notes"):
+    for field in ("iban", "account_number", "notes", "bank", "network"):
         if field in provided:
             setattr(account, field, getattr(data, field))
 

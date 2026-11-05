@@ -8,6 +8,7 @@ export type Account = components["schemas"]["AccountOut"];
 export type AccountCreate = components["schemas"]["AccountCreate"];
 export type AccountUpdate = components["schemas"]["AccountUpdate"];
 export type Currency = components["schemas"]["CurrencyOut"];
+export type CardNetwork = components["schemas"]["CardNetwork"];
 
 export const accountsKey = ["accounts"] as const;
 export const currenciesKey = ["currencies"] as const;

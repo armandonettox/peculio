@@ -34,6 +34,15 @@ class AccountRole(enum.StrEnum):
     mortgage = "mortgage"
 
 
+class CardNetwork(enum.StrEnum):
+    visa = "visa"
+    mastercard = "mastercard"
+    elo = "elo"
+    amex = "amex"
+    hipercard = "hipercard"
+    other = "other"
+
+
 ASSET_ROLES = {AccountRole.checking, AccountRole.savings, AccountRole.cash, AccountRole.credit_card, AccountRole.other}
 LIABILITY_ROLES = {AccountRole.loan, AccountRole.debt, AccountRole.mortgage}
 
@@ -64,4 +73,6 @@ class Account(Base):
     # Limite do cartao (so role=credit_card). Limite disponivel = credit_limit + balance (o saldo
     # ja e negativo quando ha divida, entao a soma desconta sozinha).
     credit_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
+    bank: Mapped[str | None] = mapped_column(String(100))
+    network: Mapped[CardNetwork | None] = mapped_column(Enum(CardNetwork, native_enum=False, length=16))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

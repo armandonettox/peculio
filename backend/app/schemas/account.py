@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from app.models.account import ASSET_ROLES, LIABILITY_ROLES, AccountRole, AccountType
+from app.models.account import ASSET_ROLES, LIABILITY_ROLES, AccountRole, AccountType, CardNetwork
 
 # Dinheiro: ate 18 digitos e 2 casas. No JSON sai como texto ("1234.50"), nunca como float.
 Money = Annotated[Decimal, Field(max_digits=18, decimal_places=2)]
@@ -45,6 +45,8 @@ class AccountCreate(BaseModel):
     due_day: int | None = Field(default=None, ge=1, le=31)
     # Limite do cartao (so role=credit_card). Opcional: sem ele a tela so nao mostra limite disponivel.
     credit_limit: Money | None = Field(default=None, gt=0)
+    bank: str | None = Field(default=None, max_length=100)
+    network: CardNetwork | None = None
 
     @field_validator("name")
     @classmethod
@@ -92,6 +94,8 @@ class AccountUpdate(BaseModel):
     due_day: int | None = Field(default=None, ge=1, le=31)
     # null limpa, omitir nao mexe. So vale com role=credit_card (ver service)
     credit_limit: Money | None = Field(default=None, gt=0)
+    bank: str | None = Field(default=None, max_length=100)
+    network: CardNetwork | None = None
 
     @field_validator("name")
     @classmethod
@@ -130,6 +134,8 @@ class AccountOut(BaseModel):
     closing_day: int | None
     due_day: int | None
     credit_limit: Money | None
+    bank: str | None
+    network: CardNetwork | None
     # Mesmo sentido da entrada: saldo no dia (ativo) ou valor devido (passivo)
     opening_balance: Money
     opening_balance_date: date | None

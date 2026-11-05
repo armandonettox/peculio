@@ -1585,10 +1585,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** CardNetwork */
+        CardNetwork: "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "other";
         /** AccountCreate */
         AccountCreate: {
             /** Account Number */
             account_number?: string | null;
+            /** Bank */
+            bank?: string | null;
             /** Closing Day */
             closing_day?: number | null;
             /** Credit Limit */
@@ -1615,6 +1619,7 @@ export interface components {
             opening_balance: number | string;
             /** Opening Balance Date */
             opening_balance_date?: string | null;
+            network?: components["schemas"]["CardNetwork"] | null;
             role?: components["schemas"]["AccountRole"] | null;
             /**
              * Type
@@ -1630,6 +1635,8 @@ export interface components {
             active: boolean;
             /** Balance */
             balance: string;
+            /** Bank */
+            bank: string | null;
             /** Closing Day */
             closing_day: number | null;
             /**
@@ -1660,6 +1667,7 @@ export interface components {
             opening_balance: string;
             /** Opening Balance Date */
             opening_balance_date: string | null;
+            network: components["schemas"]["CardNetwork"] | null;
             role: components["schemas"]["AccountRole"] | null;
             type: components["schemas"]["AccountType"];
         };
@@ -1679,6 +1687,8 @@ export interface components {
             account_number?: string | null;
             /** Active */
             active?: boolean | null;
+            /** Bank */
+            bank?: string | null;
             /** Closing Day */
             closing_day?: number | null;
             /** Credit Limit */
@@ -1697,6 +1707,7 @@ export interface components {
             opening_balance?: number | string | null;
             /** Opening Balance Date */
             opening_balance_date?: string | null;
+            network?: components["schemas"]["CardNetwork"] | null;
             role?: components["schemas"]["AccountRole"] | null;
         };
         /** ActionIn */

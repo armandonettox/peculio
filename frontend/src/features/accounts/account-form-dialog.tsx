@@ -7,6 +7,7 @@ import {
   type Account,
   type AccountCreate,
   type AccountUpdate,
+  type CardNetwork,
 } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -80,6 +81,8 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   const [closingDay, setClosingDay] = useState(account?.closing_day != null ? String(account.closing_day) : "");
   const [dueDay, setDueDay] = useState(account?.due_day != null ? String(account.due_day) : "");
   const [creditLimit, setCreditLimit] = useState(account?.credit_limit != null ? toInputText(account.credit_limit) : "");
+  const [bank, setBank] = useState(account?.bank ?? "");
+  const [network, setNetwork] = useState<CardNetwork | "">(account?.network ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -172,6 +175,8 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
           ...(role === "credit_card"
             ? { closing_day: closingDayValue, due_day: dueDayValue, credit_limit: creditLimitValue }
             : {}),
+          bank: bank.trim() || null,
+          network: (network || null) as CardNetwork | null,
         };
         await create.mutateAsync(body);
       } else {
@@ -203,6 +208,10 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
           const zero = parseMoneyInput("0", places);
           body.opening_balance = zero.ok ? zero.value : "0.00";
         }
+        const bankVal = bank.trim() || null;
+        if (bankVal !== account.bank) body.bank = bankVal;
+        const networkVal = (network || null) as CardNetwork | null;
+        if (networkVal !== account.network) body.network = networkVal;
         if (Object.keys(body).length > 0) await update.mutateAsync({ id: account.id, body });
       }
       onClose();
@@ -271,6 +280,36 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
               />
             )}
           </FormField>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
+              {(props) => (
+                <Input
+                  {...props}
+                  autoComplete="off"
+                  placeholder={t("accounts.accountFormDialog.bancoPlaceholder")}
+                  value={bank}
+                  onChange={(event) => setBank(event.target.value)}
+                />
+              )}
+            </FormField>
+
+            {role === "credit_card" && (
+              <FormField id="account-network" label={t("accounts.accountFormDialog.bandeira")}>
+                {(props) => (
+                  <Select {...props} value={network} onChange={(event) => setNetwork(event.target.value as CardNetwork | "")}>
+                    <option value="">{t("accounts.accountFormDialog.semBandeira")}</option>
+                    <option value="visa">Visa</option>
+                    <option value="mastercard">Mastercard</option>
+                    <option value="elo">Elo</option>
+                    <option value="amex">American Express</option>
+                    <option value="hipercard">Hipercard</option>
+                    <option value="other">{t("accounts.accountFormDialog.outraBandeira")}</option>
+                  </Select>
+                )}
+              </FormField>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {!presetCreditCard && (
