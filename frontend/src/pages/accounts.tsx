@@ -1,4 +1,4 @@
-import { Landmark, Plus, TrendingDown, Wallet } from "lucide-react";
+import { Landmark, Plus, Wallet } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,8 +13,7 @@ import { AccountCard } from "@/features/accounts/account-card";
 import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
-import { formatMoney, negateMoney, sumMoney, placesOf } from "@/lib/money";
-import { cn } from "@/lib/utils";
+import { formatMoney, sumMoney, placesOf } from "@/lib/money";
 
 type DialogState =
   | { kind: "create" }
@@ -37,12 +36,9 @@ function Totals({ label, totals }: { label: string; totals: { currency: string; 
   );
 }
 
-type AccountTab = "contas" | "dividas";
-
 export default function AccountsPage() {
   const { t } = useTranslation();
   const [showArchived, setShowArchived] = useState(false);
-  const [tab, setTab] = useState<AccountTab>("contas");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const accounts = useAccounts({ includeArchived: showArchived });
@@ -52,8 +48,6 @@ export default function AccountsPage() {
   const places = Object.fromEntries((currencies.data ?? []).map((c) => [c.code, c.decimal_places]));
   // Cartoes de credito ficam na pagina /cartoes
   const items = (accounts.data ?? []).filter((a) => a.role !== "credit_card");
-  const assets = items.filter((a) => a.type === "asset");
-  const liabilities = items.filter((a) => a.type === "liability");
 
   async function toggleArchive(account: Account) {
     setActionError(null);
@@ -108,54 +102,28 @@ export default function AccountsPage() {
       />
     );
   } else {
-    const activeAssets = assets.filter((a) => a.active);
-    const activeLiabilities = liabilities.filter((a) => a.active);
-    const mainCurrency = activeAssets[0]?.currency_code ?? activeLiabilities[0]?.currency_code ?? "BRL";
+    const activeItems = items.filter((a) => a.active);
+    const mainCurrency = activeItems[0]?.currency_code ?? "BRL";
     const mainPlaces = placesOf(mainCurrency, places);
-    const saldoAtual = activeAssets.length > 0
-      ? sumMoney(activeAssets.filter(a => a.currency_code === mainCurrency).map(a => a.balance), mainPlaces)
+    const saldoAtual = activeItems.length > 0
+      ? sumMoney(activeItems.filter(a => a.currency_code === mainCurrency).map(a => a.balance), mainPlaces)
       : "0.00";
-    const totalDividas = activeLiabilities.length > 0
-      ? sumMoney(activeLiabilities.filter(a => a.currency_code === mainCurrency).map(a => negateMoney(a.balance)), mainPlaces)
-      : "0.00";
-    const netTotals = totalsByCurrency(items, places);
-    const visibleList = tab === "contas" ? assets : liabilities;
+    const totals = totalsByCurrency(items, places);
     content = (
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <KpiCard icon={Wallet} label={t("pages.accounts.saldoAtual")} value={formatMoney(saldoAtual, mainCurrency)} valueColor={parseFloat(saldoAtual) < 0 ? "destructive" : "default"} />
-          {activeLiabilities.length > 0 && (
-            <KpiCard icon={TrendingDown} label={t("pages.accounts.totalDevido")} value={formatMoney(totalDividas, mainCurrency)} valueColor="destructive" iconClassName="bg-destructive/10 text-destructive" />
-          )}
         </div>
 
-        {liabilities.length > 0 && <Totals label={t("pages.accounts.patrimonioLiquido")} totals={netTotals} />}
+        <Totals label={t("pages.accounts.saldoTotal")} totals={totals} />
 
-        <div className="flex items-center gap-1 rounded-lg bg-muted p-1 w-fit">
-          {(["contas", "dividas"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setTab(option)}
-              className={cn(
-                "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-                tab === option
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {option === "contas" ? t("pages.accounts.contas") : t("pages.accounts.dividas")}
-            </button>
-          ))}
-        </div>
-
-        {visibleList.length === 0 ? (
+        {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {tab === "contas" ? t("pages.accounts.nenhumaContaAtiva") : t("pages.accounts.nenhumaDividaAtiva")}
+            {t("pages.accounts.nenhumaContaAtiva")}
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {visibleList.map((account) => (
+            {items.map((account) => (
               <AccountCard
                 key={account.id}
                 account={account}

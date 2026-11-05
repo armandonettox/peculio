@@ -278,12 +278,11 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
   const create = useCreateAccount();
   const update = useUpdateAccount();
 
-  // Na criacao, comecar no step de escolha manual/automatica
   const [step, setStep] = useState<"method" | "institution" | "form">(editing ? "form" : "method");
 
   const [kind, setKind] = useState<AccountKind>(account?.type === "liability" ? "liability" : "asset");
   const [name, setName] = useState(account?.name ?? "");
-  const [role, setRole] = useState<Role>(account?.role ?? (presetCreditCard ? "credit_card" : DEFAULT_ROLE[kind]));
+  const [role, setRole] = useState<Role>(account?.role ?? (presetCreditCard ? "credit_card" : DEFAULT_ROLE["asset"]));
   const [currency, setCurrency] = useState(account?.currency_code ?? user?.default_currency ?? "BRL");
   const hadOpening = account?.opening_balance_date != null;
   const initialOpening = hadOpening ? toInputText(account.opening_balance) : "";
@@ -465,7 +464,7 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                   ? t("accounts.accountFormDialog.altereOsDadosDa")
                   : presetCreditCard
                     ? t("accounts.accountFormDialog.cadastreUmCartaoDe")
-                    : t("accounts.accountFormDialog.cadastreUmaContaOnde")}
+                    : t("accounts.accountFormDialog.cadastreUmaContaBanco")}
               </DialogDescription>
             </DialogHeader>
 
@@ -511,29 +510,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                 )}
               </FormField>
 
-              {!editing && !presetCreditCard && (
-                <fieldset className="flex flex-col gap-2">
-                  <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(["asset", "liability"] as const).map((option) => (
-                      <label
-                        key={option}
-                        className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
-                      >
-                        <input
-                          type="radio"
-                          name="account-kind"
-                          value={option}
-                          checked={kind === option}
-                          onChange={() => chooseKind(option)}
-                          className="accent-[var(--primary)]"
-                        />
-                        {kindLabel(option)}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
 
               {!editing && (
                 <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
