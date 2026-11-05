@@ -611,12 +611,14 @@
       "restaurar": "Restaurar",
       "verFatura": "Ver fatura",
       "verTransacoes": "Ver transações",
+      "reajustarSaldo": "Reajustar saldo",
       "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
       "actionsFor": "Ações da conta {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Fatura atual",
       "fechaEm": "Fecha em {{date}}",
+      "historicoFaturas": "Histórico de faturas",
       "usado": "Usado {{value}}",
       "disponivel": "Disponível {{value}}",
       "limite": "Limite {{value}}"
@@ -658,6 +660,16 @@
       "outraBandeira": "Outra",
       "cor": "Cor da conta",
       "semCor": "Sem cor"
+    },
+    "balanceAdjustDialog": {
+      "titulo": "Reajuste de saldo",
+      "descricao": "Informe o saldo atual de {{name}}. O sistema ajusta o saldo de abertura para bater com o valor informado.",
+      "saldoAtual": "Saldo atual",
+      "novoSaldo": "Novo saldo",
+      "novoValorDevido": "Novo valor devido",
+      "hint": "Informe o valor como aparece no seu banco agora.",
+      "ajustar": "Reajustar",
+      "ajustando": "Reajustando..."
     },
     "deleteAccountDialog": {
       "excluirConta": "Excluir conta",

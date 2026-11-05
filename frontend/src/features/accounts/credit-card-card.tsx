@@ -23,6 +23,24 @@ type Props = {
   onDelete: (account: Account) => void;
 };
 
+const NETWORK_STYLES: Record<string, { label: string; className: string }> = {
+  visa:      { label: "VISA",      className: "bg-blue-700 text-white" },
+  mastercard:{ label: "MC",        className: "bg-red-600 text-white" },
+  elo:       { label: "ELO",       className: "bg-yellow-500 text-black" },
+  amex:      { label: "AMEX",      className: "bg-teal-600 text-white" },
+  hipercard: { label: "HIPER",     className: "bg-red-800 text-white" },
+};
+
+function NetworkBadge({ network }: { network: string | null }) {
+  if (!network || network === "other" || !(network in NETWORK_STYLES)) return null;
+  const { label, className } = NETWORK_STYLES[network];
+  return (
+    <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide", className)}>
+      {label}
+    </span>
+  );
+}
+
 function LimitBar({ used, limit, currency }: { used: string; limit: string; currency: string }) {
   const { t } = useTranslation();
   const places = placesOf(currency);
@@ -84,7 +102,10 @@ export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: P
             <CreditCard className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold">{account.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-base font-semibold">{account.name}</h3>
+              <NetworkBadge network={account.network} />
+            </div>
             {!account.active && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                 {t("accounts.accountCard.arquivada")}
@@ -110,7 +131,7 @@ export function CreditCardCard({ account, onEdit, onToggleArchive, onDelete }: P
                 {t("accounts.accountCard.verFatura")}
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onEdit(account)}>
+<DropdownMenuItem onSelect={() => onEdit(account)}>
               <Pencil />
               {t("common.editar")}
             </DropdownMenuItem>

@@ -611,12 +611,14 @@
       "restaurar": "Restore",
       "verFatura": "View statement",
       "verTransacoes": "View transactions",
+      "reajustarSaldo": "Adjust balance",
       "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
       "actionsFor": "Actions for account {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Current statement",
       "fechaEm": "Closes on {{date}}",
+      "historicoFaturas": "Statement history",
       "usado": "Used {{value}}",
       "disponivel": "Available {{value}}",
       "limite": "Limit {{value}}"
@@ -658,6 +660,16 @@
       "outraBandeira": "Other",
       "cor": "Account color",
       "semCor": "No color"
+    },
+    "balanceAdjustDialog": {
+      "titulo": "Balance adjustment",
+      "descricao": "Enter the current balance of {{name}}. The system adjusts the opening balance to match the value you enter.",
+      "saldoAtual": "Current balance",
+      "novoSaldo": "New balance",
+      "novoValorDevido": "New amount owed",
+      "hint": "Enter the value as it appears in your bank right now.",
+      "ajustar": "Adjust",
+      "ajustando": "Adjusting..."
     },
     "deleteAccountDialog": {
       "excluirConta": "Delete account",

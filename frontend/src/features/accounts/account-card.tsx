@@ -1,7 +1,9 @@
-import { Archive, ArchiveRestore, List, MoreVertical, Pencil, Receipt, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, List, MoreVertical, Pencil, Receipt, SlidersHorizontal, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import type { Account } from "@/api/accounts";
+import { BalanceAdjustDialog } from "./balance-adjust-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,12 +25,13 @@ type AccountCardProps = {
 
 export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: AccountCardProps) {
   const { t } = useTranslation();
+  const [showAdjust, setShowAdjust] = useState(false);
   const isLiability = account.type === "liability";
   // No livro-caixa a divida e saldo negativo; na tela mostramos o valor devido, positivo
   const shown = isLiability ? negateMoney(account.balance) : account.balance;
   const negative = !isLiability && isNegativeMoney(account.balance);
 
-  return (
+  return (<>
     <li
       className="flex items-start justify-between gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
       style={account.color ? { borderLeftColor: account.color, borderLeftWidth: "3px" } : undefined}
@@ -88,6 +91,10 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
               {t("accounts.accountCard.verTransacoes")}
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShowAdjust(true)}>
+            <SlidersHorizontal />
+            {t("accounts.accountCard.reajustarSaldo")}
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => onEdit(account)}>
             <Pencil />
             {t("common.editar")}
@@ -104,5 +111,7 @@ export function AccountCard({ account, onEdit, onToggleArchive, onDelete }: Acco
         </DropdownMenuContent>
       </DropdownMenu>
     </li>
-  );
+
+    {showAdjust && <BalanceAdjustDialog account={account} onClose={() => setShowAdjust(false)} />}
+  </>);
 }
