@@ -81,7 +81,17 @@
       "dividas": "Debts",
       "totalDevido": "Total owed",
       "ondeEstaOSeu": "Where your money is and what you owe",
-      "mostrarArquivadas": "Show archived"
+      "mostrarArquivadas": "Show archived",
+      "abaContas": "Accounts",
+      "abaCartoes": "Credit cards",
+      "nenhumCartaoAtivo": "No active cards",
+      "nenhumCartaoAinda": "No cards yet",
+      "cadastreSeuPrimeiroCartao": "Add a credit card to track your statement and limit.",
+      "cadastreSeuPrimeiroCartao2": "Add your first card or enable the option to see archived ones.",
+      "totalFaturas": "Total statements",
+      "importacaoAutomatica": "Automatic account import",
+      "importacaoAutomaticaDesc": "Connect your bank accounts and cards via Open Finance and keep everything updated without entering anything manually.",
+      "emBreve": "Coming soon"
     },
     "invoice": {
       "titulo": "{{name}} statement",
@@ -312,6 +322,8 @@
     "dataFinal": "End date",
     "semCategoria": "No category",
     "fechar": "Close",
+    "anterior": "Previous",
+    "proxima": "Next",
     "escolha": "Choose...",
     "descricao": "Description",
     "orcamento": "Budget",
@@ -328,7 +340,9 @@
     "despesa": "Expense",
     "resultado": "Net",
     "concluir": "Done",
-    "revogar": "Revoke"
+    "revogar": "Revoke",
+    "anterior": "Previous",
+    "proxima": "Next"
   },
   "components": {
     "appShell": {
@@ -605,6 +619,12 @@
       "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
       "actionsFor": "Actions for account {{name}}"
     },
+    "creditCard": {
+      "faturaAtual": "Current statement",
+      "usado": "Used {{value}}",
+      "disponivel": "Available {{value}}",
+      "limite": "Limit {{value}}"
+    },
     "accountFormDialog": {
       "editarConta": "Edit account",
       "novaConta": "New account",
@@ -634,7 +654,12 @@
       "diaInvalido": "Enter a day between 1 and 31.",
       "limite": "Limit",
       "limiteHint": "Total credit limit. Leave blank if you don't want to track it.",
-      "limiteInvalido": "Enter a limit greater than zero."
+      "limiteInvalido": "Enter a limit greater than zero.",
+      "banco": "Bank / Institution",
+      "bancoPlaceholder": "e.g. Nubank, Itaú, Bradesco",
+      "bandeira": "Card network",
+      "semBandeira": "No network",
+      "outraBandeira": "Other"
     },
     "deleteAccountDialog": {
       "excluirConta": "Delete account",

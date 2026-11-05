@@ -81,7 +81,17 @@
       "dividas": "Dívidas",
       "totalDevido": "Total devido",
       "ondeEstaOSeu": "Onde está o seu dinheiro e o que você deve",
-      "mostrarArquivadas": "Mostrar arquivadas"
+      "mostrarArquivadas": "Mostrar arquivadas",
+      "abaContas": "Contas",
+      "abaCartoes": "Cartões de crédito",
+      "nenhumCartaoAtivo": "Nenhum cartão ativo",
+      "nenhumCartaoAinda": "Nenhum cartão ainda",
+      "cadastreSeuPrimeiroCartao": "Adicione um cartão de crédito para acompanhar a fatura e o limite.",
+      "cadastreSeuPrimeiroCartao2": "Cadastre seu primeiro cartão ou ative a opção para ver os arquivados.",
+      "totalFaturas": "Total de faturas",
+      "importacaoAutomatica": "Importação automática de contas",
+      "importacaoAutomaticaDesc": "Conecte suas contas bancárias e cartões via Open Finance e mantenha tudo atualizado sem precisar lançar nada manualmente.",
+      "emBreve": "Em breve"
     },
     "invoice": {
       "titulo": "Fatura de {{name}}",
@@ -312,6 +322,8 @@
     "dataFinal": "Data final",
     "semCategoria": "Sem categoria",
     "fechar": "Fechar",
+    "anterior": "Anterior",
+    "proxima": "Próxima",
     "escolha": "Escolha...",
     "descricao": "Descrição",
     "orcamento": "Orçamento",
@@ -328,7 +340,9 @@
     "despesa": "Despesa",
     "resultado": "Resultado",
     "concluir": "Concluir",
-    "revogar": "Revogar"
+    "revogar": "Revogar",
+    "anterior": "Anterior",
+    "proxima": "Próxima"
   },
   "components": {
     "appShell": {
@@ -605,6 +619,12 @@
       "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
       "actionsFor": "Ações da conta {{name}}"
     },
+    "creditCard": {
+      "faturaAtual": "Fatura atual",
+      "usado": "Usado {{value}}",
+      "disponivel": "Disponível {{value}}",
+      "limite": "Limite {{value}}"
+    },
     "accountFormDialog": {
       "editarConta": "Editar conta",
       "novaConta": "Nova conta",
@@ -634,7 +654,12 @@
       "diaInvalido": "Informe um dia entre 1 e 31.",
       "limite": "Limite",
       "limiteHint": "Limite total do cartão. Deixe em branco se não quiser acompanhar.",
-      "limiteInvalido": "Informe um limite maior que zero."
+      "limiteInvalido": "Informe um limite maior que zero.",
+      "banco": "Banco / Instituição",
+      "bancoPlaceholder": "Ex: Nubank, Itaú, Bradesco...",
+      "bandeira": "Bandeira",
+      "semBandeira": "Sem bandeira",
+      "outraBandeira": "Outra"
     },
     "deleteAccountDialog": {
       "excluirConta": "Excluir conta",
