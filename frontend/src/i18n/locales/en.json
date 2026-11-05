@@ -673,7 +673,19 @@
       "semCategoria": "No category",
       "valorMinimo": "Minimum amount",
       "valorMaximo": "Maximum amount",
-      "filters": "Filters"
+      "filters": "Filters",
+      "periodo": "Period",
+      "tipo": "Type",
+      "valor": "Amount",
+      "esteMes": "This month",
+      "mesPassado": "Last month",
+      "ultimos3Meses": "Last 3 months",
+      "esteAno": "This year",
+      "filtrosSalvos": "Saved filters",
+      "salvarFiltro": "Save filter",
+      "salvarFiltroAtual": "Save current filter",
+      "nomeFiltro": "Filter name",
+      "verResultados": "See results"
     },
     "quickRowEditor": {
       "novoLancamento": "New transaction",

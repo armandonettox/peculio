@@ -673,7 +673,19 @@
       "semCategoria": "Sem categoria",
       "valorMinimo": "Valor mínimo",
       "valorMaximo": "Valor máximo",
-      "filters": "Filtros"
+      "filters": "Filtros",
+      "periodo": "Período",
+      "tipo": "Tipo",
+      "valor": "Valor",
+      "esteMes": "Este mês",
+      "mesPassado": "Mês passado",
+      "ultimos3Meses": "Últimos 3 meses",
+      "esteAno": "Este ano",
+      "filtrosSalvos": "Filtros salvos",
+      "salvarFiltro": "Salvar filtro",
+      "salvarFiltroAtual": "Salvar filtro atual",
+      "nomeFiltro": "Nome do filtro",
+      "verResultados": "Ver resultados"
     },
     "quickRowEditor": {
       "novoLancamento": "Novo lançamento",

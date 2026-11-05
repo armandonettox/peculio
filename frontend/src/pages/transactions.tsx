@@ -14,9 +14,11 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AttachmentsDialog } from "@/features/attachments/attachments-dialog";
-import { FilterBar } from "@/features/transactions/filter-bar";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { FilterDrawer } from "@/features/transactions/filter-drawer";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import type { SavedFilter } from "@/features/transactions/saved-filters";
 import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
+
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
@@ -164,6 +166,14 @@ export default function TransactionsPage() {
 
   function clearFilters() {
     setSearchParams(new URLSearchParams(), { replace: true });
+  }
+
+  function applySavedFilter(entry: SavedFilter) {
+    setSearchParams((previous) => {
+      let next = writeFilters(previous, entry.filters);
+      next = writeKind(next, entry.kind);
+      return next;
+    }, { replace: true });
   }
 
   const currentKindOption = KIND_OPTIONS.find((o) => o.value === kind) ?? KIND_OPTIONS[0];
@@ -396,30 +406,26 @@ export default function TransactionsPage() {
 
       {/* Drawer lateral de filtros avancados */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetContent className="left-auto right-0 w-80 overflow-y-auto border-l border-r-0 p-0">
-          <SheetTitle className="border-b px-6 py-4 text-base">
-            {t("transactions.filterBar.filtros")}
-          </SheetTitle>
-          <div className="p-4">
-            <FilterBar
-              filters={effectiveFilters}
-              activeCount={activeCount}
-              searchDraft={searchDraft}
-              minDraft={minDraft}
-              maxDraft={maxDraft}
-              onSearchChange={setSearchDraft}
-              onMinChange={setMinDraft}
-              onMaxChange={setMaxDraft}
-              minError={amountError(minDraft)}
-              maxError={amountError(maxDraft)}
-              dateError={rangeError}
-              accounts={accounts.data ?? []}
-              categories={categoryList}
-              tags={tagList}
-              onChange={update}
-              onClear={clearFilters}
-            />
-          </div>
+        <SheetContent className="left-auto right-0 flex h-full w-80 flex-col border-l border-r-0 p-0">
+          <FilterDrawer
+            filters={effectiveFilters}
+            kind={kind}
+            minDraft={minDraft}
+            maxDraft={maxDraft}
+            onMinChange={setMinDraft}
+            onMaxChange={setMaxDraft}
+            minError={amountError(minDraft)}
+            maxError={amountError(maxDraft)}
+            dateError={rangeError}
+            accounts={accounts.data ?? []}
+            categories={categoryList}
+            tags={tagList}
+            onChange={update}
+            onKindChange={setKind}
+            onClear={clearFilters}
+            onApplySaved={applySavedFilter}
+            onClose={() => setFilterOpen(false)}
+          />
         </SheetContent>
       </Sheet>
 
