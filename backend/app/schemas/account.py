@@ -47,6 +47,7 @@ class AccountCreate(BaseModel):
     credit_limit: Money | None = Field(default=None, gt=0)
     bank: str | None = Field(default=None, max_length=100)
     network: CardNetwork | None = None
+    color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
 
     @field_validator("name")
     @classmethod
@@ -96,6 +97,7 @@ class AccountUpdate(BaseModel):
     credit_limit: Money | None = Field(default=None, gt=0)
     bank: str | None = Field(default=None, max_length=100)
     network: CardNetwork | None = None
+    color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
 
     @field_validator("name")
     @classmethod
@@ -136,6 +138,7 @@ class AccountOut(BaseModel):
     credit_limit: Money | None
     bank: str | None
     network: CardNetwork | None
+    color: str | None
     # Mesmo sentido da entrada: saldo no dia (ativo) ou valor devido (passivo)
     opening_balance: Money
     opening_balance_date: date | None

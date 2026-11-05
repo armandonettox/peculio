@@ -202,6 +202,9 @@ def build_outputs(db: Session, accounts: list[Account]) -> list[AccountOut]:
                 closing_day=account.closing_day,
                 due_day=account.due_day,
                 credit_limit=quantize_money(account.credit_limit, decimals) if account.credit_limit is not None else None,
+                bank=account.bank,
+                network=account.network,
+                color=account.color,
                 opening_balance=quantize_money(opening, decimals),
                 opening_balance_date=opening_date,
                 balance=quantize_money(balances[account.id], decimals),
@@ -233,6 +236,7 @@ def create_account(db: Session, user: User, data: AccountCreate) -> Account:
         credit_limit=data.credit_limit,
         bank=data.bank,
         network=data.network,
+        color=data.color,
     )
     try:
         with db.begin_nested():
@@ -274,7 +278,7 @@ def update_account(db: Session, account: Account, data: AccountUpdate) -> Accoun
         account.active = data.active
     if "in_envelopes" in provided and data.in_envelopes is not None:
         account.in_envelopes = data.in_envelopes
-    for field in ("iban", "account_number", "notes", "bank", "network"):
+    for field in ("iban", "account_number", "notes", "bank", "network", "color"):
         if field in provided:
             setattr(account, field, getattr(data, field))
 

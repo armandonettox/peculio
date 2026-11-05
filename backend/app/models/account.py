@@ -75,4 +75,5 @@ class Account(Base):
     credit_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
     bank: Mapped[str | None] = mapped_column(String(100))
     network: Mapped[CardNetwork | None] = mapped_column(Enum(CardNetwork, native_enum=False, length=16))
+    color: Mapped[str | None] = mapped_column(String(7))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
