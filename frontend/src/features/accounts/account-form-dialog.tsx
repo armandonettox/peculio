@@ -1,5 +1,5 @@
-import { ChevronLeft, Landmark, Search, Zap } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { ChevronLeft, ChevronRight, Landmark, Search, Zap } from "lucide-react";
+import React, { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -57,22 +57,90 @@ type Props = {
   onClose: () => void;
 };
 
-type Institution = { id: string; name: string; color: string; initials: string };
+type Institution = { id: string; name: string; color: string; logo: React.ReactNode };
+
+function mkLogo(bg: string, children: React.ReactNode) {
+  return (
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="size-9 rounded-full">
+      <circle cx="18" cy="18" r="18" fill={bg} />
+      {children}
+    </svg>
+  );
+}
+
+const BANK_LOGOS: Record<string, React.ReactNode> = {
+  santander: mkLogo("#EC0000",
+    <>
+      <path d="M11 15 Q18 8 25 15" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+      <path d="M11 19 Q18 12 25 19" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+      <path d="M11 23 Q18 16 25 23" stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+    </>
+  ),
+  nubank: mkLogo("#820AD1",
+    <text x="18" y="22" textAnchor="middle" fill="white" fontSize="11" fontFamily="sans-serif" fontWeight="600">nu</text>
+  ),
+  itau: mkLogo("#FF6600",
+    <>
+      <rect x="16" y="10" width="4" height="4" rx="2" fill="white"/>
+      <rect x="16" y="16" width="4" height="10" rx="1.5" fill="white"/>
+      <rect x="11" y="20" width="4" height="2" rx="1" fill="white"/>
+      <rect x="21" y="20" width="4" height="2" rx="1" fill="white"/>
+    </>
+  ),
+  bb: mkLogo("#F7CB09",
+    <>
+      <path d="M13 12 L13 24 M13 12 Q20 12 20 15 Q20 18 13 18 M13 18 Q21 18 21 21 Q21 24 13 24" stroke="#003399" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    </>
+  ),
+  caixa: mkLogo("#005CA9",
+    <>
+      <line x1="12" y1="12" x2="24" y2="24" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="24" y1="12" x2="12" y2="24" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+    </>
+  ),
+  bradesco: mkLogo("#CC092F",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="14" fontFamily="sans-serif" fontWeight="700">B</text>
+  ),
+  inter: mkLogo("#FF7A00",
+    <>
+      <circle cx="18" cy="18" r="6" stroke="white" strokeWidth="2.2" fill="none"/>
+      <circle cx="18" cy="18" r="2.5" fill="white"/>
+    </>
+  ),
+  c6: mkLogo("#1A1A1A",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="11" fontFamily="sans-serif" fontWeight="700">C6</text>
+  ),
+  mercadopago: mkLogo("#009EE3",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="11" fontFamily="sans-serif" fontWeight="700">MP</text>
+  ),
+  picpay: mkLogo("#11C76F",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="11" fontFamily="sans-serif" fontWeight="700">PP</text>
+  ),
+  sicoob: mkLogo("#007A4D",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="10" fontFamily="sans-serif" fontWeight="700">SC</text>
+  ),
+  sicredi: mkLogo("#00843D",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="10" fontFamily="sans-serif" fontWeight="700">SI</text>
+  ),
+  other: mkLogo("#64748b",
+    <text x="18" y="23" textAnchor="middle" fill="white" fontSize="13" fontFamily="sans-serif" fontWeight="600">?</text>
+  ),
+};
 
 const INSTITUTIONS: Institution[] = [
-  { id: "santander",    name: "Santander",     color: "#EC0000", initials: "SA" },
-  { id: "nubank",       name: "Nubank",         color: "#820AD1", initials: "NU" },
-  { id: "itau",         name: "Itaú",           color: "#EC7000", initials: "IT" },
-  { id: "bb",           name: "Banco do Brasil",color: "#F7CB09", initials: "BB" },
-  { id: "caixa",        name: "Caixa",          color: "#005CA9", initials: "CX" },
-  { id: "bradesco",     name: "Bradesco",       color: "#CC092F", initials: "BD" },
-  { id: "inter",        name: "Banco Inter",    color: "#FF7A00", initials: "IN" },
-  { id: "c6",           name: "C6 Bank",        color: "#1A1A1A", initials: "C6" },
-  { id: "mercadopago",  name: "Mercado Pago",   color: "#009EE3", initials: "MP" },
-  { id: "picpay",       name: "PicPay",         color: "#11C76F", initials: "PP" },
-  { id: "sicoob",       name: "Sicoob",         color: "#007A4D", initials: "SC" },
-  { id: "sicredi",      name: "Sicredi",        color: "#00843D", initials: "SI" },
-  { id: "other",        name: "Outra",          color: "#64748b", initials: "??" },
+  { id: "santander",    name: "Santander",      color: "#EC0000", logo: BANK_LOGOS.santander },
+  { id: "nubank",       name: "Nubank",          color: "#820AD1", logo: BANK_LOGOS.nubank },
+  { id: "itau",         name: "Itaú",            color: "#FF6600", logo: BANK_LOGOS.itau },
+  { id: "bb",           name: "Banco do Brasil", color: "#F7CB09", logo: BANK_LOGOS.bb },
+  { id: "caixa",        name: "Caixa",           color: "#005CA9", logo: BANK_LOGOS.caixa },
+  { id: "bradesco",     name: "Bradesco",        color: "#CC092F", logo: BANK_LOGOS.bradesco },
+  { id: "inter",        name: "Banco Inter",     color: "#FF7A00", logo: BANK_LOGOS.inter },
+  { id: "c6",           name: "C6 Bank",         color: "#1A1A1A", logo: BANK_LOGOS.c6 },
+  { id: "mercadopago",  name: "Mercado Pago",    color: "#009EE3", logo: BANK_LOGOS.mercadopago },
+  { id: "picpay",       name: "PicPay",          color: "#11C76F", logo: BANK_LOGOS.picpay },
+  { id: "sicoob",       name: "Sicoob",          color: "#007A4D", logo: BANK_LOGOS.sicoob },
+  { id: "sicredi",      name: "Sicredi",         color: "#00843D", logo: BANK_LOGOS.sicredi },
+  { id: "other",        name: "Outra",           color: "#64748b", logo: BANK_LOGOS.other },
 ];
 
 function InstitutionStep({
@@ -133,13 +201,9 @@ function InstitutionStep({
               onClick={() => onSelect(inst.id === "other" ? "" : inst.name)}
               className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-accent"
             >
-              <div
-                className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                style={{ backgroundColor: inst.color }}
-              >
-                {inst.initials}
-              </div>
-              <span className="text-sm font-medium">{inst.name}</span>
+              {inst.logo}
+              <span className="flex-1 text-sm font-medium">{inst.name}</span>
+              <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
             </button>
           </li>
         ))}
@@ -408,6 +472,45 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
               {formError && <Alert variant="destructive">{formError}</Alert>}
 
+              <FormField
+                id="account-opening"
+                label={openingLabel}
+                error={errors.opening}
+                hint={
+                  kind === "liability"
+                    ? t("accounts.accountFormDialog.valorQueVoceAinda")
+                    : t("accounts.accountFormDialog.quantoVoceTemHoje")
+                }
+              >
+                {(props) => (
+                  <MoneyInput
+                    {...props}
+                    signed={kind === "asset"}
+                    placeholder="0,00"
+                    places={places}
+                    value={opening}
+                    onChange={(text) => {
+                      setOpening(text);
+                      clearError("opening");
+                    }}
+                  />
+                )}
+              </FormField>
+
+              <FormField id="account-name" label={t("common.nome")} error={errors.name}>
+                {(props) => (
+                  <Input
+                    {...props}
+                    autoComplete="off"
+                    value={name}
+                    onChange={(event) => {
+                      setName(event.target.value);
+                      clearError("name");
+                    }}
+                  />
+                )}
+              </FormField>
+
               {!editing && !presetCreditCard && (
                 <fieldset className="flex flex-col gap-2">
                   <legend className="mb-2 text-sm font-medium">{t("common.tipo")}</legend>
@@ -432,21 +535,32 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                 </fieldset>
               )}
 
-              <FormField id="account-name" label={t("common.nome")} error={errors.name}>
-                {(props) => (
-                  <Input
-                    {...props}
-                    autoComplete="off"
-                    value={name}
-                    onChange={(event) => {
-                      setName(event.target.value);
-                      clearError("name");
-                    }}
-                  />
-                )}
-              </FormField>
+              {!editing && (
+                <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
+                  {() => {
+                    const inst = INSTITUTIONS.find((i) => i.name === bank);
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setStep("institution")}
+                        className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {inst ? (
+                          <>
+                            <span className="shrink-0 [&>svg]:size-6">{inst.logo}</span>
+                            <span className="flex-1 font-medium">{inst.name}</span>
+                          </>
+                        ) : (
+                          <span className="flex-1 text-muted-foreground">{t("accounts.accountFormDialog.buscarInstituicao")}</span>
+                        )}
+                        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                      </button>
+                    );
+                  }}
+                </FormField>
+              )}
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {editing && (
                 <FormField id="account-bank" label={t("accounts.accountFormDialog.banco")}>
                   {(props) => (
                     <Input
@@ -458,23 +572,23 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                     />
                   )}
                 </FormField>
+              )}
 
-                {role === "credit_card" && (
-                  <FormField id="account-network" label={t("accounts.accountFormDialog.bandeira")}>
-                    {(props) => (
-                      <Select {...props} value={network} onChange={(event) => setNetwork(event.target.value as CardNetwork | "")}>
-                        <option value="">{t("accounts.accountFormDialog.semBandeira")}</option>
-                        <option value="visa">Visa</option>
-                        <option value="mastercard">Mastercard</option>
-                        <option value="elo">Elo</option>
-                        <option value="amex">American Express</option>
-                        <option value="hipercard">Hipercard</option>
-                        <option value="other">{t("accounts.accountFormDialog.outraBandeira")}</option>
-                      </Select>
-                    )}
-                  </FormField>
-                )}
-              </div>
+              {role === "credit_card" && (
+                <FormField id="account-network" label={t("accounts.accountFormDialog.bandeira")}>
+                  {(props) => (
+                    <Select {...props} value={network} onChange={(event) => setNetwork(event.target.value as CardNetwork | "")}>
+                      <option value="">{t("accounts.accountFormDialog.semBandeira")}</option>
+                      <option value="visa">Visa</option>
+                      <option value="mastercard">Mastercard</option>
+                      <option value="elo">Elo</option>
+                      <option value="amex">American Express</option>
+                      <option value="hipercard">Hipercard</option>
+                      <option value="other">{t("accounts.accountFormDialog.outraBandeira")}</option>
+                    </Select>
+                  )}
+                </FormField>
+              )}
 
               <FormField id="account-color" label={t("accounts.accountFormDialog.cor")}>
                 {() => (
@@ -602,31 +716,6 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                   )}
                 </FormField>
               )}
-
-              <FormField
-                id="account-opening"
-                label={openingLabel}
-                error={errors.opening}
-                hint={
-                  kind === "liability"
-                    ? t("accounts.accountFormDialog.valorQueVoceAinda")
-                    : t("accounts.accountFormDialog.quantoVoceTemHoje")
-                }
-              >
-                {(props) => (
-                  <MoneyInput
-                    {...props}
-                    signed={kind === "asset"}
-                    placeholder="0,00"
-                    places={places}
-                    value={opening}
-                    onChange={(text) => {
-                      setOpening(text);
-                      clearError("opening");
-                    }}
-                  />
-                )}
-              </FormField>
 
               {opening.trim() !== "" && (
                 <FormField id="account-openingDate" label={t("accounts.accountFormDialog.dataDoSaldo")} error={errors.openingDate}>
