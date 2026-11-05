@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, Plus, Search, Table2, X } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -78,12 +78,10 @@ export default function TransactionsPage() {
   const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
-  const [searchOpen, setSearchOpen] = useState(() => Boolean(readFilters(searchParams).q));
   const [filterOpen, setFilterOpen] = useState(() => {
     const { q: _q, ...pf } = readFilters(searchParams);
     return countActiveFilters(pf) > 0;
   });
-  const searchRef = useRef<HTMLInputElement>(null);
 
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const kind = useMemo(() => readKind(searchParams), [searchParams]);
@@ -308,66 +306,54 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t("pages.transactions.transacoes")}
-        actions={
-          <Button onClick={() => setDialog("new")}>
-            <Plus />
-            {t("transactions.transactionFormDialog.novoLancamento")}
-          </Button>
-        }
-      />
+      <PageHeader title={t("pages.transactions.transacoes")} />
 
       {/* Barra de acoes */}
       <div className="mb-4 flex items-center gap-2">
         {/* Filtro rapido por tipo */}
-        {!searchOpen && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="default" className="gap-1 shrink-0 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90">
-                <ChevronDown className="size-3" />
-                {t(currentKindOption.labelKey)}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
-              {KIND_OPTIONS.map((option) => (
-                <DropdownMenuItem
-                  key={option.value ?? "all"}
-                  onClick={() => setKind(option.value)}
-                  className={option.value === kind ? "font-semibold" : ""}
-                >
-                  {t(option.labelKey)}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" className="gap-1 shrink-0 rounded-full bg-primary px-5 text-primary-foreground hover:bg-primary/90">
+              <ChevronDown className="size-3" />
+              {t(currentKindOption.labelKey)}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-44">
+            {KIND_OPTIONS.map((option) => (
+              <DropdownMenuItem
+                key={option.value ?? "all"}
+                onClick={() => setKind(option.value)}
+                className={option.value === kind ? "font-semibold" : ""}
+              >
+                {t(option.labelKey)}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-        {/* Campo de busca expansivel: ocupa toda a linha ao abrir */}
-        <div className={`flex items-center gap-1 ${searchOpen ? "flex-1" : "ml-auto"}`}>
-          {searchOpen ? (
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                ref={searchRef}
-                autoFocus
-                type="search"
-                aria-label={t("transactions.filterBar.buscarLancamentos")}
-                placeholder={t("transactions.filterBar.buscarLancamentos")}
-                value={searchDraft}
-                onChange={(e) => setSearchDraft(e.target.value)}
-                className="h-9 pl-9"
-              />
-            </div>
-          ) : (
+        {/* Campo de busca: sempre visivel */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            aria-label={t("transactions.filterBar.buscarLancamentos")}
+            placeholder={t("transactions.filterBar.buscarLancamentos")}
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            className="h-9 pl-9"
+          />
+        </div>
+
+        <div className="flex items-center gap-1">
+          {searchDraft && (
             <Button
               size="icon"
-              variant="outline"
-              className="size-9 rounded-full"
-              aria-label={t("transactions.filterBar.buscarLancamentos")}
-              onClick={() => setSearchOpen(true)}
+              variant="ghost"
+              className="size-9 shrink-0"
+              aria-label={t("common.fechar")}
+              onClick={() => { setSearchDraft(""); update({ q: "" }); }}
             >
-              <Search className="size-4" />
+              <X className="size-4" />
             </Button>
           )}
 
@@ -388,41 +374,27 @@ export default function TransactionsPage() {
             )}
           </Button>
 
-          {searchOpen ? (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="size-9 shrink-0"
-              aria-label={t("common.fechar")}
-              onClick={() => { setSearchOpen(false); setSearchDraft(""); update({ q: "" }); }}
-            >
-              <X className="size-4" />
-            </Button>
-          ) : (
-            <>
-              {/* Alternar entre lista e tabela */}
-              <Button
-                size="icon"
-                variant="outline"
-                className="size-9 rounded-full"
-                aria-label={t("pages.transactions.lista")}
-                aria-pressed={view === "list"}
-                onClick={() => chooseView("list")}
-              >
-                <LayoutList className="size-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="outline"
-                className="size-9 rounded-full"
-                aria-label={t("pages.transactions.tabela")}
-                aria-pressed={view === "table"}
-                onClick={() => chooseView("table")}
-              >
-                <Table2 className="size-4" />
-              </Button>
-            </>
-          )}
+          {/* Alternar entre lista e tabela */}
+          <Button
+            size="icon"
+            variant="outline"
+            className="size-9 rounded-full"
+            aria-label={t("pages.transactions.lista")}
+            aria-pressed={view === "list"}
+            onClick={() => chooseView("list")}
+          >
+            <LayoutList className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="size-9 rounded-full"
+            aria-label={t("pages.transactions.tabela")}
+            aria-pressed={view === "table"}
+            onClick={() => chooseView("table")}
+          >
+            <Table2 className="size-4" />
+          </Button>
         </div>
       </div>
 
