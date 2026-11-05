@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { Account } from "@/api/accounts";
 import type { Category, Tag } from "@/api/labels";
 import type { TransactionFilters } from "@/api/transactions";
+import { DatePicker } from "@/components/date-picker";
 import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,16 +34,6 @@ type Props = {
   onApplySaved: (entry: SavedFilter) => void;
   onClose: () => void;
 };
-
-function formatDateLabel(iso: string): string {
-  if (!iso) return "";
-  const [y, m, day] = iso.split("-");
-  const months = [
-    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
-  ];
-  return `${parseInt(day)} ${months[parseInt(m) - 1]} ${y}`;
-}
 
 const KIND_OPTIONS: { value: KindFilter | null; labelKey: string }[] = [
   { value: null, labelKey: "pages.transactions.todas" },
@@ -138,26 +129,20 @@ function NewFilterTab(props: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataInicial")}</label>
-            <Input
-              type="date"
+            <DatePicker
               value={filters.dateFrom ?? ""}
-              onChange={(e) => props.onChange({ dateFrom: e.target.value })}
-              className={props.dateError ? "border-destructive" : ""}
+              onChange={(v) => props.onChange({ dateFrom: v })}
+              placeholder={t("common.dataInicial")}
+              className={props.dateError ? "[&>button]:border-destructive" : ""}
             />
-            {filters.dateFrom && (
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{formatDateLabel(filters.dateFrom)}</p>
-            )}
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">{t("common.dataFinal")}</label>
-            <Input
-              type="date"
+            <DatePicker
               value={filters.dateTo ?? ""}
-              onChange={(e) => props.onChange({ dateTo: e.target.value })}
+              onChange={(v) => props.onChange({ dateTo: v })}
+              placeholder={t("common.dataFinal")}
             />
-            {filters.dateTo && (
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{formatDateLabel(filters.dateTo)}</p>
-            )}
           </div>
         </div>
         {props.dateError && <p className="mt-1 text-xs text-destructive">{props.dateError}</p>}
