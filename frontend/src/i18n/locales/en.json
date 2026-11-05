@@ -623,11 +623,15 @@
       "reajustarSaldo": "Adjust balance",
       "adicionarDespesa": "Add expense",
       "limiteDisponivel": "Available limit: {{disponivel}} of {{limite}}",
+      "limiteDisponivel2": "Available limit",
       "actionsFor": "Actions for account {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Current statement",
+      "faturaAberta": "Open statement",
       "fechaEm": "Closes on {{date}}",
+      "fechaEmLabel": "Closes on",
+      "valorParcial": "Partial amount",
       "historicoFaturas": "Statement history",
       "faturaFechada": "Closed statement",
       "vencimento": "Due date",

@@ -623,11 +623,15 @@
       "reajustarSaldo": "Reajustar saldo",
       "adicionarDespesa": "Adicionar despesa",
       "limiteDisponivel": "Limite disponível: {{disponivel}} de {{limite}}",
+      "limiteDisponivel2": "Limite disponível",
       "actionsFor": "Ações da conta {{name}}"
     },
     "creditCard": {
       "faturaAtual": "Fatura atual",
+      "faturaAberta": "Fatura aberta",
       "fechaEm": "Fecha em {{date}}",
+      "fechaEmLabel": "Fecha em",
+      "valorParcial": "Valor parcial",
       "historicoFaturas": "Histórico de faturas",
       "faturaFechada": "Fatura fechada",
       "vencimento": "Vencimento",
