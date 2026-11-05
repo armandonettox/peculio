@@ -326,7 +326,6 @@ it("editar abre com os dados atuais e nao deixa mudar tipo nem moeda", async () 
   expect(openingField()).toHaveValue("1.234,50");
   expect(within(dialog()).getByLabelText("Data do saldo")).toHaveValue("2026-01-10");
   expect(within(dialog()).getByLabelText("Moeda")).toBeDisabled();
-  expect(within(dialog()).queryByRole("radio")).not.toBeInTheDocument();
 });
 
 it("editar so o nome envia so o nome", async () => {

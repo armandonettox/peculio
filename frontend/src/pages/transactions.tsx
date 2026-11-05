@@ -365,7 +365,7 @@ export default function TransactionsPage() {
           <Button
             size="icon"
             variant="outline"
-            className={`relative size-9 rounded-full ${badgeCount > 0 ? "border-primary text-primary" : ""}`}
+            className={`relative size-9 rounded-full ${badgeCount > 0 ? "border-primary text-primary-text" : ""}`}
             aria-label={badgeCount > 0 ? `${t("transactions.filterBar.filters")} (${badgeCount})` : t("transactions.filterBar.filters")}
             aria-expanded={filterOpen}
             onClick={() => setFilterOpen(true)}
@@ -435,13 +435,13 @@ export default function TransactionsPage() {
         const { month, year } = splitMonthYear(monthStart);
         return (
           <div className="mb-4 flex items-center justify-center gap-3">
-            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(-1)} aria-label={t("pages.budgets.mesAnterior")}>
+            <Button size="icon" variant="ghost" className="size-8 text-primary-text hover:text-primary-text" onClick={() => navigateMonth(-1)} aria-label={t("pages.budgets.mesAnterior")}>
               <ChevronLeft className="size-4" />
             </Button>
             <span className="inline-flex items-center gap-1 rounded-full border border-primary px-5 py-1 text-sm font-medium">
-              {month}{year && <> <span className="text-primary">{year}</span></>}
+              {month}{year && <> <span className="text-primary-text">{year}</span></>}
             </span>
-            <Button size="icon" variant="ghost" className="size-8 text-primary hover:text-primary" onClick={() => navigateMonth(1)} aria-label={t("pages.budgets.proximoMes")}>
+            <Button size="icon" variant="ghost" className="size-8 text-primary-text hover:text-primary-text" onClick={() => navigateMonth(1)} aria-label={t("pages.budgets.proximoMes")}>
               <ChevronRight className="size-4" />
             </Button>
           </div>

@@ -245,7 +245,7 @@ function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void;
           </div>
         </button>
 
-        <div className="flex items-center gap-4 rounded-xl border p-4 opacity-50 cursor-not-allowed">
+        <div className="flex items-center gap-4 rounded-xl border p-4 opacity-50 cursor-not-allowed" aria-hidden="true">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Zap className="size-5" />
           </div>
@@ -589,6 +589,23 @@ export function AccountFormDialog({ account, presetCreditCard = false, onClose }
                   </div>
                 )}
               </FormField>
+
+              {!editing && !presetCreditCard && (
+                <div role="group" className="flex gap-4">
+                  {(["asset", "liability"] as AccountKind[]).map((k) => (
+                    <label key={k} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                      <input
+                        type="radio"
+                        name="account-kind"
+                        checked={kind === k}
+                        onChange={() => chooseKind(k)}
+                        className="accent-[var(--primary)]"
+                      />
+                      {kindLabel(k)}
+                    </label>
+                  ))}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {!presetCreditCard && (
