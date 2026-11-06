@@ -38,7 +38,7 @@ export function SidebarNewButton({ collapsed }: Props) {
   ) : (
     <Button className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
       <Plus className="size-4" />
-      {t("components.sidebarNewButton.novo")}
+      {t("components.sidebarNewButton.novoLancamento")}
     </Button>
   );
 

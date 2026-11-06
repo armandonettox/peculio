@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, Plus, Search, Table2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Filter, LayoutList, Search, Table2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -231,12 +231,6 @@ export default function TransactionsPage() {
           icon={Search}
           title={t("pages.transactions.nenhumLancamentoAinda")}
           description={t("pages.transactions.osLancamentosQueVoce")}
-          action={
-            <Button onClick={() => setDialog("new")}>
-              <Plus />
-              {t("transactions.transactionFormDialog.novoLancamento")}
-            </Button>
-          }
         />
       );
   } else {
@@ -302,15 +296,7 @@ export default function TransactionsPage() {
 
   return (
     <>
-      <PageHeader
-        title={t("pages.transactions.transacoes")}
-        actions={
-          <Button onClick={() => setDialog("new")}>
-            <Plus />
-            {t("transactions.transactionFormDialog.novoLancamento")}
-          </Button>
-        }
-      />
+      <PageHeader title={t("pages.transactions.transacoes")} />
 
       {/* Barra de acoes */}
       <div className="mb-4 flex items-center gap-2">
