@@ -100,7 +100,7 @@ for (const [sizeName, viewport] of Object.entries(SIZES)) {
 // conteúdo do diálogo.
 const DIALOGS: { route: string; opener: string; menuItem?: string; then?: string; optional?: boolean }[] = [
   { route: "/contas", opener: "Nova conta" },
-  { route: "/transacoes", opener: "Novo lançamento", menuItem: "Despesa" },
+  { route: "/transacoes", opener: "Novo lançamento", menuItem: "Despesa", optional: true },
   { route: "/categorias", opener: "Nova categoria" },
   { route: "/categorias?aba=tags", opener: "Nova tag" },
   { route: "/orcamentos", opener: "Novo orçamento" },
