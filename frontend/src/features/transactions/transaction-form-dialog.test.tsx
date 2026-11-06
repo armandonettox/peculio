@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
+import { SidebarNewButton } from "@/components/layout/sidebar-new-button";
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
@@ -86,6 +87,7 @@ function renderPage({
   render(
     <FakeAuth>
       <MemoryRouter initialEntries={["/transacoes"]}>
+        <SidebarNewButton collapsed={false} />
         <TransactionsPage />
       </MemoryRouter>
     </FakeAuth>,
@@ -570,12 +572,11 @@ it("lancamento que o formulario nao representa mostra o aviso e nao deixa salvar
   expect(tx.state.writes).toHaveLength(0);
 });
 
-it("o estado vazio tambem oferece criar o primeiro lancamento", async () => {
+it("o estado vazio mostra a mensagem de boas-vindas sem botao proprio", async () => {
   renderPage();
-  const empty = await screen.findByText("Nenhum lançamento ainda");
-  const button = within(empty.closest("div") as HTMLElement).getByRole("button", { name: /Novo lançamento/ });
-  await userEvent.click(button);
-  expect(await screen.findByRole("dialog", { name: "Novo lançamento" })).toBeInTheDocument();
+  await screen.findByText("Nenhum lançamento ainda");
+  const empty = screen.getByText("Nenhum lançamento ainda").closest("div") as HTMLElement;
+  expect(within(empty).queryByRole("button", { name: /Novo lançamento/ })).not.toBeInTheDocument();
 });
 
 // ---------- Excluir ----------
