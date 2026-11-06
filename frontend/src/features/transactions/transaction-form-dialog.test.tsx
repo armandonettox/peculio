@@ -97,6 +97,7 @@ function renderPage({
 
 async function openNew() {
   await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Despesa" }));
   return await screen.findByRole("dialog", { name: "Novo lançamento" });
 }
 
