@@ -44,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className={`flex h-14 items-center border-b ${collapsed ? "justify-center px-0" : "px-4"}`}>
           {!collapsed && <Brand to="/" />}
         </div>
+        {/* SidebarNewButton existe aqui (desktop) e no Sheet abaixo (mobile) — dois nos no DOM simultaneamente */}
         <SidebarNewButton collapsed={collapsed} />
         <SidebarNav collapsed={collapsed} />
       </aside>

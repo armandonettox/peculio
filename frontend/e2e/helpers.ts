@@ -35,6 +35,18 @@ export async function openSettings(page: Page, tab?: "Aparência" | "Segurança"
   if (tab) await page.getByRole("tab", { name: tab, exact: true }).click();
 }
 
+// ---------- Formulario de lancamento ----------
+
+// O botao "Novo lancamento" fica no sidebar (desktop e mobile sheet) e abre um dropdown para escolher o tipo.
+// Ambas as instancias existem no DOM ao mesmo tempo; .first() evita strict mode violation.
+export type TransactionKind = "Despesa" | "Receita" | "Despesa Cartão" | "Transferência";
+
+export async function openTransactionForm(page: Page, kind: TransactionKind = "Despesa") {
+  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
+  await page.getByRole("menuitem", { name: kind }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+}
+
 // ---------- Dados criados direto pela API (para testar telas que listam coisas) ----------
 
 export async function apiHeaders(request: APIRequestContext, user = ADMIN) {

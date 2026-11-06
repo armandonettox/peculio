@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openTransactionForm } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Em ordem: cada passo parte do estado do anterior.
 test.describe.configure({ mode: "serial" });
@@ -42,8 +42,7 @@ async function menu(page: Page, name: string, item: string) {
 
 async function registerExpense(page: Page, description: string, amount: string, bill?: string) {
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
-  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
-  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
+  await openTransactionForm(page);
   await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
   await dialog(page).getByLabel("Descrição", { exact: true }).fill(description);
   await dialog(page).getByLabel("Para quem", { exact: true }).fill("Streaming Bill");

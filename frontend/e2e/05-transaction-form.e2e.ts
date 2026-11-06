@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { apiHeaders, apiPost, loginAndWaitForDashboard, openTransactionForm } from "./helpers";
 
 // Roda depois do 04. Cria contas proprias pela API e registra os lancamentos pela tela,
 // conferindo o saldo na tela de Contas depois de cada passo. Em ordem: cada passo parte do saldo do anterior.
@@ -21,11 +21,7 @@ async function goTo(page: Page, link: "Transações" | "Contas") {
   await expect(page.getByRole("heading", { level: 1, name: link })).toBeVisible();
 }
 
-async function openNewTransaction(page: Page) {
-  await page.getByRole("button", { name: "Novo lançamento" }).click();
-  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
-  await expect(dialog(page)).toBeVisible();
-}
+const openNewTransaction = (page: Page) => openTransactionForm(page);
 
 async function expectBalance(page: Page, account: string, text: string) {
   await goTo(page, "Contas");
