@@ -133,7 +133,7 @@ for (const theme of ["light", "dark"] as const) {
       const button = page.getByRole("button", { name: opener, exact: true }).first();
       if (optional && (await button.count()) === 0) continue;
       await button.click();
-      if (menuItem) await page.getByRole("menuitem", { name: menuItem }).click();
+      if (menuItem) await page.getByRole("menuitem", { name: menuItem }).first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
       if (then) {
         await page.getByRole("dialog").getByRole("button", { name: new RegExp(then) }).click();
@@ -195,7 +195,7 @@ test("sem rolagem horizontal da pagina a 320 px, em todas as telas e nos dialogo
     const button = page.getByRole("button", { name: opener, exact: true }).first();
     if (optional && (await button.count()) === 0) continue;
     await button.click();
-    if (menuItem) await page.getByRole("menuitem", { name: menuItem }).click();
+    if (menuItem) await page.getByRole("menuitem", { name: menuItem }).first().click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     if (then) {

@@ -38,7 +38,7 @@ test("com o relogio do aparelho em 2020, a data padrao do lancamento novo e a de
   await openWithWrongDeviceClock(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
   await page.getByRole("button", { name: "Novo lançamento" }).first().click();
-  await page.getByRole("menuitem", { name: "Despesa" }).click();
+  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
   await expect(page.getByRole("dialog").getByLabel("Data", { exact: true })).toHaveValue(today);
 });
 
@@ -75,6 +75,6 @@ test("sem o relogio do aparelho errado, o comportamento e o mesmo (referencia)",
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
   await page.getByRole("button", { name: "Novo lançamento" }).first().click();
-  await page.getByRole("menuitem", { name: "Despesa" }).click();
+  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
   await expect(page.getByRole("dialog").getByLabel("Data", { exact: true })).toHaveValue(today);
 });

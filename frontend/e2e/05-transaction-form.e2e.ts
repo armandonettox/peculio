@@ -23,7 +23,7 @@ async function goTo(page: Page, link: "Transações" | "Contas") {
 
 async function openNewTransaction(page: Page) {
   await page.getByRole("button", { name: "Novo lançamento" }).click();
-  await page.getByRole("menuitem", { name: "Despesa" }).click();
+  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
   await expect(dialog(page)).toBeVisible();
 }
 

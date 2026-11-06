@@ -35,7 +35,7 @@ test("comprar em 3x no cartao cria 3 lancamentos, um por mes, com o rotulo da pa
   await loginAndWaitForDashboard(page);
   await goTo(page, "Transações");
   await page.getByRole("button", { name: "Novo lançamento" }).click();
-  await page.getByRole("menuitem", { name: "Despesa" }).click();
+  await page.getByRole("menuitem", { name: "Despesa" }).first().click();
   await expect(dialog(page)).toBeVisible();
 
   await input(page, "Conta").selectOption({ label: CARD });
