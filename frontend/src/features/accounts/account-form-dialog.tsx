@@ -245,14 +245,14 @@ function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void;
           </div>
         </button>
 
-        <div className="flex items-center gap-4 rounded-xl border p-4 opacity-50 cursor-not-allowed" aria-hidden="true">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="flex items-center gap-4 rounded-xl border bg-muted p-4 cursor-not-allowed" aria-hidden="true">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-muted-foreground">
             <Zap className="size-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold">{t("accounts.accountFormDialog.automatica")}</p>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-sm font-semibold text-muted-foreground">{t("accounts.accountFormDialog.automatica")}</p>
+              <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                 Em breve
               </span>
             </div>
