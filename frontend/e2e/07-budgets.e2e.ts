@@ -122,6 +122,7 @@ test("registrar uma saida pelo formulario escolhendo o orcamento faz o progresso
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("link", { name: "Transações" }).click();
   await page.getByRole("button", { name: "Novo lançamento" }).click();
+  await page.getByRole("menuitem", { name: "Despesa" }).click();
 
   await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: "Conta Orc E2E" });
   await dialog(page).getByLabel("Descrição", { exact: true }).fill("Feira pelo formulario");

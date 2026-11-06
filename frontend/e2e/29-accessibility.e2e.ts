@@ -98,9 +98,9 @@ for (const [sizeName, viewport] of Object.entries(SIZES)) {
 // Diálogos de criar e de ações de cada tela, abertos. Com um diálogo aberto o Radix esconde a página de propósito
 // (aria-hidden) e as regras de página inteira (main, h1, regiões) disparam por construção: por isso a varredura olha só o
 // conteúdo do diálogo.
-const DIALOGS: { route: string; opener: string; then?: string; optional?: boolean }[] = [
+const DIALOGS: { route: string; opener: string; menuItem?: string; then?: string; optional?: boolean }[] = [
   { route: "/contas", opener: "Nova conta" },
-  { route: "/transacoes", opener: "Novo lançamento" },
+  { route: "/transacoes", opener: "Novo lançamento", menuItem: "Despesa" },
   { route: "/categorias", opener: "Nova categoria" },
   { route: "/categorias?aba=tags", opener: "Nova tag" },
   { route: "/orcamentos", opener: "Novo orçamento" },
@@ -125,7 +125,7 @@ for (const theme of ["light", "dark"] as const) {
 
     const problems: string[] = [];
     let scanned = 0;
-    for (const { route, opener, then, optional } of DIALOGS) {
+    for (const { route, opener, menuItem, then, optional } of DIALOGS) {
       await page.goto(route);
       await page.waitForLoadState("networkidle");
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -133,6 +133,7 @@ for (const theme of ["light", "dark"] as const) {
       const button = page.getByRole("button", { name: opener, exact: true }).first();
       if (optional && (await button.count()) === 0) continue;
       await button.click();
+      if (menuItem) await page.getByRole("menuitem", { name: menuItem }).click();
       await expect(page.getByRole("dialog")).toBeVisible();
       if (then) {
         await page.getByRole("dialog").getByRole("button", { name: new RegExp(then) }).click();
@@ -187,13 +188,14 @@ test("sem rolagem horizontal da pagina a 320 px, em todas as telas e nos dialogo
     if (extra > 1) problems.push(`${route}: a pagina passa ${extra}px da largura`);
   }
 
-  for (const { route, opener, then, optional } of DIALOGS) {
+  for (const { route, opener, menuItem, then, optional } of DIALOGS) {
     await page.goto(route);
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const button = page.getByRole("button", { name: opener, exact: true }).first();
     if (optional && (await button.count()) === 0) continue;
     await button.click();
+    if (menuItem) await page.getByRole("menuitem", { name: menuItem }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     if (then) {
