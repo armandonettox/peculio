@@ -144,7 +144,15 @@ for (const theme of ["light", "dark"] as const) {
         .withTags(TAGS)
         .analyze();
       scanned += 1;
-      problems.push(...result.violations.map((violation) => `${route} > ${opener}${then ? ` > ${then}` : ""}: ${violation.id}: ${violation.help}`));
+      problems.push(
+        ...result.violations.map(
+          (violation) =>
+            `${route} > ${opener}${then ? ` > ${then}` : ""}: ${violation.id}: ${violation.help} | ${violation.nodes
+              .slice(0, 3)
+              .map((node) => node.target.join(" "))
+              .join(" ; ")}`,
+        ),
+      );
       await page.keyboard.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
     }

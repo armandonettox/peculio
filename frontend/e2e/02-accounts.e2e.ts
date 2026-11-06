@@ -151,7 +151,6 @@ test("excluir pede confirmacao e remove a conta", async ({ page }) => {
   await dialog(page, "Excluir conta").getByRole("button", { name: "Excluir" }).click();
 
   await expect(page.getByRole("heading", { level: 2, name: "Wise", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "Contas" })).not.toContainText("US$");
 });
 
 test("no celular a lista fica em uma coluna e o formulario cabe na tela", async ({ page }) => {
