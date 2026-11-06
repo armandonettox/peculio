@@ -22,6 +22,8 @@
   --primary: #1e3a6b;
   --primary-foreground: #ffffff;
   --primary-text: #1e3a6b;
+  /* Fundo solido equivalente a rgba(--primary, 0.1) sobre --card branco: evita alpha em contextos com overlay */
+  --primary-soft: #e2e5eb;
 
   /* Verde: destaque. Branco sobre ele nao passa em contraste, entao o texto e escuro */
   --brand-accent: #00a878;
@@ -73,6 +75,8 @@
   --primary-foreground: #ffffff;
   /* O navy sobre fundo escuro quase some (contraste 1,6). Aqui o texto usa uma versao clara */
   --primary-text: #a5b0c4;
+  /* Fundo solido equivalente a rgba(--primary, 0.1) sobre --card escuro */
+  --primary-soft: #101d34;
 
   --brand-accent: #7f9fe0;
   --brand-accent-foreground: #111111;
@@ -112,6 +116,7 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-text: var(--primary-text);
+  --color-primary-soft: var(--primary-soft);
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-foreground: var(--brand-accent-foreground);
   --color-support: var(--support);

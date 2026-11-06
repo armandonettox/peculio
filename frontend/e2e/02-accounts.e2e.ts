@@ -96,6 +96,8 @@ test("nome repetido mostra o erro no campo e nao cria a conta", async ({ page })
 test("valor invalido e recusado no formulario, sem chamar o servidor", async ({ page }) => {
   await openAccounts(page);
   await page.getByRole("button", { name: "Nova conta" }).first().click();
+  await page.getByRole("button", { name: /Manualmente/ }).click();
+  await page.getByRole("button", { name: /Outra/ }).click();
   const form = dialog(page, "Nova conta");
   await form.getByLabel("Nome", { exact: true }).fill("Teste");
   await form.getByLabel("Saldo inicial").fill("1".repeat(19));
