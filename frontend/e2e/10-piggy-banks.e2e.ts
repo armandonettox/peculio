@@ -12,7 +12,7 @@ const main = (page: Page) => page.getByRole("main");
 const dialog = (page: Page) => page.getByRole("dialog");
 const nav = (page: Page) => page.getByRole("navigation", { name: "Navegação principal" });
 const card = (page: Page, name: string) =>
-  main(page).getByRole("heading", { level: 2, name }).locator("xpath=ancestor::li[1]");
+  main(page).getByRole("heading", { level: 3, name }).locator("xpath=ancestor::li[1]");
 
 // O app usa o "hoje" do servidor (APP_TIMEZONE, America/Sao_Paulo); calcular aqui com o fuso do
 // executor (UTC na CI) desalinharia perto da virada do dia em Brasilia
