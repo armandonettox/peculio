@@ -1,9 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
-import { SidebarNewButton } from "@/components/layout/sidebar-new-button";
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
@@ -11,7 +9,7 @@ import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
-import { FakeAuth } from "@/test-utils/providers";
+import { FakeAuth, WithSidebar, openTransactionForm } from "@/test-utils/providers";
 import { deposit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
 import TransactionsPage from "@/pages/transactions";
@@ -86,20 +84,15 @@ function renderPage({
   );
   render(
     <FakeAuth>
-      <MemoryRouter initialEntries={["/transacoes"]}>
-        <SidebarNewButton collapsed={false} />
+      <WithSidebar route="/transacoes">
         <TransactionsPage />
-      </MemoryRouter>
+      </WithSidebar>
     </FakeAuth>,
   );
   return { tx, accountsApi };
 }
 
-async function openNew() {
-  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
-  await userEvent.click(await screen.findByRole("menuitem", { name: "Despesa" }));
-  return await screen.findByRole("dialog", { name: "Novo lançamento" });
-}
+const openNew = () => openTransactionForm();
 
 // Os campos do formulario ficam no dialogo; a pagina atras tem filtros com rotulos parecidos
 const d = () => within(screen.getByRole("dialog"));

@@ -10,6 +10,7 @@
     "gen:api": "openapi-typescript openapi.json -o src/api/schema.d.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:quick": "tsc --noEmit && vitest run",
     "e2e": "node e2e/run.mjs"
   },
   "dependencies": {

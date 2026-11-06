@@ -1,7 +1,13 @@
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router-dom";
 
+import { SidebarNewButton } from "@/components/layout/sidebar-new-button";
 import { AuthContext, AuthProvider, type AuthContextValue, type User } from "@/auth/auth-context";
+
+export type TransactionKind = "Despesa" | "Receita" | "Despesa Cartão" | "Transferência";
 
 export const testUser: User = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -22,6 +28,27 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <AuthProvider>{children}</AuthProvider>
     </QueryClientProvider>
   );
+}
+
+// Wrapper que inclui sidebar para testes de paginas que usam SidebarNewButton.
+// SidebarNewButton nao faz parte de nenhuma pagina — fica no AppShell (layout global).
+// Testes de paginas que abrem o formulario de lancamento precisam renderizar o SidebarNewButton
+// junto, pois e ele que contem o botao "Novo lancamento" e o dropdown de tipo.
+export function WithSidebar({ children, route = "/" }: { children: ReactNode; route?: string }) {
+  return (
+    <MemoryRouter initialEntries={[route]}>
+      <SidebarNewButton collapsed={false} />
+      {children}
+    </MemoryRouter>
+  );
+}
+
+// Abre o formulario de lancamento via o sidebar dropdown.
+// Deve ser chamado dentro de um render que usa WithSidebar ou inclua SidebarNewButton.
+export async function openTransactionForm(kind: TransactionKind = "Despesa") {
+  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: kind }));
+  return screen.findByRole("dialog", { name: "Novo lançamento" });
 }
 
 // Estado de login fixo, para testar uma tela ja logada (ou nao) sem passar pelo login
