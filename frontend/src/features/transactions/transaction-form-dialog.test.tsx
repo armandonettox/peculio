@@ -436,8 +436,8 @@ it("cancelar fecha sem gravar", async () => {
 const openEdit = async (title: string) => {
   await userEvent.click(await screen.findByRole("button", { name: `Ações do lançamento ${title}` }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
-  // Despesa comum abre o formulario proprio de despesa, com os extras em "Mais detalhes"; o resto abre o geral
-  const dialog = await screen.findByRole("dialog", { name: /^Editar (lançamento|despesa)$/ });
+  // Despesa e receita comuns abrem o formulario proprio, com os extras em "Mais detalhes"; o resto abre o geral
+  const dialog = await screen.findByRole("dialog", { name: /^Editar (lançamento|despesa|receita)$/ });
   const more = within(dialog).queryByRole("button", { name: /Mais detalhes/ });
   if (more) await userEvent.click(more);
   return dialog;
@@ -502,8 +502,9 @@ it("editar uma entrada reabre com a conta que recebe", async () => {
   });
   await screen.findByText("Salario", { selector: "p" });
   await openEdit("Salario");
-  expect(d().getByRole("radio", { name: "Entrada" })).toBeChecked();
-  expect(d().getByLabelText("Conta que recebe")).toHaveValue(nubank.id);
+  // Entrada de um nome abre o formulario proprio de receita
+  expect(screen.getByRole("dialog", { name: "Editar receita" })).toBeInTheDocument();
+  expect(d().getByLabelText("Conta")).toHaveValue(nubank.id);
   expect(d().getByLabelText("De quem")).toHaveValue("Empregador");
 });
 

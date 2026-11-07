@@ -972,6 +972,13 @@
       "times": "vezes",
       "toWhomHint": "Se ficar vazio, usa a descrição.",
       "repeatCountInvalid": "Informe de 2 a 999 vezes."
+    },
+    "incomeForm": {
+      "title": "Nova receita",
+      "editTitle": "Editar receita",
+      "received": "Foi recebida",
+      "notReceived": "Não foi recebida",
+      "fixed": "Receita fixa"
     }
   },
   "labels": {

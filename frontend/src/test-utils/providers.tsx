@@ -91,3 +91,10 @@ export async function openExpenseForm() {
   await userEvent.click(await screen.findByRole("menuitem", { name: "Despesa" }));
   return screen.findByRole("dialog", { name: "Nova despesa" });
 }
+
+// Abre o formulario proprio de receita ("Nova receita").
+export async function openIncomeForm() {
+  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Receita" }));
+  return screen.findByRole("dialog", { name: "Nova receita" });
+}

@@ -20,7 +20,7 @@ import type { SavedFilter } from "@/features/transactions/saved-filters";
 import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
 
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
-import { ExpenseFormDialog, usesExpenseForm } from "@/features/transactions/expense-form-dialog";
+import { ExpenseFormDialog, IncomeFormDialog, usesExpenseForm, usesIncomeForm } from "@/features/transactions/expense-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { TransactionsTable } from "@/features/transactions/transactions-table";
@@ -464,6 +464,8 @@ export default function TransactionsPage() {
       {dialog &&
         (dialog !== "new" && usesExpenseForm(dialog, accounts.data ?? []) ? (
           <ExpenseFormDialog transaction={dialog} onClose={() => setDialog(null)} />
+        ) : dialog !== "new" && usesIncomeForm(dialog) ? (
+          <IncomeFormDialog transaction={dialog} onClose={() => setDialog(null)} />
         ) : (
           <TransactionFormDialog
             transaction={dialog === "new" ? undefined : dialog}

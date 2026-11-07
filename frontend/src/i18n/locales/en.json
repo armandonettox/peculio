@@ -972,6 +972,13 @@
       "times": "times",
       "toWhomHint": "If left empty, the description is used.",
       "repeatCountInvalid": "Enter from 2 to 999 times."
+    },
+    "incomeForm": {
+      "title": "New income",
+      "editTitle": "Edit income",
+      "received": "Received",
+      "notReceived": "Not received",
+      "fixed": "Fixed income"
     }
   },
   "labels": {

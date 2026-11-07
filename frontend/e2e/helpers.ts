@@ -56,6 +56,13 @@ export async function openExpenseForm(page: Page) {
   await expect(page.getByRole("dialog", { name: "Nova despesa" })).toBeVisible();
 }
 
+// Abre o formulario proprio de receita ("Nova receita").
+export async function openIncomeForm(page: Page) {
+  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
+  await page.getByRole("menuitem", { name: "Receita", exact: true }).first().click();
+  await expect(page.getByRole("dialog", { name: "Nova receita" })).toBeVisible();
+}
+
 // ---------- Dados criados direto pela API (para testar telas que listam coisas) ----------
 
 export async function apiHeaders(request: APIRequestContext, user = ADMIN) {

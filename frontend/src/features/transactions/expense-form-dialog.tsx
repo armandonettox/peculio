@@ -64,8 +64,12 @@ import {
 // Campos sem borda de caixa, so uma linha embaixo, como no formulario de referencia
 const UNDERLINED = "rounded-none border-0 border-b bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:border-primary";
 
+// Despesa e receita sao o mesmo formulario por dentro (so mudam cor, textos e o lado do dinheiro), mas cada uma tem
+// o seu componente de entrada e o seu titulo: ExpenseFormDialog e IncomeFormDialog.
+type MoneyKind = "withdrawal" | "deposit";
+
 type Props = {
-  // Sem `transaction` cria uma despesa; com `transaction` edita
+  // Sem `transaction` cria; com `transaction` edita
   transaction?: Transaction;
   onClose: () => void;
 };
@@ -85,6 +89,11 @@ const NO_REPEAT: Repeat = { fixed: false, repeat: false, count: "2", frequency: 
  * Esta tela serve para despesa que nao e de cartao de credito e que nao paga divida: as outras (cartao, receita,
  * transferencia) tem o proprio formulario.
  */
+export function usesIncomeForm(transaction: Transaction): boolean {
+  const [first] = transaction.splits;
+  return first?.type === "deposit" && first.source_account_type === "revenue";
+}
+
 export function usesExpenseForm(transaction: Transaction, accounts: { id: string; role: string | null }[]): boolean {
   const [first] = transaction.splits;
   if (!first || first.type !== "withdrawal") return false;
@@ -138,8 +147,17 @@ function Row({ icon: Icon, children }: { icon: React.ElementType; children: Reac
   );
 }
 
-export function ExpenseFormDialog({ transaction, onClose }: Props) {
+export function ExpenseFormDialog(props: Props) {
+  return <MoneyFormDialog kind="withdrawal" {...props} />;
+}
+
+export function IncomeFormDialog(props: Props) {
+  return <MoneyFormDialog kind="deposit" {...props} />;
+}
+
+function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKind }) {
   const { t } = useTranslation();
+  const income = kind === "deposit";
   const editing = transaction !== undefined;
   const accountsQuery = useAccounts({ includeArchived: true });
   const currencies = useCurrencies();
@@ -168,7 +186,15 @@ export function ExpenseFormDialog({ transaction, onClose }: Props) {
     <Dialog open onOpenChange={(open) => !open && !busy && onClose()}>
       <DialogContent fullOnMobile className={showDetails ? "max-w-3xl" : "max-w-md"}>
         <DialogHeader>
-          <DialogTitle>{editing ? t("transactions.expenseForm.editTitle") : t("transactions.expenseForm.title")}</DialogTitle>
+          <DialogTitle>
+            {income
+              ? editing
+                ? t("transactions.incomeForm.editTitle")
+                : t("transactions.incomeForm.title")
+              : editing
+                ? t("transactions.expenseForm.editTitle")
+                : t("transactions.expenseForm.title")}
+          </DialogTitle>
           <DialogDescription className="sr-only">{t("transactions.transactionFormDialog.registreUmaSaidaUma")}</DialogDescription>
         </DialogHeader>
         {loadError && <Alert variant="destructive">{loadError}</Alert>}
@@ -179,6 +205,7 @@ export function ExpenseFormDialog({ transaction, onClose }: Props) {
         )}
         {ready && (
           <FormBody
+            kind={kind}
             ctx={ctx}
             currencies={currencies.data ?? []}
             transaction={transaction}
@@ -200,6 +227,7 @@ export function ExpenseFormDialog({ transaction, onClose }: Props) {
 }
 
 type BodyProps = {
+  kind: MoneyKind;
   ctx: FormContext;
   currencies: { code: string; name: string }[];
   transaction?: Transaction;
@@ -235,6 +263,7 @@ function hasDetails(state: FormState): boolean {
 }
 
 function FormBody({
+  kind,
   ctx,
   currencies,
   transaction,
@@ -250,11 +279,12 @@ function FormBody({
   onClose,
 }: BodyProps) {
   const { t } = useTranslation();
+  const income = kind === "deposit";
   const editing = transaction !== undefined;
   const refreshAttachments = useRefreshAttachments();
 
   const [initial] = useState(() => (transaction ? formFromTransaction(transaction, ctx) : null));
-  const [state, setState] = useState<FormState>(() => (initial?.ok ? initial.state : emptyForm(ctx, { kind: "withdrawal" })));
+  const [state, setState] = useState<FormState>(() => (initial?.ok ? initial.state : emptyForm(ctx, { kind })));
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -291,11 +321,11 @@ function FormBody({
   const budgetOptions = (selectedId: string) =>
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
   const billOptions = (selectedId: string) =>
-    bills.filter((bill) => bill.type === "withdrawal" && bill.currency_code === currency && (bill.active || bill.id === selectedId));
+    bills.filter((bill) => bill.type === kind && bill.currency_code === currency && (bill.active || bill.id === selectedId));
   const categoryOptions = (selectedId: string) =>
-    categories.filter((category) => category.kind === "expense" || category.id === selectedId);
+    categories.filter((category) => category.kind === (income ? "revenue" : "expense") || category.id === selectedId);
 
-  const suggestions = useCounterparties("expense", state.counterpartyName.trim(), { enabled: !state.ownCounterparty });
+  const suggestions = useCounterparties(income ? "revenue" : "expense", state.counterpartyName.trim(), { enabled: !state.ownCounterparty });
   const selectable = ctx.accounts.filter((a) => a.active || a.id === state.accountId || a.id === state.counterpartyAccountId);
   const debts = selectable.filter(isLiability);
 
@@ -406,7 +436,7 @@ function FormBody({
   }
 
   function resetForNext() {
-    setState(emptyForm(ctx, { kind: "withdrawal", accountId: state.accountId }));
+    setState(emptyForm(ctx, { kind, accountId: state.accountId }));
     setErrors({});
     setFiles([]);
     setFileError(null);
@@ -491,7 +521,7 @@ function FormBody({
   const chip = (active: boolean) =>
     cn(
       "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      active ? "bg-destructive text-destructive-foreground" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground",
+      active ? (income ? "bg-positive text-background" : "bg-destructive text-destructive-foreground") : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground",
     );
 
   const left_column = (
@@ -511,7 +541,11 @@ function FormBody({
               places={places}
               value={state.amount}
               onChange={(text) => patch({ amount: text }, "amount", "splitTotal")}
-              className={cn(UNDERLINED, "h-10 text-xl font-semibold text-destructive placeholder:text-destructive")}
+              className={cn(
+                UNDERLINED,
+                "h-10 text-xl font-semibold",
+                income ? "text-positive placeholder:text-positive" : "text-destructive placeholder:text-destructive",
+              )}
             />
             <span className="text-xs font-medium text-muted-foreground">{currency}</span>
           </div>
@@ -521,7 +555,13 @@ function FormBody({
       <Row icon={CircleCheck}>
         <div className="flex items-center justify-between gap-3">
           <span id="exp-paid-label" className="text-sm text-muted-foreground">
-            {state.isPaid ? t("transactions.expenseForm.paid") : t("transactions.expenseForm.unpaid")}
+            {state.isPaid
+              ? income
+                ? t("transactions.incomeForm.received")
+                : t("transactions.expenseForm.paid")
+              : income
+                ? t("transactions.incomeForm.notReceived")
+                : t("transactions.expenseForm.unpaid")}
           </span>
           <Switch checked={state.isPaid} onCheckedChange={(next) => patch({ isPaid: next })} aria-labelledby="exp-paid-label" />
         </div>
@@ -746,7 +786,7 @@ function FormBody({
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <span id="exp-fixed-label" className="text-sm">
-              {t("transactions.expenseForm.fixed")}
+              {income ? t("transactions.incomeForm.fixed") : t("transactions.expenseForm.fixed")}
             </span>
             <Switch checked={repeat.fixed} onCheckedChange={(next) => chooseRepeat({ fixed: next })} aria-labelledby="exp-fixed-label" />
           </div>
@@ -810,12 +850,12 @@ function FormBody({
             className="self-start text-xs text-primary-text underline underline-offset-2"
             onClick={() => patch({ ownCounterparty: false, counterpartyAccountId: "", foreignAmount: "" }, "counterparty", "foreignAmount")}
           >
-            {t("transactions.transactionFormDialog.pagarParaUmNome")}
+            {income ? t("transactions.transactionFormDialog.receberDeUmNome") : t("transactions.transactionFormDialog.pagarParaUmNome")}
           </button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          <FormField id="tx-counterparty" label={t("transactions.form.toWhom")} error={errors.counterparty} hint={t("transactions.expenseForm.toWhomHint")}>
+          <FormField id="tx-counterparty" label={income ? t("transactions.form.fromWhom") : t("transactions.form.toWhom")} error={errors.counterparty} hint={t("transactions.expenseForm.toWhomHint")}>
             {(props) => (
               <>
                 <Input
@@ -841,7 +881,7 @@ function FormBody({
                 patch({ ownCounterparty: true, counterpartyName: "", budgetId: "", billId: "", splits: clearBudgets(state.splits) }, "counterparty")
               }
             >
-              {t("transactions.transactionFormDialog.pagarUmaDivida")}
+              {income ? t("transactions.transactionFormDialog.receberDeUmaDivida") : t("transactions.transactionFormDialog.pagarUmaDivida")}
             </button>
           )}
         </div>
@@ -879,7 +919,7 @@ function FormBody({
             </FormField>
           )}
           {billAllowed(state) && billOptions(state.billId).length > 0 && (
-            <FormField id="tx-bill" label={t("transactions.transactionFormDialog.contaAPagar")}>
+            <FormField id="tx-bill" label={income ? t("transactions.transactionFormDialog.recebimentoEsperado") : t("transactions.transactionFormDialog.contaAPagar")}>
               {(props) => (
                 <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
                   <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
@@ -1001,7 +1041,7 @@ function FormBody({
                   </FormField>
                 )}
                 {billAllowed(state) && billOptions(row.billId).length > 0 && (
-                  <FormField id={`${row.key}-bill`} label={t("transactions.form.rowBill", { n: index + 1 })}>
+                  <FormField id={`${row.key}-bill`} label={t(income ? "transactions.form.rowBillIncome" : "transactions.form.rowBill", { n: index + 1 })}>
                     {(props) => (
                       <Select {...props} value={row.billId} onChange={(e) => changeSplit(row.key, { billId: e.target.value })}>
                         <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
