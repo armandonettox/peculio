@@ -11,15 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { colorError, normalizeHex } from "@/lib/color";
+import { cn } from "@/lib/utils";
+import { CategoryIcon } from "./category-icon";
+import { CATEGORY_ICON_NAMES } from "./category-icons";
 import { useTranslation } from "react-i18next";
 
-export type LabelValues = { name: string; color: string | null; kind: "expense" | "revenue" | null };
+export type LabelValues = { name: string; color: string | null; kind: "expense" | "revenue" | null; icon: string | null };
 
 type Props = {
   title: string;
   description: string;
   initial: LabelValues;
   withColor: boolean;
+  // So categoria tem icone
+  withIcon?: boolean;
   // Categoria tem tipo (saida/entrada); tag nao
   withKind: boolean;
   nameMaxLength: number;
@@ -37,6 +42,7 @@ export function LabelFormDialog({
   description,
   initial,
   withColor,
+  withIcon = false,
   withKind,
   nameMaxLength,
   takenCode,
@@ -47,6 +53,7 @@ export function LabelFormDialog({
   const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [color, setColor] = useState(initial.color ?? "");
+  const [icon, setIcon] = useState<string | null>(initial.icon);
   const [kind, setKind] = useState<"expense" | "revenue">(initial.kind ?? "expense");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -75,7 +82,12 @@ export function LabelFormDialog({
 
     setSubmitting(true);
     try {
-      await onSubmit({ name: name.trim(), color: withColor ? normalizeHex(color) : null, kind: withKind ? kind : null });
+      await onSubmit({
+        name: name.trim(),
+        color: withColor ? normalizeHex(color) : null,
+        kind: withKind ? kind : null,
+        icon: withIcon ? icon : null,
+      });
       onClose();
     } catch (error) {
       setSubmitting(false);
@@ -165,10 +177,48 @@ export function LabelFormDialog({
             </FormField>
           )}
 
+          {withIcon && (
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-medium">{t("labels.labelFormDialog.icon")}</legend>
+              <p className="text-xs text-muted-foreground">{t("labels.labelFormDialog.iconHint")}</p>
+              <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+                <button
+                  type="button"
+                  aria-pressed={icon === null}
+                  aria-label={t("labels.labelFormDialog.noIcon")}
+                  title={t("labels.labelFormDialog.noIcon")}
+                  onClick={() => setIcon(null)}
+                  className={cn(
+                    "flex h-9 items-center justify-center rounded-md border text-xs text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    icon === null && "border-primary bg-accent text-foreground",
+                  )}
+                >
+                  &mdash;
+                </button>
+                {CATEGORY_ICON_NAMES.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={icon === option}
+                    aria-label={t(`labels.icons.${option}`)}
+                    title={t(`labels.icons.${option}`)}
+                    onClick={() => setIcon(option)}
+                    className={cn(
+                      "flex h-9 items-center justify-center rounded-md border transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      icon === option && "border-primary bg-accent",
+                    )}
+                  >
+                    <CategoryIcon name={option} color={previewColor} />
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
           {withColor && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
               {t("labels.labelFormDialog.comoVaiAparecer")}
-              <LabelChip name={name.trim() || t("labels.labelFormDialog.namePreview")} color={previewColor} />
+              <LabelChip name={name.trim() || t("labels.labelFormDialog.namePreview")} color={previewColor} icon={withIcon ? icon : undefined} />
             </div>
           )}
 

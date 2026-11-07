@@ -1,3 +1,4 @@
+import type { CategoryIconName } from "@/features/labels/category-icons";
 import { Tag, Tags } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
@@ -21,6 +22,7 @@ const CATEGORY_CONFIG = {
   kind: "category",
   icon: Tags,
   withColor: true,
+  withIcon: true,
   withKind: true,
   nameMaxLength: 100,
   takenCode: "category_name_taken",
@@ -46,13 +48,21 @@ function CategoriesTab() {
     <LabelsPage
       config={CATEGORY_CONFIG}
       useList={useCategories}
-      onCreate={({ name, color, kind }) => create.mutateAsync({ name, kind: kind!, ...(color ? { color } : {}) })}
-      onUpdate={(item, { name, color, kind }) => {
+      onCreate={({ name, color, kind, icon }) =>
+        create.mutateAsync({
+          name,
+          kind: kind!,
+          ...(color ? { color } : {}),
+          ...(icon ? { icon: icon as CategoryIconName } : {}),
+        })
+      }
+      onUpdate={(item, { name, color, kind, icon }) => {
         // Manda so o que mudou: omitir a cor nao mexe nela, e null limpa
         const body: CategoryUpdate = {};
         if (name !== item.name) body.name = name;
         if ((color ?? null) !== (item.color ?? null)) body.color = color;
         if (kind !== item.kind) body.kind = kind!;
+        if ((icon ?? null) !== (item.icon ?? null)) body.icon = icon as CategoryIconName | null;
         if (Object.keys(body).length === 0) return Promise.resolve();
         return update.mutateAsync({ id: item.id, body });
       }}

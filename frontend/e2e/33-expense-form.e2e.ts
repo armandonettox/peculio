@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { apiHeaders, apiPost, loginAndWaitForDashboard, openExpenseForm } from "./helpers";
+import { apiHeaders, apiPost, loginAndWaitForDashboard, pickChip, openExpenseForm } from "./helpers";
 
 // Formulario proprio de despesa (Nova despesa), com "Foi paga" e "Ignorar transacao". Cria uma conta propria pela API e
 // confere, depois de cada passo, o saldo na tela de Contas. Em ordem: cada passo parte do saldo do anterior.
@@ -27,7 +27,7 @@ async function expectBalance(page: Page, account: string, text: string) {
 }
 
 async function fillExpense(page: Page, description: string, amount: string) {
-  await field(page, "Conta").selectOption({ label: WALLET });
+  await pickChip(page, "Conta", WALLET);
   await field(page, "Descrição").fill(description);
   await field(page, "Valor (BRL)").fill(amount);
 }
@@ -139,4 +139,23 @@ test("Salvar e criar nova guarda e deixa o formulario aberto e limpo", async ({ 
   await expect(dialog(page)).toBeVisible();
   await dialog(page).getByRole("button", { name: "Fechar" }).click();
   await expect(main(page)).toContainText("Cafe Despesa E2E");
+});
+
+test("a categoria com icone aparece como chip e vai para o lancamento", async ({ page, request }) => {
+  const headers = await apiHeaders(request);
+  await apiPost(request, headers, "/categories", { name: "Mercado Icone E2E", kind: "expense", color: "#00A878", icon: "shopping-cart" });
+
+  await loginAndWaitForDashboard(page);
+  await goTo(page, "Transações");
+  await openExpenseForm(page);
+  await fillExpense(page, "Feira Icone E2E", "12,00");
+  await pickChip(page, "Categoria", "Mercado Icone E2E");
+  await expect(dialog(page).getByRole("combobox", { name: "Categoria", exact: true })).toContainText("Mercado Icone E2E");
+  await dialog(page).getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  const list = await (await request.get("/api/v1/transactions", { headers, params: { q: "Feira Icone E2E" } })).json();
+  const categories = await (await request.get("/api/v1/categories", { headers, params: { q: "Mercado Icone E2E" } })).json();
+  expect(list.items[0].splits[0].category_id).toBe(categories.items[0].id);
+  expect(categories.items[0].icon).toBe("shopping-cart");
 });

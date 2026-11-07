@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { apiHeaders, apiPost, loginAndWaitForDashboard, openIncomeForm } from "./helpers";
+import { apiHeaders, apiPost, loginAndWaitForDashboard, pickChip, openIncomeForm } from "./helpers";
 
 // Formulario proprio de receita (Nova receita), com "Foi recebida" e "Ignorar transacao". Cria uma conta propria pela API
 // e confere, depois de cada passo, o saldo na tela de Contas. Em ordem: cada passo parte do saldo do anterior.
@@ -27,7 +27,7 @@ async function expectBalance(page: Page, account: string, text: string) {
 }
 
 async function fillIncome(page: Page, description: string, amount: string) {
-  await field(page, "Conta").selectOption({ label: WALLET });
+  await pickChip(page, "Conta", WALLET);
   await field(page, "Descrição").fill(description);
   await field(page, "Valor (BRL)").fill(amount);
 }

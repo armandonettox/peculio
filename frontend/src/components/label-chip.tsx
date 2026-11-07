@@ -1,3 +1,4 @@
+import { categoryIconOf } from "@/features/labels/category-icons";
 import { normalizeHex, readableTextColor } from "@/lib/color";
 import { cn } from "@/lib/utils";
 
@@ -5,12 +6,15 @@ type LabelChipProps = {
   name: string;
   // Cor escolhida pelo usuario (#RRGGBB). Sem cor, o selo fica neutro.
   color?: string | null;
+  // Nome do icone da categoria; so aparece quando informado (tag e outros selos seguem sem icone)
+  icon?: string | null;
   className?: string;
 };
 
 /** Selo com o nome. Com cor, o texto vira branco ou preto para ficar legivel em qualquer cor. */
-export function LabelChip({ name, color, className }: LabelChipProps) {
+export function LabelChip({ name, color, icon, className }: LabelChipProps) {
   const background = color ? normalizeHex(color) : null;
+  const Icon = icon === undefined ? null : categoryIconOf(icon);
   return (
     <span
       data-color={background ?? undefined}
@@ -22,6 +26,7 @@ export function LabelChip({ name, color, className }: LabelChipProps) {
         className,
       )}
     >
+      {Icon && <Icon aria-hidden="true" className="mr-1 size-3.5 shrink-0" />}
       {name}
     </span>
   );

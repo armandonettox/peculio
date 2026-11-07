@@ -404,6 +404,10 @@
       "passoAdicionar": "Role a lista e toque em Adicionar à Tela de Início.",
       "passoConfirmar": "Toque em Adicionar. O ícone do Pecúlio aparece na tela inicial.",
       "avisoSafari": "Se a opção não aparecer, abra este endereço no Safari e repita os passos."
+    },
+    "chipSelect": {
+      "search": "Buscar",
+      "empty": "Nada encontrado"
     }
   },
   "nav": {
@@ -994,7 +998,10 @@
       "comoVaiAparecer": "Como vai aparecer:",
       "salvando": "Salvando...",
       "nameRequired": "Informe o nome.",
-      "namePreview": "Nome da categoria"
+      "namePreview": "Nome da categoria",
+      "icon": "Ícone",
+      "iconHint": "Aparece junto da categoria nas listas e nos formulários. É opcional.",
+      "noIcon": "Sem ícone"
     },
     "labelsPage": {
       "nadaEncontrado": "Nada encontrado",
@@ -1039,6 +1046,42 @@
       "editDescription": "Altere os dados da tag.",
       "deleteTitle": "Excluir tag",
       "deleteConsequence": "Ela será removida das transações que a usam."
+    },
+    "icons": {
+      "house": "Casa",
+      "shopping-cart": "Compras",
+      "utensils": "Alimentação",
+      "coffee": "Café",
+      "pizza": "Lanche",
+      "car": "Carro",
+      "fuel": "Combustível",
+      "bus": "Transporte",
+      "plane": "Viagem",
+      "heart-pulse": "Saúde",
+      "dumbbell": "Academia",
+      "baby": "Filhos",
+      "paw-print": "Animais",
+      "graduation-cap": "Estudos",
+      "book-open": "Livros",
+      "gamepad-2": "Jogos",
+      "film": "Cinema",
+      "music": "Música",
+      "shirt": "Roupas",
+      "gift": "Presentes",
+      "wifi": "Internet",
+      "phone": "Telefone",
+      "zap": "Energia",
+      "droplet": "Água",
+      "wrench": "Manutenção",
+      "receipt": "Contas",
+      "briefcase": "Trabalho",
+      "wallet": "Carteira",
+      "banknote": "Salário",
+      "hand-coins": "Renda extra",
+      "piggy-bank": "Poupança",
+      "trending-up": "Investimentos",
+      "landmark": "Banco",
+      "tag": "Outros"
     }
   },
   "budgets": {

@@ -404,6 +404,10 @@
       "passoAdicionar": "Scroll the list and tap Add to Home Screen.",
       "passoConfirmar": "Tap Add. The app icon appears on your home screen.",
       "avisoSafari": "If you don't see the option, open this address in Safari and repeat the steps."
+    },
+    "chipSelect": {
+      "search": "Search",
+      "empty": "Nothing found"
     }
   },
   "nav": {
@@ -994,7 +998,10 @@
       "comoVaiAparecer": "How it will look:",
       "salvando": "Saving...",
       "nameRequired": "Enter the name.",
-      "namePreview": "Category name"
+      "namePreview": "Category name",
+      "icon": "Icon",
+      "iconHint": "Shown next to the category in lists and forms. Optional.",
+      "noIcon": "No icon"
     },
     "labelsPage": {
       "nadaEncontrado": "Nothing found",
@@ -1039,6 +1046,42 @@
       "editDescription": "Change the tag's details.",
       "deleteTitle": "Delete tag",
       "deleteConsequence": "It will be removed from the transactions that use it."
+    },
+    "icons": {
+      "house": "Home",
+      "shopping-cart": "Shopping",
+      "utensils": "Food",
+      "coffee": "Coffee",
+      "pizza": "Snack",
+      "car": "Car",
+      "fuel": "Fuel",
+      "bus": "Transit",
+      "plane": "Travel",
+      "heart-pulse": "Health",
+      "dumbbell": "Gym",
+      "baby": "Kids",
+      "paw-print": "Pets",
+      "graduation-cap": "Education",
+      "book-open": "Books",
+      "gamepad-2": "Games",
+      "film": "Movies",
+      "music": "Music",
+      "shirt": "Clothes",
+      "gift": "Gifts",
+      "wifi": "Wi-Fi",
+      "phone": "Phone",
+      "zap": "Electricity",
+      "droplet": "Water",
+      "wrench": "Repairs",
+      "receipt": "Bills",
+      "briefcase": "Work",
+      "wallet": "Wallet",
+      "banknote": "Salary",
+      "hand-coins": "Extra income",
+      "piggy-bank": "Savings",
+      "trending-up": "Investments",
+      "landmark": "Bank",
+      "tag": "Other"
     }
   },
   "budgets": {

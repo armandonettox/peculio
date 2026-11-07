@@ -166,6 +166,65 @@ it("cria uma categoria com a cor digitada", async () => {
   expect(api.mutations()[0].body).toEqual({ name: "Lazer", kind: "expense", color: "#E11D48" });
 });
 
+it("cria uma categoria com icone e o icone aparece na lista", async () => {
+  const api = renderCategories();
+  await openCreate();
+  await userEvent.type(nameField(), "Mercado novo");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Compras" }));
+  expect(within(dialog()).getByRole("button", { name: "Compras" })).toHaveAttribute("aria-pressed", "true");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar" }));
+  await screen.findByText("Mercado novo");
+  expect(api.mutations()[0].body).toEqual({ name: "Mercado novo", kind: "expense", icon: "shopping-cart" });
+  expect(row("Mercado novo").querySelector("svg")).not.toBeNull();
+});
+
+it("sem escolher icone nao envia o campo", async () => {
+  const api = renderCategories();
+  await openCreate();
+  await userEvent.type(nameField(), "Sem icone");
+  expect(within(dialog()).getByRole("button", { name: "Sem ícone" })).toHaveAttribute("aria-pressed", "true");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Criar" }));
+  await screen.findByText("Sem icone");
+  expect(api.mutations()[0].body).not.toHaveProperty("icon");
+});
+
+it("editar abre com o icone marcado, troca por outro e limpa com Sem icone", async () => {
+  const api = renderCategories([makeLabel({ name: "Mercado", icon: "house" })]);
+  await screen.findByText("Mercado");
+  await openMenu("Mercado");
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
+  expect(within(dialog()).getByRole("button", { name: "Casa" })).toHaveAttribute("aria-pressed", "true");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Carro" }));
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ icon: "car" });
+
+  await openMenu("Mercado");
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Sem ícone" }));
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(2));
+  expect(api.mutations()[1].body).toEqual({ icon: null });
+});
+
+it("editar so o nome nao manda o icone", async () => {
+  const api = renderCategories([makeLabel({ name: "Mercado", icon: "house" })]);
+  await screen.findByText("Mercado");
+  await openMenu("Mercado");
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
+  await userEvent.clear(nameField());
+  await userEvent.type(nameField(), "Mercadinho");
+  await userEvent.click(within(dialog()).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.mutations()).toHaveLength(1));
+  expect(api.mutations()[0].body).toEqual({ name: "Mercadinho" });
+});
+
+it("tag nao tem seletor de icone", async () => {
+  renderTags();
+  await userEvent.click(await screen.findByRole("button", { name: /Nova tag/ }));
+  expect(within(dialog()).queryByText("Ícone")).not.toBeInTheDocument();
+});
+
 it("cria com uma cor das amostras", async () => {
   const api = renderCategories();
   await openCreate();

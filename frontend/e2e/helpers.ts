@@ -49,6 +49,12 @@ export async function openTransactionForm(page: Page, kind: TransactionKind = "D
   await expect(page.getByRole("dialog")).toBeVisible();
 }
 
+// Escolhe uma opcao num seletor com chips (conta e categoria dos formularios de despesa e receita).
+export async function pickChip(page: Page, label: string, option: string) {
+  await page.getByRole("dialog").getByRole("combobox", { name: label, exact: true }).click();
+  await page.getByRole("option", { name: option }).first().click();
+}
+
 // Abre o formulario proprio de despesa ("Nova despesa").
 export async function openExpenseForm(page: Page) {
   await page.getByRole("button", { name: "Novo lançamento" }).first().click();

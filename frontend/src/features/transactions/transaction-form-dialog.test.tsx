@@ -465,11 +465,11 @@ it("editar reabre os campos e salva com PUT no mesmo lancamento", async () => {
   await screen.findByText("Padaria", { selector: "p" });
   await openEdit("Padaria");
 
-  expect(d().getByLabelText("Conta")).toHaveValue(nubank.id);
+  expect(d().getByLabelText("Conta")).toHaveTextContent("Nubank");
   expect(d().getByLabelText("Descrição")).toHaveValue("Padaria");
   expect(d().getByLabelText("Para quem")).toHaveValue("Padaria do Ze");
   expect(d().getByLabelText(/^Valor/)).toHaveValue("12,50");
-  expect(d().getByLabelText("Categoria")).toHaveValue(mercado.id);
+  expect(d().getByLabelText("Categoria")).toHaveTextContent("Mercado");
   expect(d().getByRole("button", { name: "#casa" })).toHaveAttribute("aria-pressed", "true");
   expect(d().getByLabelText("Notas")).toHaveValue("nota antiga");
 
@@ -504,7 +504,7 @@ it("editar uma entrada reabre com a conta que recebe", async () => {
   await openEdit("Salario");
   // Entrada de um nome abre o formulario proprio de receita
   expect(screen.getByRole("dialog", { name: "Editar receita" })).toBeInTheDocument();
-  expect(d().getByLabelText("Conta")).toHaveValue(nubank.id);
+  expect(d().getByLabelText("Conta")).toHaveTextContent("Nubank");
   expect(d().getByLabelText("De quem")).toHaveValue("Empregador");
 });
 
@@ -550,7 +550,7 @@ it("conta arquivada continua aparecendo ao editar", async () => {
   });
   await screen.findByText("Padaria", { selector: "p" });
   await openEdit("Padaria");
-  expect(d().getByLabelText("Conta")).toHaveValue(antiga.id);
+  expect(d().getByLabelText("Conta")).toHaveTextContent("Conta velha");
 });
 
 it("lancamento que o formulario nao representa mostra o aviso e nao deixa salvar", async () => {

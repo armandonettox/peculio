@@ -8,7 +8,7 @@ import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
-import { FakeAuth, WithSidebar, openExpenseForm } from "@/test-utils/providers";
+import { FakeAuth, WithSidebar, openExpenseForm, pickChip } from "@/test-utils/providers";
 import { fakeRecurrencesApi } from "@/test-utils/recurrences-api";
 import { makeTransaction } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
@@ -48,7 +48,7 @@ const save = () => userEvent.click(d().getByRole("button", { name: "Salvar" }));
 
 async function fill(description = "Padaria", amount = "12,50") {
   await openExpenseForm();
-  await userEvent.selectOptions(d().getByLabelText("Conta"), "Nubank");
+  await pickChip(d(), "Conta", "Nubank");
   await type("Descrição", description);
   await type(/^Valor \(BRL\)/, amount);
 }
@@ -163,7 +163,7 @@ it("escolher outra moeda leva para uma conta dessa moeda e o valor passa a usar 
   const currency = d().getByLabelText("Moeda");
   expect(within(currency).getAllByRole("option").map((o) => o.textContent)).toEqual(["BRL", "USD"]);
   await userEvent.selectOptions(currency, "USD");
-  expect(d().getByLabelText("Conta")).toHaveValue(wise.id);
+  expect(d().getByLabelText("Conta")).toHaveTextContent("Wise");
   await type("Descrição", "Assinatura");
   await type(/^Valor \(USD\)/, "1000");
   await save();

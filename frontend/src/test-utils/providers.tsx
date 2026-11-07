@@ -98,3 +98,11 @@ export async function openIncomeForm() {
   await userEvent.click(await screen.findByRole("menuitem", { name: "Receita" }));
   return screen.findByRole("dialog", { name: "Nova receita" });
 }
+
+// Escolhe uma opcao num ChipSelect (conta e categoria dos formularios de despesa e receita): abre a lista e clica na opcao.
+// O nome da opcao inclui o texto de apoio (ex.: "Wise USD"), por isso o texto passado casa pelo comeco.
+export async function pickChip(scope: { getByRole: typeof screen.getByRole }, label: string | RegExp, option: string) {
+  await userEvent.click(scope.getByRole("combobox", { name: label }));
+  const escaped = option.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  await userEvent.click(await screen.findByRole("option", { name: new RegExp(`^${escaped}`) }));
+}

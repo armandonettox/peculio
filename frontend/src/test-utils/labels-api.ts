@@ -4,6 +4,8 @@ export type FakeLabel = {
   id: string;
   name: string;
   color?: string | null;
+  // Nome do icone; so categoria tem
+  icon?: string | null;
   // So categoria tem; tag carrega o campo sem usar, inofensivo
   kind?: "expense" | "revenue";
   created_at: string;
@@ -75,6 +77,7 @@ export function fakeLabelsApi(resource: "categories" | "tags", initial: FakeLabe
         name: String(body.name).trim(),
         ...(withColor ? { color: (body.color as string | undefined)?.toUpperCase() ?? null } : {}),
         ...(withColor ? { kind: (body.kind as "expense" | "revenue" | undefined) ?? "expense" } : {}),
+        ...(withColor ? { icon: (body.icon as string | undefined) ?? null } : {}),
       });
       state.items.push(created);
       return HttpResponse.json(created, { status: 201 });
@@ -91,6 +94,7 @@ export function fakeLabelsApi(resource: "categories" | "tags", initial: FakeLabe
       if (typeof body.name === "string") item.name = body.name.trim();
       if ("color" in body) item.color = (body.color as string | null)?.toUpperCase() ?? null;
       if ("kind" in body) item.kind = body.kind as "expense" | "revenue";
+      if ("icon" in body) item.icon = (body.icon as string | null) ?? null;
       return HttpResponse.json(item);
     }),
 

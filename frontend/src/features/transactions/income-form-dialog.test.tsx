@@ -8,7 +8,7 @@ import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
-import { FakeAuth, WithSidebar, openIncomeForm } from "@/test-utils/providers";
+import { FakeAuth, WithSidebar, openIncomeForm, pickChip } from "@/test-utils/providers";
 import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { deposit } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
@@ -50,7 +50,7 @@ const save = () => userEvent.click(d().getByRole("button", { name: "Salvar" }));
 
 async function fill(description = "Salário de novembro", amount = "5.000,00") {
   await openIncomeForm();
-  await userEvent.selectOptions(d().getByLabelText("Conta"), "Nubank");
+  await pickChip(d(), "Conta", "Nubank");
   await type("Descrição", description);
   await type(/^Valor \(BRL\)/, amount);
 }
@@ -61,7 +61,8 @@ it("abre com os campos de receita: Foi recebida e so categorias de entrada", asy
   expect(d().getByText("Foi recebida")).toBeInTheDocument();
   expect(d().getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-pressed", "true");
   expect(d().getByRole("switch", { name: /Ignorar transação/ })).not.toBeChecked();
-  const options = within(d().getByLabelText("Categoria")).getAllByRole("option").map((o) => o.textContent);
+  await userEvent.click(d().getByRole("combobox", { name: "Categoria" }));
+  const options = screen.getAllByRole("option").map((o) => o.textContent);
   expect(options).toContain("Salário");
   expect(options).not.toContain("Mercado");
 });

@@ -26,6 +26,7 @@ import {
   useUpdateTransaction,
   type Transaction,
 } from "@/api/transactions";
+import { ChipSelect, type ChipOption } from "@/components/chip-select";
 import { FormField } from "@/components/form-field";
 import { MoneyInput } from "@/components/money-input";
 import { Alert } from "@/components/ui/alert";
@@ -35,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { CategoryIcon } from "@/features/labels/category-icon";
 import { FREQUENCIES, frequencyLabel } from "@/features/recurrences/presentation";
 import { appToday, shiftDay } from "@/lib/dates";
 import { placesOf } from "@/lib/money";
@@ -322,11 +324,25 @@ function FormBody({
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
   const billOptions = (selectedId: string) =>
     bills.filter((bill) => bill.type === kind && bill.currency_code === currency && (bill.active || bill.id === selectedId));
+  const categoryChips = (selectedId: string): ChipOption[] => [
+    { value: "", label: t("common.semCategoria"), leading: <CategoryIcon name="tag" /> },
+    ...categoryOptions(selectedId).map((category) => ({
+      value: category.id,
+      label: category.name,
+      leading: <CategoryIcon name={category.icon} color={category.color} />,
+    })),
+  ];
   const categoryOptions = (selectedId: string) =>
     categories.filter((category) => category.kind === (income ? "revenue" : "expense") || category.id === selectedId);
 
   const selectable = ctx.accounts.filter((a) => a.active || a.id === state.accountId || a.id === state.counterpartyAccountId);
   // So conta com algum digito diferente de zero (o campo formata sozinho: "0,00" e vazio, "12,50" e valor)
+  const accountChips: ChipOption[] = selectable.map((option) => ({
+    value: option.id,
+    label: `${option.name}${option.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}`,
+    hint: option.currency_code !== "BRL" ? option.currency_code : undefined,
+    leading: <CategoryIcon icon={Landmark} color={option.color} />,
+  }));
   const amountFilled = /[1-9]/.test(state.amount);
   const symbol = currencies.find((item) => item.code === currency)?.symbol ?? currency;
   const accountCurrencies = Array.from(new Set(selectable.map((a) => a.currency_code))).sort();
@@ -689,14 +705,13 @@ function FormBody({
         <Row icon={Bookmark}>
           <FormField id="tx-category" hideLabel label={t("common.categoria")}>
             {(props) => (
-              <Select {...props} value={state.categoryId} onChange={(e) => patch({ categoryId: e.target.value })} className={UNDERLINED}>
-                <option value="">{t("common.semCategoria")}</option>
-                {categoryOptions(state.categoryId).map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
+              <ChipSelect
+                {...props}
+                value={state.categoryId}
+                options={categoryChips(state.categoryId)}
+                placeholder={t("common.semCategoria")}
+                onChange={(next) => patch({ categoryId: next })}
+              />
             )}
           </FormField>
         </Row>
@@ -705,21 +720,13 @@ function FormBody({
       <Row icon={Landmark}>
         <FormField id="tx-account" hideLabel label={t("common.conta")} error={errors.accountId}>
           {(props) => (
-            <Select
+            <ChipSelect
               {...props}
               value={state.accountId}
-              className={UNDERLINED}
-              onChange={(e) => chooseAccount(e.target.value)}
-            >
-              <option value="">{t("common.escolha")}</option>
-              {selectable.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                  {option.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
-                  {option.currency_code !== "BRL" ? ` - ${option.currency_code}` : ""}
-                </option>
-              ))}
-            </Select>
+              options={accountChips}
+              placeholder={t("common.escolha")}
+              onChange={chooseAccount}
+            />
           )}
         </FormField>
       </Row>
