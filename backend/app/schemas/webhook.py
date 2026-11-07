@@ -6,8 +6,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.webhook import DeliveryStatus, WebhookEvent
 
-EventName = Literal["transaction.created", "transaction.updated", "transaction.deleted"]
-DeliveryEventName = Literal["transaction.created", "transaction.updated", "transaction.deleted", "webhook.test"]
+EventName = Literal["transaction.created", "transaction.updated", "transaction.deleted", "budget.alert"]
+DeliveryEventName = Literal[
+    "transaction.created", "transaction.updated", "transaction.deleted", "budget.alert", "webhook.test"
+]
 
 
 def _strip_name(value: str | None) -> str | None:

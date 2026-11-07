@@ -9,9 +9,10 @@ from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core import clock
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams, paginate
-from app.models.budget import Budget, BudgetCategory, BudgetPeriod
+from app.models.budget import Budget, BudgetAlertLevel, BudgetCategory, BudgetPeriod
 from app.models.category import CategoryKind
 from app.models.currency import Currency
 from app.models.transaction import TransactionSplit, TransactionType
@@ -19,8 +20,12 @@ from app.models.user import User
 from app.schemas.budget import BudgetCreate, BudgetUpdate, check_dates
 from app.services import budget_calc as calc
 from app.services.accounts import check_amount, get_currency, quantize_money
+from app.services.webhooks import enqueue_event
 
 ZERO = Decimal("0")
+
+# A partir de quantos % do limite o orcamento passa a ser "perto do limite" (o mesmo numero da tela)
+WARNING_AT_PERCENT = 80
 
 
 def period_bounds(period: BudgetPeriod, reference: date) -> tuple[date, date]:
@@ -71,6 +76,7 @@ def create_budget(db: Session, user: User, data: BudgetCreate) -> Budget:
     _check_categories(db, user.id, data.category_ids)
     _save(db, budget)
     _set_categories(db, budget, data.category_ids)
+    _reset_alert(db, budget)
     return budget
 
 
@@ -125,6 +131,9 @@ def update_budget(db: Session, budget: Budget, data: BudgetUpdate) -> Budget:
     _save(db, budget)
     if category_ids is not None:
         _set_categories(db, budget, category_ids)
+    # Ligou o alerta (ou o orcamento mudou de periodo): o aviso parte do nivel de agora, sem avisar do que ja passou
+    if "alert" in changes or "period" in changes or "start_date" in changes:
+        _reset_alert(db, budget)
     return budget
 
 
@@ -290,11 +299,15 @@ def _bounds(budget: Budget, on: date) -> tuple[date, date]:
     return period_bounds(budget.period, on)
 
 
-def progress(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) -> list[dict]:
+def progress(
+    db: Session, user_id: uuid.UUID, on: date, include_archived: bool, only: set[uuid.UUID] | None = None
+) -> list[dict]:
     """Orcamentos com o gasto do periodo que contem `on` (o personalizado, o proprio intervalo), em ordem alfabetica."""
     statement = select(Budget).where(Budget.user_id == user_id)
     if not include_archived:
         statement = statement.where(Budget.active.is_(True))
+    if only is not None:
+        statement = statement.where(Budget.id.in_(only))
     budgets = list(db.execute(statement.order_by(func.lower(Budget.name), Budget.id)).scalars())
     if not budgets:
         return []
@@ -355,3 +368,73 @@ def progress(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) 
     order = {budget.id: index for index, budget in enumerate(budgets)}
     items.sort(key=lambda item: order[item["id"]])
     return items
+
+
+# ---------- Alerta (webhook budget.alert) ----------
+
+_RANK = {BudgetAlertLevel.none: 0, BudgetAlertLevel.warning: 1, BudgetAlertLevel.over: 2}
+
+
+def _level(percent: int) -> BudgetAlertLevel:
+    if percent >= 100:
+        return BudgetAlertLevel.over
+    if percent >= WARNING_AT_PERCENT:
+        return BudgetAlertLevel.warning
+    return BudgetAlertLevel.none
+
+
+def _reset_alert(db: Session, budget: Budget) -> None:
+    """Marca o nivel de agora como ja conhecido, sem avisar: o alerta so fala de cruzamentos que vierem depois."""
+    if not budget.alert:
+        budget.alert_level, budget.alert_period_start = BudgetAlertLevel.none, None
+        db.flush()
+        return
+    items = progress(db, budget.user_id, clock.today(), include_archived=True, only={budget.id})
+    if items and not items[0]["expired"]:
+        budget.alert_level = _level(items[0]["percent"])
+        budget.alert_period_start = items[0]["period_start"]
+    else:
+        budget.alert_level, budget.alert_period_start = BudgetAlertLevel.none, None
+    db.flush()
+
+
+def _alert_data(item: dict, level: BudgetAlertLevel) -> dict:
+    return {
+        "budget": {"id": str(item["id"]), "name": item["name"], "currency_code": item["currency_code"]},
+        "level": level.value,
+        "percent": item["percent"],
+        "limit": str(item["limit"]),
+        "spent": str(item["spent"]),
+        "remaining": str(item["remaining"]),
+        "period_start": item["period_start"].isoformat(),
+        "period_end": item["period_end"].isoformat(),
+    }
+
+
+def check_alerts(db: Session, user_id: uuid.UUID) -> int:
+    """Avisa (webhook budget.alert) os orcamentos com alerta que subiram de nivel no periodo de hoje: de abaixo de 80%
+    para perto do limite, ou para o limite atingido. Roda dentro da transacao do lancamento que mexeu no gasto. Quando
+    o gasto cai (lancamento apagado ou editado) o nivel guardado desce junto, para o proximo cruzamento avisar de novo.
+    Devolve quantos avisos foram enfileirados."""
+    budgets = {
+        budget.id: budget
+        for budget in db.execute(
+            select(Budget).where(Budget.user_id == user_id, Budget.active.is_(True), Budget.alert.is_(True))
+        ).scalars()
+    }
+    if not budgets:
+        return 0
+    sent = 0
+    for item in progress(db, user_id, clock.today(), include_archived=False, only=set(budgets)):
+        if item["expired"]:
+            continue
+        budget = budgets[item["id"]]
+        level = _level(item["percent"])
+        known = budget.alert_level if budget.alert_period_start == item["period_start"] else BudgetAlertLevel.none
+        if _RANK[level] > _RANK[known]:
+            sent += enqueue_event(db, user_id, "budget.alert", lambda item=item, level=level: _alert_data(item, level))
+        if level != known or budget.alert_period_start != item["period_start"]:
+            budget.alert_level = level
+            budget.alert_period_start = item["period_start"]
+    db.flush()
+    return sent

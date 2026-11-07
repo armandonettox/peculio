@@ -27,6 +27,8 @@ class WebhookEvent(enum.StrEnum):
     transaction_created = "transaction.created"
     transaction_updated = "transaction.updated"
     transaction_deleted = "transaction.deleted"
+    # Um orcamento com alerta chegou perto do limite (80%) ou passou dele
+    budget_alert = "budget.alert"
 
 
 # Evento que so existe no botao "Testar": nenhum webhook se inscreve nele

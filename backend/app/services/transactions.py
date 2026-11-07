@@ -25,7 +25,7 @@ from app.services.clearings import assert_unlocked, capture_clearings, clearing_
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
 from app.services.attachment_storage import storage_path
 from app.services.recurrences import find_matching_recurrence, get_owned_bill_mode_recurrence
-from app.services.budgets import get_owned_budget
+from app.services.budgets import check_alerts, get_owned_budget
 from app.services.rule_defs import load_rule_defs
 from app.services.rules_engine import Fill, RuleDef, SplitFacts, apply_rules
 from app.services.webhooks import enqueue_event
@@ -384,6 +384,7 @@ def _enqueue(db: Session, user_id: uuid.UUID, event: WebhookEvent, transaction: 
 def notify_transaction_updated(db: Session, user_id: uuid.UUID, transaction: Transaction) -> None:
     """Para quem altera lancamentos fora da edicao comum (aplicar regras sobre os antigos)."""
     _enqueue(db, user_id, WebhookEvent.transaction_updated, transaction)
+    check_alerts(db, user_id)
 
 
 def create_transaction(
@@ -405,6 +406,7 @@ def create_transaction(
         _build_split(db, user, transaction.id, split_data, position, rules)
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_created, transaction)
+    check_alerts(db, user.id)
     return transaction
 
 
@@ -439,6 +441,7 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
         restore_clearings(db, user.id, created, cleared.get(position, []))
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
+    check_alerts(db, user.id)
     return transaction
 
 
@@ -466,6 +469,8 @@ def delete_transaction(db: Session, transaction: Transaction) -> list[Path]:
     paths = [storage_path(attachment.user_id, attachment.storage_name) for attachment in attachments]
     db.delete(transaction)
     db.flush()
+    # O gasto caiu: o nivel guardado desce junto, para um novo cruzamento avisar de novo
+    check_alerts(db, transaction.user_id)
     return paths
 
 

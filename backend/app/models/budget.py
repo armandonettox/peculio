@@ -31,6 +31,14 @@ class BudgetPeriod(enum.StrEnum):
     custom = "custom"
 
 
+class BudgetAlertLevel(enum.StrEnum):
+    none = "none"
+    # De 80% do limite ate antes de 100%
+    warning = "warning"
+    # Limite atingido ou passado
+    over = "over"
+
+
 class Budget(Base):
     """Limite de gasto que se repete a cada periodo. O gasto nunca e guardado: e somado dos lancamentos
     ligados ao orcamento, como os saldos das contas. Quando `carry_over` esta ligado, a sobra (ou o
@@ -64,6 +72,12 @@ class Budget(Base):
     end_date: Mapped[dt.date | None] = mapped_column(Date, default=None)
     # Marca o orcamento quando chega perto do limite (80%) ou passa dele
     alert: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # Ate onde o aviso (webhook budget.alert) ja foi dado no periodo que comecou em `alert_period_start`: avisa quando
+    # o nivel sobe, nao a cada lancamento. Quando o periodo muda, comeca de novo.
+    alert_level: Mapped[BudgetAlertLevel] = mapped_column(
+        Enum(BudgetAlertLevel, native_enum=False, length=8), default=BudgetAlertLevel.none, server_default="none"
+    )
+    alert_period_start: Mapped[dt.date | None] = mapped_column(Date, default=None)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
