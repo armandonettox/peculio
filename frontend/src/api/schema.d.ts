@@ -663,6 +663,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Favorites */
+        get: operations["list_favorites_api_v1_favorites_get"];
+        put?: never;
+        /**
+         * Save Favorite
+         * @description Marca a descricao como favorita (201) ou atualiza a categoria e a conta de um favorito que ja existe (200).
+         */
+        post: operations["save_favorite_api_v1_favorites_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/favorites/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Suggestions
+         * @description Sugestoes para a descricao de um lancamento novo: favoritos primeiro, depois o que ja foi lancado.
+         */
+        get: operations["suggestions_api_v1_favorites_suggestions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/favorites/{favorite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Favorite */
+        delete: operations["delete_favorite_api_v1_favorites__favorite_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/imports/confirm": {
         parameters: {
             query?: never;
@@ -2134,6 +2192,44 @@ export interface components {
          * @enum {string}
          */
         DeliveryStatus: "pending" | "delivered" | "failed" | "expired";
+        /** FavoriteIn */
+        FavoriteIn: {
+            /** Account Id */
+            account_id?: string | null;
+            /** Category Id */
+            category_id?: string | null;
+            /** Description */
+            description: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "withdrawal" | "deposit";
+        };
+        /** FavoriteOut */
+        FavoriteOut: {
+            /** Account Id */
+            account_id: string | null;
+            /** Category Id */
+            category_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "withdrawal" | "deposit";
+        };
         /** GroupedReportOut */
         GroupedReportOut: {
             /** Currencies */
@@ -3440,6 +3536,20 @@ export interface components {
              * Format: date
              */
             statement_date: string;
+        };
+        /**
+         * SuggestionOut
+         * @description Uma sugestao ao digitar a descricao: um favorito, ou algo que ja foi lancado antes.
+         */
+        SuggestionOut: {
+            /** Account Id */
+            account_id: string | null;
+            /** Category Id */
+            category_id: string | null;
+            /** Description */
+            description: string;
+            /** Favorite Id */
+            favorite_id: string | null;
         };
         /** SummaryOut */
         SummaryOut: {
@@ -5296,6 +5406,132 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UpcomingOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_favorites_api_v1_favorites_get: {
+        parameters: {
+            query?: {
+                type?: ("withdrawal" | "deposit") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_favorite_api_v1_favorites_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FavoriteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggestions_api_v1_favorites_suggestions_get: {
+        parameters: {
+            query: {
+                type: "withdrawal" | "deposit";
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_favorite_api_v1_favorites__favorite_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                favorite_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

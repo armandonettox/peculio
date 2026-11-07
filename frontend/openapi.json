@@ -1718,6 +1718,115 @@
         "title": "DeliveryStatus",
         "type": "string"
       },
+      "FavoriteIn": {
+        "additionalProperties": false,
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "description": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "withdrawal",
+              "deposit"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "description"
+        ],
+        "title": "FavoriteIn",
+        "type": "object"
+      },
+      "FavoriteOut": {
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "withdrawal",
+              "deposit"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "description",
+          "category_id",
+          "account_id",
+          "created_at"
+        ],
+        "title": "FavoriteOut",
+        "type": "object"
+      },
       "GroupedReportOut": {
         "properties": {
           "currencies": {
@@ -5442,6 +5551,59 @@
         "title": "StatementIn",
         "type": "object"
       },
+      "SuggestionOut": {
+        "description": "Uma sugestao ao digitar a descricao: um favorito, ou algo que ja foi lancado antes.",
+        "properties": {
+          "account_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "favorite_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favorite Id"
+          }
+        },
+        "required": [
+          "description",
+          "category_id",
+          "account_id",
+          "favorite_id"
+        ],
+        "title": "SuggestionOut",
+        "type": "object"
+      },
       "SummaryOut": {
         "properties": {
           "currencies": {
@@ -9019,6 +9181,233 @@
         "summary": "Get Upcoming",
         "tags": [
           "dashboard"
+        ]
+      }
+    },
+    "/api/v1/favorites": {
+      "get": {
+        "operationId": "list_favorites_api_v1_favorites_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "withdrawal",
+                    "deposit"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FavoriteOut"
+                  },
+                  "title": "Response List Favorites Api V1 Favorites Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Favorites",
+        "tags": [
+          "favorites"
+        ]
+      },
+      "post": {
+        "description": "Marca a descricao como favorita (201) ou atualiza a categoria e a conta de um favorito que ja existe (200).",
+        "operationId": "save_favorite_api_v1_favorites_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Save Favorite",
+        "tags": [
+          "favorites"
+        ]
+      }
+    },
+    "/api/v1/favorites/suggestions": {
+      "get": {
+        "description": "Sugestoes para a descricao de um lancamento novo: favoritos primeiro, depois o que ja foi lancado.",
+        "operationId": "suggestions_api_v1_favorites_suggestions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "enum": [
+                "withdrawal",
+                "deposit"
+              ],
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 255,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionOut"
+                  },
+                  "title": "Response Suggestions Api V1 Favorites Suggestions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Suggestions",
+        "tags": [
+          "favorites"
+        ]
+      }
+    },
+    "/api/v1/favorites/{favorite_id}": {
+      "delete": {
+        "operationId": "delete_favorite_api_v1_favorites__favorite_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "favorite_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Favorite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Favorite",
+        "tags": [
+          "favorites"
         ]
       }
     },

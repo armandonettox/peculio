@@ -50,6 +50,7 @@ class ErrorCode(StrEnum):
     CATEGORY_NOT_FOUND = "category_not_found"
     CATEGORY_NAME_TAKEN = "category_name_taken"
     CATEGORY_KIND_MISMATCH = "category_kind_mismatch"
+    FAVORITE_NOT_FOUND = "favorite_not_found"
     TAG_NOT_FOUND = "tag_not_found"
     TAG_NAME_TAKEN = "tag_name_taken"
     # Orcamentos

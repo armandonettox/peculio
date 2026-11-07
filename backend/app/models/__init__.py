@@ -6,6 +6,7 @@ from app.models.auth_session import AuthSession  # noqa: F401
 from app.models.budget import Budget  # noqa: F401
 from app.models.category import Category  # noqa: F401
 from app.models.currency import Currency  # noqa: F401
+from app.models.favorite import Favorite  # noqa: F401
 from app.models.instance_setting import InstanceSetting  # noqa: F401
 from app.models.piggy_bank import PiggyBank, PiggyBankEvent  # noqa: F401
 from app.models.reconciliation import AccountClearing, Reconciliation  # noqa: F401
