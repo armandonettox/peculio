@@ -8,8 +8,10 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
 
+from app.core import clock
 from app.core.errors import AppError, ErrorCode
 from app.models.account import Account, AccountRole, AccountType
+from app.models.budget import BudgetAlertLevel
 from app.models.category import Category, CategoryKind
 from app.models.currency import Currency
 from app.models.monthly_plan import CardCounting, MonthlyPlan, MonthlyPlanItem
@@ -19,6 +21,7 @@ from app.schemas.monthly_plan import MonthlyPlanCreate, MonthlyPlanUpdate, PlanI
 from app.services.accounts import get_currency, quantize_money
 from app.services.invoices import due_date_for, period_for
 from app.services.transactions import get_owned_category
+from app.services.webhooks import enqueue_event
 
 ZERO = Decimal("0")
 HUNDRED = Decimal("100")
@@ -123,6 +126,7 @@ def create_plan(db: Session, user: User, month: dt.date, data: MonthlyPlanCreate
     for item in data.items:
         db.add(MonthlyPlanItem(plan_id=plan.id, category_id=item.category_id, amount=item.amount, alert=item.alert))
     db.flush()
+    _reset_alerts(db, user.id, plan)
     return plan
 
 
@@ -151,6 +155,7 @@ def upsert_items(db: Session, user: User, plan: MonthlyPlan, incoming: list[Plan
             existing[item.category_id] = created
     _check_budget(plan, _places(db, plan.currency_code), [item.amount for item in existing.values()])
     db.flush()
+    _reset_alerts(db, user.id, plan)
 
 
 def delete_item(db: Session, plan: MonthlyPlan, category_id: uuid.UUID) -> None:
@@ -181,6 +186,7 @@ def copy_previous(db: Session, user: User, month: dt.date) -> MonthlyPlan:
     for item in _items(db, source):
         db.add(MonthlyPlanItem(plan_id=copy.id, category_id=item.category_id, amount=item.amount, alert=item.alert))
     db.flush()
+    _reset_alerts(db, user.id, copy)
     return copy
 
 
@@ -360,3 +366,76 @@ def build_output(db: Session, user_id: uuid.UUID, plan: MonthlyPlan) -> dict:
         },
         "rows": rows,
     }
+
+
+# ---------- Alerta (webhook budget.alert) ----------
+
+_LEVEL_OF_STATE = {"ok": BudgetAlertLevel.none, "near": BudgetAlertLevel.warning, "exceeded": BudgetAlertLevel.over}
+_RANK = {BudgetAlertLevel.none: 0, BudgetAlertLevel.warning: 1, BudgetAlertLevel.over: 2}
+
+
+def _item_level(item: MonthlyPlanItem, total: Decimal) -> BudgetAlertLevel:
+    """O mesmo criterio do selo da tabela: perto a partir de 80% do limite, passou quando o total supera o limite."""
+    return _LEVEL_OF_STATE[_state(item.amount, total)]
+
+
+def _reset_alerts(db: Session, user_id: uuid.UUID, plan: MonthlyPlan) -> None:
+    """Grava o nivel de agora como ja conhecido, sem avisar: o alerta so fala de cruzamentos que vierem depois. Limite
+    sem alerta volta a zero."""
+    items = _items(db, plan)
+    with_alert = [item for item in items if item.alert]
+    spent = _spent_by_category(db, user_id, plan) if with_alert else {}
+    for item in items:
+        if item.alert:
+            paid, expected = spent.get(item.category_id, [ZERO, ZERO])
+            item.alert_level = _item_level(item, paid + expected)
+        else:
+            item.alert_level = BudgetAlertLevel.none
+    db.flush()
+
+
+def check_plan_alerts(db: Session, user_id: uuid.UUID) -> int:
+    """Avisa (webhook budget.alert, com source "monthly_plan") os limites com alerta do planejamento do mes de hoje que
+    subiram de nivel: de abaixo de 80% para perto do limite, ou para passou do limite. Roda dentro da transacao do
+    lancamento que mexeu no gasto. Se o gasto cai, o nivel guardado desce junto e o proximo cruzamento avisa de novo.
+    Devolve quantos avisos foram enfileirados."""
+    plan = get_plan(db, user_id, clock.today().replace(day=1))
+    if not plan:
+        return 0
+    items = [item for item in _items(db, plan) if item.alert]
+    if not items:
+        return 0
+    spent = _spent_by_category(db, user_id, plan)
+    places = _places(db, plan.currency_code)
+    categories = {
+        category.id: category
+        for category in db.execute(select(Category).where(Category.id.in_([item.category_id for item in items]))).scalars()
+    }
+    sent = 0
+    for item in items:
+        paid, expected = spent.get(item.category_id, [ZERO, ZERO])
+        total = paid + expected
+        level = _item_level(item, total)
+        if _RANK[level] > _RANK[item.alert_level]:
+            category = categories[item.category_id]
+
+            def data(item=item, category=category, paid=paid, expected=expected, total=total, level=level):
+                limit = item.amount
+                return {
+                    "source": "monthly_plan",
+                    "category": {"id": str(category.id), "name": category.name},
+                    "month": plan.month.isoformat(),
+                    "currency_code": plan.currency_code,
+                    "level": level.value,
+                    "percent": int(total * 100 // limit) if limit > 0 else 0,
+                    "limit": str(quantize_money(limit, places)),
+                    "spent": str(quantize_money(total, places)),
+                    "paid": str(quantize_money(paid, places)),
+                    "expected": str(quantize_money(expected, places)),
+                    "remaining": str(quantize_money(limit - total, places)),
+                }
+
+            sent += enqueue_event(db, user_id, "budget.alert", data)
+        item.alert_level = level
+    db.flush()
+    return sent

@@ -19,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+from app.models.budget import BudgetAlertLevel
 
 
 class CardCounting(enum.StrEnum):
@@ -71,3 +72,7 @@ class MonthlyPlanItem(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 2))
     # Avisar quando o gasto chegar perto do limite
     alert: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    # Ate onde o aviso (webhook budget.alert) ja foi dado neste mes: avisa quando o nivel sobe, nao a cada lancamento
+    alert_level: Mapped[BudgetAlertLevel] = mapped_column(
+        Enum(BudgetAlertLevel, native_enum=False, length=8), default=BudgetAlertLevel.none, server_default="none"
+    )

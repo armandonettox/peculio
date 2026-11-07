@@ -381,10 +381,19 @@ def _enqueue(db: Session, user_id: uuid.UUID, event: WebhookEvent, transaction: 
     )
 
 
+def _check_alerts(db: Session, user_id: uuid.UUID) -> None:
+    """Depois de mexer no gasto: avisa os orcamentos e os limites do planejamento mensal que cruzaram 80% ou o limite."""
+    # Import aqui dentro: o servico do planejamento ja importa este modulo
+    from app.services.monthly_plan import check_plan_alerts
+
+    check_alerts(db, user_id)
+    check_plan_alerts(db, user_id)
+
+
 def notify_transaction_updated(db: Session, user_id: uuid.UUID, transaction: Transaction) -> None:
     """Para quem altera lancamentos fora da edicao comum (aplicar regras sobre os antigos)."""
     _enqueue(db, user_id, WebhookEvent.transaction_updated, transaction)
-    check_alerts(db, user_id)
+    _check_alerts(db, user_id)
 
 
 def create_transaction(
@@ -406,7 +415,7 @@ def create_transaction(
         _build_split(db, user, transaction.id, split_data, position, rules)
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_created, transaction)
-    check_alerts(db, user.id)
+    _check_alerts(db, user.id)
     return transaction
 
 
@@ -441,7 +450,7 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
         restore_clearings(db, user.id, created, cleared.get(position, []))
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
-    check_alerts(db, user.id)
+    _check_alerts(db, user.id)
     return transaction
 
 
@@ -470,7 +479,7 @@ def delete_transaction(db: Session, transaction: Transaction) -> list[Path]:
     db.delete(transaction)
     db.flush()
     # O gasto caiu: o nivel guardado desce junto, para um novo cruzamento avisar de novo
-    check_alerts(db, transaction.user_id)
+    _check_alerts(db, transaction.user_id)
     return paths
 
 

@@ -400,6 +400,7 @@ def _reset_alert(db: Session, budget: Budget) -> None:
 
 def _alert_data(item: dict, level: BudgetAlertLevel) -> dict:
     return {
+        "source": "budget",
         "budget": {"id": str(item["id"]), "name": item["name"], "currency_code": item["currency_code"]},
         "level": level.value,
         "percent": item["percent"],
