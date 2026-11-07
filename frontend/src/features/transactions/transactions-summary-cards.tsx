@@ -33,19 +33,20 @@ function SummaryCard({ icon, label, value, currency, colorClass, onClick }: Card
   const formatted = formatMoney(value, currency);
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border bg-card p-4 ${onClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""}`}
+      className={`flex items-center gap-2 rounded-xl border bg-card p-3 sm:gap-3 sm:p-4 ${onClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""}`}
       onClick={onClick}
     >
-      <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${colorClass}`}>
+      <div className={`flex size-8 shrink-0 items-center justify-center rounded-full sm:size-10 ${colorClass}`}>
         {icon}
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-sm font-semibold tabular-nums ${amount < 0 ? "text-destructive" : ""}`}>
+        {/* Sem quebra: no celular o sinal de menos ficava numa linha e o valor na de baixo */}
+        <p className={`whitespace-nowrap text-sm font-semibold tabular-nums ${amount < 0 ? "text-destructive" : ""}`}>
           {formatted}
         </p>
       </div>
-      {onClick && <ChevronRight className="size-4 shrink-0 text-muted-foreground" />}
+      {onClick && <ChevronRight className="hidden size-4 shrink-0 text-muted-foreground sm:block" />}
     </div>
   );
 }

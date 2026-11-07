@@ -299,7 +299,7 @@ export default function TransactionsPage() {
       <PageHeader title={t("pages.transactions.transacoes")} />
 
       {/* Barra de acoes */}
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {/* Filtro rapido por tipo */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -321,8 +321,8 @@ export default function TransactionsPage() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Campo de busca: sempre visivel */}
-        <div className="relative flex-1">
+        {/* Campo de busca: sempre visivel. No celular ocupa a linha de baixo inteira (ao lado dos botoes ficava minusculo) */}
+        <div className="relative order-3 w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
@@ -334,7 +334,7 @@ export default function TransactionsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1 sm:ml-0">
           {searchDraft && (
             <Button
               size="icon"
