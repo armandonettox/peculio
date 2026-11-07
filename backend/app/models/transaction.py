@@ -1,3 +1,4 @@
+import datetime as dt
 import enum
 import uuid
 from datetime import date, datetime
@@ -125,6 +126,10 @@ class TransactionSplit(Base):
     is_paid: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     # Ignorado: continua mexendo no saldo da conta, mas sai dos totais, relatorios e orcamentos
     ignored: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    # Compra no cartao de credito: a fatura escolhida, dada por uma data dentro dela (a de fechamento). Nula = a fatura
+    # que contem a data da compra, como sempre foi. So vale em saida de uma conta de cartao.
+    # dt.date, nao date: dentro desta classe `date` e a coluna da data da compra
+    invoice_date: Mapped[dt.date | None] = mapped_column(Date)
     # De onde veio um lancamento importado: o identificador que o banco deu (FITID do OFX) e a conta em que
     # ele vale. Serve para nao importar o mesmo lancamento duas vezes. Lancamento comum fica sem os dois.
     external_id: Mapped[str | None] = mapped_column(String(255))

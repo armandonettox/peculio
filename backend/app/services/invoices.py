@@ -3,7 +3,7 @@ import uuid
 from datetime import date, timedelta
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
@@ -74,8 +74,9 @@ def invoice(db: Session, user_id: uuid.UUID, account_id: uuid.UUID, on: date) ->
             .where(
                 TransactionSplit.source_account_id == account.id,
                 TransactionSplit.type == TransactionType.withdrawal,
-                TransactionSplit.date >= period_start,
-                TransactionSplit.date <= period_end,
+                # A fatura escolhida na compra vale mais que a data dela
+                func.coalesce(TransactionSplit.invoice_date, TransactionSplit.date) >= period_start,
+                func.coalesce(TransactionSplit.invoice_date, TransactionSplit.date) <= period_end,
             )
             .order_by(TransactionSplit.date, TransactionSplit.id)
         )
@@ -103,3 +104,59 @@ def invoice(db: Session, user_id: uuid.UUID, account_id: uuid.UUID, on: date) ->
             for split in splits
         ],
     }
+
+
+# ---------- Faturas para escolher ----------
+
+
+def _shift_months(day: date, months: int) -> date:
+    index = day.year * 12 + (day.month - 1) + months
+    return _day_in_month(index // 12, index % 12 + 1, day.day)
+
+
+def invoice_options(
+    db: Session, user_id: uuid.UUID, account_id: uuid.UUID, around: date, today: date, past: int = 2, future: int = 6
+) -> list[dict]:
+    """As faturas que o formulario oferece para uma compra no cartao: algumas ja fechadas, a aberta (a que contem
+    `today`) e as proximas, mais a que contem `around` (a data da compra) se estiver fora dessa janela. Cada uma com o
+    periodo, o vencimento, o total e a situacao: zero (passada sem nada), closed (passada com compras), open ou partial
+    (futura)."""
+    account = get_owned_account(db, user_id, account_id)
+    _require_credit_card(account)
+    closing = account.closing_day
+
+    _, current_end = period_for(today, closing)
+    periods = {period_for(_shift_months(current_end, step), closing) for step in range(-past, future + 1)}
+    periods.add(period_for(around, closing))
+    ordered = sorted(periods, key=lambda period: period[1])
+
+    effective = func.coalesce(TransactionSplit.invoice_date, TransactionSplit.date)
+    rows = db.execute(
+        select(effective, TransactionSplit.amount).where(
+            TransactionSplit.source_account_id == account.id,
+            TransactionSplit.type == TransactionType.withdrawal,
+            effective >= ordered[0][0],
+            effective <= ordered[-1][1],
+        )
+    ).all()
+
+    decimal_places = db.scalar(select(Currency.decimal_places).where(Currency.code == account.currency_code))
+    options = []
+    for start, end in ordered:
+        total = quantize_money(sum((amount for day, amount in rows if start <= day <= end), Decimal(0)), decimal_places)
+        if start > today:
+            status = "partial"
+        elif end >= today:
+            status = "open"
+        else:
+            status = "closed" if total != 0 else "zero"
+        options.append(
+            {
+                "period_start": start,
+                "period_end": end,
+                "due_date": due_date_for(end, account.due_day),
+                "total": total,
+                "status": status,
+            }
+        )
+    return options

@@ -80,6 +80,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounts/{account_id}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Invoice Options
+         * @description As faturas do cartao para escolher onde lancar uma compra: a aberta, algumas passadas e as proximas, mais a que
+         *     contem `around` (a data da compra, hoje se omitida).
+         */
+        get: operations["get_invoice_options_api_v1_accounts__account_id__invoices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/api-tokens": {
         parameters: {
             query?: never;
@@ -2421,6 +2442,34 @@ export interface components {
             /** Used By Id */
             used_by_id?: string | null;
         };
+        /**
+         * InvoiceOptionOut
+         * @description Uma fatura oferecida ao escolher onde lancar uma compra no cartao.
+         */
+        InvoiceOptionOut: {
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "zero" | "closed" | "open" | "partial";
+            /** Total */
+            total: string;
+        };
         /** InvoiceOut */
         InvoiceOut: {
             /**
@@ -3681,6 +3730,8 @@ export interface components {
              * @default false
              */
             ignored: boolean;
+            /** Invoice Date */
+            invoice_date?: string | null;
             /**
              * Is Paid
              * @default true
@@ -3733,6 +3784,8 @@ export interface components {
              * @default false
              */
             ignored: boolean;
+            /** Invoice Date */
+            invoice_date?: string | null;
             /**
              * Is Paid
              * @default true
@@ -3794,6 +3847,8 @@ export interface components {
              * @default false
              */
             ignored: boolean;
+            /** Invoice Date */
+            invoice_date?: string | null;
             /**
              * Is Paid
              * @default true
@@ -4292,6 +4347,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvoiceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_invoice_options_api_v1_accounts__account_id__invoices_get: {
+        parameters: {
+            query?: {
+                around?: string | null;
+            };
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceOptionOut"][];
                 };
             };
             /** @description Validation Error */

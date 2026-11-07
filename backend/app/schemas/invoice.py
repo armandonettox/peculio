@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -24,3 +24,14 @@ class InvoiceOut(BaseModel):
     due_date: date
     total: Money
     splits: list[InvoiceSplitOut]
+
+
+class InvoiceOptionOut(BaseModel):
+    """Uma fatura oferecida ao escolher onde lancar uma compra no cartao."""
+
+    period_start: date
+    period_end: date
+    due_date: date
+    total: Money
+    # zero: ja fechou e nao teve compras; closed: ja fechou; open: a atual; partial: ainda vai abrir
+    status: Literal["zero", "closed", "open", "partial"]

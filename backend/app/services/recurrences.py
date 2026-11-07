@@ -158,7 +158,14 @@ def _check_range(currency: Currency, amount_min: Decimal, amount_max: Decimal) -
 
 def _at(template: TransactionCreate, day: date) -> TransactionCreate:
     """O modelo com a data de cada linha trocada por `day`."""
-    return template.model_copy(update={"splits": [split.model_copy(update={"date": day}) for split in template.splits]})
+    def moved(split):
+        changes = {"date": day}
+        # A fatura escolhida acompanha a data: a mesma distancia da data da compra
+        if split.invoice_date is not None:
+            changes["invoice_date"] = split.invoice_date + (day - split.date)
+        return split.model_copy(update=changes)
+
+    return template.model_copy(update={"splits": [moved(split) for split in template.splits]})
 
 
 def _dump(template: TransactionCreate) -> dict:

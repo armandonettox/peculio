@@ -39,6 +39,8 @@ class TransactionSplitCreate(BaseModel):
     # Pago/recebido: nao pago nao mexe no saldo da conta. Ignorado sai dos totais, relatorios e orcamentos.
     is_paid: bool = True
     ignored: bool = False
+    # Fatura escolhida para uma compra no cartao: qualquer data dentro dela. Omitido: a fatura da data da compra.
+    invoice_date: date | None = None
 
     # Conta do usuario (origem no saque, destino no deposito, qualquer lado na transferencia)
     account_id: uuid.UUID
@@ -112,6 +114,7 @@ class TransactionSplitOut(BaseModel):
     notes: str | None
     is_paid: bool = True
     ignored: bool = False
+    invoice_date: date | None = None
     # Conferido com o extrato em algum dos lados; travado = a conciliacao foi fechada
     cleared: bool = False
     locked: bool = False

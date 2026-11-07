@@ -54,7 +54,8 @@ def _locked_ids(db: Session, ids: Sequence[uuid.UUID]) -> list[uuid.UUID]:
 
 def _as_create(db: Session, transaction: Transaction, on: dt.date) -> TransactionCreate:
     """O corpo que criaria uma copia do lancamento, com a data dada. Leva descricao, contrapartes, valores, categoria,
-    orcamento, tags e notas; nao leva anexos, marca de conferido, identificador do banco nem a conta a pagar."""
+    orcamento, tags e notas; nao leva anexos, marca de conferido, identificador do banco, a conta a pagar nem a fatura
+    escolhida (a copia cai na fatura da nova data)."""
     splits = list(
         db.execute(
             select(TransactionSplit).where(TransactionSplit.transaction_id == transaction.id).order_by(TransactionSplit.position)
@@ -120,7 +121,12 @@ def apply_bulk(db: Session, user: User, data: BulkIn) -> tuple[dict, list[Path]]
             service.notify_transaction_updated(db, user.id, transaction)
 
     elif data.action == BulkAction.set_date:
-        db.execute(update(TransactionSplit).where(TransactionSplit.transaction_id.in_(data.ids)).values(date=data.date))
+        # A fatura escolhida de uma compra no cartao nao acompanha a nova data: volta a valer a fatura da data
+        db.execute(
+            update(TransactionSplit)
+            .where(TransactionSplit.transaction_id.in_(data.ids))
+            .values(date=data.date, invoice_date=None)
+        )
         db.flush()
         for transaction in transactions:
             service.notify_transaction_updated(db, user.id, transaction)

@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import PageParams
-from app.models.account import Account, AccountType
+from app.models.account import Account, AccountRole, AccountType
 from app.models.attachment import Attachment
 from app.models.category import Category, CategoryKind
 from app.models.currency import Currency
@@ -330,6 +330,14 @@ def _build_split(
     tags = get_owned_tags(db, user.id, data.tag_ids)
     budget = _check_budget(db, user, data, destination_id) if data.budget_id is not None else None
     bill = _resolve_bill(db, user, data, source_id, destination_id)
+    if data.invoice_date is not None:
+        source = db.get(Account, source_id)
+        if data.type != TransactionType.withdrawal or source is None or source.role != AccountRole.credit_card:
+            raise AppError(
+                400,
+                ErrorCode.ACCOUNT_NOT_CREDIT_CARD,
+                "A fatura so vale para uma compra em uma conta de cartao de credito",
+            )
 
     split = TransactionSplit(
         transaction_id=transaction_id,
@@ -350,6 +358,7 @@ def _build_split(
         notes=data.notes,
         is_paid=data.is_paid,
         ignored=data.ignored,
+        invoice_date=data.invoice_date,
     )
     db.add(split)
     db.flush()
@@ -554,6 +563,7 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
                     "notes": split.notes,
                     "is_paid": split.is_paid,
                     "ignored": split.ignored,
+                    "invoice_date": split.invoice_date,
                     "cleared": clearing_map.get(split.id, (False, False))[0],
                     "locked": clearing_map.get(split.id, (False, False))[1],
                 }

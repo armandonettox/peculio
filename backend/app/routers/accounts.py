@@ -13,7 +13,7 @@ from app.core.pagination import Page, PageParams
 from app.models.account import USER_ACCOUNT_TYPES, Account
 from app.models.user import User
 from app.schemas.account import AccountCreate, AccountOut, AccountUpdate
-from app.schemas.invoice import InvoiceOut
+from app.schemas.invoice import InvoiceOptionOut, InvoiceOut
 from app.services import accounts as service
 from app.services import invoices as invoices_service
 
@@ -86,6 +86,19 @@ def get_invoice(
     lancamentos dentro dele. So funciona para conta com role=credit_card e fechamento/vencimento
     configurados."""
     return invoices_service.invoice(db, user.id, account_id, on or clock.today())
+
+
+@router.get("/{account_id}/invoices", response_model=list[InvoiceOptionOut])
+def get_invoice_options(
+    account_id: uuid.UUID,
+    around: date | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """As faturas do cartao para escolher onde lancar uma compra: a aberta, algumas passadas e as proximas, mais a que
+    contem `around` (a data da compra, hoje se omitida)."""
+    today = clock.today()
+    return invoices_service.invoice_options(db, user.id, account_id, around or today, today)
 
 
 @router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -35,13 +35,15 @@ def create_installments(db: Session, user: User, template: TransactionCreate, co
     transactions = []
     for index in range(count):
         installment_date = occurrence(split.date, RecurrenceFrequency.monthly, index)
-        installment_split = split.model_copy(
-            update={
-                "date": installment_date,
-                "amount": amounts[index],
-                "description": f"{split.description} ({index + 1}/{count})",
-            }
-        )
+        update = {
+            "date": installment_date,
+            "amount": amounts[index],
+            "description": f"{split.description} ({index + 1}/{count})",
+        }
+        # Fatura escolhida: a primeira parcela vai para ela e cada parcela seguinte para a fatura do mes seguinte
+        if split.invoice_date is not None:
+            update["invoice_date"] = occurrence(split.invoice_date, RecurrenceFrequency.monthly, index)
+        installment_split = split.model_copy(update=update)
         installment_template = template.model_copy(update={"splits": [installment_split]})
         transaction = create_transaction(db, user, installment_template)
         transaction.installment_group_id = group_id
