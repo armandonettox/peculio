@@ -15,6 +15,10 @@ export const server = setupServer(
   http.get("*/api/v1/reports/summary", () =>
     HttpResponse.json({ date_from: "2026-01-01", date_to: "2026-01-31", currencies: [] }),
   ),
+  // Favoritos e sugestoes da descricao: vazios por padrao, para os testes que so abrem o formulario de lancamento.
+  // Quem testa favoritos troca por fakeFavoritesApi.
+  http.get("*/api/v1/favorites/suggestions", () => HttpResponse.json([])),
+  http.get("*/api/v1/favorites", () => HttpResponse.json([])),
 );
 
 export const sampleUser = {

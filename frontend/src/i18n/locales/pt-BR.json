@@ -456,6 +456,7 @@
     "category_not_found": "Categoria não encontrada.",
     "category_name_taken": "Já existe uma categoria com esse nome.",
     "category_kind_mismatch": "Esta categoria não vale para este sentido (entrada ou saída).",
+    "favorite_not_found": "Favorito não encontrado.",
     "tag_not_found": "Tag não encontrada.",
     "tag_name_taken": "Já existe uma tag com esse nome.",
     "bill_not_found": "Conta a pagar não encontrada.",
@@ -976,7 +977,8 @@
       "times": "vezes",
       "toWhomHint": "Se ficar vazio, usa a descrição.",
       "repeatCountInvalid": "Informe de 2 a 999 vezes.",
-      "currency": "Moeda"
+      "currency": "Moeda",
+      "favoriteFailed": "O lançamento foi salvo, mas não foi possível atualizar o favorito."
     },
     "incomeForm": {
       "title": "Nova receita",
@@ -984,6 +986,12 @@
       "received": "Foi recebida",
       "notReceived": "Não foi recebida",
       "fixed": "Receita fixa"
+    },
+    "descriptionField": {
+      "favorite": "Marcar como favorita",
+      "unfavorite": "Tirar dos favoritos",
+      "suggestions": "Sugestões de descrição",
+      "favoriteTag": "favorita"
     }
   },
   "labels": {

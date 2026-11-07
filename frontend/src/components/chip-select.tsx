@@ -2,6 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useListDismiss } from "@/hooks/use-list-dismiss";
 import { cn } from "@/lib/utils";
 
 export type ChipOption = {
@@ -71,24 +72,7 @@ export function ChipSelect({ value, options, onChange, placeholder, className, .
     if (open) search.current?.focus();
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    // Esc fecha so a lista. O dialogo escuta o Esc no documento (fase de captura), entao a lista escuta antes, na janela.
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.stopPropagation();
-      close(true);
-    };
-    const onPointer = (event: MouseEvent) => {
-      if (root.current && !root.current.contains(event.target as Node)) close(false);
-    };
-    window.addEventListener("keydown", onKey, true);
-    document.addEventListener("mousedown", onPointer);
-    return () => {
-      window.removeEventListener("keydown", onKey, true);
-      document.removeEventListener("mousedown", onPointer);
-    };
-  }, [open]);
+  useListDismiss(open, root, close);
 
   useEffect(() => {
     if (open) document.getElementById(`${listId}-${active}`)?.scrollIntoView?.({ block: "nearest" });

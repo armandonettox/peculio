@@ -11,6 +11,7 @@ import {
   useRefreshAttachments,
 } from "@/api/attachments";
 import { useBudgets, type Budget } from "@/api/budgets";
+import { useDeleteFavorite, useFavorites, useSaveFavorite, type Suggestion } from "@/api/favorites";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
 import { useCategories, useTags, type Category, type Tag } from "@/api/labels";
@@ -37,6 +38,7 @@ import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CategoryIcon } from "@/features/labels/category-icon";
+import { DescriptionField } from "./description-field";
 import { FREQUENCIES, frequencyLabel } from "@/features/recurrences/presentation";
 import { appToday, shiftDay } from "@/lib/dates";
 import { placesOf } from "@/lib/money";
@@ -297,6 +299,11 @@ function FormBody({
   const [fileError, setFileError] = useState<string | null>(null);
   // Salvo, mas algum anexo nao subiu: o lancamento ja existe, entao so resta fechar
   const [finished, setFinished] = useState(false);
+  // Coracao: null = nao mexeu (vale o que ja existe); true = favoritar ao salvar; false = tirar dos favoritos ao salvar
+  const [favoriteWanted, setFavoriteWanted] = useState<boolean | null>(null);
+  const favoritesQuery = useFavorites(kind);
+  const saveFavorite = useSaveFavorite();
+  const deleteFavorite = useDeleteFavorite();
   const fileInput = useRef<HTMLInputElement>(null);
   const amountInput = useRef<HTMLInputElement>(null);
 
@@ -343,6 +350,9 @@ function FormBody({
     hint: option.currency_code !== "BRL" ? option.currency_code : undefined,
     leading: <CategoryIcon icon={Landmark} color={option.color} />,
   }));
+  const favoriteFor = (text: string) =>
+    (favoritesQuery.data ?? []).find((item) => item.description.toLowerCase() === text.trim().toLowerCase());
+  const isFavorite = favoriteWanted ?? Boolean(favoriteFor(state.description));
   const amountFilled = /[1-9]/.test(state.amount);
   const symbol = currencies.find((item) => item.code === currency)?.symbol ?? currency;
   const accountCurrencies = Array.from(new Set(selectable.map((a) => a.currency_code))).sort();
@@ -394,6 +404,46 @@ function FormBody({
   }
 
   // A moeda do lancamento e a da conta: escolher outra moeda leva para a primeira conta ativa dela (de ativo antes)
+  // Escolher uma sugestao preenche descricao, categoria e conta (nunca o valor), so com o que ainda vale
+  function pickSuggestion(suggestion: Suggestion) {
+    patch({ description: suggestion.description }, "description");
+    if (suggestion.category_id && categoryOptions("").some((category) => category.id === suggestion.category_id)) {
+      patch({ categoryId: suggestion.category_id });
+    }
+    if (suggestion.account_id && selectable.some((a) => a.id === suggestion.account_id && a.active)) {
+      chooseAccount(suggestion.account_id);
+    }
+    setFavoriteWanted(null);
+  }
+
+  function describeSuggestion(suggestion: Suggestion): string {
+    const categoryName = categories.find((category) => category.id === suggestion.category_id)?.name;
+    const accountName = ctx.accounts.find((a) => a.id === suggestion.account_id)?.name;
+    return [categoryName, accountName].filter(Boolean).join(" · ");
+  }
+
+  // Grava ou tira o favorito conforme o coracao, depois de o lancamento ja estar salvo. Devolve um aviso se falhar.
+  async function syncFavorite(effective: FormState): Promise<string | null> {
+    const text = effective.description.trim() || effective.splits?.[0]?.description.trim() || "";
+    if (!text || favoriteWanted === null) return null;
+    const existing = favoriteFor(text);
+    try {
+      if (favoriteWanted) {
+        await saveFavorite.mutateAsync({
+          type: kind,
+          description: text,
+          category_id: effective.categoryId || null,
+          account_id: effective.accountId || null,
+        });
+      } else if (existing) {
+        await deleteFavorite.mutateAsync(existing.id);
+      }
+    } catch {
+      return t("transactions.expenseForm.favoriteFailed");
+    }
+    return null;
+  }
+
   function chooseCurrency(code: string) {
     if (code === currency) return;
     const inCurrency = selectable.filter((a) => a.currency_code === code && a.active);
@@ -490,6 +540,7 @@ function FormBody({
     setFileError(null);
     setRepeat(NO_REPEAT);
     setOtherDate(false);
+    setFavoriteWanted(null);
     amountInput.current?.focus();
   }
 
@@ -529,6 +580,7 @@ function FormBody({
 
     try {
       const body = buildPayload(effective, ctx);
+      const warnings: string[] = [];
       if (recurringMode) {
         await createRecurrence.mutateAsync({
           name: effective.description.trim() || effective.splits?.[0]?.description.trim() || effective.counterpartyName.trim(),
@@ -552,11 +604,15 @@ function FormBody({
           }
         }
         if (files.length > 0) await refreshAttachments();
-        if (failed.length > 0) {
-          setFormError(t("transactions.expenseForm.attachFailed", { names: failed.join(", ") }));
-          setFinished(true);
-          return;
-        }
+        if (failed.length > 0) warnings.push(t("transactions.expenseForm.attachFailed", { names: failed.join(", ") }));
+      }
+      const favoriteWarning = await syncFavorite(effective);
+      if (favoriteWarning) warnings.push(favoriteWarning);
+      if (warnings.length > 0) {
+        // O lancamento ja esta salvo; so resta avisar o que nao deu certo e fechar
+        setFormError(warnings.join(" "));
+        setFinished(true);
+        return;
       }
       if (andNew && !editing) resetForNext();
       else onClose();
@@ -689,13 +745,18 @@ function FormBody({
           error={errors.description}
         >
           {(props) => (
-            <Input
+            <DescriptionField
               {...props}
-              autoComplete="off"
+              type={kind}
               placeholder={state.splits ? t("transactions.transactionFormDialog.tituloOpcional") : t("common.descricao")}
               value={state.description}
-              onChange={(e) => patch({ description: e.target.value }, "description")}
-              className={UNDERLINED}
+              onChange={(text) => patch({ description: text }, "description")}
+              favorite={isFavorite}
+              onToggleFavorite={() => setFavoriteWanted(!isFavorite)}
+              onPick={pickSuggestion}
+              describe={describeSuggestion}
+              heartClassName={income ? "text-positive" : "text-destructive"}
+              underlined={UNDERLINED}
             />
           )}
         </FormField>

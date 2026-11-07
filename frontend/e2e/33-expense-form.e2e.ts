@@ -159,3 +159,48 @@ test("a categoria com icone aparece como chip e vai para o lancamento", async ({
   expect(list.items[0].splits[0].category_id).toBe(categories.items[0].id);
   expect(categories.items[0].icon).toBe("shopping-cart");
 });
+
+test("favoritar uma descricao e usar a sugestao depois preenche categoria e conta, sem o valor", async ({ page, request }) => {
+  const headers = await apiHeaders(request);
+  await apiPost(request, headers, "/categories", { name: "Padaria Cat E2E", kind: "expense", icon: "utensils" });
+
+  await loginAndWaitForDashboard(page);
+  await goTo(page, "Transações");
+  await openExpenseForm(page);
+  await pickChip(page, "Conta", WALLET);
+  await pickChip(page, "Categoria", "Padaria Cat E2E");
+  await field(page, "Valor (BRL)").fill("15,00");
+  await field(page, "Descrição").fill("Pao Favorito E2E");
+  await dialog(page).getByRole("button", { name: "Marcar como favorita" }).click();
+  await expect(dialog(page).getByRole("button", { name: "Tirar dos favoritos" })).toHaveAttribute("aria-pressed", "true");
+  await dialog(page).getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  // O favorito ficou no servidor com a categoria e a conta, e sem valor
+  const favorites = await (await request.get("/api/v1/favorites", { headers, params: { type: "withdrawal" } })).json();
+  const saved = favorites.find((item: { description: string }) => item.description === "Pao Favorito E2E");
+  expect(saved).toBeTruthy();
+  expect(saved.category_id).not.toBeNull();
+  expect(saved.account_id).not.toBeNull();
+  expect(saved).not.toHaveProperty("amount");
+
+  // Num lancamento novo, digitar o comeco mostra o favorito primeiro; escolher preenche e nao mexe no valor
+  await openExpenseForm(page);
+  await field(page, "Valor (BRL)").fill("99,00");
+  await field(page, "Descrição").fill("pao fav");
+  const option = page.getByRole("option", { name: /Pao Favorito E2E/ });
+  await expect(option).toBeVisible();
+  await option.click();
+  await expect(field(page, "Descrição")).toHaveValue("Pao Favorito E2E");
+  await expect(dialog(page).getByRole("combobox", { name: "Categoria", exact: true })).toContainText("Padaria Cat E2E");
+  await expect(dialog(page).getByRole("combobox", { name: "Conta", exact: true })).toContainText(WALLET);
+  await expect(field(page, "Valor (BRL)")).toHaveValue("99,00");
+  await expect(dialog(page).getByRole("button", { name: "Tirar dos favoritos" })).toBeVisible();
+
+  // Desligar o coracao e salvar apaga o favorito
+  await dialog(page).getByRole("button", { name: "Tirar dos favoritos" }).click();
+  await dialog(page).getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(dialog(page)).toBeHidden();
+  const after = await (await request.get("/api/v1/favorites", { headers, params: { type: "withdrawal" } })).json();
+  expect(after.some((item: { description: string }) => item.description === "Pao Favorito E2E")).toBe(false);
+});

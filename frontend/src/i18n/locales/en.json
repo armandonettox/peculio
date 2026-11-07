@@ -456,6 +456,7 @@
     "category_not_found": "Category not found.",
     "category_name_taken": "A category with that name already exists.",
     "category_kind_mismatch": "This category does not apply to this direction (income or expense).",
+    "favorite_not_found": "Favorite not found.",
     "tag_not_found": "Tag not found.",
     "tag_name_taken": "A tag with that name already exists.",
     "bill_not_found": "Bill not found.",
@@ -976,7 +977,8 @@
       "times": "times",
       "toWhomHint": "If left empty, the description is used.",
       "repeatCountInvalid": "Enter from 2 to 999 times.",
-      "currency": "Currency"
+      "currency": "Currency",
+      "favoriteFailed": "The transaction was saved, but the favorite could not be updated."
     },
     "incomeForm": {
       "title": "New income",
@@ -984,6 +986,12 @@
       "received": "Received",
       "notReceived": "Not received",
       "fixed": "Fixed income"
+    },
+    "descriptionField": {
+      "favorite": "Mark as favorite",
+      "unfavorite": "Remove from favorites",
+      "suggestions": "Description suggestions",
+      "favoriteTag": "favorite"
     }
   },
   "labels": {
