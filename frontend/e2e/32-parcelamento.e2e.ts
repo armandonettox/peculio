@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { apiHeaders, apiPost, loginAndWaitForDashboard, openTransactionForm } from "./helpers";
+import { apiHeaders, apiPost, loginAndWaitForDashboard, openCardForm, pickChip } from "./helpers";
 
 // Compra parcelada no cartao de credito: gera uma transacao por mes, cada uma na fatura certa.
 // Roda depois do 01 (que cria o administrador).
@@ -34,14 +34,16 @@ test("prepara um cartao de credito pela API", async ({ request }) => {
 test("comprar em 3x no cartao cria 3 lancamentos, um por mes, com o rotulo da parcela", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await goTo(page, "Transações");
-  await openTransactionForm(page);
+  await openCardForm(page);
 
-  await input(page, "Conta").selectOption({ label: CARD });
+  await pickChip(page, "Cartão", CARD);
   await input(page, "Descrição").fill("Notebook");
-  await input(page, "Para quem").fill("Loja de Eletronicos");
   await input(page, "Valor (BRL)").fill("300,00");
-  await input(page, "Parcelar em quantas vezes?").selectOption("3");
-  await dialog(page).getByRole("button", { name: "Criar lançamento" }).click();
+  await dialog(page).getByRole("button", { name: /Mais detalhes/ }).click();
+  await input(page, "Para quem").fill("Loja de Eletronicos");
+  await dialog(page).getByRole("switch", { name: "Parcelado" }).click();
+  await input(page, "vezes").fill("3");
+  await dialog(page).getByRole("button", { name: "Salvar", exact: true }).click();
 
   await expect(dialog(page)).toBeHidden();
   await expect(main(page).getByText("Notebook (1/3)")).toBeVisible();

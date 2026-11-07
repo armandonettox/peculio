@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openTransactionForm } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openExpenseForm, pickChip } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Em ordem: cada passo parte do estado do anterior.
 test.describe.configure({ mode: "serial" });
@@ -121,15 +121,16 @@ test("registrar uma saida pelo formulario escolhendo o orcamento faz o progresso
   await loginAndWaitForDashboard(page);
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
   await nav.getByRole("link", { name: "Transações" }).click();
-  await openTransactionForm(page);
+  await openExpenseForm(page);
 
-  await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: "Conta Orc E2E" });
+  await pickChip(page, "Conta", "Conta Orc E2E");
   await dialog(page).getByLabel("Descrição", { exact: true }).fill("Feira pelo formulario");
-  await dialog(page).getByLabel("Para quem", { exact: true }).fill("Feira Orc");
   await dialog(page).getByLabel("Valor (BRL)").fill("25,00");
+  await dialog(page).getByRole("button", { name: /Mais detalhes/ }).click();
+  await dialog(page).getByLabel("Para quem", { exact: true }).fill("Feira Orc");
   // O campo so mostra orcamentos ativos na moeda da conta escolhida
   await dialog(page).getByLabel("Orçamento", { exact: true }).selectOption({ label: NAME });
-  await dialog(page).getByRole("button", { name: "Criar lançamento" }).click();
+  await dialog(page).getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialog(page)).toBeHidden();
 
   await nav.getByRole("link", { name: "Orçamentos" }).click();

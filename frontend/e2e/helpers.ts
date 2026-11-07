@@ -35,19 +35,11 @@ export async function openSettings(page: Page, tab?: "Aparência" | "Segurança"
   if (tab) await page.getByRole("tab", { name: tab, exact: true }).click();
 }
 
-// ---------- Formulario de lancamento ----------
+// ---------- Formularios de lancamento ----------
 
-// O botao "Novo lancamento" fica no sidebar (desktop e mobile sheet) e abre um dropdown para escolher o tipo.
-// Ambas as instancias existem no DOM ao mesmo tempo; .first() evita strict mode violation.
-export type TransactionKind = "Despesa" | "Receita" | "Despesa de Cartão" | "Transferência";
-
-// Despesa, receita, cartao e transferencia ganham cada um o seu formulario. Ate la, "Despesa de Cartao" ainda abre o
-// formulario geral antigo, que e o que estes testes cobrem; a despesa simples abre openExpenseForm.
-export async function openTransactionForm(page: Page, kind: TransactionKind = "Despesa de Cartão") {
-  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
-  await page.getByRole("menuitem", { name: kind }).first().click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-}
+// O botao "Novo lancamento" fica no sidebar (desktop e mobile sheet) e abre um menu com o tipo: despesa, receita, despesa
+// de cartao e transferencia, cada uma com o seu formulario. As duas instancias do botao existem no DOM ao mesmo tempo;
+// .first() evita strict mode violation.
 
 // Escolhe uma opcao num seletor com chips (conta e categoria dos formularios de despesa e receita).
 export async function pickChip(page: Page, label: string, option: string) {
@@ -67,6 +59,13 @@ export async function openIncomeForm(page: Page) {
   await page.getByRole("button", { name: "Novo lançamento" }).first().click();
   await page.getByRole("menuitem", { name: "Receita", exact: true }).first().click();
   await expect(page.getByRole("dialog", { name: "Nova receita" })).toBeVisible();
+}
+
+// Abre o formulario proprio de despesa de cartao ("Nova despesa de cartão").
+export async function openCardForm(page: Page) {
+  await page.getByRole("button", { name: "Novo lançamento" }).first().click();
+  await page.getByRole("menuitem", { name: "Despesa de Cartão", exact: true }).first().click();
+  await expect(page.getByRole("dialog", { name: "Nova despesa de cartão" })).toBeVisible();
 }
 
 // Abre o formulario proprio de transferencia ("Nova transferência").

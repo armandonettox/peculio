@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openTransactionForm } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openExpenseForm } from "./helpers";
 
 // O "hoje" do app e o do servidor, nao o do aparelho. Aqui o relogio do navegador fica em 2020 e o app
 // precisa continuar no dia certo. Roda depois do 01 (que cria o administrador).
@@ -37,8 +37,11 @@ test("com o relogio do aparelho em 2020, a data padrao do lancamento novo e a de
   const today = await serverToday(request);
   await openWithWrongDeviceClock(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
-  await openTransactionForm(page);
-  await expect(page.getByRole("dialog").getByLabel("Data", { exact: true })).toHaveValue(today);
+  await openExpenseForm(page);
+  // O formulario abre com o atalho Hoje ligado; Outros mostra o campo de data, com o dia de hoje do servidor
+  await expect(page.getByRole("dialog").getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("dialog").getByRole("button", { name: "Outros..." }).click();
+  await expect(page.getByRole("dialog").locator('input[type="date"]')).toHaveValue(today);
 });
 
 test("o rotulo Hoje na lista de transacoes segue o dia do servidor", async ({ page, request }) => {
@@ -73,6 +76,8 @@ test("sem o relogio do aparelho errado, o comportamento e o mesmo (referencia)",
   const today = await serverToday(request);
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Transações" }).click();
-  await openTransactionForm(page);
-  await expect(page.getByRole("dialog").getByLabel("Data", { exact: true })).toHaveValue(today);
+  await openExpenseForm(page);
+  await expect(page.getByRole("dialog").getByRole("button", { name: "Hoje" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("dialog").getByRole("button", { name: "Outros..." }).click();
+  await expect(page.getByRole("dialog").locator('input[type="date"]')).toHaveValue(today);
 });
