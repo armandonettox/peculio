@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "./client";
 import type { components } from "./schema";
+import { plansKey } from "./query-keys";
 
 export type Category = components["schemas"]["CategoryOut"];
 export type CategoryCreate = components["schemas"]["CategoryCreate"];
@@ -47,7 +48,11 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: CategoryUpdate }) =>
       unwrap(api.client.PATCH("/api/v1/categories/{category_id}", { params: { path: { category_id: id } }, body })),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: categoriesKey }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: categoriesKey }),
+        queryClient.invalidateQueries({ queryKey: plansKey }),
+      ]),
   });
 }
 
@@ -56,7 +61,11 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (id: string) =>
       unwrap(api.client.DELETE("/api/v1/categories/{category_id}", { params: { path: { category_id: id } } })),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: categoriesKey }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: categoriesKey }),
+        queryClient.invalidateQueries({ queryKey: plansKey }),
+      ]),
   });
 }
 

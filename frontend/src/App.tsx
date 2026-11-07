@@ -15,6 +15,7 @@ import InvoicePage from "@/pages/invoice";
 import LabelsPage from "@/pages/labels";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/not-found";
+import PlanWizardPage from "@/pages/plan-wizard";
 import PiggyBanksPage from "@/pages/piggy-banks";
 import RegisterPage from "@/pages/register";
 import ReportsPage from "@/pages/reports";
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="recorrentes" element={<Navigate to="/contas-a-pagar?aba=recorrentes" replace />} />
             <Route path="contas-a-pagar" element={<BillsRecurrencesPage />} />
             <Route path="orcamentos" element={<BudgetsPage />} />
+            <Route path="orcamentos/planejar" element={<PlanWizardPage />} />
             {/* Envelopes virou orcamento com "carrega sobra" (favoritos antigos continuam entrando) */}
             <Route path="envelopes" element={<Navigate to="/orcamentos" replace />} />
             <Route path="regras" element={<RulesPage />} />

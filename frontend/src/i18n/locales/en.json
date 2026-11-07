@@ -1933,5 +1933,148 @@
       "naoFoiPossivelCopiar": "Couldn't copy. Select and copy by hand.",
       "guardeiMeusCodigosEm": "I saved my codes somewhere safe"
     }
+  },
+  "planning": {
+    "saving": "Saving...",
+    "loading": "Loading the plan...",
+    "monthPrev": "Previous month",
+    "monthNext": "Next month",
+    "mode": {
+      "label": "Plan type",
+      "monthly": "Monthly plan",
+      "custom": "Custom plan"
+    },
+    "empty": {
+      "title": "No budget set for {{month}}.",
+      "define": "Set up a new plan",
+      "copy": "Copy last month's plan",
+      "nothingToCopy": "Last month has no plan to copy."
+    },
+    "summary": {
+      "title": "Month spending",
+      "remaining": "Left",
+      "over": "Over by",
+      "spentOf": "{{spent}} of {{planned}} spent"
+    },
+    "legend": {
+      "paid": "Paid expenses",
+      "expected": "Expected expenses",
+      "paidOver": "Paid expenses over the limit",
+      "expectedOver": "Expected expenses over the limit"
+    },
+    "cards": {
+      "income": "Income this month",
+      "plannedSpending": "Planned spending",
+      "plannedBalance": "Planned balance",
+      "plannedSavings": "Planned savings"
+    },
+    "table": {
+      "label": "Budget by category for {{month}}",
+      "category": "Category",
+      "planned": "Planned limit",
+      "paid": "Paid expenses",
+      "expected": "Expected expenses",
+      "total": "Total spent",
+      "progress": "Status",
+      "actions": "Actions",
+      "rest": "Remaining categories"
+    },
+    "row": {
+      "remaining": "{{value}} left",
+      "over": "Over by {{value}}",
+      "edit": "Edit limit for {{name}}",
+      "delete": "Delete limit for {{name}}",
+      "barLabel": "{{name}}: {{paid}} paid and {{expected}} expected of {{planned}}"
+    },
+    "state": {
+      "near": "Near the limit",
+      "exceeded": "Over the limit"
+    },
+    "actions": {
+      "new": "New budget",
+      "menu": "More options",
+      "edit": "Edit plan",
+      "cardView": "How card expenses are shown",
+      "deleteAll": "Delete plans"
+    },
+    "deleteAll": {
+      "title": "Delete the plans",
+      "item": "all monthly plans",
+      "consequence": "Transactions and categories do not change."
+    },
+    "deleteItem": {
+      "title": "Delete limit",
+      "consequence": "What is spent in this category will count under Remaining categories."
+    },
+    "newBudget": {
+      "title": "New budget",
+      "editTitle": "Edit budget",
+      "description": "Choose the categories and the limit for each one this month.",
+      "categories": "Categories",
+      "chooseCategory": "Choose a category",
+      "noCategories": "Every spending category already has a limit this month",
+      "removeCategory": "Remove {{name}}",
+      "total": "Total budget",
+      "limitFor": "Limit for {{name}}",
+      "previousSpent": "Spent last month: {{value}}",
+      "rest": "Remaining categories",
+      "overBudget": "The limits add up to more than the month's spending budget.",
+      "alert": "Get alerts",
+      "alertHint": "Flags in the plan the categories that get near their limit or go over it.",
+      "save": "Save",
+      "saveAndNew": "Save and add another",
+      "savedHint_one": "{{count}} budget saved. Choose the next category.",
+      "savedHint_other": "{{count}} budgets saved. Choose the next category."
+    },
+    "card": {
+      "question": "How do you want to see your credit card expenses?",
+      "hint": "Choose how card purchases are counted in the plan.",
+      "purchase": {
+        "title": "By purchase date",
+        "text": "Card expenses are counted in the plan on the day they happen."
+      },
+      "invoice": {
+        "title": "By invoice date",
+        "text": "Card expenses are counted in the plan only on the invoice due date."
+      }
+    },
+    "wizard": {
+      "pageDescription": "Monthly plan",
+      "title": "Create the monthly plan",
+      "editTitle": "Edit the monthly plan",
+      "back": "Back",
+      "stepsLabel": "Plan steps",
+      "steps": {
+        "income": "Monthly income",
+        "categories": "Spending by category",
+        "card": "Card expenses view"
+      },
+      "incomeQuestion": "How much do you earn per month?",
+      "savingsQuestion": "And how much do you want to save per month?",
+      "savingsHint": "This percentage is used to work out your monthly spending budget.",
+      "yourBudget": "Your monthly spending budget will be:",
+      "youSave": "And you will save each month:",
+      "next": "Next",
+      "planHeading": "Time to plan!",
+      "planHint": "Fill in the fields below with your spending limit for each category.",
+      "categoriesTitle": "Categories",
+      "categorized": "Total assigned",
+      "uncategorized": "{{value}} not assigned",
+      "overBudget": "Over the spending budget by {{value}}",
+      "tip": "Tip: to remove or add categories in your monthly plan, click 'Manage categories'.",
+      "manage": "Manage categories",
+      "manageTitle": "Plan categories",
+      "manageHint": "Tick the categories that get a limit this month.",
+      "apply": "Apply",
+      "noCategoriesYet": "You have no spending categories yet. Create one in Categories.",
+      "nothingSelected": "No category chosen. Use Manage categories to add some.",
+      "limit": "Limit for {{name}}",
+      "finish": "Finish",
+      "doneTitle": "Well done!",
+      "doneCreated": "You created your monthly plan!",
+      "doneEdited": "You updated your monthly plan!",
+      "doneText": "Follow, in {{month}}, how much you already spent in each category.",
+      "viewPlan": "View plan"
+    }
   }
 }

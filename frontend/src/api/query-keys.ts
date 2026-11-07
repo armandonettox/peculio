@@ -13,3 +13,4 @@ export const apiTokensKey = ["api-tokens"] as const;
 export const savedReportsKey = ["saved-reports"] as const;
 export const invoicesKey = ["invoices"] as const;
 export const favoritesKey = ["favorites"] as const;
+export const plansKey = ["plans"] as const;

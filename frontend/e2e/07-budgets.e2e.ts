@@ -17,6 +17,13 @@ async function openBudgets(page: Page) {
   await loginAndWaitForDashboard(page);
   await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Orçamentos" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Orçamentos" })).toBeVisible();
+  await switchToCustom(page);
+}
+
+// A tela abre no Planejamento Mensal; estes testes cobrem o Personalizado
+async function switchToCustom(page: Page) {
+  await page.getByRole("button", { name: "Tipo de planejamento" }).click();
+  await page.getByRole("menuitem", { name: "Planejamento Personalizado" }).click();
 }
 
 async function menu(page: Page, item: string) {
@@ -134,6 +141,7 @@ test("registrar uma saida pelo formulario escolhendo o orcamento faz o progresso
   await expect(dialog(page)).toBeHidden();
 
   await nav.getByRole("link", { name: "Orçamentos" }).click();
+  await switchToCustom(page);
   await expect(card(page)).toContainText("R$ 875,00");
   await expect(card(page)).toContainText("Restam R$ 1.125,00");
 });

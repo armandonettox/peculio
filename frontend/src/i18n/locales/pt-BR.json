@@ -1933,5 +1933,148 @@
       "naoFoiPossivelCopiar": "Não foi possível copiar. Selecione e copie à mão.",
       "guardeiMeusCodigosEm": "Guardei meus códigos em um lugar seguro"
     }
+  },
+  "planning": {
+    "saving": "Salvando...",
+    "loading": "Carregando o planejamento...",
+    "monthPrev": "Mês anterior",
+    "monthNext": "Próximo mês",
+    "mode": {
+      "label": "Tipo de planejamento",
+      "monthly": "Planejamento Mensal",
+      "custom": "Planejamento Personalizado"
+    },
+    "empty": {
+      "title": "Nenhum orçamento definido para {{month}}.",
+      "define": "Definir novo planejamento",
+      "copy": "Copiar planejamento do mês anterior",
+      "nothingToCopy": "O mês anterior não tem planejamento para copiar."
+    },
+    "summary": {
+      "title": "Gastos do mês",
+      "remaining": "Restam",
+      "over": "Passou",
+      "spentOf": "{{spent}} de {{planned}} gastos"
+    },
+    "legend": {
+      "paid": "Despesas pagas",
+      "expected": "Despesas previstas",
+      "paidOver": "Despesas pagas excedentes",
+      "expectedOver": "Despesas previstas excedentes"
+    },
+    "cards": {
+      "income": "Receitas do mês",
+      "plannedSpending": "Gastos planejados",
+      "plannedBalance": "Balanço planejado",
+      "plannedSavings": "Economia planejada"
+    },
+    "table": {
+      "label": "Orçamento por categoria de {{month}}",
+      "category": "Categoria",
+      "planned": "Meta planejada",
+      "paid": "Despesas pagas",
+      "expected": "Despesas previstas",
+      "total": "Total gasto",
+      "progress": "Situação",
+      "actions": "Ações",
+      "rest": "Categorias restantes"
+    },
+    "row": {
+      "remaining": "Restam {{value}}",
+      "over": "Passou {{value}}",
+      "edit": "Editar limite de {{name}}",
+      "delete": "Excluir limite de {{name}}",
+      "barLabel": "{{name}}: {{paid}} pagos e {{expected}} previstos de {{planned}}"
+    },
+    "state": {
+      "near": "Perto do limite",
+      "exceeded": "Passou do limite"
+    },
+    "actions": {
+      "new": "Novo orçamento",
+      "menu": "Mais opções",
+      "edit": "Editar planejamento",
+      "cardView": "Visualização das despesas no cartão",
+      "deleteAll": "Excluir planejamentos"
+    },
+    "deleteAll": {
+      "title": "Excluir os planejamentos",
+      "item": "todos os planejamentos mensais",
+      "consequence": "Os lançamentos e as categorias não mudam."
+    },
+    "deleteItem": {
+      "title": "Excluir limite",
+      "consequence": "O que for gasto nesta categoria passa a contar em Categorias restantes."
+    },
+    "newBudget": {
+      "title": "Novo orçamento",
+      "editTitle": "Editar orçamento",
+      "description": "Escolha as categorias e o limite de cada uma neste mês.",
+      "categories": "Categorias",
+      "chooseCategory": "Escolha uma categoria",
+      "noCategories": "Todas as categorias de gasto já têm limite neste mês",
+      "removeCategory": "Tirar {{name}}",
+      "total": "Total",
+      "limitFor": "Limite de {{name}}",
+      "previousSpent": "Gastos no mês anterior: {{value}}",
+      "rest": "Categorias restantes",
+      "overBudget": "A soma dos limites passa do orçamento de gastos do mês.",
+      "alert": "Receber alerta",
+      "alertHint": "Marca no planejamento as categorias que chegarem perto do limite ou passarem dele.",
+      "save": "Salvar",
+      "saveAndNew": "Salvar e criar nova",
+      "savedHint_one": "{{count}} orçamento salvo. Escolha a próxima categoria.",
+      "savedHint_other": "{{count}} orçamentos salvos. Escolha a próxima categoria."
+    },
+    "card": {
+      "question": "Como você quer visualizar suas despesas realizadas no cartão de crédito?",
+      "hint": "Escolha a forma como você quer registrar suas compras realizadas no cartão.",
+      "purchase": {
+        "title": "Pela data da compra",
+        "text": "As despesas realizadas no cartão serão contabilizadas no planejamento no dia em que forem realizadas."
+      },
+      "invoice": {
+        "title": "Pela data da fatura",
+        "text": "As despesas realizadas no cartão serão contabilizadas no planejamento apenas na data do vencimento da fatura."
+      }
+    },
+    "wizard": {
+      "pageDescription": "Planejamento mensal",
+      "title": "Criação do planejamento mensal",
+      "editTitle": "Edição do planejamento mensal",
+      "back": "Voltar",
+      "stepsLabel": "Etapas do planejamento",
+      "steps": {
+        "income": "Renda mensal",
+        "categories": "Categorização de gastos",
+        "card": "Visualização das despesas do cartão"
+      },
+      "incomeQuestion": "Quanto você ganha por mês?",
+      "savingsQuestion": "E quanto você quer economizar por mês?",
+      "savingsHint": "Essa porcentagem será utilizada para calcular seu orçamento mensal de gastos.",
+      "yourBudget": "Seu orçamento mensal de gastos será:",
+      "youSave": "E você economizará mensalmente:",
+      "next": "Avançar",
+      "planHeading": "Hora de planejar!",
+      "planHint": "Preencha os campos abaixo com seus limites de gastos para cada categoria.",
+      "categoriesTitle": "Categorias",
+      "categorized": "Total categorizado",
+      "uncategorized": "{{value}} sem categorização",
+      "overBudget": "Passou {{value}} do orçamento de gastos",
+      "tip": "Dica: para remover ou adicionar categorias ao seu planejamento mensal, clique em 'Gerenciar categorias'.",
+      "manage": "Gerenciar categorias",
+      "manageTitle": "Categorias do planejamento",
+      "manageHint": "Marque as categorias que terão limite neste mês.",
+      "apply": "Aplicar",
+      "noCategoriesYet": "Você ainda não tem categorias de gasto. Crie uma em Categorias.",
+      "nothingSelected": "Nenhuma categoria escolhida. Use Gerenciar categorias para adicionar.",
+      "limit": "Limite de {{name}}",
+      "finish": "Concluir",
+      "doneTitle": "Parabéns!",
+      "doneCreated": "Você criou seu planejamento mensal!",
+      "doneEdited": "Você atualizou seu planejamento mensal!",
+      "doneText": "Acompanhe, em {{month}}, quanto já gastou de cada categoria.",
+      "viewPlan": "Ver planejamento"
+    }
   }
 }
