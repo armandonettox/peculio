@@ -1165,7 +1165,7 @@
       "semMaisCategorias": "Every spending category has been chosen",
       "escolhaUmaCategoria": "Choose a category",
       "receberAlerta": "Get alerts",
-      "receberAlertaTexto": "Warns when spending gets near the limit or goes over it.",
+      "receberAlertaTexto": "Sends the Budget alert event to your webhooks when spending reaches 80% of the limit and when it goes over.",
       "carregarSobraSoMensal": "Only works with a monthly period. A custom period does not repeat.",
       "informeADataInicial": "Enter the start date.",
       "informeADataFinal": "Enter the end date.",
@@ -1800,6 +1800,7 @@
         "transactionCreated": "Transaction created",
         "transactionUpdated": "Transaction edited",
         "transactionDeleted": "Transaction deleted",
+        "budgetAlert": "Budget alert",
         "webhookTest": "Test"
       },
       "status": {

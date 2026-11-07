@@ -118,6 +118,18 @@ it("cria um webhook e mostra o segredo uma unica vez", async () => {
   expect(inDialog().getByTestId("webhook-secret")).toHaveTextContent(`${FAKE_SECRET}-1`);
 });
 
+it("o evento Alerta de orcamento pode ser assinado", async () => {
+  const api = renderPage([makeWebhook({ name: "Outro" })]);
+  await openCreate();
+  await userEvent.type(inDialog().getByLabelText("Nome"), "Avisos");
+  await userEvent.type(inDialog().getByLabelText("Endereço"), "https://hooks.example.com/avisos");
+  await userEvent.click(inDialog().getByLabelText("Alerta de orçamento"));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar webhook" }));
+
+  await screen.findByRole("dialog", { name: "Segredo do webhook" });
+  expect(api.mutations()[0].body).toMatchObject({ events: ["transaction.created", "budget.alert"] });
+});
+
 it("o dialogo do segredo so fecha depois de marcar que guardou", async () => {
   renderPage([makeWebhook({ name: "Outro" })]);
   await openCreate();

@@ -1,7 +1,7 @@
 import { currentIntlLocale, i18n } from "@/i18n";
 import type { DeliveryStatus, WebhookDelivery, WebhookEventName } from "@/api/webhooks";
 
-export const EVENTS: WebhookEventName[] = ["transaction.created", "transaction.updated", "transaction.deleted"];
+export const EVENTS: WebhookEventName[] = ["transaction.created", "transaction.updated", "transaction.deleted", "budget.alert"];
 
 export function eventLabel(event: WebhookEventName | WebhookDelivery["event"]): string {
   switch (event) {
@@ -11,6 +11,8 @@ export function eventLabel(event: WebhookEventName | WebhookDelivery["event"]): 
       return i18n.t("webhooks.presentation.event.transactionUpdated");
     case "transaction.deleted":
       return i18n.t("webhooks.presentation.event.transactionDeleted");
+    case "budget.alert":
+      return i18n.t("webhooks.presentation.event.budgetAlert");
     case "webhook.test":
       return i18n.t("webhooks.presentation.event.webhookTest");
   }

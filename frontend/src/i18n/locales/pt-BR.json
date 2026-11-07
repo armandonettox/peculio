@@ -1165,7 +1165,7 @@
       "semMaisCategorias": "Todas as categorias de gasto já foram escolhidas",
       "escolhaUmaCategoria": "Escolha uma categoria",
       "receberAlerta": "Receber alerta",
-      "receberAlertaTexto": "Avisa quando o gasto chegar perto do limite ou passar dele.",
+      "receberAlertaTexto": "Envia o evento Alerta de orçamento aos seus webhooks quando o gasto chegar a 80% do limite e quando passar dele.",
       "carregarSobraSoMensal": "Só vale no período mensal. O período personalizado não se repete.",
       "informeADataInicial": "Informe a data inicial.",
       "informeADataFinal": "Informe a data final.",
@@ -1800,6 +1800,7 @@
         "transactionCreated": "Lançamento criado",
         "transactionUpdated": "Lançamento editado",
         "transactionDeleted": "Lançamento excluído",
+        "budgetAlert": "Alerta de orçamento",
         "webhookTest": "Teste"
       },
       "status": {

@@ -2330,7 +2330,7 @@ export interface components {
              * Event
              * @enum {string}
              */
-            event: "transaction.created" | "transaction.updated" | "transaction.deleted" | "webhook.test";
+            event: "transaction.created" | "transaction.updated" | "transaction.deleted" | "budget.alert" | "webhook.test";
             /**
              * Id
              * Format: uuid
@@ -4336,7 +4336,7 @@ export interface components {
              */
             active: boolean;
             /** Events */
-            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted" | "budget.alert")[];
             /** Name */
             name: string;
             /** Url */
@@ -4352,7 +4352,7 @@ export interface components {
              */
             created_at: string;
             /** Events */
-            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted" | "budget.alert")[];
             /**
              * Id
              * Format: uuid
@@ -4371,7 +4371,7 @@ export interface components {
             /** Active */
             active?: boolean | null;
             /** Events */
-            events?: ("transaction.created" | "transaction.updated" | "transaction.deleted")[] | null;
+            events?: ("transaction.created" | "transaction.updated" | "transaction.deleted" | "budget.alert")[] | null;
             /** Name */
             name?: string | null;
             /** Url */
@@ -4390,7 +4390,7 @@ export interface components {
              */
             created_at: string;
             /** Events */
-            events: ("transaction.created" | "transaction.updated" | "transaction.deleted")[];
+            events: ("transaction.created" | "transaction.updated" | "transaction.deleted" | "budget.alert")[];
             /**
              * Id
              * Format: uuid

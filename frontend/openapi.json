@@ -1798,6 +1798,7 @@
               "transaction.created",
               "transaction.updated",
               "transaction.deleted",
+              "budget.alert",
               "webhook.test"
             ],
             "title": "Event",
@@ -7503,11 +7504,12 @@
               "enum": [
                 "transaction.created",
                 "transaction.updated",
-                "transaction.deleted"
+                "transaction.deleted",
+                "budget.alert"
               ],
               "type": "string"
             },
-            "maxItems": 3,
+            "maxItems": 4,
             "minItems": 1,
             "title": "Events",
             "type": "array"
@@ -7549,7 +7551,8 @@
               "enum": [
                 "transaction.created",
                 "transaction.updated",
-                "transaction.deleted"
+                "transaction.deleted",
+                "budget.alert"
               ],
               "type": "string"
             },
@@ -7626,11 +7629,12 @@
                   "enum": [
                     "transaction.created",
                     "transaction.updated",
-                    "transaction.deleted"
+                    "transaction.deleted",
+                    "budget.alert"
                   ],
                   "type": "string"
                 },
-                "maxItems": 3,
+                "maxItems": 4,
                 "minItems": 1,
                 "type": "array"
               },
@@ -7687,7 +7691,8 @@
               "enum": [
                 "transaction.created",
                 "transaction.updated",
-                "transaction.deleted"
+                "transaction.deleted",
+                "budget.alert"
               ],
               "type": "string"
             },
