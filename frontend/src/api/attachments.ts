@@ -38,24 +38,33 @@ function useRefresh() {
     ]);
 }
 
+/** Envia um arquivo para um lancamento. Fora de hook para quem anexa logo depois de criar o lancamento. */
+export function uploadAttachmentFile(transactionId: string, file: File) {
+  return unwrap(
+    api.client.POST("/api/v1/transactions/{transaction_id}/attachments", {
+      params: { path: { transaction_id: transactionId } },
+      // O tipo gerado diz "string" para o arquivo; o corpo de verdade e multipart
+      body: { file: file as unknown as string },
+      bodySerializer: () => {
+        const form = new FormData();
+        form.append("file", file, file.name);
+        return form;
+      },
+    }),
+  );
+}
+
 export function useUploadAttachment(transactionId: string) {
   const refresh = useRefresh();
   return useMutation({
-    mutationFn: (file: File) =>
-      unwrap(
-        api.client.POST("/api/v1/transactions/{transaction_id}/attachments", {
-          params: { path: { transaction_id: transactionId } },
-          // O tipo gerado diz "string" para o arquivo; o corpo de verdade e multipart
-          body: { file: file as unknown as string },
-          bodySerializer: () => {
-            const form = new FormData();
-            form.append("file", file, file.name);
-            return form;
-          },
-        }),
-      ),
+    mutationFn: (file: File) => uploadAttachmentFile(transactionId, file),
     onSuccess: refresh,
   });
+}
+
+/** Depois de anexar fora do hook, recarrega os anexos e a contagem da lista. */
+export function useRefreshAttachments() {
+  return useRefresh();
 }
 
 export function useDeleteAttachment() {

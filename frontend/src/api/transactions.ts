@@ -97,6 +97,16 @@ export function useUpdateTransaction() {
   });
 }
 
+/** Efetivar: marca o lancamento como pago ou recebido (passa a mexer no saldo da conta). */
+export function useSettleTransaction() {
+  const refresh = useRefreshAfterChange();
+  return useMutation({
+    mutationFn: (id: string) =>
+      unwrap(api.client.POST("/api/v1/transactions/{transaction_id}/settle", { params: { path: { transaction_id: id } } })),
+    onSuccess: refresh,
+  });
+}
+
 export function useDeleteTransaction() {
   const refresh = useRefreshAfterChange();
   return useMutation({

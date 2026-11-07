@@ -57,6 +57,10 @@ export type FormState = {
   splits: SplitDraft[] | null;
   // Compra parcelada no cartao de credito: "1" (nenhuma, o padrao) a "60"
   installments: string;
+  // Pago ou recebido: so o efetivado mexe no saldo da conta. Vale para todas as linhas de um lancamento dividido.
+  isPaid: boolean;
+  // Ignorado: mexe no saldo, mas sai dos totais, relatorios e orcamentos
+  ignored: boolean;
 };
 
 export type FormContext = {
@@ -127,6 +131,8 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     notes: "",
     splits: null,
     installments: "1",
+    isPaid: true,
+    ignored: false,
     ...overrides,
   };
 }
@@ -332,6 +338,8 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
     date: state.date,
     currency_code: account.currency_code,
     account_id: account.id,
+    is_paid: state.isPaid,
+    ignored: state.ignored,
     // Nome novo ou conta existente, nunca os dois
     ...(state.kind === "transfer" || state.ownCounterparty
       ? { counterparty_account_id: state.counterpartyAccountId }
@@ -419,7 +427,9 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
       split.date === first.date &&
       split.source_account_id === first.source_account_id &&
       split.destination_account_id === first.destination_account_id &&
-      split.currency_code === first.currency_code,
+      split.currency_code === first.currency_code &&
+      split.is_paid === first.is_paid &&
+      split.ignored === first.ignored,
   );
   if (!uniform) {
     return {
@@ -441,6 +451,8 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
     ownCounterparty,
     counterpartyName: kind !== "transfer" && !ownCounterparty ? otherName : "",
     counterpartyAccountId: kind === "transfer" || ownCounterparty ? otherId : "",
+    isPaid: first.is_paid,
+    ignored: first.ignored,
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;
@@ -537,6 +549,8 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
     ownCounterparty,
     counterpartyName: first.counterparty_name ?? "",
     counterpartyAccountId: first.counterparty_account_id ?? "",
+    isPaid: first.is_paid ?? true,
+    ignored: first.ignored ?? false,
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;

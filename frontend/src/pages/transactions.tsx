@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useAccounts } from "@/api/accounts";
 import { getErrorMessage } from "@/api/error-messages";
 import { useCategories, useTags } from "@/api/labels";
-import { useDeleteTransaction, useTransactions, type Transaction } from "@/api/transactions";
+import { useDeleteTransaction, useSettleTransaction, useTransactions, type Transaction } from "@/api/transactions";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -20,6 +20,7 @@ import type { SavedFilter } from "@/features/transactions/saved-filters";
 import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
 
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
+import { ExpenseFormDialog, usesExpenseForm } from "@/features/transactions/expense-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { TransactionsTable } from "@/features/transactions/transactions-table";
@@ -77,6 +78,7 @@ export default function TransactionsPage() {
   const [removing, setRemoving] = useState<Transaction | null>(null);
   const [attaching, setAttaching] = useState<Transaction | null>(null);
   const remove = useDeleteTransaction();
+  const settle = useSettleTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
   const [filterOpen, setFilterOpen] = useState(() => {
     const { q: _q, ...pf } = readFilters(searchParams);
@@ -250,6 +252,7 @@ export default function TransactionsPage() {
             accounts={accounts.data ?? []}
             onOpen={setDialog}
             onRemove={setRemoving}
+            onSettle={(transaction) => settle.mutate(transaction.id)}
           />
         ) : (
           <div className="flex max-w-4xl flex-col gap-6">
@@ -266,6 +269,7 @@ export default function TransactionsPage() {
                       onEdit={setDialog}
                       onRemove={setRemoving}
                       onAttachments={setAttaching}
+                      onSettle={(item) => settle.mutate(item.id)}
                     />
                   ))}
                 </ul>
@@ -274,6 +278,11 @@ export default function TransactionsPage() {
           </div>
         )}
 
+        {settle.isError && (
+          <Alert variant="destructive" className="mt-4">
+            {getErrorMessage(settle.error)}
+          </Alert>
+        )}
         {query.isError && (
           <Alert variant="destructive" className="mt-4">
             {getErrorMessage(query.error)}
@@ -452,12 +461,15 @@ export default function TransactionsPage() {
 
       {attaching && <AttachmentsDialog transaction={attaching} onClose={() => setAttaching(null)} />}
 
-      {dialog && (
-        <TransactionFormDialog
-          transaction={dialog === "new" ? undefined : dialog}
-          onClose={() => setDialog(null)}
-        />
-      )}
+      {dialog &&
+        (dialog !== "new" && usesExpenseForm(dialog, accounts.data ?? []) ? (
+          <ExpenseFormDialog transaction={dialog} onClose={() => setDialog(null)} />
+        ) : (
+          <TransactionFormDialog
+            transaction={dialog === "new" ? undefined : dialog}
+            onClose={() => setDialog(null)}
+          />
+        ))}
     </>
   );
 }

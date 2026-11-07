@@ -7,7 +7,7 @@ import { MemoryRouter } from "react-router-dom";
 import { SidebarNewButton } from "@/components/layout/sidebar-new-button";
 import { AuthContext, AuthProvider, type AuthContextValue, type User } from "@/auth/auth-context";
 
-export type TransactionKind = "Despesa" | "Receita" | "Despesa Cartão" | "Transferência";
+export type TransactionKind = "Despesa" | "Receita" | "Despesa de Cartão" | "Transferência";
 
 export const testUser: User = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -45,7 +45,9 @@ export function WithSidebar({ children, route = "/" }: { children: ReactNode; ro
 
 // Abre o formulario de lancamento via o sidebar dropdown.
 // Deve ser chamado dentro de um render que usa WithSidebar ou inclua SidebarNewButton.
-export async function openTransactionForm(kind: TransactionKind = "Despesa") {
+// Despesa, receita, cartao e transferencia ganham cada um o seu formulario. Ate la, "Despesa Cartao" ainda abre
+// o formulario geral antigo, que e o que os testes dele cobrem; a despesa simples abre openExpenseForm.
+export async function openTransactionForm(kind: TransactionKind = "Despesa de Cartão") {
   await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
   await userEvent.click(await screen.findByRole("menuitem", { name: kind }));
   return screen.findByRole("dialog", { name: "Novo lançamento" });
@@ -81,4 +83,11 @@ export function FakeAuth({
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     </QueryClientProvider>
   );
+}
+
+// Abre o formulario proprio de despesa ("Nova despesa").
+export async function openExpenseForm() {
+  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Despesa" }));
+  return screen.findByRole("dialog", { name: "Nova despesa" });
 }

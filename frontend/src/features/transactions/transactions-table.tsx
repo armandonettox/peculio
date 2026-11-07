@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheck, Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useCurrencies, type Account } from "@/api/accounts";
@@ -20,10 +20,12 @@ import {
   directionOf,
   formatTransactionAmount,
   ownAccountName,
+  paymentState,
   reconciliationState,
   transactionDate,
   transactionTitle,
 } from "./presentation";
+import { PaymentBadges } from "./payment-badges";
 import { QuickRowEditor } from "./quick-row-editor";
 import { emptyQuickRow, quickFromTransaction, rowAfterAdd, type QuickColumn, type QuickRow } from "./quick-row";
 import {
@@ -51,6 +53,7 @@ type Props = {
   // O formulario completo (dividir, outra moeda, tags, orcamento, anexos...)
   onOpen: (transaction: Transaction) => void;
   onRemove: (transaction: Transaction) => void;
+  onSettle: (transaction: Transaction) => void;
 };
 
 type Creating = { id: number; initial: QuickRow; focus: QuickColumn };
@@ -68,7 +71,7 @@ const iconButton =
  * limpa; com algo marcado, uma barra oferece mudar categoria, mudar data, duplicar e excluir de uma vez. O que a linha
  * nao mostra (dividir, outra moeda, tags, orcamento...) fica no formulario completo.
  */
-export function TransactionsTable({ items, total, categories, accounts, onOpen, onRemove }: Props) {
+export function TransactionsTable({ items, total, categories, accounts, onOpen, onRemove, onSettle }: Props) {
   const { t } = useTranslation();
   const currencies = useCurrencies();
   const create = useCreateTransaction();
@@ -373,6 +376,7 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                   <p className="break-words sm:truncate" title={title}>
                     {title}
                   </p>
+                  <PaymentBadges transaction={transaction} />
                   {state && (
                     <p className="flex items-center gap-1 text-xs text-muted-foreground">
                       {state === "locked" && <Lock className="size-3" aria-hidden="true" />}
@@ -408,6 +412,12 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        {paymentState(transaction).unpaid && (
+                          <DropdownMenuItem onClick={() => onSettle(transaction)}>
+                            <CircleCheck className="mr-2 size-4" />
+                            {t("transactions.payment.settle")}
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => startEdit(transaction)}>
                           <Pencil className="mr-2 size-4" />
                           {t("common.editar")}

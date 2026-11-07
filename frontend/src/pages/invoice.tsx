@@ -174,6 +174,8 @@ export default function InvoicePage() {
                   counterparty_account_id: account.id,
                   description: t("pages.invoice.descricaoDoPagamento", { name: account.name }),
                   amount: invoice.data.total,
+                  is_paid: true,
+                  ignored: false,
                 },
               ],
             },

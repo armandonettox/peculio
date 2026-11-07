@@ -195,9 +195,16 @@ describe("buildQuickPayload", () => {
           budget_id: null,
           tag_ids: [],
           notes: null,
+          is_paid: true,
+          ignored: false,
         },
       ],
     });
+  });
+
+  it("editar na linha de um lancamento nao pago e ignorado nao tira as marcas", () => {
+    const payload = buildQuickPayload(row(), { ...base, isPaid: false, ignored: true }, ctx);
+    expect(payload.splits[0]).toMatchObject({ is_paid: false, ignored: true });
   });
 
   it("entrada nao leva orcamento nem conta a pagar", () => {

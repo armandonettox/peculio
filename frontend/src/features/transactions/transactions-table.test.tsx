@@ -30,7 +30,7 @@ const tx = (description: string, extra: Parameters<typeof makeTransaction>[1] = 
 function renderTable(items: Transaction[]) {
   const api = fakeTransactionsApi(items, [nubank, poupanca]);
   server.use(...api.handlers, ...fakeAccountsApi([nubank, poupanca]).handlers);
-  const handlers = { onOpen: vi.fn(), onRemove: vi.fn() };
+  const handlers = { onOpen: vi.fn(), onRemove: vi.fn(), onSettle: vi.fn() };
   render(
     <QueryClientProvider client={newTestQueryClient()}>
       <TransactionsTable items={items} total={items.length} categories={categories} accounts={[nubank, poupanca]} {...handlers} />
@@ -160,7 +160,7 @@ it("a tecla apertada dentro de um botao da linha e do botao, nao da tabela", asy
 });
 
 it("com a lista menor, a parada de Tab continua dentro dela", () => {
-  const props = { categories, accounts: [nubank], onOpen: vi.fn(), onRemove: vi.fn() };
+  const props = { categories, accounts: [nubank], onOpen: vi.fn(), onRemove: vi.fn(), onSettle: vi.fn() };
   const client = newTestQueryClient();
   server.use(...fakeAccountsApi([nubank]).handlers);
   const { rerender } = render(
@@ -514,7 +514,7 @@ it("editar um lancamento de conta arquivada mantem a conta na escolha", async ()
   server.use(...api.handlers, ...fakeAccountsApi([nubank, velha]).handlers);
   render(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={items} total={items.length} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
+      <TransactionsTable items={items} total={items.length} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} onSettle={vi.fn()} />
     </QueryClientProvider>,
   );
   rowOf(/^Antigo/).focus();
@@ -530,7 +530,7 @@ it("uma conta arquivada nao aparece na linha nova", async () => {
   server.use(...api.handlers, ...fakeAccountsApi([nubank, velha]).handlers);
   render(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={[tx("A")]} total={1} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} />
+      <TransactionsTable items={[tx("A")]} total={1} categories={categories} accounts={[nubank, velha]} onOpen={vi.fn()} onRemove={vi.fn()} onSettle={vi.fn()} />
     </QueryClientProvider>,
   );
   rows()[0].focus();

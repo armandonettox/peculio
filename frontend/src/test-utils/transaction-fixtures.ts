@@ -25,6 +25,8 @@ export function makeSplit(overrides: Partial<TransactionSplit> = {}): Transactio
     bill_id: null,
     tag_ids: [],
     notes: null,
+    is_paid: true,
+    ignored: false,
     cleared: false,
     locked: false,
     ...overrides,

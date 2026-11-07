@@ -114,3 +114,22 @@ export function reconciliationState(transaction: Transaction): ReconciliationSta
 export function installmentText(index: number, count: number): string {
   return `${index + 1}/${count}`;
 }
+
+export type PaymentState = {
+  // Ainda nao pago ou recebido: nao mexe no saldo da conta
+  unpaid: boolean;
+  // Fora dos totais, relatorios e orcamentos (mexe no saldo)
+  ignored: boolean;
+  // Entrada pede "nao recebida" em vez de "nao paga"
+  income: boolean;
+};
+
+/** O estado de pagamento do lancamento, lido da primeira linha: todas as linhas de um grupo levam o mesmo valor. */
+export function paymentState(transaction: Transaction): PaymentState {
+  const [first] = transaction.splits;
+  return {
+    unpaid: first ? !first.is_paid : false,
+    ignored: first ? first.ignored : false,
+    income: first ? directionOf(first) === "in" : false,
+  };
+}

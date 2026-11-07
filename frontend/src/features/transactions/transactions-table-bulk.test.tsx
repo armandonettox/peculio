@@ -28,7 +28,7 @@ const tx = (description: string) => makeTransaction({}, [{ description, source_a
 function renderTable(items: Transaction[], total = items.length) {
   const api = fakeTransactionsApi(items, [nubank]);
   server.use(...api.handlers, ...fakeAccountsApi([nubank]).handlers);
-  const handlers = { onOpen: vi.fn(), onRemove: vi.fn() };
+  const handlers = { onOpen: vi.fn(), onRemove: vi.fn(), onSettle: vi.fn() };
   const view = render(
     <QueryClientProvider client={newTestQueryClient()}>
       <TransactionsTable items={items} total={total} categories={categories} accounts={[nubank]} {...handlers} />
@@ -139,7 +139,7 @@ it("o que sai da lista sai da selecao", async () => {
   expect(summary()).toBe("2 selecionados");
   view.rerender(
     <QueryClientProvider client={newTestQueryClient()}>
-      <TransactionsTable items={items.slice(1)} total={4} categories={categories} accounts={[nubank]} onOpen={vi.fn()} onRemove={vi.fn()} />
+      <TransactionsTable items={items.slice(1)} total={4} categories={categories} accounts={[nubank]} onOpen={vi.fn()} onRemove={vi.fn()} onSettle={vi.fn()} />
     </QueryClientProvider>,
   );
   await waitFor(() => expect(summary()).toBe("1 selecionado"));

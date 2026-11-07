@@ -42,6 +42,7 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
     // Corpos recebidos em POST e PUT, e erro devolvido na proxima gravacao
     writes: [] as { method: "POST" | "PUT"; id?: string; body: TransactionCreate }[],
     removed: [] as string[],
+    settled: [] as string[],
     nextWriteError: null as { status: number; code: string } | null,
     counterparties: [] as { id: string; name: string; type: string }[],
     // Acoes em massa recebidas e os lancamentos que o teste quer travados (a acao inteira e recusada com 409)
@@ -102,6 +103,8 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
         bill_id: split.bill_id ?? null,
         tag_ids: split.tag_ids ?? [],
         notes: split.notes ?? null,
+        is_paid: split.is_paid ?? true,
+        ignored: split.ignored ?? false,
         source_account_id: outgoing ? split.account_id : (split.counterparty_account_id ?? "externo"),
         source_account_name: outgoing ? own : otherName,
         source_account_type: (outgoing ? ownType : otherType) as Transaction["splits"][number]["source_account_type"],
@@ -137,6 +140,16 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
       const previous = state.items.find((item) => item.id === params.id);
       // A edicao recria os splits mas mantem os anexos do grupo, como o backend
       const saved = { ...toTransaction(body, String(params.id)), attachment_count: previous?.attachment_count ?? 0 };
+      state.items = state.items.map((item) => (item.id === params.id ? saved : item));
+      return HttpResponse.json(saved);
+    }),
+    http.post("*/api/v1/transactions/:id/settle", ({ params }) => {
+      state.settled.push(String(params.id));
+      const error = failWrite();
+      if (error) return error;
+      const found = state.items.find((item) => item.id === params.id);
+      if (!found) return HttpResponse.json({ detail: "nao encontrado" }, { status: 404 });
+      const saved = { ...found, splits: found.splits.map((split) => ({ ...split, is_paid: true })) };
       state.items = state.items.map((item) => (item.id === params.id ? saved : item));
       return HttpResponse.json(saved);
     }),

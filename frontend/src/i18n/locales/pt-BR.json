@@ -940,6 +940,38 @@
       "saveRow": "Gravar a linha",
       "saveClose": "Gravar e fechar a linha nova",
       "cancel": "Cancelar sem gravar"
+    },
+    "payment": {
+      "unpaidExpense": "Não paga",
+      "unpaidIncome": "Não recebida",
+      "ignored": "Ignorada",
+      "settle": "Efetivar"
+    },
+    "expenseForm": {
+      "title": "Nova despesa",
+      "editTitle": "Editar despesa",
+      "paid": "Foi paga",
+      "unpaid": "Não foi paga",
+      "today": "Hoje",
+      "yesterday": "Ontem",
+      "otherDate": "Outros...",
+      "attach": "Anexar arquivo",
+      "removeFile": "Remover {{name}}",
+      "attachLimit": "No máximo {{max}} arquivos por lançamento.",
+      "fileTooBig": "{{name}} passa de 10 MB.",
+      "attachFailed": "O lançamento foi salvo, mas estes arquivos não subiram: {{names}}. Anexe-os pela lista de transações.",
+      "ignore": "Ignorar transação",
+      "ignoreInfo": "Ao ativar, esta transação não será exibida nem considerada nos totais de despesas e receitas, relatórios e orçamentos. O saldo da conta continua mudando. Você pode desativar quando quiser.",
+      "ignoreInfoButton": "O que significa ignorar",
+      "moreDetails": "Mais detalhes",
+      "lessDetails": "Menos detalhes",
+      "saveAndNew": "Salvar e criar nova",
+      "fixed": "Despesa fixa",
+      "fixedHint": "Cria todo mês, sem data final.",
+      "repeat": "Repetir",
+      "times": "vezes",
+      "toWhomHint": "Se ficar vazio, usa a descrição.",
+      "repeatCountInvalid": "Informe de 2 a 999 vezes."
     }
   },
   "labels": {

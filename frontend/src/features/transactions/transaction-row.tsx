@@ -1,4 +1,4 @@
-import { Lock, MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
+import { CircleCheck, Lock, MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
 
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
@@ -19,9 +19,11 @@ import {
   formatTransactionAmount,
   installmentText,
   ownAccountName,
+  paymentState,
   reconciliationState,
   transactionTitle,
 } from "./presentation";
+import { PaymentBadges } from "./payment-badges";
 import { useTranslation } from "react-i18next";
 
 type Lookups = {
@@ -53,10 +55,12 @@ type RowProps = {
   onEdit: (transaction: Transaction) => void;
   onRemove: (transaction: Transaction) => void;
   onAttachments: (transaction: Transaction) => void;
+  onSettle: (transaction: Transaction) => void;
 } & Lookups;
 
-export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments }: RowProps) {
+export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments, onSettle }: RowProps) {
   const { t } = useTranslation();
+  const { unpaid } = paymentState(transaction);
   const splits = transaction.splits;
   const isSplit = splits.length > 1;
   const total = formatTransactionAmount(transaction);
@@ -76,6 +80,7 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
               </span>
             )}
           </p>
+          <PaymentBadges transaction={transaction} />
           {reconciliation && (
             <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
               {reconciliation === "locked" && <Lock className="size-3" aria-hidden="true" />}
@@ -125,6 +130,12 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-40">
+              {unpaid && (
+                <DropdownMenuItem onSelect={() => onSettle(transaction)}>
+                  <CircleCheck />
+                  {t("transactions.payment.settle")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onSelect={() => onEdit(transaction)}>
                 <Pencil />
                 {t("common.editar")}

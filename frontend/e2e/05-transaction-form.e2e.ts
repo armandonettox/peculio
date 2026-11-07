@@ -160,6 +160,11 @@ test("editar um lancamento muda o valor e o saldo acompanha", async ({ page }) =
   await page.getByRole("menuitem", { name: "Editar" }).click();
   await expect(dialog(page)).toBeVisible();
   await expect(input(page, "Descrição")).toHaveValue("Mercado do bairro F5");
+  // Despesa comum abre o formulario proprio de despesa; "Para quem" fica em "Mais detalhes"
+  // Com tags, notas ou orcamento o formulario ja abre com os detalhes aberto
+  const details = dialog(page).getByRole("button", { name: /(Mais|Menos) detalhes/ });
+  await expect(details).toBeVisible();
+  if ((await details.textContent())?.includes("Mais")) await details.click();
   await expect(input(page, "Para quem")).toHaveValue("Mercado do Ze");
   await expect(input(page, "Valor (BRL)")).toHaveValue("250,00");
 

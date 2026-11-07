@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ExpenseFormDialog } from "@/features/transactions/expense-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import type { Kind } from "@/features/transactions/form-model";
 
@@ -58,7 +59,8 @@ export function SidebarNewButton({ collapsed }: Props) {
         </DropdownMenu>
       </div>
 
-      {dialog && dialogKind && (
+      {dialog === "withdrawal" && <ExpenseFormDialog onClose={() => setDialog(null)} />}
+      {dialog && dialog !== "withdrawal" && dialogKind && (
         <TransactionFormDialog
           defaultKind={dialogKind}
           onClose={() => setDialog(null)}

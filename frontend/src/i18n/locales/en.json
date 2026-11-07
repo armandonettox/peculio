@@ -940,6 +940,38 @@
       "saveRow": "Save the row",
       "saveClose": "Save and close the new row",
       "cancel": "Cancel without saving"
+    },
+    "payment": {
+      "unpaidExpense": "Unpaid",
+      "unpaidIncome": "Not received",
+      "ignored": "Ignored",
+      "settle": "Mark as paid"
+    },
+    "expenseForm": {
+      "title": "New expense",
+      "editTitle": "Edit expense",
+      "paid": "Paid",
+      "unpaid": "Not paid",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "otherDate": "Other...",
+      "attach": "Attach file",
+      "removeFile": "Remove {{name}}",
+      "attachLimit": "At most {{max}} files per transaction.",
+      "fileTooBig": "{{name}} is over 10 MB.",
+      "attachFailed": "The transaction was saved, but these files did not upload: {{names}}. Attach them from the transactions list.",
+      "ignore": "Ignore transaction",
+      "ignoreInfo": "When on, this transaction is not shown or counted in the expense and income totals, reports and budgets. The account balance still changes. You can turn it off any time.",
+      "ignoreInfoButton": "What ignoring means",
+      "moreDetails": "More details",
+      "lessDetails": "Less details",
+      "saveAndNew": "Save and add another",
+      "fixed": "Fixed expense",
+      "fixedHint": "Created every month, no end date.",
+      "repeat": "Repeat",
+      "times": "times",
+      "toWhomHint": "If left empty, the description is used.",
+      "repeatCountInvalid": "Enter from 2 to 999 times."
     }
   },
   "labels": {

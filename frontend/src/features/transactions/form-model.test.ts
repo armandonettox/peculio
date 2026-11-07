@@ -282,6 +282,8 @@ describe("buildPayload", () => {
           budget_id: null,
           tag_ids: [],
           notes: null,
+          is_paid: true,
+          ignored: false,
         },
       ],
     });
@@ -710,6 +712,8 @@ describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
     account_id: nubank.id,
     counterparty_name: "Imobiliaria",
     tag_ids: [],
+    is_paid: true,
+    ignored: false,
     ...overrides,
   });
   const open = (template: Parameters<typeof formFromTemplate>[0], date = "2026-03-05") =>
@@ -1091,6 +1095,8 @@ describe("valor original em outra moeda", () => {
       account_id: nubank.id,
       counterparty_name: "Software",
       tag_ids: [],
+      is_paid: true,
+      ignored: false,
     };
 
     it("reabre o modelo com valor original informativo (numero ou texto vindo da API)", () => {
@@ -1121,5 +1127,63 @@ describe("valor original em outra moeda", () => {
       expect(a).toMatchObject({ foreign_amount: "8.00", foreign_currency_code: "USD" });
       expect(b).not.toHaveProperty("foreign_amount");
     });
+  });
+});
+
+describe("pago e ignorado", () => {
+  it("comeca pago e nao ignorado", () => {
+    const state = emptyForm(ctx);
+    expect(state.isPaid).toBe(true);
+    expect(state.ignored).toBe(false);
+  });
+
+  it("leva os dois campos para o corpo do pedido", () => {
+    const payload = buildPayload(form({ isPaid: false, ignored: true }), ctx);
+    expect(payload.splits[0]).toMatchObject({ is_paid: false, ignored: true });
+  });
+
+  it("em um lancamento dividido, todas as linhas levam o mesmo valor", () => {
+    const rows = [emptySplit({ description: "A", amount: "20,00" }), emptySplit({ description: "B", amount: "30,00" })];
+    const payload = buildPayload(form({ isPaid: false, ignored: true, splits: rows }), ctx);
+    expect(payload.splits).toHaveLength(2);
+    for (const split of payload.splits) expect(split).toMatchObject({ is_paid: false, ignored: true });
+  });
+
+  it("reabrir um lancamento nao pago e ignorado mantem as marcas ao salvar de novo", () => {
+    const t = makeTransaction({}, [{ source_account_id: nubank.id, is_paid: false, ignored: true }]);
+    const loaded = formFromTransaction(t, ctx);
+    expect(loaded.ok && loaded.state).toMatchObject({ isPaid: false, ignored: true });
+    if (!loaded.ok) throw new Error(loaded.reason);
+    expect(buildPayload(loaded.state, ctx).splits[0]).toMatchObject({ is_paid: false, ignored: true });
+  });
+
+  it("linhas com marcas diferentes nao sao editaveis pelo formulario", () => {
+    const t = makeTransaction({}, [
+      { source_account_id: nubank.id, is_paid: true },
+      { source_account_id: nubank.id, is_paid: false },
+    ]);
+    expect(formFromTransaction(t, ctx).ok).toBe(false);
+  });
+
+  it("o modelo de uma recorrente sem os campos abre como pago e nao ignorado", () => {
+    const loaded = formFromTemplate(
+      {
+        splits: [
+          {
+            type: "withdrawal",
+            date: "2026-01-01",
+            description: "Aluguel",
+            amount: "1500.00",
+            currency_code: "BRL",
+            account_id: nubank.id,
+            counterparty_name: "Imobiliaria",
+            tag_ids: [],
+          } as never,
+        ],
+      },
+      ctx,
+      "2026-03-05",
+    );
+    expect(loaded.ok && loaded.state).toMatchObject({ isPaid: true, ignored: false });
   });
 });
