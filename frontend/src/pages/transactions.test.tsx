@@ -6,6 +6,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
+import { fakeDashboardApi } from "@/test-utils/dashboard-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { LocationProbe } from "@/test-utils/location-probe";
 import { server } from "@/test-utils/msw";
@@ -34,7 +35,8 @@ function renderPage({ transactions = [], url = "/transacoes" }: Options = {}) {
   const accounts = fakeAccountsApi([nubank, poupanca, antiga]);
   const categories = fakeLabelsApi("categories", [mercado]);
   const tags = fakeLabelsApi("tags", [viagem]);
-  server.use(...tx.handlers, ...accounts.handlers, ...categories.handlers, ...tags.handlers);
+  // Os cards de resumo pedem o patrimonio liquido (o mesmo do painel)
+  server.use(...tx.handlers, ...accounts.handlers, ...categories.handlers, ...tags.handlers, ...fakeDashboardApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter initialEntries={[url]}>

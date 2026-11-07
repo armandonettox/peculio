@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
+import { useNetWorth } from "@/api/dashboard";
 import { useReportSummary } from "@/api/reports";
 import { formatMoney } from "@/lib/money";
 
@@ -11,13 +12,6 @@ type Props = {
   dateFrom: string;
   dateTo: string;
 };
-
-function sumBalances(accounts: { balance: string; currency_code: string }[], currencyCode: string): string {
-  const total = accounts
-    .filter((a) => a.currency_code === currencyCode)
-    .reduce((sum, a) => sum + parseFloat(a.balance), 0);
-  return total.toFixed(2);
-}
 
 type CardProps = {
   icon: React.ReactNode;
@@ -56,6 +50,9 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
   const navigate = useNavigate();
   const accounts = useAccounts({ includeArchived: false });
   const summary = useReportSummary({ dateFrom, dateTo });
+  // Mesmo numero do Painel: patrimonio de hoje, com cartoes e sem lancamentos futuros (somar os saldos das contas
+  // contava a parcela de um mes que ainda nao chegou e dava um valor diferente)
+  const netWorth = useNetWorth({ months: 12, forecastMonths: 3 });
 
   const activeAccounts = useMemo(() => accounts.data ?? [], [accounts.data]);
   const currencies = summary.data?.currencies ?? [];
@@ -64,12 +61,9 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
   const mainCurrency = currencies[0]?.currency_code ?? activeAccounts[0]?.currency_code ?? "BRL";
   const totals = currencies.find((c) => c.currency_code === mainCurrency);
 
-  const currentBalance = useMemo(
-    () => sumBalances(activeAccounts.map((a) => ({ balance: a.balance, currency_code: a.currency_code })), mainCurrency),
-    [activeAccounts, mainCurrency],
-  );
+  const netWorthNow = netWorth.data?.currencies.find((c) => c.currency_code === mainCurrency)?.net;
 
-  if (accounts.isPending || summary.isPending) {
+  if (accounts.isPending || summary.isPending || netWorth.isPending) {
     return (
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
@@ -81,14 +75,16 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
 
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <SummaryCard
-        icon={<Landmark className="size-5 text-white" />}
-        label={t("pages.transactions.saldoAtual")}
-        value={currentBalance}
-        currency={mainCurrency}
-        colorClass="bg-blue-500"
-        onClick={() => navigate("/contas")}
-      />
+      {netWorthNow !== undefined && (
+        <SummaryCard
+          icon={<Landmark className="size-5 text-white" />}
+          label={t("pages.transactions.patrimonioLiquido")}
+          value={netWorthNow}
+          currency={mainCurrency}
+          colorClass="bg-blue-500"
+          onClick={() => navigate("/contas")}
+        />
+      )}
       <SummaryCard
         icon={<TrendingUp className="size-5 text-white" />}
         label={t("pages.transactions.receitas")}

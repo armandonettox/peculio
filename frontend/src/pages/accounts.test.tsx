@@ -4,13 +4,15 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
+import { fakeDashboardApi } from "@/test-utils/dashboard-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
 import AccountsPage from "./accounts";
 
 function renderPage(accounts = [makeAccount({ name: "Nubank", balance: "1234.50" })]) {
   const api = fakeAccountsApi(accounts);
-  server.use(...api.handlers);
+  // A pagina pede o patrimonio liquido (o mesmo do painel); o msw falha o teste se o pedido nao tiver rota
+  server.use(...api.handlers, ...fakeDashboardApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter>
@@ -57,8 +59,15 @@ it("totais de moedas diferentes ficam separados", async () => {
     makeAccount({ name: "Wise", currency_code: "USD", balance: "50.00" }),
   ]);
   await screen.findByRole("heading", { level: 2, name: "Nubank" });
-  const total = screen.getByText("Saldo total:").closest("p") as HTMLElement;
+  const total = screen.getByText("Saldo das contas (sem cartões):").closest("p") as HTMLElement;
   expect(total).toHaveTextContent("R$ 100,00 · US$ 50,00");
+});
+
+it("mostra o patrimonio liquido do painel em vez de somar os saldos das contas", async () => {
+  renderPage([makeAccount({ name: "Nubank", balance: "1234.50" })]);
+  await screen.findByRole("heading", { level: 2, name: "Nubank" });
+  expect(await screen.findByText("Patrimônio líquido")).toBeInTheDocument();
+  expect(screen.getByText("R$ 12.000,50")).toBeInTheDocument();
 });
 
 it("conta em outra moeda mostra o codigo da moeda", async () => {
@@ -76,7 +85,7 @@ it("sem contas mostra o estado vazio e o botao abre o formulario", async () => {
 
 it("mostra o carregamento enquanto busca", () => {
   const api = fakeAccountsApi();
-  server.use(...api.handlers);
+  server.use(...api.handlers, ...fakeDashboardApi().handlers);
   render(
     <FakeAuth>
       <MemoryRouter>
@@ -426,7 +435,7 @@ it("conta arquivada nao entra no total", async () => {
   await screen.findByRole("heading", { level: 2, name: "Ativa" });
   await userEvent.click(screen.getByLabelText("Mostrar arquivadas"));
   await screen.findByRole("heading", { level: 2, name: "Velha" });
-  expect(screen.getByText("Saldo total:").closest("p")).toHaveTextContent("R$ 10,00");
+  expect(screen.getByText("Saldo das contas (sem cartões):").closest("p")).toHaveTextContent("R$ 10,00");
 });
 
 it("falha ao arquivar mostra o aviso na pagina", async () => {

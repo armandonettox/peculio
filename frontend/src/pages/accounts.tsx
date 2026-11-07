@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAccounts, useCurrencies, useUpdateAccount, type Account } from "@/api/accounts";
+import { useNetWorth } from "@/api/dashboard";
 import { getErrorMessage } from "@/api/error-messages";
 import { EmptyState } from "@/components/layout/empty-state";
 import { KpiCard } from "@/components/kpi-card";
@@ -13,7 +14,7 @@ import { AccountCard } from "@/features/accounts/account-card";
 import { AccountFormDialog } from "@/features/accounts/account-form-dialog";
 import { DeleteAccountDialog } from "@/features/accounts/delete-account-dialog";
 import { totalsByCurrency } from "@/features/accounts/totals";
-import { formatMoney, sumMoney, placesOf } from "@/lib/money";
+import { formatMoney, isNegativeMoney } from "@/lib/money";
 
 type DialogState =
   | { kind: "create" }
@@ -44,6 +45,8 @@ export default function AccountsPage() {
   const accounts = useAccounts({ includeArchived: showArchived });
   const currencies = useCurrencies();
   const update = useUpdateAccount();
+  // Mesmo numero do Painel (patrimonio de hoje, com cartoes e sem lancamentos futuros): uma fonte so para "quanto eu tenho"
+  const netWorth = useNetWorth({ months: 12, forecastMonths: 3 });
 
   const places = Object.fromEntries((currencies.data ?? []).map((c) => [c.code, c.decimal_places]));
   // Cartoes de credito ficam na pagina /cartoes
@@ -104,18 +107,22 @@ export default function AccountsPage() {
   } else {
     const activeItems = items.filter((a) => a.active);
     const mainCurrency = activeItems[0]?.currency_code ?? "BRL";
-    const mainPlaces = placesOf(mainCurrency, places);
-    const saldoAtual = activeItems.length > 0
-      ? sumMoney(activeItems.filter(a => a.currency_code === mainCurrency).map(a => a.balance), mainPlaces)
-      : "0.00";
+    const mainNet = netWorth.data?.currencies.find((c) => c.currency_code === mainCurrency)?.net;
     const totals = totalsByCurrency(items, places);
     content = (
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <KpiCard icon={Wallet} label={t("pages.accounts.saldoAtual")} value={formatMoney(saldoAtual, mainCurrency)} valueColor={parseFloat(saldoAtual) < 0 ? "destructive" : "default"} />
-        </div>
+        {mainNet !== undefined && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <KpiCard
+              icon={Wallet}
+              label={t("pages.accounts.patrimonioLiquido")}
+              value={formatMoney(mainNet, mainCurrency)}
+              valueColor={isNegativeMoney(mainNet) ? "destructive" : "default"}
+            />
+          </div>
+        )}
 
-        <Totals label={t("pages.accounts.saldoTotal")} totals={totals} />
+        <Totals label={t("pages.accounts.saldoDasContas")} totals={totals} />
 
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">
