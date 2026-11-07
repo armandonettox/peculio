@@ -84,6 +84,12 @@ export async function apiHeaders(request: APIRequestContext, user = ADMIN) {
   return { Authorization: `Bearer ${token}` };
 }
 
+// Outros specs (o 25) deixam a moeda padrao do usuario em USD; quem precisa de R$ na tela volta para BRL por aqui
+export async function setDefaultCurrency(request: APIRequestContext, headers: Record<string, string>, code: string) {
+  const response = await request.patch("/api/v1/auth/me", { headers, data: { default_currency: code } });
+  expect(response.status(), await response.text()).toBe(200);
+}
+
 export async function apiPost(
   request: APIRequestContext,
   headers: Record<string, string>,

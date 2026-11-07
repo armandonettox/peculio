@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, setDefaultCurrency } from "./helpers";
 
 // Planejamento Mensal: o assistente de 3 etapas, a tabela por categoria e o gasto que vem dos lancamentos. Usa um mes
 // fixo (marco de 2026) para nao depender do dia em que o teste roda. Em ordem: cada passo parte do anterior.
@@ -21,6 +21,7 @@ async function openPlanning(page: Page) {
 
 test("prepara categorias e um gasto de marco pela API", async ({ request }) => {
   const headers = await apiHeaders(request, ADMIN);
+  await setDefaultCurrency(request, headers, "BRL");
   const mercado = await apiPost(request, headers, "/categories", { name: CATEGORY, kind: "expense", color: "#E11D48" });
   await apiPost(request, headers, "/categories", { name: OTHER, kind: "expense", color: "#2563EB" });
   const account = await apiPost(request, headers, "/accounts", {

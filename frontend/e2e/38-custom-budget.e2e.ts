@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, setDefaultCurrency } from "./helpers";
 
 // Planejamento Personalizado: orcamento com periodo por datas e categorias, as abas Ativos e Expirados e o gasto que vem
 // da categoria (sem ligar lancamento a lancamento). Em ordem: cada passo parte do anterior.
@@ -8,6 +8,8 @@ test.describe.configure({ mode: "serial" });
 
 const CATEGORY = "Viagem Cat E2E";
 const PAST = "Viagem Marco E2E";
+// Nome proprio: o spec 23 ja usa "Conta Personalizado E2E" e o nome de conta e unico
+const ACCOUNT = "Conta Orcamento Personalizado E2E";
 const CURRENT = "Viagem Atual E2E";
 
 const main = (page: Page) => page.getByRole("main");
@@ -40,9 +42,10 @@ async function createBudget(page: Page, name: string, start: string, end: string
 
 test("prepara a categoria e um gasto de marco pela API", async ({ request }) => {
   const headers = await apiHeaders(request, ADMIN);
+  await setDefaultCurrency(request, headers, "BRL");
   const category = await apiPost(request, headers, "/categories", { name: CATEGORY, kind: "expense", color: "#2563EB" });
   const account = await apiPost(request, headers, "/accounts", {
-    name: "Conta Personalizado E2E",
+    name: ACCOUNT,
     type: "asset",
     currency_code: "BRL",
     opening_balance: "9000.00",
@@ -97,7 +100,7 @@ test("um gasto novo na categoria entra no orcamento em curso sem ligar nada", as
   const categories = await (await request.get("/api/v1/categories", { headers })).json();
   const category = (categories.items ?? categories).find((item: { name: string }) => item.name === CATEGORY);
   const accounts = await (await request.get("/api/v1/accounts", { headers })).json();
-  const account = (accounts.items ?? accounts).find((item: { name: string }) => item.name === "Conta Personalizado E2E");
+  const account = (accounts.items ?? accounts).find((item: { name: string }) => item.name === ACCOUNT);
   await apiPost(request, headers, "/transactions", {
     splits: [
       {

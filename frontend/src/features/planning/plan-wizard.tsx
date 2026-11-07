@@ -209,9 +209,9 @@ function WizardBody({ month, plan, categories, suggested, currencyCode }: BodyPr
             </div>
           </div>
           <div className="flex flex-col gap-1 rounded-lg bg-primary/10 p-4" aria-live="polite">
-            <p className="text-sm text-muted-foreground">{t("planning.wizard.yourBudget")}</p>
+            <p className="text-sm text-foreground">{t("planning.wizard.yourBudget")}</p>
             <p className="text-2xl font-semibold tabular-nums">{money(budget)}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{t("planning.wizard.youSave")}</p>
+            <p className="mt-2 text-sm text-foreground">{t("planning.wizard.youSave")}</p>
             <p className="text-xl font-semibold tabular-nums text-positive">{money(saved)}</p>
           </div>
           <div className="flex justify-end">
@@ -279,7 +279,7 @@ function WizardBody({ month, plan, categories, suggested, currencyCode }: BodyPr
                   </p>
                 </div>
               </div>
-              <p className="rounded-md bg-primary/10 p-3 text-xs text-muted-foreground">{t("planning.wizard.tip")}</p>
+              <p className="rounded-md bg-primary/10 p-3 text-xs text-foreground">{t("planning.wizard.tip")}</p>
             </div>
             <Button variant="ghost" className="self-center text-primary-text" onClick={() => setManaging(true)}>
               {t("planning.wizard.manage")}
