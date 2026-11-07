@@ -59,7 +59,7 @@ export function ProfileSection() {
         <CardDescription>{t("settings.profileSection.comoVoceApareceNo")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-4">
+        <form onSubmit={(event) => void submit(event)} noValidate className="flex max-w-xl flex-col gap-4">
           {serverError && <Alert variant="destructive">{serverError}</Alert>}
           {notice && (
             <p role="status" className="rounded-md border bg-accent/30 px-3 py-2 text-sm">

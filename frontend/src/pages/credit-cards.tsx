@@ -42,13 +42,13 @@ function OpenFinanceBanner() {
   const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-dashed border-border bg-muted/40 p-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-text">
         <Sparkles className="size-5" />
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold">{t("pages.accounts.importacaoAutomatica")}</p>
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          <span className="shrink-0 whitespace-nowrap rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary-text">
             {t("pages.accounts.emBreve")}
           </span>
         </div>

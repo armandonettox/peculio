@@ -110,7 +110,7 @@ export function DatePicker({ value, onChange, placeholder = "Selecionar data", c
                 cell: "size-8 text-center",
                 day: "size-8 rounded-full text-sm hover:bg-accent flex items-center justify-center w-full cursor-pointer",
                 day_selected: "bg-primary text-primary-foreground hover:bg-primary",
-                day_today: "font-bold text-primary",
+                day_today: "font-bold text-primary-text",
                 day_outside: "text-muted-foreground opacity-50",
                 day_disabled: "text-muted-foreground opacity-30 cursor-not-allowed",
               }}

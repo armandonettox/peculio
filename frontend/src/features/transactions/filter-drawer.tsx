@@ -269,7 +269,7 @@ function SavedFiltersTab(props: Props) {
               <li key={entry.id} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
                 <button
                   type="button"
-                  className="flex-1 text-left text-sm font-medium hover:text-primary"
+                  className="flex-1 text-left text-sm font-medium hover:text-primary-text"
                   onClick={() => handleApply(entry)}
                 >
                   {entry.name}
@@ -300,13 +300,11 @@ export function FilterDrawer(props: Props) {
 
       {/* Cabecalho com abas */}
       <div className="shrink-0 border-b px-5 pt-4">
-        <div className="mb-3 flex items-center justify-between">
+        {/* O botao de fechar e o do proprio Sheet (canto direito); um segundo aqui ficava por cima dele e sem nome */}
+        <div className="mb-3 flex items-center justify-between pr-8">
           <SheetTitle className="text-base font-semibold">
             {t("transactions.filterBar.filtroDeTransacoes")}
           </SheetTitle>
-          <Button size="icon" variant="ghost" className="size-8" onClick={props.onClose}>
-            <X className="size-4" />
-          </Button>
         </div>
         <TabList aria-label={t("transactions.filterBar.filtros")}>
           <Tab active={activeTab === "new"} onSelect={() => setActiveTab("new")}>

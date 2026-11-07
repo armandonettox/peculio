@@ -250,10 +250,10 @@ function MethodStep({ onSelect, onClose, isCreditCard }: { onSelect: () => void;
             <Zap className="size-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <p className="text-sm font-semibold text-muted-foreground">{t("accounts.accountFormDialog.automatica")}</p>
-              <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-                Em breve
+              <span className="shrink-0 whitespace-nowrap rounded-full border bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                {t("pages.accounts.emBreve")}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">{t("accounts.accountFormDialog.automaticaDesc")}</p>
