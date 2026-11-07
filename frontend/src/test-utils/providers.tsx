@@ -106,3 +106,10 @@ export async function pickChip(scope: { getByRole: typeof screen.getByRole }, la
   const escaped = option.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   await userEvent.click(await screen.findByRole("option", { name: new RegExp(`^${escaped}`) }));
 }
+
+// Abre o formulario proprio de transferencia ("Nova transferência").
+export async function openTransferForm() {
+  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Transferência" }));
+  return screen.findByRole("dialog", { name: "Nova transferência" });
+}

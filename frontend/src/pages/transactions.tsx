@@ -21,6 +21,7 @@ import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters
 
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
 import { ExpenseFormDialog, IncomeFormDialog, usesExpenseForm, usesIncomeForm } from "@/features/transactions/expense-form-dialog";
+import { TransferFormDialog, usesTransferForm } from "@/features/transactions/transfer-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
 import { TransactionsTable } from "@/features/transactions/transactions-table";
@@ -466,6 +467,8 @@ export default function TransactionsPage() {
           <ExpenseFormDialog transaction={dialog} onClose={() => setDialog(null)} />
         ) : dialog !== "new" && usesIncomeForm(dialog) ? (
           <IncomeFormDialog transaction={dialog} onClose={() => setDialog(null)} />
+        ) : dialog !== "new" && usesTransferForm(dialog) ? (
+          <TransferFormDialog transaction={dialog} onClose={() => setDialog(null)} />
         ) : (
           <TransactionFormDialog
             transaction={dialog === "new" ? undefined : dialog}

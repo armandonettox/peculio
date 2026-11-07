@@ -992,6 +992,17 @@
       "unfavorite": "Tirar dos favoritos",
       "suggestions": "Sugestões de descrição",
       "favoriteTag": "favorita"
+    },
+    "transferForm": {
+      "title": "Nova transferência",
+      "editTitle": "Editar transferência",
+      "description": "Mova dinheiro de uma conta para outra.",
+      "from": "Conta de origem",
+      "to": "Conta de destino",
+      "fixed": "Transferência fixa",
+      "descriptionHint": "Se ficar vazia, usa origem e destino.",
+      "defaultDescription": "Transferência: {{from}} → {{to}}",
+      "defaultDescriptionShort": "Transferência"
     }
   },
   "labels": {

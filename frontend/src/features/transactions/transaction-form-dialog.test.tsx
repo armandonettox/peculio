@@ -436,8 +436,8 @@ it("cancelar fecha sem gravar", async () => {
 const openEdit = async (title: string) => {
   await userEvent.click(await screen.findByRole("button", { name: `Ações do lançamento ${title}` }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Editar" }));
-  // Despesa e receita comuns abrem o formulario proprio, com os extras em "Mais detalhes"; o resto abre o geral
-  const dialog = await screen.findByRole("dialog", { name: /^Editar (lançamento|despesa|receita)$/ });
+  // Despesa, receita e transferencia comuns abrem o formulario proprio, com os extras em "Mais detalhes"; o resto abre o geral
+  const dialog = await screen.findByRole("dialog", { name: /^Editar (lançamento|despesa|receita|transferência)$/ });
   const more = within(dialog).queryByRole("button", { name: /Mais detalhes/ });
   if (more) await userEvent.click(more);
   return dialog;
@@ -518,8 +518,10 @@ it("editar uma transferencia reabre com a conta de destino", async () => {
   });
   await screen.findByText("Reserva", { selector: "p" });
   await openEdit("Reserva");
-  expect(d().getByRole("radio", { name: "Transferência" })).toBeChecked();
-  expect(d().getByLabelText("Para a conta")).toHaveValue(poupanca.id);
+  // Transferencia de um lancamento so abre o formulario proprio de transferencia
+  expect(screen.getByRole("dialog", { name: "Editar transferência" })).toBeInTheDocument();
+  expect(d().getByLabelText("Conta de origem")).toHaveTextContent("Nubank");
+  expect(d().getByLabelText("Conta de destino")).toHaveTextContent("Poupanca");
 });
 
 it("editar um lancamento dividido reabre as linhas e o titulo", async () => {
