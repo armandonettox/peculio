@@ -19,6 +19,7 @@ from app.routers import (
     rules,
     categories,
     favorites,
+    monthly_plan,
     clock,
     currencies,
     dashboard,
@@ -75,6 +76,7 @@ api_v1.include_router(currencies.router)
 api_v1.include_router(accounts.router)
 api_v1.include_router(categories.router)
 api_v1.include_router(favorites.router)
+api_v1.include_router(monthly_plan.router)
 api_v1.include_router(tags.router)
 api_v1.include_router(budgets.router)
 api_v1.include_router(reconciliation.router)

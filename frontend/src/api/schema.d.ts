@@ -917,6 +917,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plans/monthly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete All Plans
+         * @description Apaga todos os planejamentos mensais (os lancamentos e as categorias nao mudam).
+         */
+        delete: operations["delete_all_plans_api_v1_plans_monthly_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/monthly/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Plan
+         * @description O planejamento do mes com o gasto de cada categoria (pago e previsto). 404 se o mes ainda nao tem planejamento.
+         */
+        get: operations["get_plan_api_v1_plans_monthly__month__get"];
+        put?: never;
+        /**
+         * Create Plan
+         * @description Cria o planejamento do mes (AAAA-MM): renda, quanto economizar, como contar o cartao e os limites por categoria.
+         */
+        post: operations["create_plan_api_v1_plans_monthly__month__post"];
+        /** Delete Plan */
+        delete: operations["delete_plan_api_v1_plans_monthly__month__delete"];
+        options?: never;
+        head?: never;
+        /** Update Plan */
+        patch: operations["update_plan_api_v1_plans_monthly__month__patch"];
+        trace?: never;
+    };
+    "/api/v1/plans/monthly/{month}/copy-previous": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy Previous
+         * @description Cria o planejamento deste mes como copia do mes anterior.
+         */
+        post: operations["copy_previous_api_v1_plans_monthly__month__copy_previous_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/monthly/{month}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Put Items
+         * @description Grava limites por categoria: cria os novos e troca o valor e o alerta dos que ja existem.
+         */
+        put: operations["put_items_api_v1_plans_monthly__month__items_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/monthly/{month}/items/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_v1_plans_monthly__month__items__category_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reconciliation/{account_id}": {
         parameters: {
             query?: never;
@@ -2066,6 +2169,11 @@ export interface components {
             created_ids: string[];
         };
         /**
+         * CardCounting
+         * @enum {string}
+         */
+        CardCounting: "purchase" | "invoice";
+        /**
          * CardNetwork
          * @enum {string}
          */
@@ -2550,6 +2658,58 @@ export interface components {
             /** Months */
             months: components["schemas"]["MonthlyPoint"][];
         };
+        /**
+         * MonthlyPlanCreate
+         * @description Cria o planejamento de um mes (o mes vai na URL).
+         */
+        MonthlyPlanCreate: {
+            /** @default purchase */
+            card_counting: components["schemas"]["CardCounting"];
+            /** Currency Code */
+            currency_code?: string | null;
+            /** Income */
+            income: number | string;
+            /** Items */
+            items?: components["schemas"]["PlanItemIn"][];
+            /**
+             * Savings Percent
+             * @default 20
+             */
+            savings_percent: number | string;
+        };
+        /** MonthlyPlanOut */
+        MonthlyPlanOut: {
+            card_counting: components["schemas"]["CardCounting"];
+            /** Currency Code */
+            currency_code: string;
+            /** Income */
+            income: string;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Rows */
+            rows: components["schemas"]["PlanRowOut"][];
+            /** Savings Amount */
+            savings_amount: string;
+            /** Savings Percent */
+            savings_percent: string;
+            /** Spending Budget */
+            spending_budget: string;
+            summary: components["schemas"]["PlanSummaryOut"];
+        };
+        /**
+         * MonthlyPlanUpdate
+         * @description Muda so o cabecalho (o que veio no corpo); os limites por categoria tem as proprias rotas.
+         */
+        MonthlyPlanUpdate: {
+            card_counting?: components["schemas"]["CardCounting"] | null;
+            /** Income */
+            income?: number | string | null;
+            /** Savings Percent */
+            savings_percent?: number | string | null;
+        };
         /** MonthlyPoint */
         MonthlyPoint: {
             /** Count */
@@ -2883,6 +3043,81 @@ export interface components {
             target_amount?: number | string | null;
             /** Target Date */
             target_date?: string | null;
+        };
+        /** PlanItemIn */
+        PlanItemIn: {
+            /**
+             * Alert
+             * @default false
+             */
+            alert: boolean;
+            /** Amount */
+            amount: number | string;
+            /**
+             * Category Id
+             * Format: uuid
+             */
+            category_id: string;
+        };
+        /**
+         * PlanItemsIn
+         * @description Grava varios limites de uma vez: cria os novos e troca o valor e o alerta dos que ja existem.
+         */
+        PlanItemsIn: {
+            /** Items */
+            items: components["schemas"]["PlanItemIn"][];
+        };
+        /** PlanRowOut */
+        PlanRowOut: {
+            /** Alert */
+            alert: boolean;
+            /** Category Color */
+            category_color: string | null;
+            /** Category Icon */
+            category_icon: string | null;
+            /** Category Id */
+            category_id: string | null;
+            /** Category Name */
+            category_name: string | null;
+            /** Expected */
+            expected: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "category" | "rest";
+            /** Paid */
+            paid: string;
+            /** Planned */
+            planned: string;
+            /** Remaining */
+            remaining: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "ok" | "near" | "exceeded";
+            /** Total */
+            total: string;
+        };
+        /** PlanSummaryOut */
+        PlanSummaryOut: {
+            /** Month Income */
+            month_income: string;
+            /** Planned Balance */
+            planned_balance: string;
+            /** Planned Savings Percent */
+            planned_savings_percent: string;
+            /** Planned Spending */
+            planned_spending: string;
+            /** Remaining */
+            remaining: string;
+            /** Spent Expected */
+            spent_expected: string;
+            /** Spent Paid */
+            spent_paid: string;
+            /** Spent Total */
+            spent_total: string;
         };
         /**
          * ProfileUpdate
@@ -6095,6 +6330,250 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PiggyBankOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_all_plans_api_v1_plans_monthly_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_plan_api_v1_plans_monthly__month__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_plan_api_v1_plans_monthly__month__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthlyPlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_plan_api_v1_plans_monthly__month__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_plan_api_v1_plans_monthly__month__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthlyPlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copy_previous_api_v1_plans_monthly__month__copy_previous_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_items_api_v1_plans_monthly__month__items_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanItemsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyPlanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_v1_plans_monthly__month__items__category_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                month: string;
+                category_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

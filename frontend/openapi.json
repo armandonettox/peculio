@@ -1234,6 +1234,14 @@
         "title": "BulkOut",
         "type": "object"
       },
+      "CardCounting": {
+        "enum": [
+          "purchase",
+          "invoice"
+        ],
+        "title": "CardCounting",
+        "type": "string"
+      },
       "CardNetwork": {
         "enum": [
           "visa",
@@ -2559,6 +2567,179 @@
         "title": "MonthlyBlock",
         "type": "object"
       },
+      "MonthlyPlanCreate": {
+        "additionalProperties": false,
+        "description": "Cria o planejamento de um mes (o mes vai na URL).",
+        "properties": {
+          "card_counting": {
+            "$ref": "#/components/schemas/CardCounting",
+            "default": "purchase"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "maxLength": 3,
+                "minLength": 3,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "income": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Income"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlanItemIn"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "savings_percent": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "default": "20",
+            "title": "Savings Percent"
+          }
+        },
+        "required": [
+          "income"
+        ],
+        "title": "MonthlyPlanCreate",
+        "type": "object"
+      },
+      "MonthlyPlanOut": {
+        "properties": {
+          "card_counting": {
+            "$ref": "#/components/schemas/CardCounting"
+          },
+          "currency_code": {
+            "title": "Currency Code",
+            "type": "string"
+          },
+          "income": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Income",
+            "type": "string"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PlanRowOut"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "savings_amount": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Savings Amount",
+            "type": "string"
+          },
+          "savings_percent": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)",
+            "title": "Savings Percent",
+            "type": "string"
+          },
+          "spending_budget": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Spending Budget",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/PlanSummaryOut"
+          }
+        },
+        "required": [
+          "month",
+          "currency_code",
+          "income",
+          "savings_percent",
+          "card_counting",
+          "spending_budget",
+          "savings_amount",
+          "summary",
+          "rows"
+        ],
+        "title": "MonthlyPlanOut",
+        "type": "object"
+      },
+      "MonthlyPlanUpdate": {
+        "additionalProperties": false,
+        "description": "Muda so o cabecalho (o que veio no corpo); os limites por categoria tem as proprias rotas.",
+        "properties": {
+          "card_counting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CardCounting"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "income": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Income"
+          },
+          "savings_percent": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Savings Percent"
+          }
+        },
+        "title": "MonthlyPlanUpdate",
+        "type": "object"
+      },
       "MonthlyPoint": {
         "properties": {
           "count": {
@@ -3464,6 +3645,226 @@
           }
         },
         "title": "PiggyBankUpdate",
+        "type": "object"
+      },
+      "PlanItemIn": {
+        "additionalProperties": false,
+        "properties": {
+          "alert": {
+            "default": false,
+            "title": "Alert",
+            "type": "boolean"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "category_id": {
+            "format": "uuid",
+            "title": "Category Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id",
+          "amount"
+        ],
+        "title": "PlanItemIn",
+        "type": "object"
+      },
+      "PlanItemsIn": {
+        "additionalProperties": false,
+        "description": "Grava varios limites de uma vez: cria os novos e troca o valor e o alerta dos que ja existem.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlanItemIn"
+            },
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "PlanItemsIn",
+        "type": "object"
+      },
+      "PlanRowOut": {
+        "properties": {
+          "alert": {
+            "title": "Alert",
+            "type": "boolean"
+          },
+          "category_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Color"
+          },
+          "category_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Icon"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "category_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Name"
+          },
+          "expected": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Expected",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "category",
+              "rest"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Paid",
+            "type": "string"
+          },
+          "planned": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Planned",
+            "type": "string"
+          },
+          "remaining": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Remaining",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ok",
+              "near",
+              "exceeded"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "total": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id",
+          "category_name",
+          "category_color",
+          "category_icon",
+          "kind",
+          "planned",
+          "paid",
+          "expected",
+          "total",
+          "remaining",
+          "alert",
+          "state"
+        ],
+        "title": "PlanRowOut",
+        "type": "object"
+      },
+      "PlanSummaryOut": {
+        "properties": {
+          "month_income": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Month Income",
+            "type": "string"
+          },
+          "planned_balance": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Planned Balance",
+            "type": "string"
+          },
+          "planned_savings_percent": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Planned Savings Percent",
+            "type": "string"
+          },
+          "planned_spending": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Planned Spending",
+            "type": "string"
+          },
+          "remaining": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Remaining",
+            "type": "string"
+          },
+          "spent_expected": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Spent Expected",
+            "type": "string"
+          },
+          "spent_paid": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Spent Paid",
+            "type": "string"
+          },
+          "spent_total": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Spent Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month_income",
+          "planned_spending",
+          "planned_balance",
+          "planned_savings_percent",
+          "spent_paid",
+          "spent_expected",
+          "spent_total",
+          "remaining"
+        ],
+        "title": "PlanSummaryOut",
         "type": "object"
       },
       "ProfileUpdate": {
@@ -10326,6 +10727,379 @@
         "summary": "Add Event",
         "tags": [
           "piggy-banks"
+        ]
+      }
+    },
+    "/api/v1/plans/monthly": {
+      "delete": {
+        "description": "Apaga todos os planejamentos mensais (os lancamentos e as categorias nao mudam).",
+        "operationId": "delete_all_plans_api_v1_plans_monthly_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete All Plans",
+        "tags": [
+          "monthly-plan"
+        ]
+      }
+    },
+    "/api/v1/plans/monthly/{month}": {
+      "delete": {
+        "operationId": "delete_plan_api_v1_plans_monthly__month__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Plan",
+        "tags": [
+          "monthly-plan"
+        ]
+      },
+      "get": {
+        "description": "O planejamento do mes com o gasto de cada categoria (pago e previsto). 404 se o mes ainda nao tem planejamento.",
+        "operationId": "get_plan_api_v1_plans_monthly__month__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Plan",
+        "tags": [
+          "monthly-plan"
+        ]
+      },
+      "patch": {
+        "operationId": "update_plan_api_v1_plans_monthly__month__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthlyPlanUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Plan",
+        "tags": [
+          "monthly-plan"
+        ]
+      },
+      "post": {
+        "description": "Cria o planejamento do mes (AAAA-MM): renda, quanto economizar, como contar o cartao e os limites por categoria.",
+        "operationId": "create_plan_api_v1_plans_monthly__month__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonthlyPlanCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Create Plan",
+        "tags": [
+          "monthly-plan"
+        ]
+      }
+    },
+    "/api/v1/plans/monthly/{month}/copy-previous": {
+      "post": {
+        "description": "Cria o planejamento deste mes como copia do mes anterior.",
+        "operationId": "copy_previous_api_v1_plans_monthly__month__copy_previous_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Copy Previous",
+        "tags": [
+          "monthly-plan"
+        ]
+      }
+    },
+    "/api/v1/plans/monthly/{month}/items": {
+      "put": {
+        "description": "Grava limites por categoria: cria os novos e troca o valor e o alerta dos que ja existem.",
+        "operationId": "put_items_api_v1_plans_monthly__month__items_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanItemsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlyPlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Put Items",
+        "tags": [
+          "monthly-plan"
+        ]
+      }
+    },
+    "/api/v1/plans/monthly/{month}/items/{category_id}": {
+      "delete": {
+        "operationId": "delete_item_api_v1_plans_monthly__month__items__category_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "category_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Category Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Delete Item",
+        "tags": [
+          "monthly-plan"
         ]
       }
     },
