@@ -25,6 +25,8 @@ class Category(Base):
     kind: Mapped[CategoryKind] = mapped_column(Enum(CategoryKind, native_enum=False, length=16))
     # Cor da categoria nos graficos e listas, no formato #RRGGBB
     color: Mapped[str | None] = mapped_column(String(7))
+    # Nome do icone (da lista fixa em app.schemas.labels.CATEGORY_ICONS); sem icone, a tela usa um padrao
+    icon: Mapped[str | None] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

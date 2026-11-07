@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
@@ -8,6 +8,46 @@ from app.models.category import CategoryKind
 
 # Cor no formato #RRGGBB; a API devolve sempre em maiusculas
 Color = Annotated[str, StringConstraints(pattern=r"^#[0-9A-Fa-f]{6}$")]
+
+
+# Icones que uma categoria pode ter: nomes do lucide-react em minusculas com hifen. A tela mapeia cada nome para o
+# desenho (frontend/src/features/labels/category-icons.ts); o tipo gerado da API garante que as duas listas batem.
+CategoryIcon = Literal[
+    "house",
+    "shopping-cart",
+    "utensils",
+    "coffee",
+    "pizza",
+    "car",
+    "fuel",
+    "bus",
+    "plane",
+    "heart-pulse",
+    "dumbbell",
+    "baby",
+    "paw-print",
+    "graduation-cap",
+    "book-open",
+    "gamepad-2",
+    "film",
+    "music",
+    "shirt",
+    "gift",
+    "wifi",
+    "phone",
+    "zap",
+    "droplet",
+    "wrench",
+    "receipt",
+    "briefcase",
+    "wallet",
+    "banknote",
+    "hand-coins",
+    "piggy-bank",
+    "trending-up",
+    "landmark",
+    "tag",
+]
 
 
 def _strip(value: str | None) -> str | None:
@@ -26,6 +66,7 @@ class CategoryCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     kind: CategoryKind
     color: Color | None = None
+    icon: CategoryIcon | None = None
 
     _strip_name = field_validator("name")(_strip)
 
@@ -43,6 +84,7 @@ class CategoryUpdate(BaseModel):
     # vale para lancamentos novos); a pessoa decide se quer mesmo mudar.
     kind: CategoryKind | None = None
     color: Color | None = None
+    icon: CategoryIcon | None = None
 
     _strip_name = field_validator("name")(_strip)
 
@@ -59,6 +101,7 @@ class CategoryOut(BaseModel):
     name: str
     kind: CategoryKind
     color: str | None
+    icon: str | None
     created_at: datetime
 
 

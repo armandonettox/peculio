@@ -1995,6 +1995,8 @@ export interface components {
         CategoryCreate: {
             /** Color */
             color?: string | null;
+            /** Icon */
+            icon?: ("house" | "shopping-cart" | "utensils" | "coffee" | "pizza" | "car" | "fuel" | "bus" | "plane" | "heart-pulse" | "dumbbell" | "baby" | "paw-print" | "graduation-cap" | "book-open" | "gamepad-2" | "film" | "music" | "shirt" | "gift" | "wifi" | "phone" | "zap" | "droplet" | "wrench" | "receipt" | "briefcase" | "wallet" | "banknote" | "hand-coins" | "piggy-bank" | "trending-up" | "landmark" | "tag") | null;
             kind: components["schemas"]["CategoryKind"];
             /** Name */
             name: string;
@@ -2013,6 +2015,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Icon */
+            icon: string | null;
             /**
              * Id
              * Format: uuid
@@ -2026,6 +2030,8 @@ export interface components {
         CategoryUpdate: {
             /** Color */
             color?: string | null;
+            /** Icon */
+            icon?: ("house" | "shopping-cart" | "utensils" | "coffee" | "pizza" | "car" | "fuel" | "bus" | "plane" | "heart-pulse" | "dumbbell" | "baby" | "paw-print" | "graduation-cap" | "book-open" | "gamepad-2" | "film" | "music" | "shirt" | "gift" | "wifi" | "phone" | "zap" | "droplet" | "wrench" | "receipt" | "briefcase" | "wallet" | "banknote" | "hand-coins" | "piggy-bank" | "trending-up" | "landmark" | "tag") | null;
             kind?: components["schemas"]["CategoryKind"] | null;
             /** Name */
             name?: string | null;

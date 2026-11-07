@@ -25,7 +25,7 @@ SPEC = named.NamedResource(
 
 @router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
 def create_category(data: CategoryCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    category = named.create(db, SPEC, user.id, name=data.name, kind=data.kind, color=data.color)
+    category = named.create(db, SPEC, user.id, name=data.name, kind=data.kind, color=data.color, icon=data.icon)
     db.commit()
     db.refresh(category)
     return category
@@ -56,7 +56,7 @@ def update_category(
     db: Session = Depends(get_db),
 ):
     category = named.get_owned(db, SPEC, user.id, category_id)
-    # So o que veio no corpo: assim "color": null limpa a cor, e omitir o campo nao mexe nela
+    # So o que veio no corpo: assim "color": null (ou "icon": null) limpa o campo, e omitir o campo nao mexe nela
     changes = data.model_dump(exclude_unset=True)
     if "name" in changes and changes["name"] is None:
         changes.pop("name")

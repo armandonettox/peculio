@@ -1261,6 +1261,53 @@
             ],
             "title": "Color"
           },
+          "icon": {
+            "anyOf": [
+              {
+                "enum": [
+                  "house",
+                  "shopping-cart",
+                  "utensils",
+                  "coffee",
+                  "pizza",
+                  "car",
+                  "fuel",
+                  "bus",
+                  "plane",
+                  "heart-pulse",
+                  "dumbbell",
+                  "baby",
+                  "paw-print",
+                  "graduation-cap",
+                  "book-open",
+                  "gamepad-2",
+                  "film",
+                  "music",
+                  "shirt",
+                  "gift",
+                  "wifi",
+                  "phone",
+                  "zap",
+                  "droplet",
+                  "wrench",
+                  "receipt",
+                  "briefcase",
+                  "wallet",
+                  "banknote",
+                  "hand-coins",
+                  "piggy-bank",
+                  "trending-up",
+                  "landmark",
+                  "tag"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
           "kind": {
             "$ref": "#/components/schemas/CategoryKind"
           },
@@ -1304,6 +1351,17 @@
             "title": "Created At",
             "type": "string"
           },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1322,6 +1380,7 @@
           "name",
           "kind",
           "color",
+          "icon",
           "created_at"
         ],
         "title": "CategoryOut",
@@ -1341,6 +1400,53 @@
               }
             ],
             "title": "Color"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "enum": [
+                  "house",
+                  "shopping-cart",
+                  "utensils",
+                  "coffee",
+                  "pizza",
+                  "car",
+                  "fuel",
+                  "bus",
+                  "plane",
+                  "heart-pulse",
+                  "dumbbell",
+                  "baby",
+                  "paw-print",
+                  "graduation-cap",
+                  "book-open",
+                  "gamepad-2",
+                  "film",
+                  "music",
+                  "shirt",
+                  "gift",
+                  "wifi",
+                  "phone",
+                  "zap",
+                  "droplet",
+                  "wrench",
+                  "receipt",
+                  "briefcase",
+                  "wallet",
+                  "banknote",
+                  "hand-coins",
+                  "piggy-bank",
+                  "trending-up",
+                  "landmark",
+                  "tag"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
           },
           "kind": {
             "anyOf": [
