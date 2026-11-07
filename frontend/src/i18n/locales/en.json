@@ -2044,7 +2044,7 @@
       "rest": "Remaining categories",
       "overBudget": "The limits add up to more than the month's spending budget.",
       "alert": "Get alerts",
-      "alertHint": "Flags in the plan the categories that get near their limit or go over it.",
+      "alertHint": "Flags in the plan the categories that get near their limit or go over it and sends the Budget alert event to your webhooks.",
       "save": "Save",
       "saveAndNew": "Save and add another",
       "savedHint_one": "{{count}} budget saved. Choose the next category.",

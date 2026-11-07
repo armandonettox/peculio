@@ -2044,7 +2044,7 @@
       "rest": "Categorias restantes",
       "overBudget": "A soma dos limites passa do orçamento de gastos do mês.",
       "alert": "Receber alerta",
-      "alertHint": "Marca no planejamento as categorias que chegarem perto do limite ou passarem dele.",
+      "alertHint": "Marca no planejamento as categorias que chegarem perto do limite ou passarem dele e envia o evento Alerta de orçamento aos seus webhooks.",
       "save": "Salvar",
       "saveAndNew": "Salvar e criar nova",
       "savedHint_one": "{{count}} orçamento salvo. Escolha a próxima categoria.",
