@@ -971,7 +971,8 @@
       "repeat": "Repeat",
       "times": "times",
       "toWhomHint": "If left empty, the description is used.",
-      "repeatCountInvalid": "Enter from 2 to 999 times."
+      "repeatCountInvalid": "Enter from 2 to 999 times.",
+      "currency": "Currency"
     },
     "incomeForm": {
       "title": "New income",

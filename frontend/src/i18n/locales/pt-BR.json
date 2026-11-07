@@ -971,7 +971,8 @@
       "repeat": "Repetir",
       "times": "vezes",
       "toWhomHint": "Se ficar vazio, usa a descrição.",
-      "repeatCountInvalid": "Informe de 2 a 999 vezes."
+      "repeatCountInvalid": "Informe de 2 a 999 vezes.",
+      "currency": "Moeda"
     },
     "incomeForm": {
       "title": "Nova receita",

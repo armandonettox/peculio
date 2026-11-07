@@ -229,7 +229,7 @@ function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKi
 type BodyProps = {
   kind: MoneyKind;
   ctx: FormContext;
-  currencies: { code: string; name: string }[];
+  currencies: { code: string; name: string; symbol: string }[];
   transaction?: Transaction;
   categories: Category[];
   tags: Tag[];
@@ -325,8 +325,13 @@ function FormBody({
   const categoryOptions = (selectedId: string) =>
     categories.filter((category) => category.kind === (income ? "revenue" : "expense") || category.id === selectedId);
 
-  const suggestions = useCounterparties(income ? "revenue" : "expense", state.counterpartyName.trim(), { enabled: !state.ownCounterparty });
   const selectable = ctx.accounts.filter((a) => a.active || a.id === state.accountId || a.id === state.counterpartyAccountId);
+  // So conta com algum digito diferente de zero (o campo formata sozinho: "0,00" e vazio, "12,50" e valor)
+  const amountFilled = /[1-9]/.test(state.amount);
+  const symbol = currencies.find((item) => item.code === currency)?.symbol ?? currency;
+  const accountCurrencies = Array.from(new Set(selectable.map((a) => a.currency_code))).sort();
+
+  const suggestions = useCounterparties(income ? "revenue" : "expense", state.counterpartyName.trim(), { enabled: !state.ownCounterparty });
   const debts = selectable.filter(isLiability);
 
   if (initial && !initial.ok) {
@@ -351,6 +356,33 @@ function FormBody({
         return next;
       });
     }
+  }
+
+  // Troca a conta e solta o que depende da moeda ou da conta anterior (orcamento, conta a pagar, valor que chega)
+  function chooseAccount(accountId: string) {
+    const next = accountOf(ctx, accountId);
+    const sameCurrency = next?.currency_code === currency;
+    patch(
+      {
+        accountId,
+        foreignAmount: "",
+        ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
+          ? { originalCurrency: "", originalAmount: "" }
+          : {}),
+        ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
+      },
+      "accountId",
+      "foreignAmount",
+      "originalAmount",
+    );
+  }
+
+  // A moeda do lancamento e a da conta: escolher outra moeda leva para a primeira conta ativa dela (de ativo antes)
+  function chooseCurrency(code: string) {
+    if (code === currency) return;
+    const inCurrency = selectable.filter((a) => a.currency_code === code && a.active);
+    const next = inCurrency.find((a) => a.type === "asset") ?? inCurrency[0];
+    if (next) chooseAccount(next.id);
   }
 
   const clearBudgets = (rows: SplitDraft[] | null) => rows?.map((row) => ({ ...row, budgetId: "", billId: "" })) ?? null;
@@ -534,6 +566,9 @@ function FormBody({
       >
         {(props) => (
           <div className="flex items-center gap-2">
+            <span aria-hidden="true" className={cn("text-xl font-semibold", income ? "text-positive" : "text-destructive")}>
+              {symbol}
+            </span>
             <MoneyInput
               {...props}
               ref={amountInput}
@@ -541,13 +576,27 @@ function FormBody({
               places={places}
               value={state.amount}
               onChange={(text) => patch({ amount: text }, "amount", "splitTotal")}
+              onBlur={() => {
+                if (!amountFilled) setErrors((current) => ({ ...current, amount: t("money.required") }));
+              }}
               className={cn(
                 UNDERLINED,
                 "h-10 text-xl font-semibold",
                 income ? "text-positive placeholder:text-positive" : "text-destructive placeholder:text-destructive",
               )}
             />
-            <span className="text-xs font-medium text-muted-foreground">{currency}</span>
+            <Select
+              aria-label={t("transactions.expenseForm.currency")}
+              value={currency}
+              onChange={(e) => chooseCurrency(e.target.value)}
+              className="h-8 w-auto shrink-0 rounded-none border-0 bg-transparent px-1 text-xs font-medium text-muted-foreground shadow-none"
+            >
+              {accountCurrencies.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </Select>
           </div>
         )}
       </FormField>
@@ -660,23 +709,7 @@ function FormBody({
               {...props}
               value={state.accountId}
               className={UNDERLINED}
-              onChange={(e) => {
-                const next = accountOf(ctx, e.target.value);
-                const sameCurrency = next?.currency_code === currency;
-                patch(
-                  {
-                    accountId: e.target.value,
-                    foreignAmount: "",
-                    ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
-                      ? { originalCurrency: "", originalAmount: "" }
-                      : {}),
-                    ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
-                  },
-                  "accountId",
-                  "foreignAmount",
-                  "originalAmount",
-                );
-              }}
+              onChange={(e) => chooseAccount(e.target.value)}
             >
               <option value="">{t("common.escolha")}</option>
               {selectable.map((option) => (
@@ -1121,11 +1154,11 @@ function FormBody({
         ) : (
           <>
             {!editing && (
-              <Button type="button" variant="ghost" disabled={submitting} onClick={() => void save(true)}>
+              <Button type="button" variant="ghost" disabled={submitting || !amountFilled} onClick={() => void save(true)}>
                 {t("transactions.expenseForm.saveAndNew")}
               </Button>
             )}
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || !amountFilled}>
               {submitting ? t("transactions.transactionFormDialog.salvando") : t("transactions.transactionFormDialog.salvar")}
             </Button>
           </>

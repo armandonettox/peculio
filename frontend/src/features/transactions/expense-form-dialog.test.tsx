@@ -17,10 +17,10 @@ import TransactionsPage from "@/pages/transactions";
 const mercado = makeLabel({ id: "c0000000-0000-4000-8000-000000000001", name: "Mercado" });
 const viagem = makeLabel({ id: "t0000000-0000-4000-8000-000000000001", name: "viagem" });
 const nubank = makeAccount({ id: "a0000000-0000-4000-8000-000000000001", name: "Nubank" });
+const wise = makeAccount({ id: "a0000000-0000-4000-8000-000000000009", name: "Wise", currency_code: "USD" });
 const cartao = makeAccount({ id: "a0000000-0000-4000-8000-000000000006", name: "Cartao", role: "credit_card", closing_day: 28, due_day: 5 });
 
-function renderPage(transactions: Transaction[] = []) {
-  const accounts = [nubank, cartao];
+function renderPage(transactions: Transaction[] = [], accounts = [nubank, cartao]) {
   const tx = fakeTransactionsApi(transactions, accounts);
   const recurrences = fakeRecurrencesApi([]);
   server.use(
@@ -137,14 +137,38 @@ it("o ícone de informação explica o que ignorar faz", async () => {
   expect(d().getByText(/não será exibida nem considerada/)).toBeInTheDocument();
 });
 
-it("sem valor mostra o erro e nao envia", async () => {
+it("sem valor os botoes de salvar ficam desativados e sair do campo mostra o erro", async () => {
   const tx = renderPage();
   await openExpenseForm();
-  await userEvent.selectOptions(d().getByLabelText("Conta"), "Nubank");
-  await type("Descrição", "Padaria");
-  await save();
+  expect(d().getByRole("button", { name: "Salvar" })).toBeDisabled();
+  expect(d().getByRole("button", { name: "Salvar e criar nova" })).toBeDisabled();
+  await userEvent.click(d().getByLabelText(/^Valor \(BRL\)/));
+  await userEvent.click(d().getByLabelText("Descrição"));
   expect(await d().findByText("Informe o valor.")).toBeInTheDocument();
+  await type(/^Valor \(BRL\)/, "5");
+  expect(d().getByRole("button", { name: "Salvar" })).toBeEnabled();
+  expect(d().getByRole("button", { name: "Salvar e criar nova" })).toBeEnabled();
   expect(tx.state.writes).toHaveLength(0);
+});
+
+it("mostra o simbolo da moeda na frente do valor", async () => {
+  renderPage();
+  await openExpenseForm();
+  expect(d().getByText("R$")).toBeInTheDocument();
+});
+
+it("escolher outra moeda leva para uma conta dessa moeda e o valor passa a usar ela", async () => {
+  const tx = renderPage([], [nubank, cartao, wise]);
+  await openExpenseForm();
+  const currency = d().getByLabelText("Moeda");
+  expect(within(currency).getAllByRole("option").map((o) => o.textContent)).toEqual(["BRL", "USD"]);
+  await userEvent.selectOptions(currency, "USD");
+  expect(d().getByLabelText("Conta")).toHaveValue(wise.id);
+  await type("Descrição", "Assinatura");
+  await type(/^Valor \(USD\)/, "1000");
+  await save();
+  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
+  expect(tx.state.writes[0]!.body.splits[0]).toMatchObject({ currency_code: "USD", account_id: wise.id, amount: "10.00" });
 });
 
 it("Salvar e criar nova guarda e limpa o formulario sem fechar", async () => {
