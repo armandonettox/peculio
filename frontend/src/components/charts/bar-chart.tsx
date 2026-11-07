@@ -37,7 +37,9 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
   });
 
   const numbers = lookups.flatMap((values) => values.flatMap((text) => (text === null ? [] : [parseDecimal(text)])));
-  const ticks = niceTicks(Math.min(...numbers), Math.max(...numbers));
+  // Barra mede tamanho: o eixo sempre inclui o zero (sem isso, valores de 490 a 800 comecavam a barra em 400
+  // e a diferenca entre as barras parecia muito maior do que e)
+  const ticks = niceTicks(Math.min(0, ...numbers), Math.max(0, ...numbers));
   const hasNegative = numbers.some((v) => v < 0);
 
   const tickLabels = ticks.ticks.map((tick) => formatValue(toDecimalText(tick)));

@@ -179,7 +179,7 @@ export default function CreditCardsPage() {
     <>
       <PageHeader
         title={t("nav.creditCards")}
-        description={t("pages.accounts.ondeEstaOSeu")}
+        description={t("pages.accounts.descricaoCartoes")}
         actions={newCardButton}
       />
 

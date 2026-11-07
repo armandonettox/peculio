@@ -78,6 +78,7 @@
       "saldoTotal": "Total balance",
       "contas": "Accounts",
       "ondeEstaOSeu": "Where your money is",
+      "descricaoCartoes": "Statements, limits and due dates for your cards",
       "mostrarArquivadas": "Show archived",
       "nenhumCartaoAtivo": "No active cards",
       "nenhumCartaoAinda": "No cards yet",
@@ -128,6 +129,7 @@
       "carregarMais": "Load more",
       "transacoes": "Transactions",
       "excluirLancamento": "Delete transaction",
+      "listaDeTodosOsMeses": "Showing transactions from all months. Use the arrows to see a single month.",
       "oSaldoDasContas": "The balance of the accounts involved goes back to what it was before it.",
       "todas": "All",
       "despesas": "Expenses",
@@ -272,6 +274,7 @@
       "umWebhookAvisaOutro": "A webhook notifies another system, like a spreadsheet or an automation, whenever a transaction is created, edited or deleted.",
       "webhooks": "Webhooks & APIs",
       "avisosAutomaticosParaOutros": "Automatic notices for other systems",
+      "tituloSecao": "Webhooks",
       "excluirWebhook": "Delete webhook",
       "oHistoricoDeEntregas": "Its delivery history is also deleted and pending notices aren't sent."
     },
@@ -1768,6 +1771,8 @@
       "entrouEmUsado": "Signed in on {{date}} · used {{lastUsed}}",
       "encerrarDeviceUsado": "End {{device}}, used {{lastUsed}}",
       "encerrarOsOutrosAparelhos": "End the other {{count}} devices",
+      "mostrarTodos": "Show all {{count}} devices",
+      "mostrarMenos": "Show only the most recent",
       "encerradoResultado_one": "{{devices}} ended.",
       "encerradoResultado_other": "{{devices}} ended."
     },

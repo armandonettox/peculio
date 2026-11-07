@@ -49,6 +49,7 @@ describe("arquivos de traducao", () => {
     "components.appShell.menu",
     "pages.accounts.total",
     "pages.invoice.status",
+    "pages.webhooks.tituloSecao",
     "common.tag",
     "pages.labels.tags",
     "transactions.transactionFormDialog.tags",

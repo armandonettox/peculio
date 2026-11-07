@@ -78,6 +78,7 @@
       "saldoTotal": "Saldo total",
       "contas": "Contas",
       "ondeEstaOSeu": "Onde está o seu dinheiro",
+      "descricaoCartoes": "Faturas, limites e vencimentos dos seus cartões",
       "mostrarArquivadas": "Mostrar arquivadas",
       "nenhumCartaoAtivo": "Nenhum cartão ativo",
       "nenhumCartaoAinda": "Nenhum cartão ainda",
@@ -128,6 +129,7 @@
       "carregarMais": "Carregar mais",
       "transacoes": "Transações",
       "excluirLancamento": "Excluir lançamento",
+      "listaDeTodosOsMeses": "Mostrando os lançamentos de todos os meses. Use as setas para ver um mês só.",
       "oSaldoDasContas": "O saldo das contas envolvidas volta ao que era antes dele.",
       "todas": "Todas",
       "despesas": "Despesas",
@@ -272,6 +274,7 @@
       "umWebhookAvisaOutro": "Um webhook avisa outro sistema, como uma planilha ou uma automação, sempre que um lançamento é criado, editado ou excluído.",
       "webhooks": "Webhooks e APIs",
       "avisosAutomaticosParaOutros": "Avisos automáticos para outros sistemas",
+      "tituloSecao": "Webhooks",
       "excluirWebhook": "Excluir webhook",
       "oHistoricoDeEntregas": "O histórico de entregas dele também é apagado e os avisos pendentes não são enviados."
     },
@@ -1768,6 +1771,8 @@
       "entrouEmUsado": "Entrou em {{date}} · usado {{lastUsed}}",
       "encerrarDeviceUsado": "Encerrar {{device}}, usado {{lastUsed}}",
       "encerrarOsOutrosAparelhos": "Encerrar os outros {{count}} aparelhos",
+      "mostrarTodos": "Mostrar todos os {{count}} aparelhos",
+      "mostrarMenos": "Mostrar só os mais recentes",
       "encerradoResultado_one": "{{devices}} encerrado.",
       "encerradoResultado_other": "{{devices}} encerrados."
     },

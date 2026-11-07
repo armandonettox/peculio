@@ -9,6 +9,9 @@ import { formatDate } from "@/lib/dates";
 import { devicesText, lastUsedLabel, otherDevicesCount, sortDevices } from "./devices-model";
 import { useTranslation } from "react-i18next";
 
+// Quantos aparelhos aparecem antes de "Mostrar todos": a lista pode ter dezenas de sessoes antigas
+const COLLAPSED_COUNT = 5;
+
 /** Onde a conta esta aberta. Cada aparelho pode ser encerrado: o acesso dele acaba na hora. */
 export function DevicesSection() {
   const { t } = useTranslation();
@@ -17,6 +20,7 @@ export function DevicesSection() {
   const revokeOthers = useRevokeOtherSessions();
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const now = new Date();
 
   async function endOne(session: AuthSession) {
@@ -62,6 +66,8 @@ export function DevicesSection() {
   } else {
     const rows = sortDevices(sessions.data);
     const others = otherDevicesCount(rows);
+    const canCollapse = rows.length > COLLAPSED_COUNT;
+    const visibleRows = canCollapse && !showAll ? rows.slice(0, COLLAPSED_COUNT) : rows;
     const busy = revoke.isPending || revokeOthers.isPending;
     body = (
       <div className="flex flex-col gap-4">
@@ -72,7 +78,7 @@ export function DevicesSection() {
           </p>
         )}
         <ul className="flex flex-col divide-y rounded-lg border">
-          {rows.map((session) => (
+          {visibleRows.map((session) => (
             <li key={session.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 text-sm">
               <span className="min-w-0 flex-1">
                 <span className="font-medium">{session.device_label}</span>
@@ -104,6 +110,13 @@ export function DevicesSection() {
             </li>
           ))}
         </ul>
+        {canCollapse && (
+          <div>
+            <Button variant="ghost" size="sm" aria-expanded={showAll} onClick={() => setShowAll((value) => !value)}>
+              {showAll ? t("security.devicesSection.mostrarMenos") : t("security.devicesSection.mostrarTodos", { count: rows.length })}
+            </Button>
+          </div>
+        )}
         {others > 0 && (
           <div>
             <Button variant="outline" disabled={busy} onClick={() => void endOthers()}>

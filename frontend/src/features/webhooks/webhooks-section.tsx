@@ -134,7 +134,10 @@ export function WebhooksSection() {
   return (
     <>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <p className="text-sm text-muted-foreground">{t("pages.webhooks.avisosAutomaticosParaOutros")}</p>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">{t("pages.webhooks.tituloSecao")}</h2>
+          <p className="text-sm text-muted-foreground">{t("pages.webhooks.avisosAutomaticosParaOutros")}</p>
+        </div>
         {/* So com a lista carregada e com itens; na vazia o botao ja aparece dentro do aviso */}
         {showToolbarButton && newButton}
       </div>

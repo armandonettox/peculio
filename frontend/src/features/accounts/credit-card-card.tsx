@@ -213,7 +213,7 @@ export function CreditCardCard({ account, invoiceMode = "abertas", onEdit, onTog
       {account.active && (
         <Link
           to={`/transacoes?conta=${account.id}`}
-          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary-text hover:bg-primary/5 transition-colors uppercase tracking-wide"
+          className="flex items-center justify-center gap-1.5 border-t py-2.5 text-xs font-medium text-primary-text hover:bg-primary/5 transition-colors"
         >
           <Plus className="size-3" />
           {t("accounts.creditCard.adicionarDespesa")}

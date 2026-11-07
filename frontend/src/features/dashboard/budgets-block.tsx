@@ -55,7 +55,8 @@ export function BudgetsBlock({ today }: { today: string }) {
               <p className="mt-1 text-xs text-muted-foreground">
                 {t("dashboard.budgetsBlock.spentOfAmount", {
                   spent: formatMoney(budget.spent, budget.currency_code),
-                  amount: formatMoney(budget.amount ?? "0", budget.currency_code),
+                  // Mesmo valor da tela de Orcamentos: o limite do periodo, ja com a sobra do mes anterior
+                  amount: formatMoney(budget.limit, budget.currency_code),
                 })}
                 {` · ${label ?? remainingText(budget)}`}
               </p>

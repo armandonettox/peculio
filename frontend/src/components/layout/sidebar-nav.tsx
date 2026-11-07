@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 import { navItems, type NavItem } from "./nav-items";
@@ -18,6 +18,8 @@ type SidebarNavProps = {
 
 export function SidebarNav({ onNavigate, collapsed = false, items = navItems }: SidebarNavProps) {
   const { t } = useTranslation();
+  // A fatura (/contas/:id/fatura) e sempre de um cartao: o destaque vai para "Cartoes de credito", nao para "Contas"
+  const onInvoice = /^\/contas\/[^/]+\/fatura/.test(useLocation().pathname);
   return (
     <nav aria-label={t("components.sidebarNav.navegacaoPrincipal")} className="flex-1 overflow-y-auto p-3">
       <ul className="flex flex-col gap-1">
@@ -33,7 +35,7 @@ export function SidebarNav({ onNavigate, collapsed = false, items = navItems }: 
                   cn(
                     itemClasses,
                     collapsed && "justify-center px-0",
-                    isActive
+                    (to === "/cartoes" ? isActive || onInvoice : to === "/contas" ? isActive && !onInvoice : isActive)
                       ? "bg-accent text-primary-text"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )

@@ -1,4 +1,4 @@
-import { CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, CircleX, Receipt, Wallet } from "lucide-react";
+import { CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, CircleCheck, Lock, Receipt, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -98,14 +98,20 @@ export default function InvoicePage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard icon={Wallet} label={t("pages.invoice.total")} value={formatMoney(data.total, data.currency_code)} />
           <KpiCard
-            icon={isClosed ? CircleX : CircleCheck}
+            icon={isClosed ? Lock : CircleCheck}
             iconClassName={isClosed ? "bg-muted text-muted-foreground" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"}
             label={t("pages.invoice.status")}
             value={statusLabel}
           />
           <KpiCard icon={CalendarDays} label={t("pages.invoice.diaDeFechamento")} value={closingDateFormatted} />
           <KpiCard icon={CalendarCheck} label={t("pages.invoice.vencimento")} value={formatDate(data.due_date)} />
-          <KpiCard icon={CalendarDays} label={t("pages.invoice.periodo")} value={`${formatDate(data.period_start)} – ${formatDate(data.period_end)}`} />
+          {/* Ocupa duas colunas: o intervalo de datas e comprido e ficava cortado numa coluna so */}
+          <KpiCard
+            className="sm:col-span-2"
+            icon={CalendarDays}
+            label={t("pages.invoice.periodo")}
+            value={`${formatDate(data.period_start)} – ${formatDate(data.period_end)}`}
+          />
         </div>
 
         <div>

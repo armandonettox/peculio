@@ -433,6 +433,10 @@ export default function TransactionsPage() {
           </div>
         );
       })()}
+      {/* Sem mes escolhido, os cards mostram o mes atual mas a lista traz todos os meses: avisa para nao confundir */}
+      {filters.dateFrom === undefined && (
+        <p className="-mt-2 mb-4 text-center text-xs text-muted-foreground">{t("pages.transactions.listaDeTodosOsMeses")}</p>
+      )}
 
       {content}
 
