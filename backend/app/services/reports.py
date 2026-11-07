@@ -128,6 +128,8 @@ class _Base:
 
         self.conditions = [
             self.split.user_id == user_id,
+            # Ignorado sai dos totais; nao pago continua entrando
+            self.split.ignored.is_(False),
             or_(is_income, is_expense),
             self.split.date >= filters.date_from,
             self.split.date <= filters.date_to,

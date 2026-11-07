@@ -103,6 +103,8 @@ def _rows(db: Session, account: Account, up_to: date) -> tuple[list[dict], int]:
             or_(TransactionSplit.source_account_id == account.id, TransactionSplit.destination_account_id == account.id),
             TransactionSplit.date <= up_to,
             _not_opening(),
+            # Lancamento ainda nao pago nao esta no extrato do banco
+            TransactionSplit.is_paid.is_(True),
             # Travado (conciliacao fechada) nao aparece mais: ja foi batido com o banco
             AccountClearing.reconciliation_id.is_(None),
         )

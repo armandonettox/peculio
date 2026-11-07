@@ -142,6 +142,7 @@ def _spent_by_budget(
             .where(
                 TransactionSplit.user_id == user_id,
                 TransactionSplit.budget_id.in_(ids),
+                TransactionSplit.ignored.is_(False),
                 TransactionSplit.type == TransactionType.withdrawal,
                 TransactionSplit.date >= start,
                 TransactionSplit.date <= end,
@@ -165,6 +166,7 @@ def _spent_by_month(
         .where(
             TransactionSplit.user_id == user_id,
             TransactionSplit.budget_id.in_(budget_ids),
+            TransactionSplit.ignored.is_(False),
             TransactionSplit.type == TransactionType.withdrawal,
             TransactionSplit.date <= calc.last_day_of_month(up_to),
         )

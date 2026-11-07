@@ -4,6 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Column,
     Date,
@@ -119,6 +120,11 @@ class TransactionSplit(Base):
     # Conta a pagar que esta saida quitou. Excluir a conta a pagar solta o lancamento.
     bill_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recurrences.id", ondelete="SET NULL"))
     notes: Mapped[str | None] = mapped_column(Text)
+    # Pago ou recebido: so o que ja foi efetivado mexe no saldo da conta. Nao pago ainda conta nos totais de
+    # receita e despesa. Todas as linhas de um lancamento dividido levam o mesmo valor.
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    # Ignorado: continua mexendo no saldo da conta, mas sai dos totais, relatorios e orcamentos
+    ignored: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     # De onde veio um lancamento importado: o identificador que o banco deu (FITID do OFX) e a conta em que
     # ele vale. Serve para nao importar o mesmo lancamento duas vezes. Lancamento comum fica sem os dois.
     external_id: Mapped[str | None] = mapped_column(String(255))

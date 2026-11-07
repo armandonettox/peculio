@@ -1470,6 +1470,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions/{transaction_id}/settle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Settle Transaction
+         * @description Efetivar: marca o lancamento como pago ou recebido.
+         */
+        post: operations["settle_transaction_api_v1_transactions__transaction_id__settle_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/{user_id}": {
         parameters: {
             query?: never;
@@ -3540,6 +3560,16 @@ export interface components {
             foreign_amount?: number | string | null;
             /** Foreign Currency Code */
             foreign_currency_code?: string | null;
+            /**
+             * Ignored
+             * @default false
+             */
+            ignored: boolean;
+            /**
+             * Is Paid
+             * @default true
+             */
+            is_paid: boolean;
             /** Notes */
             notes?: string | null;
             /** Tag Ids */
@@ -3582,6 +3612,16 @@ export interface components {
             foreign_amount?: string | null;
             /** Foreign Currency Code */
             foreign_currency_code?: string | null;
+            /**
+             * Ignored
+             * @default false
+             */
+            ignored: boolean;
+            /**
+             * Is Paid
+             * @default true
+             */
+            is_paid: boolean;
             /** Notes */
             notes?: string | null;
             /** Tag Ids */
@@ -3633,6 +3673,16 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Ignored
+             * @default false
+             */
+            ignored: boolean;
+            /**
+             * Is Paid
+             * @default true
+             */
+            is_paid: boolean;
             /**
              * Locked
              * @default false
@@ -7424,6 +7474,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttachmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settle_transaction_api_v1_transactions__transaction_id__settle_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionOut"];
                 };
             };
             /** @description Validation Error */

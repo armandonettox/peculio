@@ -36,6 +36,9 @@ class TransactionSplitCreate(BaseModel):
     bill_id: uuid.UUID | None = None
     tag_ids: list[uuid.UUID] = Field(default_factory=list)
     notes: str | None = Field(default=None, max_length=2000)
+    # Pago/recebido: nao pago nao mexe no saldo da conta. Ignorado sai dos totais, relatorios e orcamentos.
+    is_paid: bool = True
+    ignored: bool = False
 
     # Conta do usuario (origem no saque, destino no deposito, qualquer lado na transferencia)
     account_id: uuid.UUID
@@ -107,6 +110,8 @@ class TransactionSplitOut(BaseModel):
     bill_id: uuid.UUID | None
     tag_ids: list[uuid.UUID]
     notes: str | None
+    is_paid: bool = True
+    ignored: bool = False
     # Conferido com o extrato em algum dos lados; travado = a conciliacao foi fechada
     cleared: bool = False
     locked: bool = False

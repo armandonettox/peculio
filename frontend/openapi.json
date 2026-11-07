@@ -5739,6 +5739,16 @@
             ],
             "title": "Foreign Currency Code"
           },
+          "ignored": {
+            "default": false,
+            "title": "Ignored",
+            "type": "boolean"
+          },
+          "is_paid": {
+            "default": true,
+            "title": "Is Paid",
+            "type": "boolean"
+          },
           "notes": {
             "anyOf": [
               {
@@ -5896,6 +5906,16 @@
             ],
             "title": "Foreign Currency Code"
           },
+          "ignored": {
+            "default": false,
+            "title": "Ignored",
+            "type": "boolean"
+          },
+          "is_paid": {
+            "default": true,
+            "title": "Is Paid",
+            "type": "boolean"
+          },
           "notes": {
             "anyOf": [
               {
@@ -6037,6 +6057,16 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "ignored": {
+            "default": false,
+            "title": "Ignored",
+            "type": "boolean"
+          },
+          "is_paid": {
+            "default": true,
+            "title": "Is Paid",
+            "type": "boolean"
           },
           "locked": {
             "default": false,
@@ -13520,6 +13550,55 @@
         "summary": "Upload Attachment",
         "tags": [
           "attachments"
+        ]
+      }
+    },
+    "/api/v1/transactions/{transaction_id}/settle": {
+      "post": {
+        "description": "Efetivar: marca o lancamento como pago ou recebido.",
+        "operationId": "settle_transaction_api_v1_transactions__transaction_id__settle_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "transaction_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Transaction Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Settle Transaction",
+        "tags": [
+          "transactions"
         ]
       }
     },

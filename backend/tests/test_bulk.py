@@ -169,6 +169,15 @@ def test_duplicate_copies_everything_but_the_date_and_marks(client, headers, acc
     assert get_tx(client, headers, original["id"])["splits"][0]["date"] == "2026-03-10"
 
 
+def test_duplicate_keeps_the_unpaid_and_ignored_marks(client, headers, account_id):
+    original = post_tx(client, headers, [split(account_id, "Mercado", "50.00", is_paid=False, ignored=True)])
+    response = bulk(client, headers, [original["id"]], "duplicate")
+    assert response.status_code == 200, response.text
+    copy = get_tx(client, headers, response.json()["created_ids"][0])["splits"][0]
+    assert copy["is_paid"] is False
+    assert copy["ignored"] is True
+
+
 def test_duplicate_keeps_the_title_and_every_split(client, headers, account_id):
     original = post_tx(client, headers, [split(account_id, "A", "10.00"), split(account_id, "B", "20.00")], title="Compras")
     created = bulk(client, headers, [original["id"]], "duplicate").json()["created_ids"][0]

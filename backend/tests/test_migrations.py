@@ -11,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0034"
+    assert version == "0035"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -209,6 +209,57 @@ def test_migration_0032_backfills_type_on_reminders_and_leaves_automatic_ones_nu
         }
     assert rows[uuid.UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")] == "withdrawal"
     assert rows[uuid.UUID("ffffffff-ffff-4fff-8fff-ffffffffffff")] is None
+
+
+def test_migration_0035_marks_existing_transactions_as_paid_and_not_ignored(clean_schema):
+    """Quem ja tinha lancamentos antes das colunas nao pode ver o saldo mudar: tudo o que existia
+    passa a ser pago e nao ignorado, sem UPDATE linha a linha."""
+    config = alembic_config()
+    command.upgrade(config, "0034")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('99999999-9999-4999-8999-999999999999', 'Ana', 'ana5@example.com', 'x')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO currencies (code, name, symbol, decimal_places) VALUES ('BRL', 'Real', 'R$', 2) ON CONFLICT DO NOTHING"
+            )
+        )
+        for account_id, name, kind in [
+            ("a1111111-1111-4111-8111-111111111111", "Itau", "asset"),
+            ("a2222222-2222-4222-8222-222222222222", "Mercado", "expense"),
+        ]:
+            conn.execute(
+                text(
+                    "INSERT INTO accounts (id, user_id, name, type, currency_code) VALUES "
+                    f"('{account_id}', '99999999-9999-4999-8999-999999999999', '{name}', '{kind}', 'BRL')"
+                )
+            )
+        conn.execute(
+            text(
+                "INSERT INTO transactions (id, user_id) VALUES "
+                "('b1111111-1111-4111-8111-111111111111', '99999999-9999-4999-8999-999999999999')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO transaction_splits (id, transaction_id, user_id, type, date, description, "
+                "source_account_id, destination_account_id, amount, currency_code) VALUES "
+                "('c1111111-1111-4111-8111-111111111111', 'b1111111-1111-4111-8111-111111111111', "
+                "'99999999-9999-4999-8999-999999999999', 'withdrawal', '2026-03-10', 'Compra', "
+                "'a1111111-1111-4111-8111-111111111111', 'a2222222-2222-4222-8222-222222222222', 12.50, 'BRL')"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT is_paid, ignored FROM transaction_splits")).one()
+    assert row.is_paid is True
+    assert row.ignored is False
 
 
 def test_models_match_migrations(clean_schema):

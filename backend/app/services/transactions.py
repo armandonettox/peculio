@@ -6,7 +6,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -348,6 +348,8 @@ def _build_split(
         budget_id=budget.id if budget else None,
         bill_id=bill.id if bill else None,
         notes=data.notes,
+        is_paid=data.is_paid,
+        ignored=data.ignored,
     )
     db.add(split)
     db.flush()
@@ -428,6 +430,19 @@ def replace_transaction(db: Session, user: User, transaction: Transaction, data:
         restore_clearings(db, user.id, created, cleared.get(position, []))
     db.flush()
     _enqueue(db, user.id, WebhookEvent.transaction_updated, transaction)
+    return transaction
+
+
+def settle_transaction(db: Session, transaction: Transaction) -> Transaction:
+    """Efetivar: marca todas as linhas como pagas (ou recebidas), sem mexer no resto. Ja pago nao muda nada."""
+    db.execute(
+        update(TransactionSplit)
+        .where(TransactionSplit.transaction_id == transaction.id, TransactionSplit.is_paid.is_(False))
+        .values(is_paid=True)
+    )
+    db.flush()
+    db.refresh(transaction)
+    _enqueue(db, transaction.user_id, WebhookEvent.transaction_updated, transaction)
     return transaction
 
 
@@ -537,6 +552,8 @@ def build_outputs(db: Session, transactions: Sequence[Transaction]) -> list[dict
                     "bill_id": split.bill_id,
                     "tag_ids": tag_map.get(split.id, []),
                     "notes": split.notes,
+                    "is_paid": split.is_paid,
+                    "ignored": split.ignored,
                     "cleared": clearing_map.get(split.id, (False, False))[0],
                     "locked": clearing_map.get(split.id, (False, False))[1],
                 }

@@ -45,14 +45,14 @@ def balances_by_account(db: Session, account_ids: Sequence[uuid.UUID]) -> dict[u
         db.execute(
             select(TransactionSplit.destination_account_id, func.sum(credited))
             .join(destination, destination.id == TransactionSplit.destination_account_id)
-            .where(TransactionSplit.destination_account_id.in_(account_ids))
+            .where(TransactionSplit.destination_account_id.in_(account_ids), TransactionSplit.is_paid.is_(True))
             .group_by(TransactionSplit.destination_account_id)
         ).all()
     )
     outflow = dict(
         db.execute(
             select(TransactionSplit.source_account_id, func.sum(TransactionSplit.amount))
-            .where(TransactionSplit.source_account_id.in_(account_ids))
+            .where(TransactionSplit.source_account_id.in_(account_ids), TransactionSplit.is_paid.is_(True))
             .group_by(TransactionSplit.source_account_id)
         ).all()
     )
@@ -77,12 +77,20 @@ def monthly_changes(
     inflow = db.execute(
         select(TransactionSplit.destination_account_id, year, month, func.sum(credited_amount(destination)))
         .join(destination, destination.id == TransactionSplit.destination_account_id)
-        .where(TransactionSplit.destination_account_id.in_(account_ids), TransactionSplit.date <= up_to)
+        .where(
+            TransactionSplit.destination_account_id.in_(account_ids),
+            TransactionSplit.date <= up_to,
+            TransactionSplit.is_paid.is_(True),
+        )
         .group_by(TransactionSplit.destination_account_id, year, month)
     ).all()
     outflow = db.execute(
         select(TransactionSplit.source_account_id, year, month, func.sum(TransactionSplit.amount))
-        .where(TransactionSplit.source_account_id.in_(account_ids), TransactionSplit.date <= up_to)
+        .where(
+            TransactionSplit.source_account_id.in_(account_ids),
+            TransactionSplit.date <= up_to,
+            TransactionSplit.is_paid.is_(True),
+        )
         .group_by(TransactionSplit.source_account_id, year, month)
     ).all()
 

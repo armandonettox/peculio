@@ -82,6 +82,8 @@ def _as_create(db: Session, transaction: Transaction, on: dt.date) -> Transactio
                 bill_id=None,
                 tag_ids=tags.get(split.id, []),
                 notes=split.notes,
+                is_paid=split.is_paid,
+                ignored=split.ignored,
                 account_id=own_id,
                 counterparty_account_id=other_id,
             )

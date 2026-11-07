@@ -160,6 +160,15 @@ def update_transaction(
     return service.build_output(db, transaction)
 
 
+@router.post("/{transaction_id}/settle", response_model=TransactionOut)
+def settle_transaction(transaction_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Efetivar: marca o lancamento como pago ou recebido."""
+    transaction = service.get_owned_transaction(db, user.id, transaction_id)
+    service.settle_transaction(db, transaction)
+    db.commit()
+    return service.build_output(db, transaction)
+
+
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_transaction(transaction_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     transaction = service.get_owned_transaction(db, user.id, transaction_id)
