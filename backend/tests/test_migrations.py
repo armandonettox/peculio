@@ -11,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0039"
+    assert version == "0040"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -260,6 +260,54 @@ def test_migration_0035_marks_existing_transactions_as_paid_and_not_ignored(clea
         row = conn.execute(text("SELECT is_paid, ignored FROM transaction_splits")).one()
     assert row.is_paid is True
     assert row.ignored is False
+
+
+def test_migration_0040_keeps_old_budgets_without_dates_alert_or_categories(clean_schema):
+    """Orcamento que ja existia continua como estava (semanal, mensal ou anual) e a migracao nao trava por causa das
+    regras novas do periodo personalizado."""
+    config = alembic_config()
+    command.upgrade(config, "0039")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('77777777-7777-4777-8777-777777777777', 'Ana', 'ana3@example.com', 'x')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO budgets (id, user_id, name, currency_code, amount, period, carry_over, active) VALUES "
+                "('88888888-8888-4888-8888-888888888888', '77777777-7777-4777-8777-777777777777', "
+                "'Mercado', 'BRL', 800.00, 'monthly', true, true), "
+                "('99999999-9999-4999-8999-999999999999', '77777777-7777-4777-8777-777777777777', "
+                "'Feira', 'BRL', 100.00, 'weekly', false, true)"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        rows = conn.execute(text("SELECT name, period, carry_over, start_date, end_date, alert FROM budgets ORDER BY name")).all()
+        categories = conn.execute(text("SELECT count(*) FROM budget_categories")).scalar()
+        # As regras novas valem para o que entrar depois: personalizado sem datas e recusado
+        refused = False
+        try:
+            with conn.begin():
+                conn.execute(
+                    text(
+                        "INSERT INTO budgets (id, user_id, name, currency_code, amount, period) VALUES "
+                        "('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '77777777-7777-4777-8777-777777777777', "
+                        "'Sem datas', 'BRL', 10, 'custom')"
+                    )
+                )
+        except Exception:
+            refused = True
+    assert [(r.name, r.period, r.carry_over, r.start_date, r.end_date, r.alert) for r in rows] == [
+        ("Feira", "weekly", False, None, None, False),
+        ("Mercado", "monthly", True, None, None, False),
+    ]
+    assert categories == 0
+    assert refused
 
 
 def test_models_match_migrations(clean_schema):

@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime
+import datetime as dt
 from typing import Annotated
 
 from decimal import Decimal
@@ -20,6 +20,17 @@ def _strip(value: str | None) -> str | None:
     return value
 
 
+def check_dates(period: BudgetPeriod, start: dt.date | None, end: dt.date | None) -> None:
+    """Periodo personalizado pede as duas datas, em ordem; os outros periodos nao tem data."""
+    if period == BudgetPeriod.custom:
+        if start is None or end is None:
+            raise ValueError("Informe a data inicial e a final do periodo")
+        if start > end:
+            raise ValueError("A data inicial nao pode ser depois da final")
+    elif start is not None or end is not None:
+        raise ValueError("Datas so valem no periodo personalizado")
+
+
 class BudgetCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -29,6 +40,12 @@ class BudgetCreate(BaseModel):
     period: BudgetPeriod
     # Carrega a sobra (ou o estouro) para o limite do mes seguinte. So vale com periodo mensal.
     carry_over: bool = False
+    # So no periodo personalizado: primeiro e ultimo dia (inclusive)
+    start_date: dt.date | None = None
+    end_date: dt.date | None = None
+    # Categorias que contam para o limite, alem dos lancamentos ligados ao orcamento
+    category_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
+    alert: bool = False
 
     _strip_name = field_validator("name")(_strip)
 
@@ -41,6 +58,7 @@ class BudgetCreate(BaseModel):
     def check_carry_over(self):
         if self.carry_over and self.period != BudgetPeriod.monthly:
             raise ValueError("Carregar a sobra so vale com periodo mensal")
+        check_dates(self.period, self.start_date, self.end_date)
         return self
 
 
@@ -54,6 +72,11 @@ class BudgetUpdate(BaseModel):
     period: BudgetPeriod | None = None
     carry_over: bool | None = None
     active: bool | None = None
+    start_date: dt.date | None = None
+    end_date: dt.date | None = None
+    # Lista completa: troca as categorias do orcamento (lista vazia tira todas)
+    category_ids: list[uuid.UUID] | None = Field(default=None, max_length=100)
+    alert: bool | None = None
 
     _strip_name = field_validator("name")(_strip)
 
@@ -68,14 +91,18 @@ class BudgetOut(BaseModel):
     period: BudgetPeriod
     carry_over: bool
     active: bool
-    created_at: datetime
+    start_date: dt.date | None
+    end_date: dt.date | None
+    category_ids: list[uuid.UUID]
+    alert: bool
+    created_at: dt.datetime
 
 
 class BudgetProgressOut(BudgetOut):
     """O orcamento com o gasto do periodo que contem a data pedida."""
 
-    period_start: date
-    period_end: date
+    period_start: dt.date
+    period_end: dt.date
     # amount + o que carregou do mes anterior (igual a amount quando carry_over esta desligado)
     limit: Money
     spent: Money
@@ -83,3 +110,5 @@ class BudgetProgressOut(BudgetOut):
     remaining: Money
     # Parte inteira de gasto / limite, em %. Chega a 100 so quando o limite foi atingido.
     percent: int
+    # Periodo personalizado que ja terminou (so ele expira; os que se repetem nunca)
+    expired: bool
