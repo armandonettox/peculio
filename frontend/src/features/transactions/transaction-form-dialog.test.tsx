@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { expect, it } from "vitest";
 
 import type { Transaction } from "@/api/transactions";
@@ -9,10 +10,11 @@ import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
-import { FakeAuth, WithSidebar, openTransactionForm } from "@/test-utils/providers";
+import { FakeAuth, WithSidebar } from "@/test-utils/providers";
 import { deposit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
 import TransactionsPage from "@/pages/transactions";
+import { TransactionFormDialog } from "./transaction-form-dialog";
 
 const mercado = makeLabel({ id: "c0000000-0000-4000-8000-000000000001", name: "Mercado" });
 const lazer = makeLabel({ id: "c0000000-0000-4000-8000-000000000002", name: "Lazer" });
@@ -85,6 +87,7 @@ function renderPage({
   render(
     <FakeAuth>
       <WithSidebar route="/transacoes">
+        <GeneralFormOpener />
         <TransactionsPage />
       </WithSidebar>
     </FakeAuth>,
@@ -92,7 +95,24 @@ function renderPage({
   return { tx, accountsApi };
 }
 
-const openNew = () => openTransactionForm();
+// Despesa, receita, transferencia e cartao tem cada um o seu formulario, abertos pelo "+". O formulario geral so e
+// aberto por quem cria recorrente ou paga fatura; aqui um botao so de teste o abre, para cobrir as regras dele.
+function GeneralFormOpener() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        Abrir formulario geral
+      </button>
+      {open && <TransactionFormDialog onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+const openNew = async () => {
+  await userEvent.click(await screen.findByRole("button", { name: "Abrir formulario geral" }));
+  return screen.findByRole("dialog", { name: "Novo lançamento" });
+};
 
 // Os campos do formulario ficam no dialogo; a pagina atras tem filtros com rotulos parecidos
 const d = () => within(screen.getByRole("dialog"));

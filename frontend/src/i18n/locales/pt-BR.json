@@ -1003,6 +1003,22 @@
       "descriptionHint": "Se ficar vazia, usa origem e destino.",
       "defaultDescription": "Transferência: {{from}} → {{to}}",
       "defaultDescriptionShort": "Transferência"
+    },
+    "cardForm": {
+      "title": "Nova despesa de cartão",
+      "editTitle": "Editar despesa de cartão",
+      "card": "Cartão",
+      "noCard": "Nenhum cartão de crédito cadastrado. Crie um em Contas, com o dia de fechamento e o de vencimento.",
+      "invoice": "Fatura",
+      "invoiceOption": "Vence {{date}} ({{status}})",
+      "status": {
+        "zero": "Zerada",
+        "closed": "Fechada",
+        "open": "Aberta",
+        "partial": "Parcial"
+      },
+      "installments": "Parcelado",
+      "installmentsCount": "vezes"
     }
   },
   "labels": {

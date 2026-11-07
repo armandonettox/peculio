@@ -1,4 +1,4 @@
-import { Bookmark, CircleCheck, FileText, Info, Landmark, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { Bookmark, CircleCheck, Receipt, FileText, Info, Landmark, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +11,7 @@ import {
   useRefreshAttachments,
 } from "@/api/attachments";
 import { useBudgets, type Budget } from "@/api/budgets";
+import { useInvoiceOptions } from "@/api/invoices";
 import { useDeleteFavorite, useFavorites, useSaveFavorite, type Suggestion } from "@/api/favorites";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -41,7 +42,8 @@ import { CategoryIcon } from "@/features/labels/category-icon";
 import { DescriptionField } from "./description-field";
 import { DateChips, Row, TagPicker, UNDERLINED } from "./form-parts";
 import { FREQUENCIES, frequencyLabel } from "@/features/recurrences/presentation";
-import { placesOf } from "@/lib/money";
+import { formatDate } from "@/lib/dates";
+import { formatMoney, placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
   accountOf,
@@ -105,6 +107,13 @@ export function usesExpenseForm(transaction: Transaction, accounts: { id: string
 }
 
 
+/** Compra no cartao de credito: saida de uma conta de cartao para uma despesa (pagar a fatura e transferencia, nao entra). */
+export function usesCardForm(transaction: Transaction, accounts: { id: string; role: string | null }[]): boolean {
+  const [first] = transaction.splits;
+  if (!first || first.type !== "withdrawal" || first.destination_account_type !== "expense") return false;
+  return accounts.find((account) => account.id === first.source_account_id)?.role === "credit_card";
+}
+
 export function ExpenseFormDialog(props: Props) {
   return <MoneyFormDialog kind="withdrawal" {...props} />;
 }
@@ -113,7 +122,11 @@ export function IncomeFormDialog(props: Props) {
   return <MoneyFormDialog kind="deposit" {...props} />;
 }
 
-function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKind }) {
+export function CardFormDialog(props: Props) {
+  return <MoneyFormDialog kind="withdrawal" card {...props} />;
+}
+
+function MoneyFormDialog({ kind, card = false, transaction, onClose }: Props & { kind: MoneyKind; card?: boolean }) {
   const { t } = useTranslation();
   const income = kind === "deposit";
   const editing = transaction !== undefined;
@@ -145,7 +158,11 @@ function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKi
       <DialogContent fullOnMobile className={showDetails ? "max-w-3xl" : "max-w-md"}>
         <DialogHeader>
           <DialogTitle>
-            {income
+            {card
+              ? editing
+                ? t("transactions.cardForm.editTitle")
+                : t("transactions.cardForm.title")
+              : income
               ? editing
                 ? t("transactions.incomeForm.editTitle")
                 : t("transactions.incomeForm.title")
@@ -164,6 +181,7 @@ function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKi
         {ready && (
           <FormBody
             kind={kind}
+            card={card}
             ctx={ctx}
             currencies={currencies.data ?? []}
             transaction={transaction}
@@ -186,6 +204,8 @@ function MoneyFormDialog({ kind, transaction, onClose }: Props & { kind: MoneyKi
 
 type BodyProps = {
   kind: MoneyKind;
+  // Despesa de cartao de credito: so contas de cartao, com a fatura escolhida e "Parcelado"
+  card: boolean;
   ctx: FormContext;
   currencies: { code: string; name: string; symbol: string }[];
   transaction?: Transaction;
@@ -222,6 +242,7 @@ function hasDetails(state: FormState): boolean {
 
 function FormBody({
   kind,
+  card,
   ctx,
   currencies,
   transaction,
@@ -242,13 +263,20 @@ function FormBody({
   const refreshAttachments = useRefreshAttachments();
 
   const [initial] = useState(() => (transaction ? formFromTransaction(transaction, ctx) : null));
-  const [state, setState] = useState<FormState>(() => (initial?.ok ? initial.state : emptyForm(ctx, { kind })));
+  const [state, setState] = useState<FormState>(() => {
+    if (initial?.ok) return initial.state;
+    // No formulario de cartao, ja vem escolhido o primeiro cartao ativo
+    const firstCard = ctx.accounts.find((a) => a.active && a.role === "credit_card");
+    return emptyForm(ctx, { kind, ...(card ? { accountId: firstCard?.id ?? "" } : {}) });
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   // Trocar a key refaz os atalhos de data (Salvar e criar nova volta para Hoje)
   const [dateKey, setDateKey] = useState(0);
   const [repeat, setRepeat] = useState<Repeat>(NO_REPEAT);
+  // Parcelado ligado: o campo de vezes aparece mesmo com "1" ou vazio enquanto a pessoa digita (12 comeca com 1)
+  const [installmentsOn, setInstallmentsOn] = useState(false);
   const [repeatError, setRepeatError] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -259,6 +287,8 @@ function FormBody({
   const favoritesQuery = useFavorites(kind);
   const saveFavorite = useSaveFavorite();
   const deleteFavorite = useDeleteFavorite();
+  // As faturas do cartao escolhido, para escolher onde a compra entra
+  const invoiceQuery = useInvoiceOptions({ accountId: state.accountId, around: state.date, enabled: card });
   const fileInput = useRef<HTMLInputElement>(null);
   const amountInput = useRef<HTMLInputElement>(null);
 
@@ -295,7 +325,9 @@ function FormBody({
   const categoryOptions = (selectedId: string) =>
     categories.filter((category) => category.kind === (income ? "revenue" : "expense") || category.id === selectedId);
 
-  const selectable = ctx.accounts.filter((a) => a.active || a.id === state.accountId || a.id === state.counterpartyAccountId);
+  const selectable = ctx.accounts.filter(
+    (a) => (a.active || a.id === state.accountId || a.id === state.counterpartyAccountId) && (!card || a.role === "credit_card"),
+  );
   // So conta com algum digito diferente de zero (o campo formata sozinho: "0,00" e vazio, "12,50" e valor)
   const accountChips: ChipOption[] = selectable.map((option) => ({
     value: option.id,
@@ -306,6 +338,25 @@ function FormBody({
   const favoriteFor = (text: string) =>
     (favoritesQuery.data ?? []).find((item) => item.description.toLowerCase() === text.trim().toLowerCase());
   const isFavorite = favoriteWanted ?? Boolean(favoriteFor(state.description));
+  // Fatura da compra: a escolhida a mao ou, sem escolha, a que contem a data
+  const invoices = invoiceQuery.data ?? [];
+  const invoiceDay = state.invoiceDate || state.date;
+  const selectedInvoice = invoices.find((item) => item.period_start <= invoiceDay && invoiceDay <= item.period_end);
+  const invoiceChips: ChipOption[] = invoices.map((item) => ({
+    value: item.period_end,
+    label: t("transactions.cardForm.invoiceOption", {
+      date: formatDate(item.due_date),
+      status: t(`transactions.cardForm.status.${item.status}`),
+    }),
+    hint: Number(item.total) !== 0 ? formatMoney(item.total, currency) : undefined,
+    leading: <CategoryIcon icon={Receipt} />,
+  }));
+  function chooseInvoice(periodEnd: string) {
+    const picked = invoices.find((item) => item.period_end === periodEnd);
+    // Escolher a fatura que ja e a da data volta ao automatico: a compra segue a data se ela mudar
+    const isDefault = picked !== undefined && picked.period_start <= state.date && state.date <= picked.period_end;
+    patch({ invoiceDate: isDefault ? "" : periodEnd });
+  }
   const amountFilled = /[1-9]/.test(state.amount);
   const symbol = currencies.find((item) => item.code === currency)?.symbol ?? currency;
   const accountCurrencies = Array.from(new Set(selectable.map((a) => a.currency_code))).sort();
@@ -345,6 +396,7 @@ function FormBody({
       {
         accountId,
         foreignAmount: "",
+        invoiceDate: "",
         ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
           ? { originalCurrency: "", originalAmount: "" }
           : {}),
@@ -492,6 +544,7 @@ function FormBody({
     setFiles([]);
     setFileError(null);
     setRepeat(NO_REPEAT);
+    setInstallmentsOn(false);
     setDateKey((current) => current + 1);
     setFavoriteWanted(null);
     amountInput.current?.focus();
@@ -503,6 +556,11 @@ function FormBody({
 
     const effective = withDefaultCounterparty(state);
     const found = validateForm(effective, ctx);
+    // Parcelado ligado pede de 2 a 60 vezes; "1" ou vazio nao e parcelar
+    const parts = Number(state.installments);
+    if (installmentsOn && !(Number.isInteger(parts) && parts >= 2 && parts <= 60)) {
+      found.installments = t("transactions.form.installmentsInvalid");
+    }
     setErrors(found);
     let repeatFound: string | null = null;
     if (recurringMode && repeat.repeat && !/^([2-9]|[1-9]\d{1,2})$/.test(repeat.count.trim())) {
@@ -518,10 +576,11 @@ function FormBody({
         ["counterparty", "tx-counterparty"],
         ["foreignAmount", "tx-foreign-amount"],
         ["originalAmount", "tx-original-amount"],
+        ["installments", "tx-installments"],
       ];
       const first = order.find(([field]) => found[field]);
       if (first) {
-        if (first[0] === "counterparty") setShowDetails(true);
+        if (first[0] === "counterparty" || first[0] === "installments") setShowDetails(true);
         document.getElementById(first[1])?.focus();
       }
       return;
@@ -619,20 +678,22 @@ function FormBody({
         )}
       </FormField>
 
-      <Row icon={CircleCheck}>
-        <div className="flex items-center justify-between gap-3">
-          <span id="exp-paid-label" className="text-sm text-muted-foreground">
-            {state.isPaid
-              ? income
-                ? t("transactions.incomeForm.received")
-                : t("transactions.expenseForm.paid")
-              : income
-                ? t("transactions.incomeForm.notReceived")
-                : t("transactions.expenseForm.unpaid")}
-          </span>
-          <Switch checked={state.isPaid} onCheckedChange={(next) => patch({ isPaid: next })} aria-labelledby="exp-paid-label" />
-        </div>
-      </Row>
+      {!card && (
+  <Row icon={CircleCheck}>
+          <div className="flex items-center justify-between gap-3">
+            <span id="exp-paid-label" className="text-sm text-muted-foreground">
+              {state.isPaid
+                ? income
+                  ? t("transactions.incomeForm.received")
+                  : t("transactions.expenseForm.paid")
+                : income
+                  ? t("transactions.incomeForm.notReceived")
+                  : t("transactions.expenseForm.unpaid")}
+            </span>
+            <Switch checked={state.isPaid} onCheckedChange={(next) => patch({ isPaid: next })} aria-labelledby="exp-paid-label" />
+          </div>
+        </Row>
+      )}
 
       <DateChips
         key={dateKey}
@@ -684,20 +745,42 @@ function FormBody({
       )}
 
       <Row icon={Landmark}>
-        <FormField id="tx-account" hideLabel label={t("common.conta")} error={errors.accountId}>
+        <FormField id="tx-account" hideLabel label={card ? t("transactions.cardForm.card") : t("common.conta")} error={errors.accountId}>
           {(props) => (
             <ChipSelect
               {...props}
               value={state.accountId}
               options={accountChips}
-              placeholder={t("common.escolha")}
+              placeholder={card ? t("transactions.cardForm.card") : t("common.escolha")}
               onChange={chooseAccount}
             />
           )}
         </FormField>
       </Row>
 
-      {!editing && !recurringMode && (
+      {card && selectable.length === 0 && (
+        <p role="status" className="text-xs text-muted-foreground">
+          {t("transactions.cardForm.noCard")}
+        </p>
+      )}
+
+      {card && !invoiceQuery.isError && (
+        <Row icon={Receipt}>
+          <FormField id="tx-invoice" hideLabel label={t("transactions.cardForm.invoice")}>
+            {(props) => (
+              <ChipSelect
+                {...props}
+                value={selectedInvoice?.period_end ?? ""}
+                options={invoiceChips}
+                placeholder={invoiceQuery.isPending ? t("common.carregando") : t("transactions.cardForm.invoice")}
+                onChange={chooseInvoice}
+              />
+            )}
+          </FormField>
+        </Row>
+      )}
+
+      {!editing && !recurringMode && !card && (
         <Row icon={Paperclip}>
           <div className="flex flex-col gap-2">
             <button
@@ -794,9 +877,22 @@ function FormBody({
             <span id="exp-fixed-label" className="text-sm">
               {income ? t("transactions.incomeForm.fixed") : t("transactions.expenseForm.fixed")}
             </span>
-            <Switch checked={repeat.fixed} onCheckedChange={(next) => chooseRepeat({ fixed: next })} aria-labelledby="exp-fixed-label" />
+            <Switch
+              checked={repeat.fixed}
+              onCheckedChange={(next) => {
+                chooseRepeat({ fixed: next });
+                // Fixa e parcelada se excluem
+                if (next && card) {
+                  setInstallmentsOn(false);
+                  patch({ installments: "1" }, "installments");
+                }
+              }}
+              aria-labelledby="exp-fixed-label"
+            />
           </div>
           {repeat.fixed && <p className="-mt-2 text-xs text-muted-foreground">{t("transactions.expenseForm.fixedHint")}</p>}
+          {!card && (
+            <>
           <div className="flex items-center justify-between gap-3">
             <span id="exp-repeat-label" className="text-sm">
               {t("transactions.expenseForm.repeat")}
@@ -827,6 +923,41 @@ function FormBody({
                   </Select>
                 )}
               </FormField>
+            </div>
+          )}
+            </>
+          )}
+          {card && !state.splits && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <span id="exp-installments-label" className="text-sm">
+                  {t("transactions.cardForm.installments")}
+                </span>
+                <Switch
+                  checked={installmentsOn}
+                  onCheckedChange={(next) => {
+                    setInstallmentsOn(next);
+                    patch({ installments: next ? "2" : "1" }, "installments");
+                    if (next) chooseRepeat({ fixed: false });
+                  }}
+                  aria-labelledby="exp-installments-label"
+                />
+              </div>
+              {installmentsOn && (
+                <div className="grid grid-cols-[6rem_1fr] items-start gap-3">
+                  <FormField id="tx-installments" label={t("transactions.cardForm.installmentsCount")} error={errors.installments}>
+                    {(props) => (
+                      <Input
+                        {...props}
+                        inputMode="numeric"
+                        autoComplete="off"
+                        value={state.installments}
+                        onChange={(e) => patch({ installments: e.target.value.replace(/\D/g, "") }, "installments")}
+                      />
+                    )}
+                  </FormField>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -879,7 +1010,7 @@ function FormBody({
               </>
             )}
           </FormField>
-          {debts.length > 0 && (
+          {debts.length > 0 && !card && (
             <button
               type="button"
               className="self-start text-xs text-primary-text underline underline-offset-2"

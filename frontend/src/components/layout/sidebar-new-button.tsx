@@ -4,9 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ExpenseFormDialog, IncomeFormDialog } from "@/features/transactions/expense-form-dialog";
+import { CardFormDialog, ExpenseFormDialog, IncomeFormDialog } from "@/features/transactions/expense-form-dialog";
 import { TransferFormDialog } from "@/features/transactions/transfer-form-dialog";
-import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import type { Kind } from "@/features/transactions/form-model";
 
 type DialogOption = Kind | "withdrawal-card";
@@ -25,8 +24,6 @@ export function SidebarNewButton({ collapsed }: Props) {
     { option: "withdrawal-card", label: t("components.sidebarNewButton.despesaCartao"), icon: CreditCard, color: "text-orange-500" },
     { option: "transfer", label: t("components.sidebarNewButton.transferencia"), icon: ArrowLeftRight, color: "text-blue-500" },
   ];
-
-  const dialogKind: Kind | null = dialog === "withdrawal-card" ? "withdrawal" : dialog;
 
   const trigger = collapsed ? (
     <Button
@@ -63,12 +60,7 @@ export function SidebarNewButton({ collapsed }: Props) {
       {dialog === "withdrawal" && <ExpenseFormDialog onClose={() => setDialog(null)} />}
       {dialog === "deposit" && <IncomeFormDialog onClose={() => setDialog(null)} />}
       {dialog === "transfer" && <TransferFormDialog onClose={() => setDialog(null)} />}
-      {dialog && dialog !== "withdrawal" && dialog !== "deposit" && dialog !== "transfer" && dialogKind && (
-        <TransactionFormDialog
-          defaultKind={dialogKind}
-          onClose={() => setDialog(null)}
-        />
-      )}
+      {dialog === "withdrawal-card" && <CardFormDialog onClose={() => setDialog(null)} />}
     </>
   );
 }

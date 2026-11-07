@@ -61,6 +61,8 @@ export type FormState = {
   isPaid: boolean;
   // Ignorado: mexe no saldo, mas sai dos totais, relatorios e orcamentos
   ignored: boolean;
+  // Compra no cartao: a fatura escolhida, dada por uma data dentro dela. "" = automatica (a fatura da data da compra).
+  invoiceDate: string;
 };
 
 export type FormContext = {
@@ -133,6 +135,7 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     installments: "1",
     isPaid: true,
     ignored: false,
+    invoiceDate: "",
     ...overrides,
   };
 }
@@ -340,6 +343,10 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
     account_id: account.id,
     is_paid: state.isPaid,
     ignored: state.ignored,
+    // A fatura escolhida so vale em saida de uma conta de cartao; nas demais o campo nem vai
+    ...(state.invoiceDate !== "" && state.kind === "withdrawal" && account.role === "credit_card"
+      ? { invoice_date: state.invoiceDate }
+      : {}),
     // Nome novo ou conta existente, nunca os dois
     ...(state.kind === "transfer" || state.ownCounterparty
       ? { counterparty_account_id: state.counterpartyAccountId }
@@ -429,7 +436,8 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
       split.destination_account_id === first.destination_account_id &&
       split.currency_code === first.currency_code &&
       split.is_paid === first.is_paid &&
-      split.ignored === first.ignored,
+      split.ignored === first.ignored &&
+      (split.invoice_date ?? null) === (first.invoice_date ?? null),
   );
   if (!uniform) {
     return {
@@ -453,6 +461,7 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
     counterpartyAccountId: kind === "transfer" || ownCounterparty ? otherId : "",
     isPaid: first.is_paid,
     ignored: first.ignored,
+    invoiceDate: first.invoice_date ?? "",
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;
@@ -551,6 +560,7 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
     counterpartyAccountId: first.counterparty_account_id ?? "",
     isPaid: first.is_paid ?? true,
     ignored: first.ignored ?? false,
+    invoiceDate: first.invoice_date ?? "",
   });
 
   const needsForeign = foreignAccount(base, ctx) !== null;

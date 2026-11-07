@@ -105,6 +105,7 @@ export function fakeTransactionsApi(initial: Transaction[] = [], accounts: Accou
         notes: split.notes ?? null,
         is_paid: split.is_paid ?? true,
         ignored: split.ignored ?? false,
+        invoice_date: split.invoice_date ?? null,
         source_account_id: outgoing ? split.account_id : (split.counterparty_account_id ?? "externo"),
         source_account_name: outgoing ? own : otherName,
         source_account_type: (outgoing ? ownType : otherType) as Transaction["splits"][number]["source_account_type"],

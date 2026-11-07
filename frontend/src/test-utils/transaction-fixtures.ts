@@ -27,6 +27,7 @@ export function makeSplit(overrides: Partial<TransactionSplit> = {}): Transactio
     notes: null,
     is_paid: true,
     ignored: false,
+    invoice_date: null,
     cleared: false,
     locked: false,
     ...overrides,

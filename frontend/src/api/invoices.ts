@@ -19,3 +19,22 @@ export function useInvoice({ accountId, on }: { accountId: string; on: string })
     enabled: Boolean(accountId),
   });
 }
+
+export type InvoiceOption = components["schemas"]["InvoiceOptionOut"];
+
+/**
+ * As faturas oferecidas ao escolher onde lancar uma compra no cartao: a aberta, algumas passadas e as proximas, mais a
+ * que contem `around` (a data da compra). Sem cartao escolhido, nao busca.
+ */
+export function useInvoiceOptions({ accountId, around, enabled = true }: { accountId: string; around: string; enabled?: boolean }) {
+  return useQuery({
+    queryKey: [...invoicesKey, "options", accountId, around],
+    queryFn: () =>
+      unwrap(
+        api.client.GET("/api/v1/accounts/{account_id}/invoices", {
+          params: { path: { account_id: accountId }, query: { around } },
+        }),
+      ),
+    enabled: enabled && Boolean(accountId),
+  });
+}

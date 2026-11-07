@@ -20,7 +20,14 @@ import type { SavedFilter } from "@/features/transactions/saved-filters";
 import { countActiveFilters, dateRangeError, readFilters, readKind, writeFilters, writeKind, type KindFilter } from "@/features/transactions/filters";
 
 import { groupByDay, transactionTitle } from "@/features/transactions/presentation";
-import { ExpenseFormDialog, IncomeFormDialog, usesExpenseForm, usesIncomeForm } from "@/features/transactions/expense-form-dialog";
+import {
+  CardFormDialog,
+  ExpenseFormDialog,
+  IncomeFormDialog,
+  usesCardForm,
+  usesExpenseForm,
+  usesIncomeForm,
+} from "@/features/transactions/expense-form-dialog";
 import { TransferFormDialog, usesTransferForm } from "@/features/transactions/transfer-form-dialog";
 import { TransactionFormDialog } from "@/features/transactions/transaction-form-dialog";
 import { TransactionRow } from "@/features/transactions/transaction-row";
@@ -465,6 +472,8 @@ export default function TransactionsPage() {
       {dialog &&
         (dialog !== "new" && usesExpenseForm(dialog, accounts.data ?? []) ? (
           <ExpenseFormDialog transaction={dialog} onClose={() => setDialog(null)} />
+        ) : dialog !== "new" && usesCardForm(dialog, accounts.data ?? []) ? (
+          <CardFormDialog transaction={dialog} onClose={() => setDialog(null)} />
         ) : dialog !== "new" && usesIncomeForm(dialog) ? (
           <IncomeFormDialog transaction={dialog} onClose={() => setDialog(null)} />
         ) : dialog !== "new" && usesTransferForm(dialog) ? (

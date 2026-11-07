@@ -7,8 +7,6 @@ import { MemoryRouter } from "react-router-dom";
 import { SidebarNewButton } from "@/components/layout/sidebar-new-button";
 import { AuthContext, AuthProvider, type AuthContextValue, type User } from "@/auth/auth-context";
 
-export type TransactionKind = "Despesa" | "Receita" | "Despesa de Cartão" | "Transferência";
-
 export const testUser: User = {
   id: "11111111-1111-4111-8111-111111111111",
   name: "Ana Teste",
@@ -41,16 +39,6 @@ export function WithSidebar({ children, route = "/" }: { children: ReactNode; ro
       {children}
     </MemoryRouter>
   );
-}
-
-// Abre o formulario de lancamento via o sidebar dropdown.
-// Deve ser chamado dentro de um render que usa WithSidebar ou inclua SidebarNewButton.
-// Despesa, receita, cartao e transferencia ganham cada um o seu formulario. Ate la, "Despesa Cartao" ainda abre
-// o formulario geral antigo, que e o que os testes dele cobrem; a despesa simples abre openExpenseForm.
-export async function openTransactionForm(kind: TransactionKind = "Despesa de Cartão") {
-  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
-  await userEvent.click(await screen.findByRole("menuitem", { name: kind }));
-  return screen.findByRole("dialog", { name: "Novo lançamento" });
 }
 
 // Estado de login fixo, para testar uma tela ja logada (ou nao) sem passar pelo login
@@ -112,4 +100,11 @@ export async function openTransferForm() {
   await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
   await userEvent.click(await screen.findByRole("menuitem", { name: "Transferência" }));
   return screen.findByRole("dialog", { name: "Nova transferência" });
+}
+
+// Abre o formulario proprio de despesa de cartao ("Nova despesa de cartão").
+export async function openCardForm() {
+  await userEvent.click(await screen.findByRole("button", { name: /Novo lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Despesa de Cartão" }));
+  return screen.findByRole("dialog", { name: "Nova despesa de cartão" });
 }

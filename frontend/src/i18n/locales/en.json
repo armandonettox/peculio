@@ -1003,6 +1003,22 @@
       "descriptionHint": "If left empty, source and destination are used.",
       "defaultDescription": "Transfer: {{from}} → {{to}}",
       "defaultDescriptionShort": "Transfer"
+    },
+    "cardForm": {
+      "title": "New credit card expense",
+      "editTitle": "Edit credit card expense",
+      "card": "Card",
+      "noCard": "No credit card yet. Create one in Accounts, with its closing day and due day.",
+      "invoice": "Invoice",
+      "invoiceOption": "Due {{date}} ({{status}})",
+      "status": {
+        "zero": "Empty",
+        "closed": "Closed",
+        "open": "Open",
+        "partial": "Upcoming"
+      },
+      "installments": "Installments",
+      "installmentsCount": "times"
     }
   },
   "labels": {
