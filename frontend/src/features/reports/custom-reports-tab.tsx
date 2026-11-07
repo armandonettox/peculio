@@ -128,6 +128,21 @@ export function CustomReportsTab() {
         onRemove={setRemoving}
       />
 
+      <CustomReportBuilder
+        config={config}
+        onChange={(next) => {
+          setConfig(next);
+          setNotice(null);
+        }}
+        periodError={rangeError}
+        missing={missing}
+        accounts={accounts.data ?? []}
+        categories={categories.data?.items ?? []}
+        tags={tags.data?.items ?? []}
+        budgets={budgets.data ?? []}
+      />
+
+      {/* Os botoes agem sobre o que esta montado acima: ficam logo abaixo do construtor, nao longe dele */}
       <div className="flex flex-wrap items-center gap-2">
         <Button onClick={() => setSaving(true)} disabled={Boolean(rangeError)}>
           {t("reports.customReportsTab.salvarRelatorio")}
@@ -148,20 +163,6 @@ export function CustomReportsTab() {
           {notice}
         </p>
       )}
-
-      <CustomReportBuilder
-        config={config}
-        onChange={(next) => {
-          setConfig(next);
-          setNotice(null);
-        }}
-        periodError={rangeError}
-        missing={missing}
-        accounts={accounts.data ?? []}
-        categories={categories.data?.items ?? []}
-        tags={tags.data?.items ?? []}
-        budgets={budgets.data ?? []}
-      />
 
       {result}
 

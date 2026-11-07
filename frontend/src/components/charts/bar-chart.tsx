@@ -15,6 +15,7 @@ const MARGIN_TOP = 12;
 const MARGIN_BOTTOM = 28;
 const MARGIN_RIGHT = 24;
 const BAR_GAP_RATIO = 0.25; // fracao da largura total por periodo que vira espaco entre barras
+const MAX_BAR_WIDTH = 56; // largura maxima de uma barra, em px
 
 /**
  * Grafico de barras verticais em SVG, sem biblioteca.
@@ -56,14 +57,17 @@ export function BarChart({ title, description, series, formatValue, formatX, hei
   const totalWidth = plotRight - plotLeft;
   const slotWidth = xs.length > 0 ? totalWidth / xs.length : totalWidth;
   const groupWidth = slotWidth * (1 - BAR_GAP_RATIO);
-  const barWidth = series.length > 0 ? groupWidth / series.length : groupWidth;
+  // Com poucos periodos (ex: 1 mes) a barra ocuparia o grafico todo; o teto de 56 px mantem a proporcao legivel
+  const barWidth = series.length > 0 ? Math.min(groupWidth / series.length, MAX_BAR_WIDTH) : groupWidth;
 
   const xLabels = xs.map((x) => formatX(x));
   const shownLabels = new Set(thinLabelIndexes(xLabels.map((label) => estimateTextWidth(label, FONT_SIZE)), slotWidth));
 
   const slotCenterX = (xIndex: number) => round2(plotLeft + (xIndex + 0.5) * slotWidth);
+  // O grupo de barras fica centralizado no espaco do periodo (igual ao de antes quando a barra nao bate no teto)
+  const groupOffset = (slotWidth - barWidth * Math.max(series.length, 1)) / 2;
   const barX = (xIndex: number, seriesIndex: number) =>
-    round2(plotLeft + xIndex * slotWidth + slotWidth * (BAR_GAP_RATIO / 2) + seriesIndex * barWidth);
+    round2(plotLeft + xIndex * slotWidth + groupOffset + seriesIndex * barWidth);
 
   const presence = lookups.map((values) => values.map((text) => text !== null));
   const stop = tabStop && presence[tabStop.seriesIndex]?.[tabStop.xIndex] ? tabStop : firstGridPoint(presence);

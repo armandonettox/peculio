@@ -105,7 +105,7 @@ export function LabelsPage({ config, useList, onCreate, onUpdate, onDelete }: Pr
             ? t(`labels.${config.kind}.countWithSearch`, { count: query.data!.total, search })
             : t(`labels.${config.kind}.count`, { count: query.data!.total })}
         </p>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex max-w-3xl flex-col gap-2">
           {items.map((item) => (
             <li
               key={item.id}

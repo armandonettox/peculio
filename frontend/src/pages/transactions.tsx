@@ -252,7 +252,7 @@ export default function TransactionsPage() {
             onRemove={setRemoving}
           />
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex max-w-4xl flex-col gap-6">
             {groups.map((group) => (
               <section key={group.date} aria-label={group.label}>
                 <h2 className="mb-2 text-sm font-semibold text-muted-foreground">{group.label}</h2>
