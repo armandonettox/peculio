@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ const THEMES: { value: Theme; label: "light" | "dark" | "system"; hint: "lightHi
 export function AppearanceSection() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const groupId = useId();
   const language: Language = i18n.language === "en" ? "en" : "pt-BR";
 
   return (
@@ -24,7 +26,10 @@ export function AppearanceSection() {
         <CardDescription>{t("appearance.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
-        <div role="radiogroup" aria-label={t("appearance.theme.label")} className="flex flex-col gap-3">
+        <div role="radiogroup" aria-labelledby={`${groupId}-theme`} className="flex flex-col gap-3">
+          <h3 id={`${groupId}-theme`} className="text-sm font-semibold">
+            {t("appearance.theme.label")}
+          </h3>
           {THEMES.map((option) => (
             <label key={option.value} className="flex cursor-pointer items-start gap-3 text-sm">
               <input
@@ -33,7 +38,7 @@ export function AppearanceSection() {
                 value={option.value}
                 checked={theme === option.value}
                 onChange={() => setTheme(option.value)}
-                className="mt-0.5 accent-[var(--primary)]"
+                className="mt-0.5 accent-[var(--primary-text)]"
               />
               <span className="flex flex-col">
                 <span className="font-medium">{t(`appearance.theme.${option.label}`)}</span>
@@ -43,7 +48,10 @@ export function AppearanceSection() {
           ))}
         </div>
 
-        <div role="radiogroup" aria-label={t("appearance.language.label")} className="flex flex-col gap-3">
+        <div role="radiogroup" aria-labelledby={`${groupId}-language`} className="flex flex-col gap-3">
+          <h3 id={`${groupId}-language`} className="text-sm font-semibold">
+            {t("appearance.language.label")}
+          </h3>
           <p className="text-xs text-muted-foreground">{t("appearance.language.hint")}</p>
           {LANGUAGES.map((option) => (
             <label key={option} className="flex cursor-pointer items-center gap-3 text-sm">
@@ -53,7 +61,7 @@ export function AppearanceSection() {
                 value={option}
                 checked={language === option}
                 onChange={() => void changeLanguage(option)}
-                className="accent-[var(--primary)]"
+                className="accent-[var(--primary-text)]"
                 // O nome do idioma fica na propria lingua, independente do idioma da tela
                 lang={option}
               />

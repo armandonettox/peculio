@@ -59,9 +59,18 @@
   --chart-accent: #00875f;
 
   --radius: 0.5rem;
+
+  /* Sombra que avisa que a tabela rola para o lado (ver .scroll-shadow-x) */
+  --scroll-shadow: rgb(0 0 0 / 0.22);
+
+  /* Controles nativos (bolinha de opcao, calendario, barra de rolagem) seguem o tema do app */
+  color-scheme: light;
 }
 
 .dark {
+  color-scheme: dark;
+  --scroll-shadow: rgb(255 255 255 / 0.22);
+
   --background: #111111;
   --foreground: #f1f5f9;
   /* Tema escuro sem verde (decisao do usuario, 2026-10-05): superficies e bordas em azul. So o valor que entra
@@ -164,6 +173,18 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+}
+
+/* Tabela que rola para o lado: uma sombra aparece na borda que ainda tem coluna escondida e some quando a rolagem chega
+   ao fim. As duas primeiras camadas (local) cobrem a sombra enquanto nao ha nada para rolar naquele lado. Fora de
+   @layer de proposito, para valer mais que o bg-* do Tailwind. */
+.scroll-shadow-x {
+  background:
+    linear-gradient(to right, var(--card) 30%, transparent) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--card) 30%, transparent) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, var(--scroll-shadow), transparent) left center / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow), transparent) right center / 14px 100% no-repeat scroll,
+    var(--card);
 }
 
 /* O iOS aproxima a tela ao focar um campo com fonte menor que 16px. Em tela de toque os campos ficam em 16px. Fora de

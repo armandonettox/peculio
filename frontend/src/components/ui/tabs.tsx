@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -34,9 +34,20 @@ export function TabList({ className, children, ...props }: TabListProps) {
     tabs[target].click();
   }
 
+  // No celular as abas nao cabem numa linha: em vez de quebrar em duas fileiras (e partir o sublinhado), a fileira
+  // rola para o lado. O div de fora segura a linha de baixo; o de dentro rola e sobe 1px sobre essa linha, para o
+  // sublinhado da aba ativa nao ser cortado pela rolagem.
   return (
-    <div ref={listRef} role="tablist" className={cn("flex flex-wrap gap-6 border-b border-border", className)} onKeyDown={onKeyDown} {...props}>
-      {children}
+    <div className={cn("border-b border-border", className)}>
+      <div
+        ref={listRef}
+        role="tablist"
+        className="-mb-px flex gap-6 overflow-x-auto pb-px [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onKeyDown={onKeyDown}
+        {...props}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -48,15 +59,23 @@ type TabProps = {
 };
 
 export function Tab({ active, onSelect, children }: TabProps) {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  // Com a fileira rolando, a aba ativa (ex: aberta por link com ?aba=) pode estar fora da tela
+  useEffect(() => {
+    if (active) ref.current?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [active]);
+
   return (
     <button
+      ref={ref}
       type="button"
       role="tab"
       aria-selected={active}
       tabIndex={active ? 0 : -1}
       onClick={onSelect}
       className={cn(
-        "-mb-px border-b-2 px-0.5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "-mb-px shrink-0 whitespace-nowrap border-b-2 px-0.5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active ? "border-primary-text text-primary-text" : "border-transparent text-muted-foreground hover:text-foreground",
       )}
     >
