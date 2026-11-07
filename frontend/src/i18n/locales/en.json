@@ -152,7 +152,12 @@
       "mesAtual": "Current month",
       "mostrarArquivados": "Show archived",
       "excluirOrcamento": "Delete budget",
-      "osLancamentosLigadosA": "The transactions linked to it stay; they just lose the budget."
+      "osLancamentosLigadosA": "The transactions linked to it stay; they just lose the budget.",
+      "ativos": "Active",
+      "expirados": "Expired",
+      "situacaoDosOrcamentos": "Budget status",
+      "nenhumExpirado": "No expired budgets",
+      "nenhumExpiradoTexto": "Budgets with a custom period show up here once the period ends."
     },
     "recurrences": {
       "titulo": "Recurring",
@@ -1132,7 +1137,10 @@
       "gastoDe": "Spent for {{name}}",
       "percentDoLimite": "{{percent}}% of the limit",
       "de": "of",
-      "carregaSobra": "Carries surplus"
+      "carregaSobra": "Carries surplus",
+      "expirado": "Expired",
+      "alertaLigado": "Alerts on",
+      "categorias": "Categories: {{names}}"
     },
     "budgetFormDialog": {
       "editarOrcamento": "Edit budget",
@@ -1147,13 +1155,28 @@
       "informeOValorDoLimite": "Enter the limit amount.",
       "informeUmValorMaior": "Enter an amount greater than zero.",
       "carregarSobra": "Carry surplus to the next month",
-      "carregarSobraTexto": "If money's left, next month starts with a higher limit; if it overspends, a lower one. Always monthly."
+      "carregarSobraTexto": "If money's left, next month starts with a higher limit; if it overspends, a lower one. Always monthly.",
+      "dataInicial": "Start date",
+      "dataFinal": "End date",
+      "limiteDoPeriodo": "Limit for the period",
+      "categorias": "Categories",
+      "categoriasTexto": "Spending in these categories counts toward the limit, besides the transactions linked to this budget.",
+      "tirarCategoria": "Remove {{name}}",
+      "semMaisCategorias": "Every spending category has been chosen",
+      "escolhaUmaCategoria": "Choose a category",
+      "receberAlerta": "Get alerts",
+      "receberAlertaTexto": "Warns when spending gets near the limit or goes over it.",
+      "carregarSobraSoMensal": "Only works with a monthly period. A custom period does not repeat.",
+      "informeADataInicial": "Enter the start date.",
+      "informeADataFinal": "Enter the end date.",
+      "dataFinalAntes": "The end date cannot be before the start date."
     },
     "presentation": {
       "period": {
         "weekly": "Weekly",
         "monthly": "Monthly",
-        "yearly": "Yearly"
+        "yearly": "Yearly",
+        "custom": "Custom"
       },
       "state": {
         "warning": "Near the limit",

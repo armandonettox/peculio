@@ -2041,6 +2041,11 @@ export interface components {
         };
         /** BudgetCreate */
         BudgetCreate: {
+            /**
+             * Alert
+             * @default false
+             */
+            alert: boolean;
             /** Amount */
             amount: number | string;
             /**
@@ -2048,20 +2053,30 @@ export interface components {
              * @default false
              */
             carry_over: boolean;
+            /** Category Ids */
+            category_ids?: string[];
             /** Currency Code */
             currency_code: string;
+            /** End Date */
+            end_date?: string | null;
             /** Name */
             name: string;
             period: components["schemas"]["BudgetPeriod"];
+            /** Start Date */
+            start_date?: string | null;
         };
         /** BudgetOut */
         BudgetOut: {
             /** Active */
             active: boolean;
+            /** Alert */
+            alert: boolean;
             /** Amount */
             amount: string;
             /** Carry Over */
             carry_over: boolean;
+            /** Category Ids */
+            category_ids: string[];
             /**
              * Created At
              * Format: date-time
@@ -2069,6 +2084,8 @@ export interface components {
             created_at: string;
             /** Currency Code */
             currency_code: string;
+            /** End Date */
+            end_date: string | null;
             /**
              * Id
              * Format: uuid
@@ -2077,12 +2094,14 @@ export interface components {
             /** Name */
             name: string;
             period: components["schemas"]["BudgetPeriod"];
+            /** Start Date */
+            start_date: string | null;
         };
         /**
          * BudgetPeriod
          * @enum {string}
          */
-        BudgetPeriod: "weekly" | "monthly" | "yearly";
+        BudgetPeriod: "weekly" | "monthly" | "yearly" | "custom";
         /**
          * BudgetProgressOut
          * @description O orcamento com o gasto do periodo que contem a data pedida.
@@ -2090,10 +2109,14 @@ export interface components {
         BudgetProgressOut: {
             /** Active */
             active: boolean;
+            /** Alert */
+            alert: boolean;
             /** Amount */
             amount: string;
             /** Carry Over */
             carry_over: boolean;
+            /** Category Ids */
+            category_ids: string[];
             /**
              * Created At
              * Format: date-time
@@ -2101,6 +2124,10 @@ export interface components {
             created_at: string;
             /** Currency Code */
             currency_code: string;
+            /** End Date */
+            end_date: string | null;
+            /** Expired */
+            expired: boolean;
             /**
              * Id
              * Format: uuid
@@ -2127,6 +2154,8 @@ export interface components {
             remaining: string;
             /** Spent */
             spent: string;
+            /** Start Date */
+            start_date: string | null;
         };
         /**
          * BudgetUpdate
@@ -2135,13 +2164,21 @@ export interface components {
         BudgetUpdate: {
             /** Active */
             active?: boolean | null;
+            /** Alert */
+            alert?: boolean | null;
             /** Amount */
             amount?: number | string | null;
             /** Carry Over */
             carry_over?: boolean | null;
+            /** Category Ids */
+            category_ids?: string[] | null;
+            /** End Date */
+            end_date?: string | null;
             /** Name */
             name?: string | null;
             period?: components["schemas"]["BudgetPeriod"] | null;
+            /** Start Date */
+            start_date?: string | null;
         };
         /**
          * BulkAction

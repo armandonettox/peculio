@@ -234,6 +234,8 @@ it("cria um orcamento mensal com o valor no formato brasileiro", async () => {
     amount: "1234.50",
     period: "monthly",
     carry_over: false,
+    category_ids: [],
+    alert: false,
   });
   expect(await screen.findByRole("heading", { level: 2, name: "Mercado" })).toBeInTheDocument();
 });
@@ -460,6 +462,8 @@ it("criar com carregar sobra manda carry_over no corpo", async () => {
     amount: "200.00",
     period: "monthly",
     carry_over: true,
+    category_ids: [],
+    alert: false,
   });
 });
 

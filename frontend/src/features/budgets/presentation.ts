@@ -7,7 +7,7 @@ export function periodLabel(period: BudgetPeriod): string {
   return i18n.t(`budgets.presentation.period.${period}`);
 }
 
-export const PERIODS: BudgetPeriod[] = ["weekly", "monthly", "yearly"];
+export const PERIODS: BudgetPeriod[] = ["weekly", "monthly", "yearly", "custom"];
 
 // A partir de quantos % do limite o orcamento passa a ser "perto do limite"
 export const WARNING_AT_PERCENT = 80;

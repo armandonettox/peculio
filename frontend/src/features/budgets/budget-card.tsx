@@ -16,6 +16,8 @@ import { useTranslation } from "react-i18next";
 
 type Props = {
   budget: BudgetProgress;
+  // Nomes das categorias que contam para o orcamento, na ordem em que aparecem
+  categoryNames?: string[];
   onEdit: (budget: BudgetProgress) => void;
   onToggleArchive: (budget: BudgetProgress) => void;
   onDelete: (budget: BudgetProgress) => void;
@@ -34,7 +36,7 @@ const TEXT_CLASS: Record<ProgressState, string> = {
   over: "text-destructive",
 };
 
-export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props) {
+export function BudgetCard({ budget, categoryNames = [], onEdit, onToggleArchive, onDelete }: Props) {
   const { t } = useTranslation();
   const state = progressState(budget.percent);
   const label = stateLabel(state);
@@ -50,6 +52,12 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
             {budget.carry_over && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.carregaSobra")}</span>
             )}
+            {budget.expired && (
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.expirado")}</span>
+            )}
+            {budget.alert && (
+              <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.alertaLigado")}</span>
+            )}
             {!budget.active && (
               <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{t("budgets.budgetCard.arquivado")}</span>
             )}
@@ -58,6 +66,11 @@ export function BudgetCard({ budget, onEdit, onToggleArchive, onDelete }: Props)
             {periodLabel(budget.period)} · {formatDateRange(budget.period_start, budget.period_end)}
             {budget.currency_code !== "BRL" ? ` · ${budget.currency_code}` : ""}
           </p>
+          {categoryNames.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {t("budgets.budgetCard.categorias", { names: categoryNames.join(", ") })}
+            </p>
+          )}
         </div>
 
         <DropdownMenu>

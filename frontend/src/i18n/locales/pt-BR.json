@@ -152,7 +152,12 @@
       "mesAtual": "Mês atual",
       "mostrarArquivados": "Mostrar arquivados",
       "excluirOrcamento": "Excluir orçamento",
-      "osLancamentosLigadosA": "Os lançamentos ligados a ele continuam, só ficam sem orçamento."
+      "osLancamentosLigadosA": "Os lançamentos ligados a ele continuam, só ficam sem orçamento.",
+      "ativos": "Ativos",
+      "expirados": "Expirados",
+      "situacaoDosOrcamentos": "Situação dos orçamentos",
+      "nenhumExpirado": "Nenhum orçamento expirado",
+      "nenhumExpiradoTexto": "Os orçamentos com período personalizado aparecem aqui depois que o período termina."
     },
     "recurrences": {
       "titulo": "Recorrentes",
@@ -1132,7 +1137,10 @@
       "gastoDe": "Gasto de {{name}}",
       "percentDoLimite": "{{percent}}% do limite",
       "de": "de",
-      "carregaSobra": "Carrega sobra"
+      "carregaSobra": "Carrega sobra",
+      "expirado": "Expirado",
+      "alertaLigado": "Com alerta",
+      "categorias": "Categorias: {{names}}"
     },
     "budgetFormDialog": {
       "editarOrcamento": "Editar orçamento",
@@ -1147,13 +1155,28 @@
       "informeOValorDoLimite": "Informe o valor do limite.",
       "informeUmValorMaior": "Informe um valor maior que zero.",
       "carregarSobra": "Carregar sobra para o mês seguinte",
-      "carregarSobraTexto": "Se sobrar, o próximo mês nasce com mais limite; se estourar, nasce com menos. Sempre mensal."
+      "carregarSobraTexto": "Se sobrar, o próximo mês nasce com mais limite; se estourar, nasce com menos. Sempre mensal.",
+      "dataInicial": "Data inicial",
+      "dataFinal": "Data final",
+      "limiteDoPeriodo": "Limite do período",
+      "categorias": "Categorias",
+      "categoriasTexto": "O que for gasto nessas categorias conta para o limite, além dos lançamentos ligados a este orçamento.",
+      "tirarCategoria": "Tirar {{name}}",
+      "semMaisCategorias": "Todas as categorias de gasto já foram escolhidas",
+      "escolhaUmaCategoria": "Escolha uma categoria",
+      "receberAlerta": "Receber alerta",
+      "receberAlertaTexto": "Avisa quando o gasto chegar perto do limite ou passar dele.",
+      "carregarSobraSoMensal": "Só vale no período mensal. O período personalizado não se repete.",
+      "informeADataInicial": "Informe a data inicial.",
+      "informeADataFinal": "Informe a data final.",
+      "dataFinalAntes": "A data final não pode ser antes da inicial."
     },
     "presentation": {
       "period": {
         "weekly": "Semanal",
         "monthly": "Mensal",
-        "yearly": "Anual"
+        "yearly": "Anual",
+        "custom": "Personalizado"
       },
       "state": {
         "warning": "Perto do limite",

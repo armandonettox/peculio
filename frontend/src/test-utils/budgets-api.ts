@@ -15,6 +15,11 @@ export function makeBudget(overrides: Partial<BudgetProgress> = {}): BudgetProgr
     period: "monthly",
     carry_over: false,
     active: true,
+    start_date: null,
+    end_date: null,
+    category_ids: [],
+    alert: false,
+    expired: false,
     created_at: "2026-01-01T00:00:00Z",
     period_start: "2026-03-01",
     period_end: "2026-03-31",
@@ -94,6 +99,10 @@ export function fakeBudgetsApi(initial: BudgetProgress[] = []) {
         amount: body.amount as string,
         period: body.period as BudgetProgress["period"],
         carry_over: body.carry_over === true,
+        start_date: (body.start_date as string | undefined) ?? null,
+        end_date: (body.end_date as string | undefined) ?? null,
+        category_ids: (body.category_ids as string[] | undefined) ?? [],
+        alert: body.alert === true,
       });
       state.budgets.push(created);
       return HttpResponse.json(created, { status: 201 });

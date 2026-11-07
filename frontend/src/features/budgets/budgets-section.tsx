@@ -3,10 +3,12 @@ import { useState } from "react";
 
 import { useBudgetsProgress, useDeleteBudget, useUpdateBudget, type BudgetProgress } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
+import { useCategories } from "@/api/labels";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Tab, TabList } from "@/components/ui/tabs";
 import { BudgetCard } from "@/features/budgets/budget-card";
 import { BudgetFormDialog } from "@/features/budgets/budget-form-dialog";
 import { firstOfMonth, formatMonthYear, shiftMonth, appToday } from "@/lib/dates";
@@ -18,6 +20,9 @@ type DialogState =
   | { kind: "delete"; budget: BudgetProgress }
   | null;
 
+// Ativos: o que esta valendo (ou ainda vai valer). Expirados: periodos personalizados que ja terminaram.
+type View = "active" | "expired";
+
 /** Um limite de gasto por categoria (mercado, lazer...); acompanha quanto ja foi usado do limite. */
 export function BudgetsSection() {
   const { t } = useTranslation();
@@ -25,6 +30,7 @@ export function BudgetsSection() {
   const currentMonth = firstOfMonth(today);
   const [month, setMonth] = useState(currentMonth);
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [view, setView] = useState<View>("active");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -33,7 +39,10 @@ export function BudgetsSection() {
   const query = useBudgetsProgress({ on, includeArchived });
   const update = useUpdateBudget();
   const remove = useDeleteBudget();
-  const items = query.data ?? [];
+  const categories = useCategories({ search: "", kind: "expense" });
+  const categoryName = new Map((categories.data?.items ?? []).map((item) => [item.id, item.name]));
+  const all = query.data ?? [];
+  const items = all.filter((budget) => budget.expired === (view === "expired"));
 
   async function toggleArchive(budget: BudgetProgress) {
     setActionError(null);
@@ -52,7 +61,7 @@ export function BudgetsSection() {
   );
 
   let content;
-  const showToolbarButton = !query.isPending && !query.isError && items.length > 0;
+  const showToolbarButton = !query.isPending && !query.isError && all.length > 0;
 
   if (query.isPending) {
     content = (
@@ -76,6 +85,14 @@ export function BudgetsSection() {
         </Button>
       </div>
     );
+  } else if (items.length === 0 && view === "expired") {
+    content = (
+      <EmptyState
+        icon={PiggyBank}
+        title={t("pages.budgets.nenhumExpirado")}
+        description={t("pages.budgets.nenhumExpiradoTexto")}
+      />
+    );
   } else if (items.length === 0) {
     content = (
       <EmptyState
@@ -92,6 +109,7 @@ export function BudgetsSection() {
           <BudgetCard
             key={budget.id}
             budget={budget}
+            categoryNames={budget.category_ids.map((id) => categoryName.get(id)).filter((name): name is string => Boolean(name))}
             onEdit={(item) => setDialog({ kind: "edit", budget: item })}
             onToggleArchive={(item) => void toggleArchive(item)}
             onDelete={(item) => setDialog({ kind: "delete", budget: item })}
@@ -103,6 +121,15 @@ export function BudgetsSection() {
 
   return (
     <>
+      <TabList aria-label={t("pages.budgets.situacaoDosOrcamentos")} className="mb-4">
+        <Tab active={view === "active"} onSelect={() => setView("active")}>
+          {t("pages.budgets.ativos")}
+        </Tab>
+        <Tab active={view === "expired"} onSelect={() => setView("expired")}>
+          {t("pages.budgets.expirados")}
+        </Tab>
+      </TabList>
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1">
           <Button
