@@ -678,12 +678,14 @@
     "settings": {
       "tab": "Home",
       "question": "Which blocks do you want on the home screen?",
-      "hint": "The choice applies only to this browser.",
+      "hint": "Drag a row to change the order within its column. The choice applies only to this browser.",
       "leftColumn": "Left column",
       "rightColumn": "Right column",
       "save": "Save",
       "restoreDefaults": "Restore defaults",
-      "saved": "Choice saved."
+      "saved": "Choice saved.",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
     },
     "cards": {
       "expensesByCategory": "Expenses by category chart",

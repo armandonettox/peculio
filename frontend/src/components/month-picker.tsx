@@ -68,7 +68,7 @@ export function MonthPicker({ value, currentMonth, onChange }: Props) {
   const selectedIndex = Number(value.slice(5, 7)) - 1;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative inline-block">
       <button
         ref={triggerRef}
         type="button"
@@ -89,7 +89,7 @@ export function MonthPicker({ value, currentMonth, onChange }: Props) {
           id={panelId}
           role="dialog"
           aria-label={t("dashboard.monthPicker.monthSelection")}
-          className="absolute right-0 top-full z-30 mt-2 w-72 rounded-xl border bg-card p-3 shadow-lg"
+          className="absolute left-1/2 top-full z-30 -translate-x-1/2 mt-2 w-72 rounded-xl border bg-card p-3 shadow-lg"
         >
           <div className="mb-3 flex items-center justify-between rounded-lg bg-primary px-2 py-1.5 text-primary-foreground">
             <button

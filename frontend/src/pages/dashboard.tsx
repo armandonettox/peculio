@@ -12,7 +12,7 @@ import { MonthPicker } from "@/components/month-picker";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
-import { LEFT_CARDS, RIGHT_CARDS, readEnabledCards, type DashboardCardId } from "@/features/dashboard/cards";
+import { orderedColumn, readLayout, type DashboardCardId } from "@/features/dashboard/cards";
 import { FirstStepsBlock } from "@/features/dashboard/first-steps-block";
 import { AccountsBlock, CreditCardsBlock, FavoritesBlock, PendingBlock, ProfileBlock } from "@/features/dashboard/list-blocks";
 import { CalendarBlock, FrequencyBlock, PeriodBalanceBlock, SavingsBlock } from "@/features/dashboard/month-blocks";
@@ -83,7 +83,7 @@ export default function DashboardPage() {
   const [month, setMonth] = useState(() => monthRange(today).month);
   const range = monthRange(month);
   const currentMonth = monthRange(today).month;
-  const [enabled] = useState(readEnabledCards);
+  const [layout] = useState(readLayout);
 
   // Enquanto nao houver nenhuma conta, o painel nao tem o que mostrar: nem dispara os
   // pedidos dos outros blocos (todos dependem, direto ou indireto, de uma conta existir)
@@ -92,10 +92,15 @@ export default function DashboardPage() {
 
   return (
     <>
+      {/* O seletor de mes fica no meio da pagina, no alto, como no Mobills */}
+      {hasAccounts && (
+        <div className="mb-4 flex justify-center">
+          <MonthPicker value={month} currentMonth={currentMonth} onChange={setMonth} />
+        </div>
+      )}
       <PageHeader
         title={t("pages.dashboard.painel")}
         description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
-        actions={hasAccounts ? <MonthPicker value={month} currentMonth={currentMonth} onChange={setMonth} /> : undefined}
       />
 
       <InstallBanner />
@@ -135,14 +140,14 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" data-testid="dashboard-columns">
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-left">
               <FirstStepsBlock />
-              {LEFT_CARDS.filter((id) => enabled.includes(id)).map((id) => (
+              {orderedColumn(layout.order, "left").filter((id) => layout.enabled.includes(id)).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>
               ))}
             </div>
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-right">
-              {RIGHT_CARDS.filter((id) => enabled.includes(id)).map((id) => (
+              {orderedColumn(layout.order, "right").filter((id) => layout.enabled.includes(id)).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>

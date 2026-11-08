@@ -678,12 +678,14 @@
     "settings": {
       "tab": "Painel",
       "question": "Quais blocos você quer ver no painel?",
-      "hint": "A escolha vale só neste navegador.",
+      "hint": "Arraste uma linha para mudar a ordem dentro da coluna. A escolha vale só neste navegador.",
       "leftColumn": "Coluna da esquerda",
       "rightColumn": "Coluna da direita",
       "save": "Salvar",
       "restoreDefaults": "Restaurar o padrão",
-      "saved": "Escolha salva."
+      "saved": "Escolha salva.",
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Descer {{name}}"
     },
     "cards": {
       "expensesByCategory": "Gráfico de despesas por categoria",

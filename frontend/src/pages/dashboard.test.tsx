@@ -857,3 +857,24 @@ it("o botao Gerenciar tela inicial leva a aba Painel das configuracoes", async (
   const link = await screen.findByRole("link", { name: "Gerenciar tela inicial" });
   expect(link).toHaveAttribute("href", "/configuracoes?aba=painel");
 });
+
+it("os blocos seguem a ordem escolhida nas configuracoes", async () => {
+  window.localStorage.setItem(
+    "peculio.dashboard.layout",
+    JSON.stringify({ enabled: ["expensesByCategory", "monthlyBalance"], order: ["monthlyBalance", "expensesByCategory"] }),
+  );
+  renderPage();
+  const left = await screen.findByTestId("dashboard-left");
+  await within(left).findByRole("region", { name: "Balanço mensal" });
+  const names = [...left.querySelectorAll("h2")].map((heading) => heading.textContent).filter((name) => name !== "Primeiros passos");
+  expect(names).toEqual(["Balanço mensal", "Gastos por categoria"]);
+  window.localStorage.clear();
+});
+
+it("o seletor de mes fica no meio da pagina, acima do titulo", async () => {
+  renderPage();
+  const picker = await screen.findByRole("button", { name: /Março de 2026/ });
+  expect(picker.closest("div.justify-center")).not.toBeNull();
+  const heading = screen.getByRole("heading", { level: 1, name: "Painel" });
+  expect(picker.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
