@@ -309,3 +309,22 @@ describe("recentLine", () => {
     expect(line.title).toBe("Sem descrição");
   });
 });
+
+it("lancamento pendente atrasado vira um alerta proprio, com link para a lista de pendentes", () => {
+  const upcoming = [upcomingItem({ kind: "pending", overdue: true }), upcomingItem({ kind: "pending", overdue: true })];
+  expect(buildAlerts(upcoming, [])).toEqual([
+    { key: "overduePending", text: "2 lançamentos pendentes atrasados", href: "/transacoes?situacao=pending", level: "destructive" },
+  ]);
+});
+
+it("conta atrasada e pendente atrasado aparecem em alertas separados, cada um com o seu link", () => {
+  const upcoming = [upcomingItem({ kind: "bill", overdue: true }), upcomingItem({ kind: "pending", overdue: true })];
+  expect(buildAlerts(upcoming, [])).toEqual([
+    { key: "overdue", text: "1 conta atrasada", href: "/contas-a-pagar", level: "destructive" },
+    { key: "overduePending", text: "1 lançamento pendente atrasado", href: "/transacoes?situacao=pending", level: "destructive" },
+  ]);
+});
+
+it("pendente que ainda nao venceu nao gera alerta", () => {
+  expect(buildAlerts([upcomingItem({ kind: "pending", overdue: false })], [])).toEqual([]);
+});

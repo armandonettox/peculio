@@ -751,3 +751,61 @@ it("com uma moeda so, o patrimonio continua em uma coluna", async () => {
   expect(list).toHaveClass("flex", "flex-col");
   expect(list).not.toHaveClass("lg:grid-cols-2");
 });
+
+it("vencimentos: lancamento pendente aparece, o atrasado leva o selo e o link vai para a lista de pendentes", async () => {
+  const upcoming = makeUpcoming({
+    items: [
+      makeUpcomingItem({ kind: "pending", name: "Internet", date: "2026-03-10", overdue: true, amount_min: "100.00", amount_max: "100.00" }),
+      makeUpcomingItem({ kind: "pending", name: "Condominio", date: "2026-03-25", overdue: false, amount_min: "300.00", amount_max: "300.00" }),
+    ],
+  });
+  server.use(
+    ...fakeAccountsApi([makeAccount()]).handlers,
+    ...fakeDashboardApi({ upcoming, netWorth: makeNetWorth() }).handlers,
+    ...fakeReportsApi({}).handlers,
+    ...fakeBudgetsApi([]).handlers,
+    ...fakeTransactionsApi([], []).handlers,
+    ...fakePiggyBanksApi([]).handlers,
+    ...fakeLabelsApi("categories", []).handlers,
+    ...fakeLabelsApi("tags", []).handlers,
+  );
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  const section = await region("Próximos vencimentos");
+  expect(await within(section).findByText("Internet")).toBeInTheDocument();
+  expect(within(section).getByText("Condominio")).toBeInTheDocument();
+  expect(within(section).getAllByText("Atrasada")).toHaveLength(1);
+  expect(within(section).getByRole("link", { name: "Ver pendentes" })).toHaveAttribute("href", "/transacoes?situacao=pending");
+  // Sem nenhum lembrete de conta a pagar, o link para a pagina Recorrentes nao tem o que mostrar
+  expect(within(section).queryByRole("link", { name: "Ver recorrentes" })).not.toBeInTheDocument();
+});
+
+it("alertas: lancamento pendente atrasado aparece no topo com link para a lista de pendentes", async () => {
+  const upcoming = makeUpcoming({
+    items: [makeUpcomingItem({ kind: "pending", name: "Internet", date: "2026-03-10", overdue: true })],
+  });
+  server.use(
+    ...fakeAccountsApi([makeAccount()]).handlers,
+    ...fakeDashboardApi({ upcoming, netWorth: makeNetWorth() }).handlers,
+    ...fakeReportsApi({}).handlers,
+    ...fakeBudgetsApi([]).handlers,
+    ...fakeTransactionsApi([], []).handlers,
+    ...fakePiggyBanksApi([]).handlers,
+    ...fakeLabelsApi("categories", []).handlers,
+    ...fakeLabelsApi("tags", []).handlers,
+  );
+  render(
+    <FakeAuth>
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
+    </FakeAuth>,
+  );
+  const alerts = await screen.findByLabelText("Alertas");
+  expect(await within(alerts).findByRole("link", { name: /pendente atrasado/ })).toHaveAttribute("href", "/transacoes?situacao=pending");
+});

@@ -50,9 +50,17 @@ export function UpcomingBlock() {
           </li>
         ))}
       </ul>
-      <Link to="/contas-a-pagar" className="mt-4 inline-block text-sm font-medium text-primary-text hover:underline">
-        {t("dashboard.upcomingBlock.verContasAPagar")}
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1">
+        <Link to="/transacoes?situacao=pending" className="inline-block text-sm font-medium text-primary-text hover:underline">
+          {t("dashboard.upcomingBlock.verPendentes")}
+        </Link>
+        {/* Os lembretes de conta a pagar ainda moram na pagina Recorrentes; sem nenhum, o link nao tem o que mostrar */}
+        {items.some((item) => item.kind === "bill") && (
+          <Link to="/contas-a-pagar" className="inline-block text-sm font-medium text-primary-text hover:underline">
+            {t("dashboard.upcomingBlock.verContasAPagar")}
+          </Link>
+        )}
+      </div>
     </DashboardBlock>
   );
 }

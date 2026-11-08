@@ -7299,7 +7299,8 @@
           "kind": {
             "enum": [
               "bill",
-              "recurrence"
+              "recurrence",
+              "pending"
             ],
             "title": "Kind",
             "type": "string"

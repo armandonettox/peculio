@@ -4249,7 +4249,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "bill" | "recurrence";
+            kind: "bill" | "recurrence" | "pending";
             /** Name */
             name: string;
             /** Overdue */

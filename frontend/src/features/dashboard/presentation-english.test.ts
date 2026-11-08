@@ -44,6 +44,9 @@ describe("alertas com plural", () => {
   it("uma conta atrasada no singular e varias no plural", () => {
     expect(buildAlerts(overdue(1), [])[0].text).toBe("1 overdue bill");
     expect(buildAlerts(overdue(3), [])[0].text).toBe("3 overdue bills");
+    const pending = (n: number) => Array.from({ length: n }, (_, i) => ({ id: String(i), kind: "pending", overdue: true }) as UpcomingItem);
+    expect(buildAlerts(pending(1), [])[0].text).toBe("1 overdue pending transaction");
+    expect(buildAlerts(pending(2), [])[0].text).toBe("2 overdue pending transactions");
   });
 
   it("orcamentos no limite e perto do limite, com a porcentagem", () => {

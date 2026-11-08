@@ -590,7 +590,8 @@
       "proximosVencimentos": "Próximos vencimentos",
       "nadaVencendoNosProximos": "Nada vencendo nos próximos 30 dias.",
       "atrasada": "Atrasada",
-      "verContasAPagar": "Ver recorrentes"
+      "verContasAPagar": "Ver recorrentes",
+      "verPendentes": "Ver pendentes"
     },
     "dashboardBlock": {
       "loading": "Carregando {{title}}..."
@@ -612,7 +613,9 @@
       "nearLimit_one": "{{count}} orçamento perto do limite (acima de {{percent}}%)",
       "nearLimit_other": "{{count}} orçamentos perto do limite (acima de {{percent}}%)",
       "despesa": "Despesa",
-      "receita": "Receita"
+      "receita": "Receita",
+      "overduePending_one": "{{count}} lançamento pendente atrasado",
+      "overduePending_other": "{{count}} lançamentos pendentes atrasados"
     }
   },
   "money": {
