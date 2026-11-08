@@ -678,14 +678,18 @@
     "settings": {
       "tab": "Home",
       "question": "Which blocks do you want on the home screen?",
-      "hint": "Drag a row to change the order within its column. The choice applies only to this browser.",
+      "hint": "Drag a row to change the order or move it to the other column. The choice applies only to this browser.",
       "leftColumn": "Left column",
       "rightColumn": "Right column",
       "save": "Save",
       "restoreDefaults": "Restore defaults",
       "saved": "Choice saved.",
       "moveUp": "Move {{name}} up",
-      "moveDown": "Move {{name}} down"
+      "moveDown": "Move {{name}} down",
+      "moveRight": "Move {{name}} to the right column",
+      "moveLeft": "Move {{name}} to the left column",
+      "allBlocks": "Home screen blocks",
+      "hintMobile": "Drag a row by its handle to change the order. On a phone the home screen has a single column, in this order. The choice applies only to this browser."
     },
     "cards": {
       "expensesByCategory": "Expenses by category chart",

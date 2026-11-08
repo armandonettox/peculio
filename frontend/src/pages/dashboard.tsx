@@ -12,7 +12,7 @@ import { MonthPicker } from "@/components/month-picker";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
-import { orderedColumn, readLayout, type DashboardCardId } from "@/features/dashboard/cards";
+import { readLayout, type DashboardCardId } from "@/features/dashboard/cards";
 import { FirstStepsBlock } from "@/features/dashboard/first-steps-block";
 import { AccountsBlock, CreditCardsBlock, FavoritesBlock, PendingBlock, ProfileBlock } from "@/features/dashboard/list-blocks";
 import { CalendarBlock, FrequencyBlock, PeriodBalanceBlock, SavingsBlock } from "@/features/dashboard/month-blocks";
@@ -140,14 +140,14 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" data-testid="dashboard-columns">
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-left">
               <FirstStepsBlock />
-              {orderedColumn(layout.order, "left").filter((id) => layout.enabled.includes(id)).map((id) => (
+              {layout.left.filter((id) => layout.enabled.includes(id)).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>
               ))}
             </div>
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-right">
-              {orderedColumn(layout.order, "right").filter((id) => layout.enabled.includes(id)).map((id) => (
+              {layout.right.filter((id) => layout.enabled.includes(id)).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>

@@ -861,7 +861,7 @@ it("o botao Gerenciar tela inicial leva a aba Painel das configuracoes", async (
 it("os blocos seguem a ordem escolhida nas configuracoes", async () => {
   window.localStorage.setItem(
     "peculio.dashboard.layout",
-    JSON.stringify({ enabled: ["expensesByCategory", "monthlyBalance"], order: ["monthlyBalance", "expensesByCategory"] }),
+    JSON.stringify({ enabled: ["expensesByCategory", "monthlyBalance"], left: ["monthlyBalance", "expensesByCategory"], right: [] }),
   );
   renderPage();
   const left = await screen.findByTestId("dashboard-left");
@@ -877,4 +877,17 @@ it("o seletor de mes fica no meio da pagina, acima do titulo", async () => {
   expect(picker.closest("div.justify-center")).not.toBeNull();
   const heading = screen.getByRole("heading", { level: 1, name: "Painel" });
   expect(picker.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+
+it("um bloco passado para a outra coluna nas configuracoes aparece nela", async () => {
+  window.localStorage.setItem(
+    "peculio.dashboard.layout",
+    JSON.stringify({ enabled: ["profile", "savings"], left: ["profile"], right: ["savings"] }),
+  );
+  renderPage();
+  const leftColumn = await screen.findByTestId("dashboard-left");
+  const rightColumn = await screen.findByTestId("dashboard-right");
+  expect(await within(leftColumn).findByRole("region", { name: "Perfil" })).toBeInTheDocument();
+  expect(await within(rightColumn).findByRole("region", { name: "Economia do mês" })).toBeInTheDocument();
+  window.localStorage.clear();
 });

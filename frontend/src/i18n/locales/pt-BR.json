@@ -678,14 +678,18 @@
     "settings": {
       "tab": "Painel",
       "question": "Quais blocos você quer ver no painel?",
-      "hint": "Arraste uma linha para mudar a ordem dentro da coluna. A escolha vale só neste navegador.",
+      "hint": "Arraste uma linha para mudar a ordem ou passar para a outra coluna. A escolha vale só neste navegador.",
       "leftColumn": "Coluna da esquerda",
       "rightColumn": "Coluna da direita",
       "save": "Salvar",
       "restoreDefaults": "Restaurar o padrão",
       "saved": "Escolha salva.",
       "moveUp": "Subir {{name}}",
-      "moveDown": "Descer {{name}}"
+      "moveDown": "Descer {{name}}",
+      "moveRight": "Mover {{name}} para a coluna da direita",
+      "moveLeft": "Mover {{name}} para a coluna da esquerda",
+      "allBlocks": "Blocos do painel",
+      "hintMobile": "Arraste uma linha pela alça para mudar a ordem. No celular o painel tem uma coluna só, nesta ordem. A escolha vale só neste navegador."
     },
     "cards": {
       "expensesByCategory": "Gráfico de despesas por categoria",
