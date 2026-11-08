@@ -18,6 +18,7 @@ from app.schemas.transaction import CounterpartyOut, TransactionCreate, Transact
 from app.services import bulk as bulk_service
 from app.services import installments as installments_service
 from app.services import transactions as service
+from app.services.transaction_status import TransactionStatus
 from app.services import transactions_csv
 from app.services.attachment_storage import remove_files
 
@@ -63,6 +64,7 @@ def list_transactions(
     q: str | None = None,
     min_amount: AmountFilter = None,
     max_amount: AmountFilter = None,
+    status: TransactionStatus | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -81,6 +83,7 @@ def list_transactions(
         q=q,
         min_amount=min_amount,
         max_amount=max_amount,
+        status=status,
     )
 
 
@@ -105,6 +108,7 @@ def export_transactions_csv(
     q: str | None = None,
     min_amount: AmountFilter = None,
     max_amount: AmountFilter = None,
+    status: TransactionStatus | None = None,
     user: User = Depends(get_current_user),
     lang: Lang = Depends(get_lang),
 ):
@@ -120,6 +124,7 @@ def export_transactions_csv(
         q=q,
         min_amount=min_amount,
         max_amount=max_amount,
+        status=status,
     )
     filename = f"{'lancamentos' if lang == 'pt-BR' else 'transactions'}-{clock.today().isoformat()}.csv"
     return StreamingResponse(

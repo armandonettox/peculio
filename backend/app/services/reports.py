@@ -17,6 +17,7 @@ from app.models.tag import Tag
 from app.models.transaction import TransactionSplit, TransactionType, transaction_split_tags
 from app.services.accounts import quantize_money
 from app.services.budgets import get_owned_budget
+from app.services.transaction_status import TransactionStatus, status_condition
 from app.services.transactions import get_owned_category, get_owned_counterparty, get_owned_tags
 
 # O grafico mensal nao passa de 10 anos: cada mes vira um ponto por moeda
@@ -37,6 +38,8 @@ class ReportFilters:
     category_id: uuid.UUID | None = None
     tag_id: uuid.UUID | None = None
     budget_id: uuid.UUID | None = None
+    # Situacao do lancamento (a mesma do filtro da tela de transacoes); nao se aplica a todo relatorio, so a quem pede
+    status: TransactionStatus | None = None
 
 
 def month_bounds(day: date) -> tuple[date, date]:
@@ -145,6 +148,8 @@ class _Base:
             self.conditions.append(self.split.category_id == filters.category_id)
         if filters.budget_id is not None:
             self.conditions.append(self.split.budget_id == filters.budget_id)
+        if filters.status is not None:
+            self.conditions.append(status_condition(filters.status))
         if filters.tag_id is not None:
             # Apelido proprio: no relatorio por tag a tabela tambem entra no JOIN da consulta
             wanted = transaction_split_tags.alias("wanted_tag")

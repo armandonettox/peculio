@@ -26,6 +26,7 @@ from app.services.accounts import check_amount, get_currency, get_owned_account,
 from app.services.attachment_storage import storage_path
 from app.services.recurrences import find_matching_recurrence, get_owned_bill_mode_recurrence
 from app.services.budgets import check_alerts, get_owned_budget
+from app.services.transaction_status import TransactionStatus, status_condition
 from app.services.rule_defs import load_rule_defs
 from app.services.rules_engine import Fill, RuleDef, SplitFacts, apply_rules
 from app.services.webhooks import enqueue_event
@@ -608,6 +609,8 @@ class TransactionFilters:
     q: str | None = None
     min_amount: Decimal | None = None
     max_amount: Decimal | None = None
+    # Uma situacao so (efetivada, pendente, fixa ou ignorada), como o filtro do Mobills
+    status: TransactionStatus | None = None
 
 
 def _matched_groups(user_id: uuid.UUID, filters: TransactionFilters):
@@ -640,6 +643,8 @@ def _matched_groups(user_id: uuid.UUID, filters: TransactionFilters):
         conditions.append(TransactionSplit.amount >= filters.min_amount)
     if filters.max_amount is not None:
         conditions.append(TransactionSplit.amount <= filters.max_amount)
+    if filters.status is not None:
+        conditions.append(status_condition(filters.status))
     if filters.q and filters.q.strip():
         # autoescape: um "%" ou "_" digitado na busca e texto comum, nao curinga
         term = filters.q.strip().lower()
@@ -686,6 +691,7 @@ def list_transactions(
     q: str | None = None,
     min_amount: Decimal | None = None,
     max_amount: Decimal | None = None,
+    status: TransactionStatus | None = None,
 ) -> dict:
     """Lista os grupos do usuario, do mais recente para o mais antigo (pela data do lancamento)."""
     filters = TransactionFilters(
@@ -700,6 +706,7 @@ def list_transactions(
         q=q,
         min_amount=min_amount,
         max_amount=max_amount,
+        status=status,
     )
     matched = _matched_groups(user_id, filters)
     total = db.scalar(select(func.count()).select_from(matched))

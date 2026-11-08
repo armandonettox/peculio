@@ -12,6 +12,7 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.report import GroupedReportOut, MonthlyReportOut, SummaryOut
 from app.services import reports as service
+from app.services.transaction_status import TransactionStatus
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -29,6 +30,7 @@ def report_filters(
     category_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
     budget_id: uuid.UUID | None = None,
+    status: TransactionStatus | None = None,
 ) -> service.ReportFilters:
     """Filtros iguais em todos os relatorios. Sem datas, vale o mes atual. `period` escolhe um periodo
     pronto pelo relogio do app e nao se mistura com datas."""
@@ -47,6 +49,7 @@ def report_filters(
         category_id=category_id,
         tag_id=tag_id,
         budget_id=budget_id,
+        status=status,
     )
 
 
