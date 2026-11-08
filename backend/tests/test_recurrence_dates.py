@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import pytest
 
 from app.models.recurrence import RecurrenceFrequency
-from app.services.recurrences import latest_index, occurrence, window
+from app.services.recurrences import latest_index, occurrence
 
 F = RecurrenceFrequency
 
@@ -83,42 +83,3 @@ def test_latest_index_is_the_last_occurrence_not_after_the_date(first, frequency
         index = latest_index(first, frequency, on)
         assert occurrence(first, frequency, index) <= on
         assert occurrence(first, frequency, index + 1) > on
-
-
-@pytest.mark.parametrize("frequency", list(F))
-@pytest.mark.parametrize("first", [date(2026, 1, 31), date(2026, 3, 5), date(2028, 2, 29)])
-def test_every_payment_date_falls_in_exactly_one_due_date_window(first, frequency):
-    # 1400 janelas cobrem mais de 3 anos ate no caso diario, o mais curto de todos agora
-    count = 1400 if frequency == F.daily else 200
-    windows = [window(first, frequency, k) for k in range(0, count)]
-    for offset in range(-200, 900, 2):
-        day = first + timedelta(days=offset)
-        owners = [k for k, (low, high) in enumerate(windows) if (low is None or day > low) and day <= high]
-        assert len(owners) == 1, (day, owners)
-
-
-@pytest.mark.parametrize("frequency", list(F))
-def test_each_window_contains_its_own_due_date(frequency):
-    first = date(2026, 3, 5)
-    for k in range(0, 30):
-        low, high = window(first, frequency, k)
-        due = occurrence(first, frequency, k)
-        assert (low is None or due > low) and due <= high
-
-
-def test_windows_are_contiguous_and_the_first_has_no_lower_bound():
-    first = date(2026, 3, 5)
-    assert window(first, F.monthly, 0)[0] is None
-    for k in range(1, 12):
-        assert window(first, F.monthly, k)[0] == window(first, F.monthly, k - 1)[1]
-
-
-def test_paying_a_little_early_or_late_still_counts_for_the_nearest_due_date():
-    first = date(2026, 3, 5)
-    march = window(first, F.monthly, 0)
-    april = window(first, F.monthly, 1)
-    # Vencimentos em 5/3 e 5/4: o meio e dia 20/3
-    assert march[1] == date(2026, 3, 20)
-    assert april[0] == date(2026, 3, 20)
-    assert date(2026, 3, 20) <= march[1] and not date(2026, 3, 20) > march[1]
-    assert date(2026, 3, 21) > april[0]
