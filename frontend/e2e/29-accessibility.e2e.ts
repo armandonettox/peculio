@@ -17,7 +17,6 @@ const ROUTES = [
   "/orcamentos",
   "/orcamentos?modo=personalizado",
   "/orcamentos/planejar",
-  "/contas-a-pagar",
   "/cofrinhos",
   "/regras",
   "/relatorios",
@@ -106,7 +105,6 @@ const DIALOGS: { route: string; opener: string; menuItem?: string; then?: string
   { route: "/categorias", opener: "Nova categoria" },
   { route: "/categorias?aba=tags", opener: "Nova tag" },
   { route: "/orcamentos?modo=personalizado", opener: "Novo orçamento" },
-  { route: "/contas-a-pagar", opener: "Nova recorrente" },
   { route: "/cofrinhos", opener: "Novo cofrinho" },
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
@@ -160,7 +158,7 @@ for (const theme of ["light", "dark"] as const) {
     await context.close();
 
     // Garante que a varredura nao virou um teste vazio se os botoes mudarem de nome
-    expect(scanned).toBeGreaterThanOrEqual(11);
+    expect(scanned).toBeGreaterThanOrEqual(10);
     expect(problems, problems.join("\n")).toEqual([]);
   });
 }

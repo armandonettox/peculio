@@ -160,13 +160,6 @@
       "nenhumExpiradoTexto": "Os orçamentos com período personalizado aparecem aqui depois que o período termina."
     },
     "recurrences": {
-      "titulo": "Recorrentes",
-      "descricao": "O que vence sempre e o que se repete sozinho, num só lugar.",
-      "novaRecorrente": "Nova recorrente",
-      "carregandoRecorrentes": "Carregando recorrentes...",
-      "nenhumaRecorrenteAinda": "Nenhuma recorrente ainda",
-      "cadastreOQueSe": "Cadastre o que vence sempre ou se repete sozinho: o app pode criar o lançamento por você, ou só lembrar o vencimento até você lançar.",
-      "mostrarInativas": "Mostrar inativas",
       "excluirRecorrente": "Excluir recorrente",
       "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
     },
@@ -417,7 +410,6 @@
     "import": "Importar extrato",
     "categories": "Categorias",
     "budgets": "Orçamentos",
-    "bills": "Recorrentes",
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
     "reports": "Relatórios"
@@ -1189,7 +1181,6 @@
       "pausar": "Pausar",
       "retomar": "Retomar",
       "aoRetomarOPeriodo": "Ao retomar, o período parado não é recriado: volta a partir do próximo vencimento.",
-      "acoesDaRecorrente": "Ações da recorrente {{name}}",
       "naoFoiPossivelCriar": "Não foi possível criar o próximo lançamento: {{error}}"
     },
     "presentation": {

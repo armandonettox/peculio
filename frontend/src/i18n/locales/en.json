@@ -160,13 +160,6 @@
       "nenhumExpiradoTexto": "Budgets with a custom period show up here once the period ends."
     },
     "recurrences": {
-      "titulo": "Recurring",
-      "descricao": "What's always due and what repeats on its own, in one place.",
-      "novaRecorrente": "New recurring",
-      "carregandoRecorrentes": "Loading recurrences...",
-      "nenhumaRecorrenteAinda": "No recurrences yet",
-      "cadastreOQueSe": "Register what's always due or repeats on its own: the app can create the transaction for you, or just remind you of the due date until you log it.",
-      "mostrarInativas": "Show inactive",
       "excluirRecorrente": "Delete recurrence",
       "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones."
     },
@@ -417,7 +410,6 @@
     "import": "Import statement",
     "categories": "Categories",
     "budgets": "Budgets",
-    "bills": "Recurring",
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
     "reports": "Reports"
@@ -1189,7 +1181,6 @@
       "pausar": "Pause",
       "retomar": "Resume",
       "aoRetomarOPeriodo": "On resuming, the paused period isn't recreated: it resumes from the next due date.",
-      "acoesDaRecorrente": "Actions for recurrence {{name}}",
       "naoFoiPossivelCriar": "Couldn't create the next transaction: {{error}}"
     },
     "presentation": {

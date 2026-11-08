@@ -8,7 +8,6 @@ import AccountsPage from "@/pages/accounts";
 import CreditCardsPage from "@/pages/credit-cards";
 import BudgetsPage from "@/pages/budgets";
 import RulesPage from "@/pages/rules";
-import BillsRecurrencesPage from "@/pages/bills";
 import DashboardPage from "@/pages/dashboard";
 import ImportReconciliationPage from "@/pages/import";
 import InvoicePage from "@/pages/invoice";
@@ -37,9 +36,9 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="cofrinhos" element={<PiggyBanksPage />} />
-            {/* Recorrentes virou a aba Recorrentes de Contas a pagar (favoritos antigos continuam entrando) */}
-            <Route path="recorrentes" element={<Navigate to="/contas-a-pagar?aba=recorrentes" replace />} />
-            <Route path="contas-a-pagar" element={<BillsRecurrencesPage />} />
+            {/* Recorrentes e Contas a pagar viraram o filtro Fixas de Transacoes (favoritos antigos continuam entrando) */}
+            <Route path="recorrentes" element={<Navigate to="/transacoes?situacao=fixed" replace />} />
+            <Route path="contas-a-pagar" element={<Navigate to="/transacoes?situacao=fixed" replace />} />
             <Route path="orcamentos" element={<BudgetsPage />} />
             <Route path="orcamentos/planejar" element={<PlanWizardPage />} />
             {/* Envelopes virou orcamento com "carrega sobra" (favoritos antigos continuam entrando) */}
