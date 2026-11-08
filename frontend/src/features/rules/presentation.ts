@@ -38,7 +38,8 @@ export function typeLabel(type: string): string | undefined {
   }
 }
 
-export const ACTION_KINDS: ActionKind[] = ["set_category", "add_tag", "set_budget", "set_bill"];
+// "set_bill" (ligar a uma conta a pagar) saiu das escolhas: nao ha mais conta a pagar; regras antigas que a tem ainda aparecem
+export const ACTION_KINDS: ActionKind[] = ["set_category", "add_tag", "set_budget"];
 
 export function actionLabel(kind: ActionKind): string {
   return i18n.t(`rules.presentation.action.${kind}`);
@@ -59,7 +60,6 @@ export type NameLookups = {
   categories: Map<string, string>;
   tags: Map<string, string>;
   budgets: Map<string, string>;
-  bills: Map<string, string>;
 };
 
 export function triggerSummary(trigger: RuleTrigger, lookups: NameLookups): string {
@@ -78,7 +78,8 @@ export function actionSummary(action: RuleAction, lookups: NameLookups): string 
     set_category: lookups.categories,
     add_tag: lookups.tags,
     set_budget: lookups.budgets,
-    set_bill: lookups.bills,
+    // Regra antiga que ligava a uma conta a pagar: o nome nao existe mais, entao cai em "item removido"
+    set_bill: new Map<string, string>(),
   }[action.kind];
   const removed = i18n.t("rules.presentation.itemRemovido");
   return `${actionSummaryLabel(action.kind)}: ${source.get(action.target_id) ?? removed}`;
@@ -87,7 +88,6 @@ export function actionSummary(action: RuleAction, lookups: NameLookups): string 
 type PreviewChanges = {
   category_id: string | null;
   budget_id: string | null;
-  bill_id: string | null;
   add_tag_ids: string[];
 };
 
@@ -96,7 +96,6 @@ export function previewChanges(item: PreviewChanges, lookups: NameLookups): stri
   const lines: string[] = [];
   if (item.category_id) lines.push(actionSummary({ kind: "set_category", target_id: item.category_id }, lookups));
   if (item.budget_id) lines.push(actionSummary({ kind: "set_budget", target_id: item.budget_id }, lookups));
-  if (item.bill_id) lines.push(actionSummary({ kind: "set_bill", target_id: item.bill_id }, lookups));
   for (const tagId of item.add_tag_ids) lines.push(actionSummary({ kind: "add_tag", target_id: tagId }, lookups));
   return lines;
 }

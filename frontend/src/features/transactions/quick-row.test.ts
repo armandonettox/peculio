@@ -117,16 +117,6 @@ describe("formFromQuick", () => {
     expect(state.notes).toBe("nota");
     expect(state.budgetId).toBe("b1");
   });
-
-  it("mudar de saida para entrada solta a conta a pagar", () => {
-    const withBill = { ...base, kind: "withdrawal" as const, billId: "bill-1" };
-    expect(formFromQuick(row({ amount: "50" }), withBill).billId).toBe("");
-  });
-
-  it("mantendo a saida, a conta a pagar continua", () => {
-    const withBill = { ...base, kind: "withdrawal" as const, billId: "bill-1" };
-    expect(formFromQuick(row(), withBill).billId).toBe("bill-1");
-  });
 });
 
 describe("validateQuick", () => {
@@ -207,8 +197,8 @@ describe("buildQuickPayload", () => {
     expect(payload.splits[0]).toMatchObject({ is_paid: false, ignored: true });
   });
 
-  it("entrada nao leva orcamento nem conta a pagar", () => {
-    const payload = buildQuickPayload(row({ amount: "1.000,00" }), { ...base, budgetId: "b1", billId: "bill-1" }, ctx);
+  it("entrada nao leva orcamento e o corpo nunca leva conta a pagar", () => {
+    const payload = buildQuickPayload(row({ amount: "1.000,00" }), { ...base, budgetId: "b1" }, ctx);
     expect(payload.splits[0]).toMatchObject({ type: "deposit", amount: "1000.00", budget_id: null });
     expect(payload.splits[0]).not.toHaveProperty("bill_id");
   });

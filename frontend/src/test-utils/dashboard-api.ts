@@ -45,7 +45,7 @@ export function makeNetWorth(overrides: Partial<NetWorth> = {}): NetWorth {
 export function makeUpcomingItem(overrides: Partial<UpcomingItem> = {}): UpcomingItem {
   counter += 1;
   return {
-    kind: "bill",
+    kind: "pending",
     id: `d0000000-0000-4000-8000-${String(counter).padStart(12, "0")}`,
     name: `Conta ${counter}`,
     date: "2026-03-20",

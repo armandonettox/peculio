@@ -13,7 +13,8 @@ afterEach(async () => {
   await i18n.changeLanguage("pt-BR");
 });
 
-const overdue = (n: number) => Array.from({ length: n }, (_, i) => ({ id: String(i), overdue: true }) as UpcomingItem);
+const overdue = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({ id: String(i), kind: "pending", overdue: true }) as UpcomingItem);
 const budget = (percent: number) => ({ percent }) as BudgetProgress;
 
 describe("comparacao com o mes passado", () => {
@@ -41,12 +42,9 @@ describe("textos de vencimentos", () => {
 });
 
 describe("alertas com plural", () => {
-  it("uma conta atrasada no singular e varias no plural", () => {
-    expect(buildAlerts(overdue(1), [])[0].text).toBe("1 overdue bill");
-    expect(buildAlerts(overdue(3), [])[0].text).toBe("3 overdue bills");
-    const pending = (n: number) => Array.from({ length: n }, (_, i) => ({ id: String(i), kind: "pending", overdue: true }) as UpcomingItem);
-    expect(buildAlerts(pending(1), [])[0].text).toBe("1 overdue pending transaction");
-    expect(buildAlerts(pending(2), [])[0].text).toBe("2 overdue pending transactions");
+  it("um pendente atrasado no singular e varios no plural", () => {
+    expect(buildAlerts(overdue(1), [])[0].text).toBe("1 overdue pending transaction");
+    expect(buildAlerts(overdue(3), [])[0].text).toBe("3 overdue pending transactions");
   });
 
   it("orcamentos no limite e perto do limite, com a porcentagem", () => {
@@ -74,7 +72,7 @@ describe("o mesmo codigo em portugues", () => {
     await i18n.changeLanguage("pt-BR");
     expect(formatDiff("-50.00", "BRL")).toContain("a menos");
     expect(formatPercent(12.34)).toBe("+12,3%");
-    expect(buildAlerts(overdue(2), [])[0].text).toBe("2 contas atrasadas");
+    expect(buildAlerts(overdue(2), [])[0].text).toBe("2 lançamentos pendentes atrasados");
     expect(shortDayLabel("2026-03-04", "2026-03-10")).toBe("04/03");
     expect(shortDayLabel("2025-12-31", "2026-03-10")).toBe("31/12/25");
   });

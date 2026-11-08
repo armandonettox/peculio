@@ -104,7 +104,8 @@ it("o cartao resume gatilhos e acoes com os nomes de cada item", async () => {
     "Categoria: Mercado",
     "Tag: casa",
     "Orçamento: Casa",
-    "Conta a pagar: Netflix",
+    // Regra antiga com a acao de conta a pagar: o nome nao existe mais
+    "Conta a pagar: item removido",
   ]) {
     expect(within(item).getByText(text)).toBeInTheDocument();
   }
@@ -330,9 +331,6 @@ it("monta uma regra completa: varios gatilhos, grupo, ordem, qualquer e parar", 
   await userEvent.click(inDialog().getByRole("button", { name: "Adicionar ação" }));
   await userEvent.selectOptions(select("Ação 3"), "Ligar ao orçamento");
   await userEvent.selectOptions(select("Alvo da ação 3"), "Casa");
-  await userEvent.click(inDialog().getByRole("button", { name: "Adicionar ação" }));
-  await userEvent.selectOptions(select("Ação 4"), "Ligar à conta a pagar");
-  await userEvent.selectOptions(select("Alvo da ação 4"), "Netflix");
 
   await userEvent.selectOptions(inDialog().getByLabelText("Grupo"), "Casa");
   await userEvent.clear(inDialog().getByLabelText("Ordem"));
@@ -359,7 +357,6 @@ it("monta uma regra completa: varios gatilhos, grupo, ordem, qualquer e parar", 
       { kind: "set_category", target_id: otherCategory.id },
       { kind: "add_tag", target_id: tag.id },
       { kind: "set_budget", target_id: budget.id },
-      { kind: "set_bill", target_id: bill.id },
     ],
   });
 }, HEAVY_TEST_TIMEOUT);

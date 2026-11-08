@@ -18,7 +18,6 @@ import { ApiError } from "@/api/errors";
 import { useCategories, useTags, type Category, type Tag } from "@/api/labels";
 import {
   useCreateRecurrence,
-  useReminderRecurrences,
   type Recurrence,
   type RecurrenceFrequency,
 } from "@/api/recurrences";
@@ -47,7 +46,6 @@ import { formatMoney, placesOf } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
   accountOf,
-  billAllowed,
   budgetAllowed,
   buildPayload,
   canSplit,
@@ -135,7 +133,6 @@ function MoneyFormDialog({ kind, card = false, transaction, onClose }: Props & {
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useReminderRecurrences({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
   const createRecurrence = useCreateRecurrence();
@@ -188,7 +185,6 @@ function MoneyFormDialog({ kind, card = false, transaction, onClose }: Props & {
             categories={categories.data?.items ?? []}
             tags={tags.data?.items ?? []}
             budgets={budgets.data ?? []}
-            bills={bills.data ?? []}
             create={create}
             update={update}
             createRecurrence={createRecurrence}
@@ -212,7 +208,6 @@ type BodyProps = {
   categories: Category[];
   tags: Tag[];
   budgets: Budget[];
-  bills: Recurrence[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
   createRecurrence: ReturnType<typeof useCreateRecurrence>;
@@ -234,7 +229,6 @@ function hasDetails(state: FormState): boolean {
     state.tagIds.length > 0 ||
     state.notes !== "" ||
     state.budgetId !== "" ||
-    state.billId !== "" ||
     state.ownCounterparty ||
     state.originalCurrency !== ""
   );
@@ -249,7 +243,6 @@ function FormBody({
   categories,
   tags,
   budgets,
-  bills,
   create,
   update,
   createRecurrence,
@@ -312,8 +305,6 @@ function FormBody({
 
   const budgetOptions = (selectedId: string) =>
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
-  const billOptions = (selectedId: string) =>
-    bills.filter((bill) => bill.type === kind && bill.currency_code === currency && (bill.active || bill.id === selectedId));
   const categoryChips = (selectedId: string): ChipOption[] => [
     { value: "", label: t("common.semCategoria"), leading: <CategoryIcon name="tag" /> },
     ...categoryOptions(selectedId).map((category) => ({
@@ -400,7 +391,7 @@ function FormBody({
         ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
           ? { originalCurrency: "", originalAmount: "" }
           : {}),
-        ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
+        ...(sameCurrency ? {} : { budgetId: "", splits: clearBudgets(state.splits) }),
       },
       "accountId",
       "foreignAmount",
@@ -456,7 +447,7 @@ function FormBody({
     if (next) chooseAccount(next.id);
   }
 
-  const clearBudgets = (rows: SplitDraft[] | null) => rows?.map((row) => ({ ...row, budgetId: "", billId: "" })) ?? null;
+  const clearBudgets = (rows: SplitDraft[] | null) => rows?.map((row) => ({ ...row, budgetId: "" })) ?? null;
 
   function changeSplit(key: string, changes: Partial<SplitDraft>) {
     setState((current) => ({
@@ -475,7 +466,6 @@ function FormBody({
           amount: current.amount,
           categoryId: current.categoryId,
           budgetId: current.budgetId,
-          billId: current.billId,
           tagIds: current.tagIds,
         }),
       ],
@@ -491,7 +481,6 @@ function FormBody({
         description: current.description || first?.description || "",
         categoryId: first?.categoryId ?? current.categoryId,
         budgetId: first?.budgetId ?? current.budgetId,
-        billId: first?.billId ?? current.billId,
         tagIds: first?.tagIds ?? current.tagIds,
       };
     });
@@ -1015,7 +1004,7 @@ function FormBody({
               type="button"
               className="self-start text-xs text-primary-text underline underline-offset-2"
               onClick={() =>
-                patch({ ownCounterparty: true, counterpartyName: "", budgetId: "", billId: "", splits: clearBudgets(state.splits) }, "counterparty")
+                patch({ ownCounterparty: true, counterpartyName: "", budgetId: "", splits: clearBudgets(state.splits) }, "counterparty")
               }
             >
               {income ? t("transactions.transactionFormDialog.receberDeUmaDivida") : t("transactions.transactionFormDialog.pagarUmaDivida")}
@@ -1049,22 +1038,6 @@ function FormBody({
                     <option key={budget.id} value={budget.id}>
                       {budget.name}
                       {budget.active ? "" : ` ${t("transactions.transactionFormDialog.arquivado")}`}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </FormField>
-          )}
-          {billAllowed(state) && billOptions(state.billId).length > 0 && (
-            <FormField id="tx-bill" label={income ? t("transactions.transactionFormDialog.recebimentoEsperado") : t("transactions.transactionFormDialog.contaAPagar")}>
-              {(props) => (
-                <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
-                  <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
-                  <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
-                  {billOptions(state.billId).map((bill) => (
-                    <option key={bill.id} value={bill.id}>
-                      {bill.name}
-                      {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                     </option>
                   ))}
                 </Select>
@@ -1171,22 +1144,6 @@ function FormBody({
                           <option key={budget.id} value={budget.id}>
                             {budget.name}
                             {budget.active ? "" : ` ${t("transactions.transactionFormDialog.arquivado")}`}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                  </FormField>
-                )}
-                {billAllowed(state) && billOptions(row.billId).length > 0 && (
-                  <FormField id={`${row.key}-bill`} label={t(income ? "transactions.form.rowBillIncome" : "transactions.form.rowBill", { n: index + 1 })}>
-                    {(props) => (
-                      <Select {...props} value={row.billId} onChange={(e) => changeSplit(row.key, { billId: e.target.value })}>
-                        <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
-                        <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
-                        {billOptions(row.billId).map((bill) => (
-                          <option key={bill.id} value={bill.id}>
-                            {bill.name}
-                            {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                           </option>
                         ))}
                       </Select>

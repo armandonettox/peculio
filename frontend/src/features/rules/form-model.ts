@@ -36,7 +36,7 @@ export type DraftErrors = {
 };
 
 // Acoes que aceitam um alvo so por regra; tags podem ser varias
-const SINGLE_KINDS: ActionKind[] = ["set_category", "set_budget", "set_bill"];
+const SINGLE_KINDS: ActionKind[] = ["set_category", "set_budget"];
 
 export const TYPE_OPTIONS = ["withdrawal", "deposit", "transfer"] as const;
 

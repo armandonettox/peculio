@@ -8,7 +8,6 @@ const lookups: NameLookups = {
   categories: new Map([["cat-1", "Groceries"]]),
   tags: new Map(),
   budgets: new Map(),
-  bills: new Map(),
 };
 
 // A logica de regras no idioma ingles: rotulos de campo, operacao, tipo, acao e os resumos montados.

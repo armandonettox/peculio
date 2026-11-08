@@ -7,12 +7,12 @@ import { fakeBudgetsApi } from "@/test-utils/budgets-api";
 import { fakeLabelsApi } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
-import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
+import { fakeRecurrencesApi, makeRecurrence } from "@/test-utils/recurrences-api";
 import RecurrencesPage from "./bills";
 
 function renderPage() {
   server.use(
-    ...fakeRecurrencesApi([makeReminder({ name: "Netflix" })]).handlers,
+    ...fakeRecurrencesApi([makeRecurrence({ name: "Netflix" })]).handlers,
     ...fakeAccountsApi([]).handlers,
     ...fakeLabelsApi("categories", []).handlers,
     ...fakeLabelsApi("tags", []).handlers,
@@ -27,7 +27,7 @@ function renderPage() {
   );
 }
 
-it("a pagina mostra o que vence sempre e o que se repete sozinho, numa lista so", async () => {
+it("a pagina lista as recorrencias, que criam o lancamento sozinhas", async () => {
   renderPage();
   expect(await screen.findByRole("heading", { level: 1, name: "Recorrentes" })).toBeInTheDocument();
   expect(await screen.findByText("Netflix")).toBeInTheDocument();

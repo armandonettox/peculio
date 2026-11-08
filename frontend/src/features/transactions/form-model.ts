@@ -17,8 +17,6 @@ export type SplitDraft = {
   categoryId: string;
   // Orcamento da linha ("" = nenhum). So existe em saida para uma despesa.
   budgetId: string;
-  // Recorrente (lembrete) da linha: "" = automatico, "none" = nao ligar, ou o id de uma recorrente
-  billId: string;
   tagIds: string[];
   // Nao aparece na tela; guarda a nota de um lancamento criado pela API para nao perde-la ao salvar
   notes: string;
@@ -49,8 +47,6 @@ export type FormState = {
   categoryId: string;
   // Orcamento do lancamento ("" = nenhum); no modo dividido cada linha tem o seu
   budgetId: string;
-  // Conta a pagar: "" = o servidor liga sozinho se uma so combinar, "none" = nao ligar, ou o id de uma
-  billId: string;
   tagIds: string[];
   notes: string;
   // null: um lancamento so. Lista: o lancamento dividido em linhas.
@@ -94,7 +90,6 @@ export function emptySplit(overrides: Partial<SplitDraft> = {}): SplitDraft {
     amount: "",
     categoryId: "",
     budgetId: "",
-    billId: "",
     tagIds: [],
     notes: "",
     originalCurrency: "",
@@ -128,7 +123,6 @@ export function emptyForm(ctx: FormContext, overrides: Partial<FormState> = {}):
     originalAmount: "",
     categoryId: "",
     budgetId: "",
-    billId: "",
     tagIds: [],
     notes: "",
     splits: null,
@@ -174,11 +168,6 @@ export function budgetAllowed(state: FormState): boolean {
   return state.kind === "withdrawal" && !state.ownCounterparty;
 }
 
-/** Recorrente (lembrete) vale para saida ou entrada para um nome, nunca transferencia ou divida. */
-export function billAllowed(state: FormState): boolean {
-  return (state.kind === "withdrawal" || state.kind === "deposit") && !state.ownCounterparty;
-}
-
 export function isCreditCard(state: FormState, ctx: FormContext): boolean {
   return accountOf(ctx, state.accountId)?.role === "credit_card";
 }
@@ -186,12 +175,6 @@ export function isCreditCard(state: FormState, ctx: FormContext): boolean {
 /** Parcelar so vale numa saida unica (sem divisao) da conta de cartao de credito. */
 export function installmentsAllowed(state: FormState, ctx: FormContext): boolean {
   return state.kind === "withdrawal" && !state.splits && isCreditCard(state, ctx);
-}
-
-/** Campo bill_id do corpo: omitido no automatico, null em "nao ligar", ou o id. So vale em saida ou entrada. */
-function billField(state: FormState, value: string): { bill_id?: string | null } {
-  if (!billAllowed(state) || value === "") return {};
-  return { bill_id: value === "none" ? null : value };
 }
 
 /** Dividir so faz sentido em saida e entrada na mesma moeda. */
@@ -360,7 +343,6 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       amount: money(state.amount),
       category_id: state.categoryId || null,
       budget_id: budgetAllowed(state) ? state.budgetId || null : null,
-      ...billField(state, state.billId),
       tag_ids: state.tagIds,
       notes: state.notes.trim() || null,
       ...(other
@@ -387,7 +369,6 @@ export function buildPayload(state: FormState, ctx: FormContext): TransactionCre
       amount: money(row.amount),
       category_id: row.categoryId || null,
       budget_id: budgetAllowed(state) ? row.budgetId || null : null,
-      ...billField(state, row.billId),
       tag_ids: row.tagIds,
       notes: row.notes.trim() || null,
       // O que a API ja tinha salvo na linha, se ainda vale para a conta escolhida
@@ -407,13 +388,6 @@ export type Loaded = { ok: true; state: FormState } | { ok: false; reason: strin
 
 const KINDS: Kind[] = ["withdrawal", "deposit", "transfer"];
 const toDraft = (value: string) => value.replace(".", ",");
-
-// Ao editar, o que ja esta salvo vale: sem recorrente vira "nao ligar", para um ajuste qualquer nao
-// religar sozinho o que a pessoa deixou solto. Fora de saida ou entrada para um nome o campo nem existe.
-function billOf(billId: string | null, kind: Kind, ownCounterparty: boolean): string {
-  if ((kind !== "withdrawal" && kind !== "deposit") || ownCounterparty) return "";
-  return billId ?? "none";
-}
 
 /**
  * Transforma um lancamento ja salvo em estado de formulario. Lancamentos criados pela API
@@ -491,7 +465,6 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
         ...originalOf(first),
         categoryId: first.category_id ?? "",
         budgetId: first.budget_id ?? "",
-        billId: billOf(first.bill_id, kind, ownCounterparty),
         tagIds: first.tag_ids,
         notes: first.notes ?? "",
         splits: null,
@@ -517,7 +490,6 @@ export function formFromTransaction(transaction: Transaction, ctx: FormContext):
           amount: toDraft(split.amount),
           categoryId: split.category_id ?? "",
           budgetId: split.budget_id ?? "",
-          billId: billOf(split.bill_id, kind, ownCounterparty),
           tagIds: split.tag_ids,
           notes: split.notes ?? "",
           ...originalOf(split),
@@ -576,11 +548,6 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
       ? { originalCurrency: split.foreign_currency_code, originalAmount: toDraft(String(split.foreign_amount)) }
       : { originalCurrency: "", originalAmount: "" };
 
-  const billOf = (split: TransactionSplitCreate): string => {
-    if (!("bill_id" in split)) return "";
-    return split.bill_id == null ? "none" : split.bill_id;
-  };
-
   if (template.splits.length === 1) {
     return {
       ok: true,
@@ -592,7 +559,6 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
         ...originalOf(first),
         categoryId: first.category_id ?? "",
         budgetId: first.budget_id ?? "",
-        billId: billOf(first),
         tagIds: first.tag_ids ?? [],
         notes: first.notes ?? "",
         splits: null,
@@ -618,7 +584,6 @@ export function formFromTemplate(template: TransactionCreate, ctx: FormContext, 
           amount: toDraft(String(split.amount)),
           categoryId: split.category_id ?? "",
           budgetId: split.budget_id ?? "",
-          billId: billOf(split),
           tagIds: split.tag_ids ?? [],
           notes: split.notes ?? "",
           ...originalOf(split),

@@ -165,7 +165,7 @@ it("traduz a direcao do vencimento", () => {
 
 function upcomingItem(overrides: Partial<UpcomingItem>): UpcomingItem {
   return {
-    kind: "bill",
+    kind: "pending",
     id: "u1",
     name: "Conta",
     date: "2026-03-20",
@@ -183,11 +183,11 @@ it("sem nada atrasado nem perto do limite, nao ha alerta", () => {
   expect(buildAlerts([], [])).toEqual([]);
 });
 
-it("junta contas atrasadas e orcamentos por gravidade, mais graves primeiro", () => {
+it("junta pendentes atrasados e orcamentos por gravidade, mais graves primeiro", () => {
   const upcoming = [upcomingItem({ overdue: true }), upcomingItem({ overdue: true }), upcomingItem({ overdue: false })];
   const budgets = [budget({ percent: 100 }), budget({ percent: 85 })];
   expect(buildAlerts(upcoming, budgets)).toEqual([
-    { key: "overdue", text: "2 contas atrasadas", href: "/contas-a-pagar", level: "destructive" },
+    { key: "overduePending", text: "2 lançamentos pendentes atrasados", href: "/transacoes?situacao=pending", level: "destructive" },
     { key: "over", text: "1 orçamento no limite", href: "/orcamentos", level: "destructive" },
     { key: "warning", text: "1 orçamento perto do limite (acima de 80%)", href: "/orcamentos", level: "warning" },
   ]);
@@ -200,9 +200,9 @@ it("nao confunde perto do limite com no limite: so quem passou de 100% conta com
   ]);
 });
 
-it("uma conta atrasada e um orcamento no limite usam o singular", () => {
+it("um pendente atrasado e um orcamento no limite usam o singular", () => {
   const alerts = buildAlerts([upcomingItem({ overdue: true })], [budget({ percent: 100 })]);
-  expect(alerts[0].text).toBe("1 conta atrasada");
+  expect(alerts[0].text).toBe("1 lançamento pendente atrasado");
   expect(alerts[1].text).toBe("1 orçamento no limite");
 });
 
@@ -314,14 +314,6 @@ it("lancamento pendente atrasado vira um alerta proprio, com link para a lista d
   const upcoming = [upcomingItem({ kind: "pending", overdue: true }), upcomingItem({ kind: "pending", overdue: true })];
   expect(buildAlerts(upcoming, [])).toEqual([
     { key: "overduePending", text: "2 lançamentos pendentes atrasados", href: "/transacoes?situacao=pending", level: "destructive" },
-  ]);
-});
-
-it("conta atrasada e pendente atrasado aparecem em alertas separados, cada um com o seu link", () => {
-  const upcoming = [upcomingItem({ kind: "bill", overdue: true }), upcomingItem({ kind: "pending", overdue: true })];
-  expect(buildAlerts(upcoming, [])).toEqual([
-    { key: "overdue", text: "1 conta atrasada", href: "/contas-a-pagar", level: "destructive" },
-    { key: "overduePending", text: "1 lançamento pendente atrasado", href: "/transacoes?situacao=pending", level: "destructive" },
   ]);
 });
 

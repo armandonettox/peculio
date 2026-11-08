@@ -46,13 +46,6 @@ describe("rascunho inicial", () => {
         { kind: "set_category", targetId: "x" },
         { kind: "set_budget", targetId: "y" },
       ]).kind,
-    ).toBe("set_bill");
-    expect(
-      newAction([
-        { kind: "set_category", targetId: "x" },
-        { kind: "set_budget", targetId: "y" },
-        { kind: "set_bill", targetId: "z" },
-      ]).kind,
     ).toBe("add_tag");
   });
 });

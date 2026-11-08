@@ -91,8 +91,6 @@ export function formFromQuick(row: QuickRow, base: FormState): FormState {
     categoryId: row.categoryId,
     amount: amountWithoutSign(row.amount),
   };
-  // Conta a pagar so vale em saida: se o tipo mudou, o que estava ligado deixa de fazer sentido
-  if (kind !== base.kind) next.billId = "";
   return next;
 }
 

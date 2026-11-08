@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, apiHeaders, apiPost, loginAndWaitForDashboard, openExpenseForm, pickChip } from "./helpers";
 
 // Roda depois dos outros (o banco e compartilhado): as contas e os lancamentos dos arquivos anteriores
 // tambem entram nos totais, entao aqui se confere o que e proprio deste teste e a coerencia com a API.
@@ -35,7 +35,7 @@ async function api(request: APIRequestContext, path: string) {
 
 const state = { accountId: "" };
 
-test("prepara dados ficticios: conta, divida, orcamento perto do limite, conta atrasada, recorrente e cofrinho", async ({ request }) => {
+test("prepara dados ficticios: conta, divida, orcamento perto do limite, pendentes (um atrasado), recorrente e cofrinho", async ({ request }) => {
   const headers = await apiHeaders(request, ADMIN);
   const account = await apiPost(request, headers, "/accounts", {
     name: "Conta Painel E2E", type: "asset", currency_code: "BRL", opening_balance: "4000.00", opening_balance_date: "2026-01-01",
@@ -64,14 +64,9 @@ test("prepara dados ficticios: conta, divida, orcamento perto do limite, conta a
   await apiPost(request, headers, "/transactions", {
     splits: [{ type: "withdrawal", date: today(), description: "Software Painel E2E", amount: "29.90", currency_code: "USD", account_id: wise.id, counterparty_name: "Loja Exterior Painel" }],
   });
-  await apiPost(request, headers, "/recurrences", {
-    name: "Aluguel Painel E2E", auto_create: false, type: "withdrawal", currency_code: "BRL", amount_min: "1200.00", amount_max: "1200.00",
-    match_text: "zzz-nunca-casa-painel", first_date: addDays(-8), frequency: "monthly",
-  });
-  await apiPost(request, headers, "/recurrences", {
-    name: "Internet Painel E2E", auto_create: false, type: "withdrawal", currency_code: "BRL", amount_min: "100.00", amount_max: "120.00",
-    match_text: "zzz-nunca-casa-internet", first_date: addDays(6), frequency: "monthly",
-  });
+  // Conta a pagar e um lancamento pendente (is_paid falso): o atrasado tem a data vencida, o outro vence logo
+  await spend("Aluguel Painel E2E", "1200.00", { date: addDays(-8), is_paid: false, category_id: null });
+  await spend("Internet Painel E2E", "120.00", { date: addDays(6), is_paid: false, category_id: null });
   await apiPost(request, headers, "/recurrences", {
     name: "Mesada Painel E2E", auto_create: true, frequency: "monthly", first_date: addDays(9),
     template: { splits: [{ type: "withdrawal", date: addDays(9), description: "Mesada", amount: "50.00", currency_code: "BRL", account_id: account.id, counterparty_name: "Filho" }] },
@@ -95,7 +90,7 @@ test("mostra todos os blocos com os dados do usuario", async ({ page }) => {
   await expect(block(page, "Últimas transações")).toContainText("Compra do mes no painel");
 });
 
-test("vencimentos: a conta atrasada aparece destacada por texto, e a que vence logo e a recorrente tambem", async ({ page }) => {
+test("vencimentos: o pendente atrasado aparece destacado por texto, e o que vence logo e a recorrente tambem", async ({ page }) => {
   await openDashboard(page);
   const upcoming = block(page, "Próximos vencimentos");
   const overdue = upcoming.getByRole("listitem").filter({ hasText: "Aluguel Painel E2E" });
@@ -108,13 +103,14 @@ test("vencimentos: a conta atrasada aparece destacada por texto, e a que vence l
   expect(names.indexOf("Aluguel Painel E2E")).toBeLessThan(names.indexOf("Internet Painel E2E"));
 });
 
-test("alertas: conta atrasada e orcamento perto do limite aparecem no topo e os links levam as telas certas", async ({ page }) => {
+test("alertas: pendente atrasado e orcamento perto do limite aparecem no topo e os links levam as telas certas", async ({ page }) => {
   await openDashboard(page);
   const alerts = page.getByRole("region", { name: "Alertas" });
-  await expect(alerts).toContainText(/conta(s)? atrasada/);
+  await expect(alerts).toContainText(/lançamentos? pendentes? atrasados?/);
   await expect(alerts).toContainText(/orçamento(s)? perto do limite/);
-  await alerts.getByRole("link", { name: /atrasada/ }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Recorrentes" })).toBeVisible();
+  await alerts.getByRole("link", { name: /pendentes? atrasados?/ }).click();
+  await expect(page).toHaveURL(/\/transacoes\?situacao=pending/);
+  await expect(page.getByRole("heading", { level: 1, name: "Transações" })).toBeVisible();
 });
 
 test("patrimonio: os totais e a serie da tela batem com a API e o grafico tem tabela para leitor de tela", async ({ page, request }) => {
@@ -149,22 +145,22 @@ test("categorias: a rosca mostra a categoria do usuario e o link vai para os rel
   await expect(page.getByRole("heading", { level: 1, name: "Relatórios" })).toBeVisible();
 });
 
-test("criar uma conta a pagar pela tela atualiza o painel ao voltar a ele", async ({ page }) => {
+test("criar um lancamento pendente pela tela atualiza o painel ao voltar a ele", async ({ page }) => {
   await openDashboard(page);
   await expect(block(page, "Próximos vencimentos")).not.toContainText("Gas Painel E2E");
   const nav = page.getByRole("navigation", { name: "Navegação principal" });
-  await nav.getByRole("link", { name: "Recorrentes", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Recorrentes" })).toBeVisible();
-  await page.getByRole("button", { name: "Nova recorrente", exact: true }).first().click();
-  await page.getByRole("button", { name: /Não, o valor varia/ }).click();
+  await nav.getByRole("link", { name: "Transações", exact: true }).click();
+  await openExpenseForm(page);
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Nome", { exact: true }).fill("Gas Painel E2E");
-  await dialog.getByLabel("Valor mínimo").fill("30,00");
-  await dialog.getByLabel("Valor máximo").fill("45,00");
-  await dialog.getByLabel("Primeiro vencimento").fill(addDays(3));
-  await dialog.getByRole("button", { name: "Criar lembrete" }).click();
+  await pickChip(page, "Conta", "Conta Painel E2E");
+  await dialog.getByLabel("Descrição", { exact: true }).fill("Gas Painel E2E");
+  await dialog.getByLabel("Valor (BRL)").fill("45,00");
+  await dialog.getByRole("button", { name: "Outros..." }).click();
+  await dialog.locator('input[type="date"]').fill(addDays(3));
+  await dialog.getByRole("switch", { name: /Foi paga/ }).click();
+  await dialog.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialog).toBeHidden();
-  // A mutacao invalida o cache do painel: ao voltar, os vencimentos ja trazem a conta nova
+  // A mutacao invalida o cache do painel: ao voltar, os vencimentos ja trazem o lancamento novo
   await nav.getByRole("link", { name: "Painel" }).click();
   await expect(block(page, "Próximos vencimentos")).toContainText("Gas Painel E2E");
 });

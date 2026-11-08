@@ -603,90 +603,24 @@ describe("orcamento", () => {
   });
 });
 
-describe("conta a pagar", () => {
-  it("por padrao o corpo nao leva bill_id", () => {
+describe("conta a pagar saiu do formulario", () => {
+  it("o corpo nunca leva bill_id, nem no lancamento unico nem nas linhas da divisao", () => {
     expect(buildPayload(form(), ctx).splits[0]).not.toHaveProperty("bill_id");
-  });
-
-  it("Nao ligar manda null e uma conta manda o id", () => {
-    expect(buildPayload(form({ billId: "none" }), ctx).splits[0]).toHaveProperty("bill_id", null);
-    expect(buildPayload(form({ billId: "d1" }), ctx).splits[0].bill_id).toBe("d1");
-  });
-
-  it("entrada tambem leva bill_id, como a saida", () => {
-    expect(buildPayload(form({ kind: "deposit", billId: "none" }), ctx).splits[0]).toHaveProperty("bill_id", null);
-    expect(buildPayload(form({ kind: "deposit", billId: "d1" }), ctx).splits[0].bill_id).toBe("d1");
-  });
-
-  it.each([
-    ["transferencia", { kind: "transfer" as const, counterpartyAccountId: poupanca.id }],
-    ["pagamento de divida", { ownCounterparty: true, counterpartyAccountId: divida.id }],
-  ])("um valor que sobrou no estado nao vai junto em %s", (_label, overrides) => {
-    expect(buildPayload(form({ billId: "d1", ...overrides }), ctx).splits[0]).not.toHaveProperty("bill_id");
-    expect(buildPayload(form({ billId: "none", ...overrides }), ctx).splits[0]).not.toHaveProperty("bill_id");
-  });
-
-  it("no lancamento dividido cada linha leva a sua", () => {
+    expect(buildPayload(form({ kind: "deposit" }), ctx).splits[0]).not.toHaveProperty("bill_id");
     const payload = buildPayload(
       form({
         amount: "100,00",
-        splits: [
-          emptySplit({ description: "a", amount: "60,00", billId: "d1" }),
-          emptySplit({ description: "b", amount: "30,00", billId: "none" }),
-          emptySplit({ description: "c", amount: "10,00" }),
-        ],
+        splits: [emptySplit({ description: "a", amount: "60,00" }), emptySplit({ description: "b", amount: "40,00" })],
       }),
       ctx,
     );
-    expect(payload.splits[0].bill_id).toBe("d1");
-    expect(payload.splits[1]).toHaveProperty("bill_id", null);
-    expect(payload.splits[2]).not.toHaveProperty("bill_id");
+    for (const split of payload.splits) expect(split).not.toHaveProperty("bill_id");
   });
 
-  it("linhas de uma entrada dividida levam bill_id, como numa saida", () => {
-    const payload = buildPayload(
-      form({
-        kind: "deposit",
-        amount: "100,00",
-        counterpartyName: "Empregador",
-        splits: [
-          emptySplit({ description: "a", amount: "60,00", billId: "d1" }),
-          emptySplit({ description: "b", amount: "40,00", billId: "none" }),
-        ],
-      }),
-      ctx,
-    );
-    expect(payload.splits[0].bill_id).toBe("d1");
-    expect(payload.splits[1]).toHaveProperty("bill_id", null);
-  });
-
-  it("editar reabre a conta ligada, e sem conta abre em Nao ligar", () => {
+  it("editar um lancamento que estava ligado a uma conta a pagar abre sem o campo e salva sem ligar", () => {
     const linked = makeTransaction({}, [{ source_account_id: nubank.id, destination_account_id: "e1", bill_id: "d1" }]);
-    const unlinked = makeTransaction({}, [{ source_account_id: nubank.id, destination_account_id: "e1" }]);
-    const a = formFromTransaction(linked, ctx);
-    const b = formFromTransaction(unlinked, ctx);
-    expect(a.ok && a.state.billId).toBe("d1");
-    expect(b.ok && b.state.billId).toBe("none");
-    expect(b.ok && buildPayload(b.state, ctx).splits[0]).toHaveProperty("bill_id", null);
-  });
-
-  it("editar reabre a conta de cada linha dividida", () => {
-    const t = makeTransaction({ title: "Compras" }, [
-      { description: "a", amount: "60.00", source_account_id: nubank.id, destination_account_id: "e1", bill_id: "d1" },
-      { description: "b", amount: "40.00", source_account_id: nubank.id, destination_account_id: "e1" },
-    ]);
-    const loaded = formFromTransaction(t, ctx);
-    expect(loaded.ok && loaded.state.splits?.map((row) => row.billId)).toEqual(["d1", "none"]);
-  });
-
-  it("entrada sem conta ligada reabre em Nao ligar, como numa saida", () => {
-    const deposit = formFromTransaction(makeTransaction({}, [deposit_()]), ctx);
-    expect(deposit.ok && deposit.state.billId).toBe("none");
-  });
-
-  it("transferencia abre sem o campo (vazio): nao tem conta a pagar", () => {
-    const loaded = formFromTransaction(makeTransaction({}, [transfer()]), ctx);
-    expect(loaded.ok && loaded.state.billId).toBe("");
+    const loaded = formFromTransaction(linked, ctx);
+    expect(loaded.ok && buildPayload(loaded.state, ctx).splits[0]).not.toHaveProperty("bill_id");
   });
 });
 
@@ -753,16 +687,6 @@ describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
     });
   });
 
-  it("conta a pagar: ausente e automatico, null e nao ligar, id e a conta", () => {
-    const billOf = (overrides = {}) => {
-      const loaded = open({ splits: [split(overrides)] });
-      return loaded.ok ? loaded.state.billId : "erro";
-    };
-    expect(billOf()).toBe("");
-    expect(billOf({ bill_id: null })).toBe("none");
-    expect(billOf({ bill_id: "d1" })).toBe("d1");
-  });
-
   it("transferencia reabre com a conta de destino", () => {
     const loaded = open({
       splits: [split({ type: "transfer", counterparty_name: undefined, counterparty_account_id: poupanca.id })],
@@ -796,13 +720,13 @@ describe("formFromTemplate (reabrir o modelo de uma recorrente)", () => {
       title: "Compras",
       splits: [
         split({ description: "Frutas", amount: "60.00", budget_id: "b1" }),
-        split({ description: "Limpeza", amount: "40.10", bill_id: null }),
+        split({ description: "Limpeza", amount: "40.10" }),
       ],
     });
     expect(loaded.ok && loaded.state).toMatchObject({ description: "Compras", amount: "100,10" });
-    expect(loaded.ok && loaded.state.splits?.map((row) => [row.description, row.amount, row.budgetId, row.billId])).toEqual([
-      ["Frutas", "60,00", "b1", ""],
-      ["Limpeza", "40,10", "", "none"],
+    expect(loaded.ok && loaded.state.splits?.map((row) => [row.description, row.amount, row.budgetId])).toEqual([
+      ["Frutas", "60,00", "b1"],
+      ["Limpeza", "40,10", ""],
     ]);
   });
 

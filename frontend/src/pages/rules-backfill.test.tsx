@@ -107,7 +107,6 @@ it("a previa sem filtros manda corpo vazio e mostra o resumo e cada lancamento",
         date: "2026-03-05",
         category_id: null,
         budget_id: budget.id,
-        bill_id: bill.id,
         add_tag_ids: [tag.id],
       }),
     ],
@@ -123,7 +122,6 @@ it("a previa sem filtros manda corpo vazio e mostra o resumo e cada lancamento",
   expect(preview.getByText("Categoria: Mercado")).toBeInTheDocument();
   expect(preview.getByText("05/03/2026 · R$ 39,90")).toBeInTheDocument();
   expect(preview.getByText("Orçamento: Casa")).toBeInTheDocument();
-  expect(preview.getByText("Conta a pagar: Netflix")).toBeInTheDocument();
   expect(preview.getByText("Tag: casa")).toBeInTheDocument();
   expect(inDialog().getByRole("button", { name: "Aplicar em 2 lançamentos" })).toBeInTheDocument();
   // Ver a previa nao grava nada

@@ -2,7 +2,6 @@ import { FolderPlus, History, MoreVertical, Pencil, Plus, Trash2, Workflow } fro
 import { useMemo, useState } from "react";
 
 import { useAccounts } from "@/api/accounts";
-import { useReminderRecurrences } from "@/api/recurrences";
 import { useBudgets } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { useCategories, useTags } from "@/api/labels";
@@ -59,7 +58,6 @@ export default function RulesPage() {
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useReminderRecurrences({ activeOnly: false });
   const update = useUpdateRule();
   const removeRule = useDeleteRule();
   const removeGroup = useDeleteRuleGroup();
@@ -70,9 +68,8 @@ export default function RulesPage() {
       categories: nameMap(categories.data?.items),
       tags: nameMap(tags.data?.items),
       budgets: nameMap(budgets.data),
-      bills: nameMap(bills.data),
     }),
-    [accounts.data, categories.data, tags.data, budgets.data, bills.data],
+    [accounts.data, categories.data, tags.data, budgets.data],
   );
 
   const ruleList = rules.data ?? [];

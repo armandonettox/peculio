@@ -107,8 +107,6 @@ const DIALOGS: { route: string; opener: string; menuItem?: string; then?: string
   { route: "/categorias?aba=tags", opener: "Nova tag" },
   { route: "/orcamentos?modo=personalizado", opener: "Novo orçamento" },
   { route: "/contas-a-pagar", opener: "Nova recorrente" },
-  { route: "/contas-a-pagar", opener: "Nova recorrente", then: "Não, o valor varia" },
-  { route: "/contas-a-pagar", opener: "Nova recorrente", then: "Sim, valor fixo" },
   { route: "/cofrinhos", opener: "Novo cofrinho" },
   { route: "/regras", opener: "Nova regra" },
   { route: "/regras", opener: "Novo grupo" },
@@ -162,7 +160,7 @@ for (const theme of ["light", "dark"] as const) {
     await context.close();
 
     // Garante que a varredura nao virou um teste vazio se os botoes mudarem de nome
-    expect(scanned).toBeGreaterThanOrEqual(13);
+    expect(scanned).toBeGreaterThanOrEqual(11);
     expect(problems, problems.join("\n")).toEqual([]);
   });
 }

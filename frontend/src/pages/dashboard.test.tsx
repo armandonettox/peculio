@@ -396,7 +396,7 @@ it("vencimentos: atrasada aparece com selo de texto, nao so pela cor", async () 
   const items = within(section).getAllByRole("listitem");
   expect(items[0].querySelector("svg.text-muted-foreground")).toBeInTheDocument();
   expect(items[1].querySelector("svg.text-positive")).toBeInTheDocument();
-  expect(within(section).getByRole("link", { name: "Ver recorrentes" })).toHaveAttribute("href", "/contas-a-pagar");
+  expect(within(section).getByRole("link", { name: "Ver pendentes" })).toHaveAttribute("href", "/transacoes?situacao=pending");
 });
 
 it("vencimentos: faixa de valor quando minimo e maximo sao diferentes", async () => {
@@ -495,7 +495,7 @@ it("cofrinhos: mostra quanto ja foi guardado em cada um", async () => {
 
 // ---------- Alertas ----------
 
-it("alertas: contas atrasadas e orcamentos perto ou no limite aparecem no topo, com links", async () => {
+it("alertas: pendentes atrasados e orcamentos perto ou no limite aparecem no topo, com links", async () => {
   const upcoming = makeUpcoming({ items: [makeUpcomingItem({ overdue: true })] });
   const budgets = [makeBudget({ percent: 100 }), makeBudget({ percent: 85 })];
   server.use(
@@ -516,10 +516,13 @@ it("alertas: contas atrasadas e orcamentos perto ou no limite aparecem no topo, 
     </FakeAuth>,
   );
   const alerts = await screen.findByLabelText("Alertas");
-  expect(within(alerts).getByText("1 conta atrasada")).toBeInTheDocument();
+  expect(within(alerts).getByText("1 lançamento pendente atrasado")).toBeInTheDocument();
   expect(within(alerts).getByText("1 orçamento no limite")).toBeInTheDocument();
   expect(within(alerts).getByText(/1 orçamento perto do limite/)).toBeInTheDocument();
-  expect(within(alerts).getAllByRole("link", { name: /conta atrasada/ })[0]).toHaveAttribute("href", "/contas-a-pagar");
+  expect(within(alerts).getAllByRole("link", { name: /pendente atrasado/ })[0]).toHaveAttribute(
+    "href",
+    "/transacoes?situacao=pending",
+  );
 });
 
 it("alertas: sem nada para avisar, a faixa some por completo", async () => {
@@ -580,7 +583,7 @@ it("o grafico de patrimonio usa barras e nao repete um minigrafico", async () =>
 it("a faixa de alertas e uma regiao nomeada para leitor de tela", async () => {
   renderWithDashboard({ upcoming: makeUpcoming({ items: [makeUpcomingItem({ overdue: true })] }), netWorth: makeNetWorth() });
   const alerts = await screen.findByRole("region", { name: "Alertas" });
-  expect(within(alerts).getByText("1 conta atrasada")).toBeInTheDocument();
+  expect(within(alerts).getByText("1 lançamento pendente atrasado")).toBeInTheDocument();
 });
 
 it("este mes: a diferenca respeita as casas decimais da moeda (3 casas nao sao truncadas em 2)", async () => {
@@ -781,8 +784,6 @@ it("vencimentos: lancamento pendente aparece, o atrasado leva o selo e o link va
   expect(within(section).getByText("Condominio")).toBeInTheDocument();
   expect(within(section).getAllByText("Atrasada")).toHaveLength(1);
   expect(within(section).getByRole("link", { name: "Ver pendentes" })).toHaveAttribute("href", "/transacoes?situacao=pending");
-  // Sem nenhum lembrete de conta a pagar, o link para a pagina Recorrentes nao tem o que mostrar
-  expect(within(section).queryByRole("link", { name: "Ver recorrentes" })).not.toBeInTheDocument();
 });
 
 it("alertas: lancamento pendente atrasado aparece no topo com link para a lista de pendentes", async () => {

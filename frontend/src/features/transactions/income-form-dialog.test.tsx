@@ -94,13 +94,13 @@ it("Não foi recebida e Ignorar transação vão para o corpo do pedido", async 
   expect(tx.state.writes[0]!.body.splits[0]).toMatchObject({ type: "deposit", is_paid: false, ignored: true });
 });
 
-it("em Mais detalhes pergunta de quem veio, sem orcamento, e chama a conta de Recebimento esperado", async () => {
+it("em Mais detalhes pergunta de quem veio, sem orcamento e sem campo de conta a pagar", async () => {
   renderPage();
   await openIncomeForm();
   await userEvent.click(d().getByRole("button", { name: /Mais detalhes/ }));
   expect(d().getByLabelText("De quem")).toBeInTheDocument();
   expect(d().queryByLabelText("Orçamento")).not.toBeInTheDocument();
-  expect(d().getByLabelText("Recebimento esperado")).toBeInTheDocument();
+  expect(d().queryByLabelText("Recebimento esperado")).not.toBeInTheDocument();
   expect(d().getByRole("switch", { name: "Receita fixa" })).toBeInTheDocument();
   expect(d().getByRole("switch", { name: "Repetir" })).toBeInTheDocument();
 });

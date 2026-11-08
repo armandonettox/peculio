@@ -864,159 +864,20 @@ it("editar um lancamento ligado a orcamento arquivado mostra o nome dele marcado
   expect(d().getByLabelText("Orçamento")).toHaveValue(velhoOrc.id);
 });
 
-// ---------- Conta a pagar ----------
+// ---------- Conta a pagar saiu do formulario ----------
 
-const billOptionsList = () =>
-  within(d().getByLabelText("Conta a pagar")).getAllByRole("option").map((option) => option.textContent);
-
-it("saida mostra Ligar automaticamente, Nao ligar e so as contas a pagar ativas na moeda da conta", async () => {
-  renderPage();
-  await openNew();
-  await pick("Conta", "Nubank");
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-
-  expect(billOptionsList()).toEqual([
-    "Ligar automaticamente",
-    "Não ligar a nenhuma",
-    "Aluguel conta",
-    "Netflix conta",
-  ]);
-  expect(d().getByLabelText("Conta a pagar")).toHaveValue("");
-});
-
-it("por padrao o corpo nao leva bill_id, para o servidor ligar sozinho", async () => {
+it("o formulario nao tem o campo Conta a pagar, mesmo com recorrentes de lembrete cadastradas, e o corpo nao leva bill_id", async () => {
   const { tx } = renderPage();
   await fillBasicExpense();
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
+  expect(d().queryByLabelText("Recebimento esperado")).not.toBeInTheDocument();
   await submit();
 
   await waitFor(() => expect(tx.state.writes).toHaveLength(1));
   expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("bill_id");
 });
 
-it("escolher uma conta a pagar manda o bill_id dela", async () => {
-  const { tx } = renderPage();
-  await fillBasicExpense();
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await pick("Conta a pagar", "Netflix conta");
-  await submit();
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(netflixBill.id);
-});
-
-it("Nao ligar manda bill_id nulo", async () => {
-  const { tx } = renderPage();
-  await fillBasicExpense();
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await pick("Conta a pagar", "Não ligar a nenhuma");
-  await submit();
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0]).toHaveProperty("bill_id", null);
-});
-
-it("sem nenhuma conta a pagar cadastrada o campo nem aparece", async () => {
-  renderPage({ bills: [] });
-  await openNew();
-  await pick("Conta", "Nubank");
-  await waitFor(() => expect(d().getByLabelText("Orçamento")).toBeInTheDocument());
-  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
-});
-
-it("entrada sem recorrente de receita, transferencia e pagamento de divida nao tem o campo", async () => {
-  renderPage();
-  await openNew();
-  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toBeInTheDocument());
-
-  // So ha recorrentes de despesa nesta fixture: entrada nao acha nenhuma que combine
-  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
-  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
-  expect(d().queryByLabelText("Recebimento esperado")).not.toBeInTheDocument();
-  await userEvent.click(d().getByRole("radio", { name: "Transferência" }));
-  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
-
-  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
-  await userEvent.click(d().getByRole("button", { name: "Pagar uma dívida" }));
-  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
-});
-
-it("entrada com uma recorrente de receita mostra o Recebimento esperado, nao a Conta a pagar", async () => {
-  const salaryBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b9", name: "Salario", type: "deposit" });
-  const { tx } = renderPage({ bills: [netflixBill, salaryBill] });
-  await openNew();
-  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
-
-  await waitFor(() => expect(d().getByLabelText("Recebimento esperado")).toBeInTheDocument());
-  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
-  expect(
-    within(d().getByLabelText("Recebimento esperado")).getAllByRole("option").map((option) => option.textContent),
-  ).toEqual(["Ligar automaticamente", "Não ligar a nenhuma", "Salario"]);
-
-  await pick("Conta que recebe", "Nubank");
-  await type("Descrição", "Salario");
-  await type("De quem", "Empregador");
-  await type(/^Valor/, "300000");
-  await pick("Recebimento esperado", "Salario");
-  await submit();
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(salaryBill.id);
-});
-
-it("trocar o tipo e voltar para saida volta ao automatico", async () => {
-  renderPage();
-  await openNew();
-  await pick("Conta", "Nubank");
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await pick("Conta a pagar", "Netflix conta");
-
-  await userEvent.click(d().getByRole("radio", { name: "Entrada" }));
-  await userEvent.click(d().getByRole("radio", { name: "Saída" }));
-
-  expect(d().getByLabelText("Conta a pagar")).toHaveValue("");
-});
-
-it("o corpo depois de trocar para outra moeda nao leva a conta a pagar antiga", async () => {
-  const { tx } = renderPage();
-  await openNew();
-  await pick("Conta", "Nubank");
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await pick("Conta a pagar", "Netflix conta");
-
-  await pick("Conta", "Wise - USD");
-  await type("Descrição", "Assinatura");
-  await type("Para quem", "Servico");
-  await type(/^Valor/, "10");
-  await submit();
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0]).toMatchObject({ currency_code: "USD" });
-  expect(tx.state.writes[0].body.splits[0].bill_id).toBeUndefined();
-});
-
-it("no lancamento dividido cada linha escolhe a sua conta a pagar", async () => {
-  const { tx } = renderPage();
-  await fillBasicExpense();
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await pick("Conta a pagar", "Netflix conta");
-  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
-
-  // A primeira linha herda a escolha do lancamento
-  expect(d().getByLabelText("Conta a pagar da linha 1")).toHaveValue(netflixBill.id);
-  const amount1 = d().getByLabelText("Valor da linha 1");
-  await userEvent.clear(amount1);
-  await userEvent.type(amount1, "100000");
-  await userEvent.click(d().getByRole("button", { name: "Adicionar linha" }));
-  await userEvent.type(d().getByLabelText("Descrição da linha 2"), "Aluguel do mes");
-  await userEvent.type(d().getByLabelText("Valor da linha 2"), "234,50");
-  await pick("Conta a pagar da linha 2", "Aluguel conta");
-  await submit();
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits.map((split) => split.bill_id)).toEqual([netflixBill.id, aluguelBill.id]);
-});
-
-it("editar um lancamento ligado reabre a conta a pagar e da para trocar", async () => {
+it("editar um lancamento que estava ligado a uma conta a pagar abre sem o campo e salva sem bill_id", async () => {
   const transaction = makeTransaction({}, [
     {
       description: "Netflix",
@@ -1031,66 +892,12 @@ it("editar um lancamento ligado reabre a conta a pagar e da para trocar", async 
   await screen.findByText("Netflix", { selector: "p" });
   await openEdit("Netflix");
 
-  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toHaveValue(netflixBill.id));
-  await pick("Conta a pagar", "Aluguel conta");
+  await waitFor(() => expect(d().getByLabelText("Orçamento")).toBeInTheDocument());
+  expect(d().queryByLabelText("Conta a pagar")).not.toBeInTheDocument();
   await userEvent.click(d().getByRole("button", { name: "Salvar" }));
 
   await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0].bill_id).toBe(aluguelBill.id);
-});
-
-it("editar um lancamento sem conta a pagar abre em Nao ligar e salvar mantem solto", async () => {
-  const transaction = makeTransaction({}, [
-    {
-      description: "Padaria",
-      source_account_id: nubank.id,
-      source_account_name: "Nubank",
-      destination_account_name: "Padaria do Ze",
-      bill_id: null,
-    },
-  ]);
-  const { tx } = renderPage({ transactions: [transaction] });
-  await screen.findByText("Padaria", { selector: "p" });
-  await openEdit("Padaria");
-
-  await waitFor(() => expect(d().getByLabelText("Conta a pagar")).toHaveValue("none"));
-  await userEvent.click(d().getByRole("button", { name: "Salvar" }));
-
-  await waitFor(() => expect(tx.state.writes).toHaveLength(1));
-  expect(tx.state.writes[0].body.splits[0]).toHaveProperty("bill_id", null);
-});
-
-it("editar um lancamento ligado a conta arquivada mostra o nome dela marcado", async () => {
-  const transaction = makeTransaction({}, [
-    {
-      description: "Padaria",
-      source_account_id: nubank.id,
-      source_account_name: "Nubank",
-      destination_account_name: "Padaria do Ze",
-      bill_id: velhaBill.id,
-    },
-  ]);
-  renderPage({ transactions: [transaction] });
-  await screen.findByText("Padaria", { selector: "p" });
-  await openEdit("Padaria");
-
-  await waitFor(() => expect(billOptionsList()).toContain("Velha conta (arquivada)"));
-  expect(d().getByLabelText("Conta a pagar")).toHaveValue(velhaBill.id);
-});
-
-it("desfazer a divisao volta com a conta a pagar da primeira linha", async () => {
-  renderPage();
-  await fillBasicExpense();
-  await waitFor(() => expect(billOptionsList()).toContain("Netflix conta"));
-  await userEvent.click(d().getByRole("button", { name: "Dividir lançamento" }));
-  await waitFor(() =>
-    expect(within(d().getByLabelText("Conta a pagar da linha 1")).getAllByRole("option").length).toBeGreaterThan(2),
-  );
-  await pick("Conta a pagar da linha 1", "Aluguel conta");
-
-  await userEvent.click(d().getByRole("button", { name: "Desfazer divisão" }));
-
-  expect(d().getByLabelText("Conta a pagar")).toHaveValue(aluguelBill.id);
+  expect(tx.state.writes[0].body.splits[0]).not.toHaveProperty("bill_id");
 });
 
 // ---------- Valor original em outra moeda (so informativo) ----------

@@ -18,7 +18,6 @@ const lookups: NameLookups = {
   categories: new Map([["cat-1", "Mercado"]]),
   tags: new Map([["tag-1", "casa"]]),
   budgets: new Map([["bud-1", "Casa"]]),
-  bills: new Map([["bill-1", "Netflix"]]),
 };
 
 describe("triggerSummary", () => {
@@ -43,7 +42,8 @@ describe("actionSummary", () => {
     [{ kind: "set_category", target_id: "cat-1" }, "Categoria: Mercado"],
     [{ kind: "add_tag", target_id: "tag-1" }, "Tag: casa"],
     [{ kind: "set_budget", target_id: "bud-1" }, "Orçamento: Casa"],
-    [{ kind: "set_bill", target_id: "bill-1" }, "Conta a pagar: Netflix"],
+    // Regra antiga: a conta a pagar nao existe mais, entao o nome cai em "item removido"
+    [{ kind: "set_bill", target_id: "bill-1" }, "Conta a pagar: item removido"],
     [{ kind: "set_category", target_id: "sumiu" }, "Categoria: item removido"],
     [{ kind: "add_tag", target_id: "sumiu" }, "Tag: item removido"],
     [{ kind: "set_budget", target_id: "sumiu" }, "Orçamento: item removido"],
@@ -63,15 +63,15 @@ it("todo campo, operacao e acao tem rotulo", () => {
 });
 
 describe("previewChanges", () => {
-  const none = { category_id: null, budget_id: null, bill_id: null, add_tag_ids: [] };
+  const none = { category_id: null, budget_id: null, add_tag_ids: [] };
 
-  it("uma linha por campo, na ordem categoria, orcamento, conta a pagar e tags", () => {
+  it("uma linha por campo, na ordem categoria, orcamento e tags", () => {
     expect(
       previewChanges(
-        { category_id: "cat-1", budget_id: "bud-1", bill_id: "bill-1", add_tag_ids: ["tag-1", "sumiu"] },
+        { category_id: "cat-1", budget_id: "bud-1", add_tag_ids: ["tag-1", "sumiu"] },
         lookups,
       ),
-    ).toEqual(["Categoria: Mercado", "Orçamento: Casa", "Conta a pagar: Netflix", "Tag: casa", "Tag: item removido"]);
+    ).toEqual(["Categoria: Mercado", "Orçamento: Casa", "Tag: casa", "Tag: item removido"]);
   });
 
   it("campos que nao mudam nao aparecem", () => {

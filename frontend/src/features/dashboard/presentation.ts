@@ -148,21 +148,12 @@ export type DashboardAlert = { key: string; text: string; href: string; level: "
 
 /** Contas atrasadas e orcamentos perto ou no limite, na ordem de mais para menos grave. */
 export function buildAlerts(upcoming: UpcomingItem[], budgets: BudgetProgress[]): DashboardAlert[] {
-  // Conta a pagar (lembrete) atrasada leva a pagina Recorrentes; lancamento pendente atrasado, a lista de pendentes
-  const overdue = upcoming.filter((item) => item.overdue && item.kind !== "pending").length;
+  // Conta a pagar e um lancamento pendente: atrasado e o que ficou pendente com a data vencida
   const overduePending = upcoming.filter((item) => item.overdue && item.kind === "pending").length;
   const over = budgets.filter((budget) => progressState(budget.percent) === "over").length;
   const warning = budgets.filter((budget) => progressState(budget.percent) === "warning").length;
 
   const alerts: DashboardAlert[] = [];
-  if (overdue > 0) {
-    alerts.push({
-      key: "overdue",
-      text: i18n.t("dashboard.presentation.overdue", { count: overdue }),
-      href: "/contas-a-pagar",
-      level: "destructive",
-    });
-  }
   if (overduePending > 0) {
     alerts.push({
       key: "overduePending",

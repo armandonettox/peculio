@@ -2,7 +2,6 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { useAccounts } from "@/api/accounts";
-import { useReminderRecurrences } from "@/api/recurrences";
 import { useBudgets } from "@/api/budgets";
 import { getErrorMessage } from "@/api/error-messages";
 import { ApiError } from "@/api/errors";
@@ -48,7 +47,7 @@ type Option = { id: string; name: string };
 
 const NO_ERRORS: DraftErrors = { triggers: [], actions: [] };
 // Acoes de alvo unico: o tipo que ja esta em outra linha nao aparece de novo
-const SINGLE_KINDS: ActionKind[] = ["set_category", "set_budget", "set_bill"];
+const SINGLE_KINDS: ActionKind[] = ["set_category", "set_budget"];
 
 type Props = {
   // Sem `rule` o dialogo cria; com `rule` edita
@@ -66,7 +65,6 @@ export function RuleFormDialog({ rule, onClose }: Props) {
   const categories = useCategories({ search: "" });
   const tags = useTags({ search: "" });
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useReminderRecurrences({ activeOnly: false });
 
   const [draft, setDraft] = useState<RuleDraft>(() => (rule ? draftFromRule(rule) : emptyDraft()));
   const [errors, setErrors] = useState<DraftErrors>(NO_ERRORS);
@@ -77,7 +75,7 @@ export function RuleFormDialog({ rule, onClose }: Props) {
     set_category: categories.data?.items ?? [],
     add_tag: tags.data?.items ?? [],
     set_budget: budgets.data ?? [],
-    set_bill: bills.data ?? [],
+    set_bill: [],
   };
 
   const patch = (changes: Partial<RuleDraft>) => setDraft((current) => ({ ...current, ...changes }));

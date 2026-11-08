@@ -4,7 +4,6 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useAccounts, useCurrencies } from "@/api/accounts";
 import {
   useCreateRecurrence,
-  useReminderRecurrences,
   useUpdateRecurrence,
   type Recurrence,
   type RecurrenceFrequency,
@@ -46,7 +45,6 @@ import {
   validateForm,
   accountOf,
   budgetAllowed,
-  billAllowed,
   installmentsAllowed,
   type FormContext,
   type FormErrors,
@@ -123,7 +121,6 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
   const tags = useTags({ search: "" });
   // Todos, inclusive arquivados: editar um lancamento ligado a um orcamento arquivado precisa mostrar o nome dele
   const budgets = useBudgets({ activeOnly: false });
-  const bills = useReminderRecurrences({ activeOnly: false });
   const create = useCreateTransaction();
   const update = useUpdateTransaction();
   const createRecurrence = useCreateRecurrence();
@@ -174,7 +171,6 @@ export function TransactionFormDialog({ transaction, repeating = false, recurren
             categories={categories.data?.items ?? []}
             tags={tags.data?.items ?? []}
             budgets={budgets.data ?? []}
-            bills={bills.data ?? []}
             create={create}
             update={update}
             createRecurrence={createRecurrence}
@@ -199,7 +195,6 @@ type BodyProps = {
   categories: Category[];
   tags: Tag[];
   budgets: Budget[];
-  bills: Recurrence[];
   create: ReturnType<typeof useCreateTransaction>;
   update: ReturnType<typeof useUpdateTransaction>;
   createRecurrence: ReturnType<typeof useCreateRecurrence>;
@@ -218,7 +213,6 @@ function FormBody({
   categories,
   tags,
   budgets,
-  bills,
   create,
   update,
   createRecurrence,
@@ -270,14 +264,7 @@ function FormBody({
   const budgetOptions = (selectedId: string) =>
     budgets.filter((budget) => budget.currency_code === currency && (budget.active || budget.id === selectedId));
   const clearBudgets = (rows: SplitDraft[] | null) =>
-    rows?.map((row) => ({ ...row, budgetId: "", billId: "" })) ?? null;
-  // Recorrentes (lembrete) do mesmo tipo e moeda da conta; uma arquivada so aparece se ja for a escolhida
-  const billOptions = (selectedId: string) =>
-    bills.filter((bill) => bill.type === state.kind && bill.currency_code === currency && (bill.active || bill.id === selectedId));
-  // "Conta a pagar" so faz sentido em saida; em entrada e um recebimento esperado
-  const billFieldLabel = state.kind === "deposit"
-    ? t("transactions.transactionFormDialog.recebimentoEsperado")
-    : t("transactions.transactionFormDialog.contaAPagar");
+    rows?.map((row) => ({ ...row, budgetId: "" })) ?? null;
 
   // Saida so mostra categoria de saida, entrada so de entrada; transferencia mostra as duas
   // (nao e nem uma coisa nem outra, e so dinheiro mudando de conta). A ja escolhida continua
@@ -330,12 +317,11 @@ function FormBody({
         // Orcamento so vale em saida, e a categoria escolhida pode nao ser do novo sentido:
         // trocar o tipo solta os dois
         budgetId: "",
-        billId: "",
         categoryId: "",
         splits:
           kind === "transfer"
             ? null
-            : (state.splits?.map((row) => ({ ...row, budgetId: "", billId: "", categoryId: "" })) ?? null),
+            : (state.splits?.map((row) => ({ ...row, budgetId: "", categoryId: "" })) ?? null),
       },
       "counterparty",
       "foreignAmount",
@@ -360,7 +346,6 @@ function FormBody({
           amount: current.amount,
           categoryId: current.categoryId,
           budgetId: current.budgetId,
-          billId: current.billId,
           tagIds: current.tagIds,
         }),
       ],
@@ -376,7 +361,6 @@ function FormBody({
         description: current.description || first?.description || "",
         categoryId: first?.categoryId ?? current.categoryId,
         budgetId: first?.budgetId ?? current.budgetId,
-        billId: first?.billId ?? current.billId,
         tagIds: first?.tagIds ?? current.tagIds,
       };
     });
@@ -620,7 +604,7 @@ function FormBody({
                     ...(state.originalCurrency !== "" && next?.currency_code === state.originalCurrency
                       ? { originalCurrency: "", originalAmount: "" }
                       : {}),
-                    ...(sameCurrency ? {} : { budgetId: "", billId: "", splits: clearBudgets(state.splits) }),
+                    ...(sameCurrency ? {} : { budgetId: "", splits: clearBudgets(state.splits) }),
                   },
                   "accountId",
                   "foreignAmount",
@@ -740,7 +724,6 @@ function FormBody({
                     ownCounterparty: true,
                     counterpartyName: "",
                     budgetId: "",
-                    billId: "",
                     splits: clearBudgets(state.splits),
                   },
                   "counterparty",
@@ -936,29 +919,6 @@ function FormBody({
                     )}
                   </FormField>
                 )}
-                {billAllowed(state) && billOptions(row.billId).length > 0 && (
-                  <FormField
-                    id={`${row.key}-bill`}
-                    label={t(state.kind === "deposit" ? "transactions.form.rowBillIncome" : "transactions.form.rowBill", { n: index + 1 })}
-                  >
-                    {(props) => (
-                      <Select
-                        {...props}
-                        value={row.billId}
-                        onChange={(e) => changeSplit(row.key, { billId: e.target.value })}
-                      >
-                        <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
-                        <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
-                        {billOptions(row.billId).map((bill) => (
-                          <option key={bill.id} value={bill.id}>
-                            {bill.name}
-                            {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                  </FormField>
-                )}
                 <TagPicker
                   tags={tags}
                   selected={row.tagIds}
@@ -1019,22 +979,6 @@ function FormBody({
                     <option key={budget.id} value={budget.id}>
                       {budget.name}
                       {budget.active ? "" : ` ${t("transactions.transactionFormDialog.arquivado")}`}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            </FormField>
-          )}
-          {billAllowed(state) && billOptions(state.billId).length > 0 && (
-            <FormField id="tx-bill" label={billFieldLabel}>
-              {(props) => (
-                <Select {...props} value={state.billId} onChange={(e) => patch({ billId: e.target.value })}>
-                  <option value="">{t("transactions.transactionFormDialog.ligarAutomaticamente")}</option>
-                  <option value="none">{t("transactions.transactionFormDialog.naoLigarANenhuma")}</option>
-                  {billOptions(state.billId).map((bill) => (
-                    <option key={bill.id} value={bill.id}>
-                      {bill.name}
-                      {bill.active ? "" : ` ${t("transactions.transactionFormDialog.arquivada")}`}
                     </option>
                   ))}
                 </Select>
