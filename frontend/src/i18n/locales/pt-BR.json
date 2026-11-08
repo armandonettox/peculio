@@ -829,7 +829,8 @@
     "transactionRow": {
       "conciliado": "Conciliado",
       "conferido": "Conferido",
-      "anexos": "Anexos"
+      "anexos": "Anexos",
+      "gerenciarRecorrencia": "Gerenciar recorrência"
     },
     "transactionsTable": {
       "comOFocoNuma": "Com o foco numa linha: setas ou J e K andam, Enter edita, T cria, Espaço marca.",
@@ -1262,6 +1263,11 @@
       },
       "matchText": "Liga sozinha quando contém “{{text}}”",
       "noMatchText": "Sem ligação automática"
+    },
+    "manageDialog": {
+      "title": "Recorrência",
+      "description": "Ver, editar, pausar ou excluir a recorrência deste lançamento.",
+      "loading": "Carregando a recorrência..."
     }
   },
   "piggy-banks": {

@@ -30,6 +30,16 @@ export function useRecurrences({ includePaused }: { includePaused: boolean }) {
   });
 }
 
+/** Uma recorrencia, pelo id (a tela de transacoes abre a gestao a partir de um lancamento que veio dela). */
+export function useRecurrence(id: string | null) {
+  return useQuery({
+    queryKey: [...recurrencesKey, "one", id],
+    enabled: id !== null,
+    queryFn: () =>
+      unwrap(api.client.GET("/api/v1/recurrences/{recurrence_id}", { params: { path: { recurrence_id: id! } } })),
+  });
+}
+
 /** Recorrentes do modo de lembrete com o ultimo e o proximo vencimento (data `on`: AAAA-MM-DD). */
 export function useRecurrencesStatus({ on, includeArchived }: { on: string; includeArchived: boolean }) {
   return useQuery({

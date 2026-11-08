@@ -829,7 +829,8 @@
     "transactionRow": {
       "conciliado": "Reconciled",
       "conferido": "Cleared",
-      "anexos": "Attachments"
+      "anexos": "Attachments",
+      "gerenciarRecorrencia": "Manage recurrence"
     },
     "transactionsTable": {
       "comOFocoNuma": "With focus on a row: arrows or J and K move, Enter edits, T creates, Space selects.",
@@ -1262,6 +1263,11 @@
       },
       "matchText": "Auto-links when it contains “{{text}}”",
       "noMatchText": "No automatic link"
+    },
+    "manageDialog": {
+      "title": "Recurrence",
+      "description": "View, edit, pause or delete the recurrence of this transaction.",
+      "loading": "Loading the recurrence..."
     }
   },
   "piggy-banks": {

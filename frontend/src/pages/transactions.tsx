@@ -14,6 +14,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AttachmentsDialog } from "@/features/attachments/attachments-dialog";
+import { RecurrenceManageDialog } from "@/features/recurrences/recurrence-manage-dialog";
 import { FilterDrawer } from "@/features/transactions/filter-drawer";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import type { SavedFilter } from "@/features/transactions/saved-filters";
@@ -85,6 +86,8 @@ export default function TransactionsPage() {
   const [dialog, setDialog] = useState<"new" | Transaction | null>(null);
   const [removing, setRemoving] = useState<Transaction | null>(null);
   const [attaching, setAttaching] = useState<Transaction | null>(null);
+  // A recorrencia aberta para gerir (id): a gestao que antes ficava so na pagina Recorrentes
+  const [managingRecurrence, setManagingRecurrence] = useState<string | null>(null);
   const remove = useDeleteTransaction();
   const settle = useSettleTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
@@ -261,6 +264,7 @@ export default function TransactionsPage() {
             onOpen={setDialog}
             onRemove={setRemoving}
             onSettle={(transaction) => settle.mutate(transaction.id)}
+            onManageRecurrence={(transaction) => setManagingRecurrence(transaction.recurrence_id)}
           />
         ) : (
           <div className="flex max-w-4xl flex-col gap-6">
@@ -278,6 +282,7 @@ export default function TransactionsPage() {
                       onRemove={setRemoving}
                       onAttachments={setAttaching}
                       onSettle={(item) => settle.mutate(item.id)}
+                      onManageRecurrence={(item) => setManagingRecurrence(item.recurrence_id)}
                     />
                   ))}
                 </ul>
@@ -468,6 +473,10 @@ export default function TransactionsPage() {
       )}
 
       {attaching && <AttachmentsDialog transaction={attaching} onClose={() => setAttaching(null)} />}
+
+      {managingRecurrence && (
+        <RecurrenceManageDialog recurrenceId={managingRecurrence} onClose={() => setManagingRecurrence(null)} />
+      )}
 
       {dialog &&
         (dialog !== "new" && usesExpenseForm(dialog, accounts.data ?? []) ? (

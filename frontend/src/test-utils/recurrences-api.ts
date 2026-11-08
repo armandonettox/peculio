@@ -171,6 +171,12 @@ export function fakeRecurrencesApi(initial: Item[] = []) {
       return HttpResponse.json(created, { status: 201 });
     }),
 
+    http.get("*/api/v1/recurrences/:id", ({ params }) => {
+      state.requests.push({ method: "GET", path: `/recurrences/${params.id}` });
+      const found = state.items.find((item) => item.id === params.id);
+      return found ? HttpResponse.json(found) : fail({ status: 404, code: "recurrence_not_found" });
+    }),
+
     http.patch("*/api/v1/recurrences/:id", async ({ request, params }) => {
       const body = (await request.json()) as Record<string, unknown>;
       state.requests.push({ method: "PATCH", path: `/recurrences/${params.id}`, body });

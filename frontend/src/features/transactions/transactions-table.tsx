@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CircleCheck, Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleCheck, Keyboard, Lock, Maximize2, MoreHorizontal, Pencil, Repeat, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useCurrencies, type Account } from "@/api/accounts";
@@ -54,6 +54,8 @@ type Props = {
   onOpen: (transaction: Transaction) => void;
   onRemove: (transaction: Transaction) => void;
   onSettle: (transaction: Transaction) => void;
+  // So aparece em lancamento que veio de uma recorrencia
+  onManageRecurrence?: (transaction: Transaction) => void;
 };
 
 type Creating = { id: number; initial: QuickRow; focus: QuickColumn };
@@ -71,7 +73,7 @@ const iconButton =
  * limpa; com algo marcado, uma barra oferece mudar categoria, mudar data, duplicar e excluir de uma vez. O que a linha
  * nao mostra (dividir, outra moeda, tags, orcamento...) fica no formulario completo.
  */
-export function TransactionsTable({ items, total, categories, accounts, onOpen, onRemove, onSettle }: Props) {
+export function TransactionsTable({ items, total, categories, accounts, onOpen, onRemove, onSettle, onManageRecurrence }: Props) {
   const { t } = useTranslation();
   const currencies = useCurrencies();
   const create = useCreateTransaction();
@@ -426,6 +428,12 @@ export function TransactionsTable({ items, total, categories, accounts, onOpen, 
                           <Maximize2 className="mr-2 size-4" />
                           {t("transactions.table.expandir")}
                         </DropdownMenuItem>
+                        {transaction.recurrence_id && onManageRecurrence && (
+                          <DropdownMenuItem onClick={() => onManageRecurrence(transaction)}>
+                            <Repeat className="mr-2 size-4" />
+                            {t("transactions.transactionRow.gerenciarRecorrencia")}
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => onRemove(transaction)} className="text-destructive focus:text-destructive">
                           <Trash2 className="mr-2 size-4" />
                           {t("common.excluir")}

@@ -1,4 +1,4 @@
-import { CircleCheck, Lock, MoreVertical, Paperclip, Pencil, Trash2 } from "lucide-react";
+import { CircleCheck, Lock, MoreVertical, Paperclip, Pencil, Repeat, Trash2 } from "lucide-react";
 
 import type { Category, Tag } from "@/api/labels";
 import type { Transaction, TransactionSplit } from "@/api/transactions";
@@ -56,9 +56,11 @@ type RowProps = {
   onRemove: (transaction: Transaction) => void;
   onAttachments: (transaction: Transaction) => void;
   onSettle: (transaction: Transaction) => void;
+  // So aparece em lancamento que veio de uma recorrencia
+  onManageRecurrence?: (transaction: Transaction) => void;
 } & Lookups;
 
-export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments, onSettle }: RowProps) {
+export function TransactionRow({ transaction, categories, tags, onEdit, onRemove, onAttachments, onSettle, onManageRecurrence }: RowProps) {
   const { t } = useTranslation();
   const { unpaid } = paymentState(transaction);
   const splits = transaction.splits;
@@ -140,6 +142,12 @@ export function TransactionRow({ transaction, categories, tags, onEdit, onRemove
                 <Pencil />
                 {t("common.editar")}
               </DropdownMenuItem>
+              {transaction.recurrence_id && onManageRecurrence && (
+                <DropdownMenuItem onSelect={() => onManageRecurrence(transaction)}>
+                  <Repeat />
+                  {t("transactions.transactionRow.gerenciarRecorrencia")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onSelect={() => onAttachments(transaction)}>
                 <Paperclip />
                 {t("transactions.transactionRow.anexos")}

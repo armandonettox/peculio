@@ -12,6 +12,7 @@ import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { LocationProbe } from "@/test-utils/location-probe";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
+import { fakeRecurrencesApi, makeRecurrence } from "@/test-utils/recurrences-api";
 import { deposit, makeSplit, makeTransaction, transfer } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
 import TransactionsPage from "./transactions";
@@ -695,4 +696,52 @@ it("o link de um cartao de resumo mantem a situacao escolhida", async () => {
 
   await waitFor(() => expect(location()).toContain("tipo=withdrawal"));
   expect(location()).toContain("situacao=pending");
+});
+
+// ---------- Gestao de recorrencia (antes so na pagina Recorrentes) ----------
+
+const aluguel = makeRecurrence({ name: "Aluguel do apartamento" });
+const fromRecurrence = () =>
+  makeTransaction({ recurrence_id: aluguel.id }, [{ description: "Aluguel", date: appToday() }]);
+
+it("o menu da linha de uma recorrencia oferece Gerenciar recorrencia e abre o resumo dela", async () => {
+  server.use(...fakeRecurrencesApi([aluguel]).handlers);
+  renderPage({ transactions: [fromRecurrence()] });
+  await screen.findByText("Aluguel");
+  await userEvent.click(screen.getByRole("button", { name: /^Ações do lançamento/ }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Gerenciar recorrência" }));
+
+  const dialog = await screen.findByRole("dialog", { name: "Aluguel do apartamento" });
+  expect(within(dialog).getByRole("button", { name: "Pausar" })).toBeInTheDocument();
+});
+
+it("lancamento comum nao tem Gerenciar recorrencia no menu", async () => {
+  renderPage({ transactions: [tx("Compra comum")] });
+  await screen.findByText("Compra comum");
+  await userEvent.click(screen.getByRole("button", { name: /^Ações do lançamento/ }));
+  expect(await screen.findByRole("menuitem", { name: "Editar" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "Gerenciar recorrência" })).not.toBeInTheDocument();
+});
+
+it("na visao em tabela o menu da linha tambem gerencia a recorrencia", async () => {
+  window.localStorage.setItem("peculio:transactions-view", "table");
+  server.use(...fakeRecurrencesApi([aluguel]).handlers);
+  renderPage({ transactions: [fromRecurrence(), tx("Compra comum")] });
+  await screen.findByText("Aluguel");
+
+  const rows = screen.getAllByRole("row");
+  const recurring = rows.find((item) => within(item).queryByText("Aluguel"))!;
+  await userEvent.click(within(recurring).getByRole("button", { name: "Ações" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Gerenciar recorrência" }));
+  expect(await screen.findByRole("dialog", { name: "Aluguel do apartamento" })).toBeInTheDocument();
+});
+
+it("na visao em tabela, lancamento comum nao oferece Gerenciar recorrencia", async () => {
+  window.localStorage.setItem("peculio:transactions-view", "table");
+  renderPage({ transactions: [tx("Compra comum")] });
+  await screen.findByText("Compra comum");
+  const row = screen.getAllByRole("row").find((item) => within(item).queryByText("Compra comum"))!;
+  await userEvent.click(within(row).getByRole("button", { name: "Ações" }));
+  expect(await screen.findByRole("menuitem", { name: "Editar" })).toBeInTheDocument();
+  expect(screen.queryByRole("menuitem", { name: "Gerenciar recorrência" })).not.toBeInTheDocument();
 });
