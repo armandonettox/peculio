@@ -1,3 +1,4 @@
+import uuid
 from datetime import date, timedelta
 
 import pytest
@@ -56,19 +57,15 @@ def test_a_template_with_null_bill_id_comes_back_with_null(client, headers, acco
     assert "bill_id" in split and split["bill_id"] is None
 
 
-def test_a_template_with_a_bill_id_keeps_it(client, headers, account_id):
-    bill = client.post(
-        "/api/v1/recurrences",
-        json={"name": "Conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "10.00", "amount_max": "2000.00",
-              "first_date": FUTURE, "frequency": "monthly"},
-        headers=headers,
-    ).json()["id"]
-    split = stored_split(client, headers, make(client, headers, account_id, bill_id=bill).json())
-    assert split["bill_id"] == bill
-
-
 def test_the_top_level_fields_always_come_back(client, headers, account_id):
     body = make(client, headers, account_id).json()
     for field in ("end_date", "max_occurrences", "next_date", "last_error", "created_count", "ended", "active"):
         assert field in body
     assert body["end_date"] is None and body["max_occurrences"] is None and body["last_error"] is None
+
+
+def test_a_template_with_a_deprecated_bill_id_is_still_stored_as_sent(client, headers, account_id):
+    # Modelos antigos (e clientes da API) ainda mandam bill_id: o campo e aceito e guardado, mas nao liga nada
+    bill = str(uuid.uuid4())
+    split = stored_split(client, headers, make(client, headers, account_id, bill_id=bill).json())
+    assert split["bill_id"] == bill

@@ -41,38 +41,6 @@ def account_id(client, headers):
     return make_account(client, headers)
 
 
-def make_bill(client, headers, name="Netflix", first="2026-06-20", frequency="monthly", **overrides):
-    body = {
-        "name": name,
-        "auto_create": False,
-        "type": "withdrawal",
-        "currency_code": "BRL",
-        "amount_min": "40.00",
-        "amount_max": "60.00",
-        "first_date": first,
-        "frequency": frequency,
-        **overrides,
-    }
-    resp = client.post(BILLS_URL, json=body, headers=headers)
-    assert resp.status_code == 201, resp.text
-    return resp.json()["id"]
-
-
-def pay_bill(client, headers, account_id, bill_id, on, amount="50.00"):
-    split = {
-        "type": "withdrawal",
-        "date": on,
-        "description": "Pagamento ficticio",
-        "amount": amount,
-        "currency_code": "BRL",
-        "account_id": account_id,
-        "counterparty_name": "Empresa Exemplo",
-        "bill_id": bill_id,
-    }
-    resp = client.post(TX_URL, json={"splits": [split]}, headers=headers)
-    assert resp.status_code == 201, resp.text
-
-
 def recurrence_split(account_id, kind="withdrawal", amount="1000.00", currency="BRL", **extra):
     split = {
         "type": kind,
@@ -125,122 +93,12 @@ def test_empty_response(client, headers):
     assert resp.json() == {"as_of": "2026-06-15", "days": 30, "items": []}
 
 
-def test_bill_item_has_all_the_fields(client, headers):
-    bill_id = make_bill(client, headers, first="2026-06-20")
-    body = get(client, headers).json()
-    assert body["as_of"] == "2026-06-15"
-    assert body["days"] == 30
-    assert body["items"] == [
-        {
-            "kind": "bill",
-            "id": bill_id,
-            "name": "Netflix",
-            "date": "2026-06-20",
-            "days_until": 5,
-            "overdue": False,
-            "direction": "out",
-            "currency_code": "BRL",
-            "amount_min": "40.00",
-            "amount_max": "60.00",
-        }
-    ]
-
-
-def test_as_of_and_days_until_come_from_the_app_clock(client, headers, monkeypatch):
-    make_bill(client, headers, first="2026-06-20")
+def test_as_of_and_days_until_come_from_the_app_clock(client, headers, account_id, monkeypatch):
+    pending(client, headers, account_id, "Internet", on="2026-06-20")
     monkeypatch.setattr(clock, "today", lambda now=None: date(2026, 6, 18))
     body = get(client, headers).json()
     assert body["as_of"] == "2026-06-18"
     assert body["items"][0]["days_until"] == 2
-
-
-# ---------- Contas a pagar ----------
-
-
-def test_overdue_bill_has_negative_days_and_the_last_due_date(client, headers):
-    make_bill(client, headers, first="2026-01-20")
-    (item,) = items_of(client, headers, days=1)
-    assert item["date"] == "2026-05-20"
-    assert item["days_until"] == -26
-    assert item["overdue"] is True
-
-
-def test_overdue_bill_is_listed_even_far_outside_the_window(client, headers):
-    make_bill(client, headers, first="2026-06-01", frequency="monthly")
-    (item,) = items_of(client, headers, days=1)
-    assert item["overdue"] is True
-    assert item["date"] == "2026-06-01"
-
-
-def test_paid_bill_is_not_overdue_and_shows_the_next_due_date(client, headers, account_id):
-    bill_id = make_bill(client, headers, first="2026-01-20")
-    pay_bill(client, headers, account_id, bill_id, "2026-05-20")
-    (item,) = items_of(client, headers)
-    assert item["overdue"] is False
-    assert item["date"] == "2026-06-20"
-    assert item["days_until"] == 5
-
-
-def test_bill_due_today_and_unpaid_is_not_overdue(client, headers):
-    make_bill(client, headers, first="2026-06-15")
-    (item,) = items_of(client, headers)
-    assert (item["date"], item["days_until"], item["overdue"]) == ("2026-06-15", 0, False)
-
-
-def test_bill_due_today_and_paid_shows_the_next_one(client, headers, account_id):
-    bill_id = make_bill(client, headers, first="2026-06-15")
-    pay_bill(client, headers, account_id, bill_id, "2026-06-15")
-    (item,) = items_of(client, headers)
-    assert (item["date"], item["days_until"]) == ("2026-07-15", 30)
-
-
-def test_window_includes_the_last_day_and_excludes_the_day_after(client, headers):
-    make_bill(client, headers, first="2026-06-15", name="Hoje")
-    make_bill(client, headers, first="2026-07-10", name="No limite")
-    make_bill(client, headers, first="2026-07-11", name="Depois do limite")
-    found = items_of(client, headers, days=25)
-    # Hoje (nao paga) e o vencimento do dia 10/07 (25 dias); o de 11/07 fica fora
-    assert names(found) == ["Hoje", "No limite"]
-
-
-def test_bill_outside_the_window_is_left_out_until_the_window_grows(client, headers):
-    make_bill(client, headers, first="2026-08-01")
-    assert items_of(client, headers, days=30) == []
-    assert names(items_of(client, headers, days=60)) == ["Netflix"]
-
-
-def test_next_due_already_paid_in_advance_is_not_listed(client, headers, account_id):
-    bill_id = make_bill(client, headers, first="2026-05-20")
-    pay_bill(client, headers, account_id, bill_id, "2026-05-20")
-    pay_bill(client, headers, account_id, bill_id, "2026-06-18")
-    assert items_of(client, headers) == []
-
-
-def test_archived_bill_is_ignored_even_when_overdue(client, headers):
-    bill_id = make_bill(client, headers, first="2026-01-20")
-    make_bill(client, headers, name="Ativa", first="2026-06-25")
-    client.patch(f"{BILLS_URL}/{bill_id}", json={"active": False}, headers=headers)
-    assert names(items_of(client, headers)) == ["Ativa"]
-
-
-def test_overdue_bill_has_a_single_entry_even_when_the_next_due_is_in_the_window(client, headers):
-    # Vencimentos de 02/06, 09/06 (sem pagamento) e 16/06 (dentro da janela)
-    make_bill(client, headers, first="2026-06-02", frequency="weekly")
-    (item,) = items_of(client, headers, days=30)
-    assert (item["date"], item["days_until"], item["overdue"]) == ("2026-06-09", -6, True)
-
-
-def test_weekly_bill_next_due(client, headers, account_id):
-    bill_id = make_bill(client, headers, first="2026-06-01", frequency="weekly")
-    pay_bill(client, headers, account_id, bill_id, "2026-06-15")
-    (item,) = items_of(client, headers, days=10)
-    assert (item["date"], item["days_until"]) == ("2026-06-22", 7)
-
-
-def test_bill_amounts_use_the_currency_decimal_places(client, headers):
-    make_bill(client, headers, first="2026-06-20", currency_code="JPY", amount_min="1500", amount_max="1800")
-    (item,) = items_of(client, headers)
-    assert (item["currency_code"], item["amount_min"], item["amount_max"]) == ("JPY", "1500", "1800")
 
 
 # ---------- Recorrentes ----------
@@ -389,9 +247,9 @@ def test_recurrence_with_a_broken_template_does_not_break_the_panel(client, head
 
 
 def test_overdue_first_then_by_date_and_by_name(client, headers, account_id):
-    make_bill(client, headers, name="Atrasada recente", first="2026-06-10")
-    make_bill(client, headers, name="Atrasada antiga", first="2026-04-02", frequency="yearly")
-    make_bill(client, headers, name="zeta", first="2026-06-18")
+    pending(client, headers, account_id, "Atrasada recente", on="2026-06-10")
+    pending(client, headers, account_id, "Atrasada antiga", on="2026-04-02")
+    pending(client, headers, account_id, "zeta", on="2026-06-18")
     make_recurrence(client, headers, account_id, name="Beta", first="2026-06-18")
     make_recurrence(client, headers, account_id, name="alfa", first="2026-06-18")
     make_recurrence(client, headers, account_id, name="Cedo", first="2026-06-16")
@@ -401,14 +259,14 @@ def test_overdue_first_then_by_date_and_by_name(client, headers, account_id):
 
 
 def test_mixed_kinds_on_the_same_date_sort_by_name(client, headers, account_id):
-    make_bill(client, headers, name="B conta", first="2026-06-20")
+    pending(client, headers, account_id, "B conta", on="2026-06-20")
     make_recurrence(client, headers, account_id, name="A recorrente", first="2026-06-20")
     assert names(items_of(client, headers)) == ["A recorrente", "B conta"]
 
 
 def test_at_most_fifty_items_and_the_overdue_ones_survive_the_cut(client, headers, account_id):
-    make_bill(client, headers, name="Atrasada 1", first="2026-04-02", frequency="yearly")
-    make_bill(client, headers, name="Atrasada 2", first="2026-05-02", frequency="yearly")
+    pending(client, headers, account_id, "Atrasada 1", on="2026-04-02")
+    pending(client, headers, account_id, "Atrasada 2", on="2026-05-02")
     for index in range(52):
         make_recurrence(client, headers, account_id, name=f"Rec {index:02d}", first="2026-06-20")
     items = items_of(client, headers, days=90)
@@ -421,12 +279,12 @@ def test_at_most_fifty_items_and_the_overdue_ones_survive_the_cut(client, header
 
 
 def test_other_users_items_never_show_up(client, headers, account_id, db_session):
-    make_bill(client, headers, name="Minha", first="2026-06-20")
+    pending(client, headers, account_id, "Minha", on="2026-06-20")
     make_recurrence(client, headers, account_id, name="Minha recorrente", first="2026-06-21")
     make_user(db_session, email="outro@example.com")
     other = auth_headers(client, email="outro@example.com")
     other_account = make_account(client, other, name="Dele")
-    make_bill(client, other, name="Dele", first="2026-01-01")
+    pending(client, other, other_account, "Dele", on="2026-01-01")
     make_recurrence(client, other, other_account, name="Dele recorrente", first="2026-06-22")
     assert sorted(names(items_of(client, headers))) == ["Minha", "Minha recorrente"]
     assert sorted(names(items_of(client, other))) == ["Dele", "Dele recorrente"]
@@ -466,12 +324,12 @@ def count_statements(client, headers, **params):
     return len(statements)
 
 
-def test_number_of_queries_does_not_grow_with_bills_or_recurrences(client, headers, account_id):
-    make_bill(client, headers, name="Primeira", first="2026-06-20")
+def test_number_of_queries_does_not_grow_with_pending_or_recurrences(client, headers, account_id):
+    pending(client, headers, account_id, "Primeira", on="2026-06-20")
     make_recurrence(client, headers, account_id, name="Primeira rec", first="2026-06-20")
     small = count_statements(client, headers)
     for index in range(6):
-        make_bill(client, headers, name=f"Conta {index}", first="2026-01-05")
+        pending(client, headers, account_id, f"Conta {index}", on="2026-01-05")
         make_recurrence(client, headers, account_id, name=f"Rec {index}", first=f"2026-06-2{index}")
     assert count_statements(client, headers) == small
     assert count_statements(client, headers, days=90) == small
@@ -587,13 +445,6 @@ def test_overdue_pending_comes_first_then_by_date(client, headers, account_id):
     pending(client, headers, account_id, "Atrasada", on="2026-06-01")
     pending(client, headers, account_id, "Antes", on="2026-06-17")
     assert names(items_of(client, headers)) == ["Atrasada", "Antes", "Depois"]
-
-
-def test_pending_transactions_and_bills_appear_together(client, headers, account_id):
-    make_bill(client, headers, name="Netflix", first="2026-06-20")
-    pending(client, headers, account_id, "Internet")
-    kinds = {item["name"]: item["kind"] for item in items_of(client, headers)}
-    assert kinds == {"Netflix": "bill", "Internet": "pending"}
 
 
 def test_only_my_pending_transactions_are_listed(client, headers, account_id, db_session):

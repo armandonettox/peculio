@@ -31,8 +31,8 @@ class TransactionSplitCreate(BaseModel):
     category_id: uuid.UUID | None = None
     # Orcamento: so em saida para uma despesa, na moeda do orcamento (validado no servico)
     budget_id: uuid.UUID | None = None
-    # Conta a pagar quitada por esta saida. Omitido: liga sozinho se uma so combinar (regra da
-    # conta a pagar). null explicito: nao liga. Um id: liga a ela.
+    # DESCONTINUADO e ignorado: a conta a pagar virou um lancamento pendente (recorrencia automatica). O campo continua
+    # sendo aceito porque o modelo de recorrencias antigas e clientes da API ainda o mandam.
     bill_id: uuid.UUID | None = None
     tag_ids: list[uuid.UUID] = Field(default_factory=list)
     notes: str | None = Field(default=None, max_length=2000)

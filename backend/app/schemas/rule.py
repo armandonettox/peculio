@@ -193,7 +193,6 @@ class RuleRunItem(BaseModel):
     # So o que a regra preencheria; None quando aquele campo nao muda
     category_id: uuid.UUID | None
     budget_id: uuid.UUID | None
-    bill_id: uuid.UUID | None
     add_tag_ids: list[uuid.UUID]
     rule_ids: list[uuid.UUID]
 

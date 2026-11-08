@@ -538,36 +538,6 @@ def test_deposits_and_transfers_work_as_templates(client, headers, account_id):
     assert client.get(f"{ACCOUNTS_URL}/{other}", headers=headers).json()["balance"] == "300.00"
 
 
-def test_occurrences_link_to_budget_and_auto_match_bills(client, headers, account_id, db_session):
-    budget = client.post(
-        "/api/v1/budgets", json={"name": "Moradia", "currency_code": "BRL", "amount": "3000.00", "period": "monthly"},
-        headers=headers,
-    ).json()["id"]
-    bill = client.post(
-        "/api/v1/recurrences",
-        json={"name": "Aluguel conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
-              "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
-        headers=headers,
-    ).json()["id"]
-    make(client, headers, account_id, template=template(account_id, budget_id=budget))
-
-    split = transactions(client, headers)["items"][0]["splits"][0]
-    assert split["budget_id"] == budget
-    # bill_id nao veio no modelo: o servidor liga sozinho, como num lancamento digitado
-    assert split["bill_id"] == bill
-
-
-def test_an_explicit_null_bill_in_the_template_is_respected(client, headers, account_id):
-    client.post(
-        "/api/v1/recurrences",
-        json={"name": "Aluguel conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "900.00", "amount_max": "1100.00",
-              "match_text": "aluguel", "first_date": days(-1), "frequency": "monthly"},
-        headers=headers,
-    )
-    make(client, headers, account_id, template=template(account_id, bill_id=None))
-    assert transactions(client, headers)["items"][0]["splits"][0]["bill_id"] is None
-
-
 def test_balance_follows_the_created_transactions(client, headers, account_id, db_session):
     make(client, headers, account_id, frequency="daily", first_date=days(0))
     service.run_all(db_session, TODAY + timedelta(days=2))
@@ -626,3 +596,74 @@ def test_the_scheduler_only_starts_when_enabled(monkeypatch):
 
     assert asyncio.run(run(False)) is None
     assert asyncio.run(run(True)) is not None
+
+
+def test_occurrences_link_to_the_budget_of_the_template(client, headers, account_id):
+    budget = client.post(
+        "/api/v1/budgets", json={"name": "Moradia", "currency_code": "BRL", "amount": "3000.00", "period": "monthly"},
+        headers=headers,
+    ).json()["id"]
+    make(client, headers, account_id, template=template(account_id, budget_id=budget))
+    assert transactions(client, headers)["items"][0]["splits"][0]["budget_id"] == budget
+
+
+# ---------- O modo lembrete acabou: conta a pagar e um lancamento pendente ----------
+
+
+def test_the_reminder_mode_is_refused(client, headers, account_id):
+    body = {
+        "name": "Aluguel conta", "auto_create": False, "type": "withdrawal", "currency_code": "BRL",
+        "amount_min": "900.00", "amount_max": "1100.00", "first_date": days(1), "frequency": "monthly",
+    }
+    assert client.post(URL, json=body, headers=headers).status_code == 422
+    # Sem o modelo nao ha o que criar, e o modo automatico agora e o unico
+    assert client.post(URL, json={"name": "X", "first_date": days(1), "frequency": "monthly"}, headers=headers).status_code == 422
+    assert client.post(URL, json={**body, "auto_create": True}, headers=headers).status_code == 422
+
+
+def test_auto_create_false_alone_is_refused_with_a_clear_message(client, headers, account_id):
+    resp = make(client, headers, account_id, auto_create=False)
+    assert resp.status_code == 422
+    assert "lembrete" in resp.text.lower()
+
+
+def test_the_status_endpoint_is_gone(client, headers):
+    assert client.get(f"{URL}/status", headers=headers).status_code in (404, 422)
+
+
+def legacy_reminder(db_session, name="Netflix antigo", active=False):
+    from app.models.recurrence import Recurrence
+    from app.models.user import User
+
+    user = db_session.execute(select(User).where(User.email == "admin@example.com")).scalar_one()
+    reminder = Recurrence(
+        user_id=user.id, name=name, frequency="monthly", first_date=date(2026, 1, 20), active=active, auto_create=False,
+        currency_code="BRL", amount_min=40, amount_max=60, type="withdrawal",
+    )
+    db_session.add(reminder)
+    db_session.commit()
+    return reminder
+
+
+def test_an_old_reminder_still_in_the_database_is_invisible_and_untouchable_through_the_api(client, headers, account_id, db_session):
+    reminder = legacy_reminder(db_session)
+    make(client, headers, account_id, name="Aluguel")
+    names = [item["name"] for item in client.get(URL, params={"limit": 200}, headers=headers).json()["items"]]
+    assert names == ["Aluguel"]
+    assert [item["name"] for item in client.get(URL, params={"active": "false"}, headers=headers).json()["items"]] == []
+    assert client.get(f"{URL}/{reminder.id}", headers=headers).status_code == 404
+    assert client.patch(f"{URL}/{reminder.id}", json={"active": True}, headers=headers).status_code == 404
+    assert client.delete(f"{URL}/{reminder.id}", headers=headers).status_code == 404
+
+
+def test_recurrences_come_back_without_the_reminder_fields(client, headers, account_id):
+    body = make(client, headers, account_id).json()
+    for field in ("type", "currency_code", "amount_min", "amount_max", "match_text"):
+        assert field not in body
+    assert body["auto_create"] is True
+
+
+def test_the_deprecated_bill_id_in_a_template_is_accepted_and_links_nothing(client, headers, account_id):
+    make(client, headers, account_id, template=template(account_id, bill_id=str(uuid.uuid4())))
+    split = transactions(client, headers)["items"][0]["splits"][0]
+    assert split["bill_id"] is None

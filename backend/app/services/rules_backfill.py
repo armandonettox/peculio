@@ -108,13 +108,11 @@ def run_rules(
                 counterparty_name=other.name if other else None,
                 category_id=split.category_id,
                 budget_id=split.budget_id,
-                bill_id=split.bill_id,
                 tag_ids=tuple(existing_tags),
             ),
         )
         if fill.is_empty:
             continue
-        # bill_id fica de fora quando vazio: assim conta como "nao informado", nao como null explicito
         fields = dict(
             type=split.type,
             date=split.date,
@@ -126,12 +124,10 @@ def run_rules(
             budget_id=split.budget_id,
             tag_ids=list(existing_tags),
         )
-        if split.bill_id is not None:
-            fields["bill_id"] = split.bill_id
         data = TransactionSplitCreate.model_construct(**fields)
         changes = vet_rule_fill(db, user, data, split.source_account_id, split.destination_account_id, fill)
         new_tags = [tag_id for tag_id in changes.get("tag_ids", []) if tag_id not in existing_tags]
-        wanted = {key: changes[key] for key in ("category_id", "budget_id", "bill_id") if key in changes}
+        wanted = {key: changes[key] for key in ("category_id", "budget_id") if key in changes}
         if not wanted and not new_tags:
             continue
 
@@ -147,7 +143,6 @@ def run_rules(
                     "currency_code": split.currency_code,
                     "category_id": wanted.get("category_id"),
                     "budget_id": wanted.get("budget_id"),
-                    "bill_id": wanted.get("bill_id"),
                     "add_tag_ids": new_tags,
                     "rule_ids": fill.matched_rule_ids,
                 }

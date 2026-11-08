@@ -76,8 +76,6 @@ class ErrorCode(StrEnum):
     RECONCILIATION_NOTHING = "reconciliation_nothing"
     RECONCILIATION_NOT_FOUND = "reconciliation_not_found"
     # Contas a pagar
-    BILL_NOT_FOUND = "bill_not_found"
-    BILL_NAME_TAKEN = "bill_name_taken"
     BILL_NOT_ALLOWED = "bill_not_allowed"
     # Recorrentes
     RECURRENCE_NOT_FOUND = "recurrence_not_found"

@@ -63,37 +63,6 @@ def latest_index(first: date, frequency: RecurrenceFrequency, on: date) -> int |
     return index
 
 
-def _midpoint(start: date, end: date) -> date:
-    return start + timedelta(days=(end - start).days // 2)
-
-
-def window(first: date, frequency: RecurrenceFrequency, index: int) -> tuple[date | None, date]:
-    """Datas de pagamento que quitam o vencimento `index`: do ponto medio com o vencimento anterior
-    (exclusivo) ate o ponto medio com o seguinte (inclusivo). Cada pagamento cai em um so vencimento,
-    o mais proximo dele, e pagar um pouco antes ou depois continua valendo."""
-    due = occurrence(first, frequency, index)
-    low = None if index == 0 else _midpoint(occurrence(first, frequency, index - 1), due)
-    high = _midpoint(due, occurrence(first, frequency, index + 1))
-    return low, high
-
-
-def _paid(payments: Sequence[date], low: date | None, high: date) -> bool:
-    return any((low is None or day > low) and day <= high for day in payments)
-
-
-def _overdue_run(first: date, frequency: RecurrenceFrequency, payments: Sequence[date], last_index: int) -> tuple[int, date]:
-    """Quantos vencimentos seguidos, ate o de numero `last_index` (que esta sem pagamento), ficaram sem pagar,
-    e a data do mais antigo deles. Para no primeiro pago ou no primeiro vencimento da recorrente."""
-    count, index = 0, last_index
-    while index >= 0:
-        low, high = window(first, frequency, index)
-        if _paid(payments, low, high):
-            break
-        count += 1
-        index -= 1
-    return count, occurrence(first, frequency, last_index - count + 1)
-
-
 def _next_after(recurrence: Recurrence, index: int) -> date | None:
     """Data da ocorrencia `index`, ou None se a recorrente ja terminou antes dela (ou nao e automatica)."""
     if not recurrence.auto_create:
@@ -118,42 +87,22 @@ def upcoming_date(recurrence: Recurrence) -> date | None:
 
 
 def get_owned_recurrence(db: Session, user_id: uuid.UUID, recurrence_id: uuid.UUID) -> Recurrence:
-    """404 tambem quando e de outro usuario, para nao revelar que existe."""
+    """404 tambem quando e de outro usuario, para nao revelar que existe. Lembretes antigos (arquivados pela migration
+    0043, ainda no banco) nao contam: o modo lembrete deixou de existir."""
     recurrence = db.execute(
-        select(Recurrence).where(Recurrence.id == recurrence_id, Recurrence.user_id == user_id)
+        select(Recurrence).where(
+            Recurrence.id == recurrence_id, Recurrence.user_id == user_id, Recurrence.auto_create.is_(True)
+        )
     ).scalar_one_or_none()
     if not recurrence:
         raise AppError(404, ErrorCode.RECURRENCE_NOT_FOUND, "Recorrente nao encontrada")
     return recurrence
 
 
-def get_owned_bill_mode_recurrence(db: Session, user_id: uuid.UUID, recurrence_id: uuid.UUID) -> Recurrence:
-    """Para ligar um lancamento: so vale uma recorrente do modo de lembrete (sem auto_create). Uma
-    recorrente automatica nao pode ser escolhida aqui, pelo mesmo motivo de nao revelar que existe:
-    404 generico, nao "nao permitido"."""
-    recurrence = db.execute(
-        select(Recurrence).where(Recurrence.id == recurrence_id, Recurrence.user_id == user_id, Recurrence.auto_create.is_(False))
-    ).scalar_one_or_none()
-    if not recurrence:
-        raise AppError(404, ErrorCode.BILL_NOT_FOUND, "Conta a pagar nao encontrada")
-    return recurrence
-
-
 def _save(db: Session, recurrence: Recurrence) -> None:
-    # A unicidade e do banco (indice em lower(nome), so para o modo de lembrete): vale mesmo com duas requisicoes juntas
-    try:
-        with db.begin_nested():
-            db.add(recurrence)
-            db.flush()
-    except IntegrityError:
-        raise AppError(409, ErrorCode.BILL_NAME_TAKEN, "Ja existe uma recorrente com esse nome")
-
-
-def _check_range(currency: Currency, amount_min: Decimal, amount_max: Decimal) -> None:
-    check_amount(currency, amount_min)
-    check_amount(currency, amount_max)
-    if amount_max < amount_min:
-        raise AppError(422, ErrorCode.VALIDATION_ERROR, "O valor maximo nao pode ser menor que o minimo")
+    # Recorrente automatica pode repetir o nome (o indice unico do banco era so do modo lembrete)
+    db.add(recurrence)
+    db.flush()
 
 
 def _at(template: TransactionCreate, day: date) -> TransactionCreate:
@@ -185,14 +134,7 @@ def _check_template(db: Session, user: User, template: TransactionCreate, day: d
 
 
 def create_recurrence(db: Session, user: User, data: RecurrenceCreate) -> Recurrence:
-    if data.auto_create:
-        _check_template(db, user, data.template, data.first_date)
-        currency_code = None
-    else:
-        currency = get_currency(db, data.currency_code)
-        _check_range(currency, data.amount_min, data.amount_max)
-        currency_code = currency.code
-
+    _check_template(db, user, data.template, data.first_date)
     recurrence = Recurrence(
         user_id=user.id,
         name=data.name,
@@ -200,14 +142,9 @@ def create_recurrence(db: Session, user: User, data: RecurrenceCreate) -> Recurr
         first_date=data.first_date,
         end_date=data.end_date,
         max_occurrences=data.max_occurrences,
-        auto_create=data.auto_create,
-        template=_dump(data.template) if data.auto_create else None,
-        type=None if data.auto_create else data.type,
+        auto_create=True,
+        template=_dump(data.template),
         next_index=0,
-        currency_code=currency_code,
-        amount_min=data.amount_min,
-        amount_max=data.amount_max,
-        match_text=data.match_text,
     )
     recurrence.next_date = _next_after(recurrence, 0)
     _save(db, recurrence)
@@ -219,27 +156,11 @@ def update_recurrence(db: Session, user: User, recurrence: Recurrence, data: Rec
     if data.name is not None:
         recurrence.name = data.name
     if data.frequency is not None or data.first_date is not None:
-        if recurrence.auto_create:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "A frequencia e a primeira data nao mudam depois de criada")
-        if data.frequency is not None:
-            recurrence.frequency = data.frequency
-        if data.first_date is not None:
-            recurrence.first_date = data.first_date
+        # A frequencia e a primeira data definem todas as datas que ja foram geradas
+        raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "A frequencia e a primeira data nao mudam depois de criada")
     if data.template is not None:
-        if not recurrence.auto_create:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Esta recorrente nao cria o lancamento sozinha")
         _check_template(db, user, data.template, recurrence.next_date or recurrence.first_date)
         recurrence.template = _dump(data.template)
-    if not recurrence.auto_create:
-        new_min = data.amount_min if data.amount_min is not None else recurrence.amount_min
-        new_max = data.amount_max if data.amount_max is not None else recurrence.amount_max
-        if data.amount_min is not None or data.amount_max is not None:
-            _check_range(get_currency(db, recurrence.currency_code), new_min, new_max)
-        recurrence.amount_min, recurrence.amount_max = new_min, new_max
-        if "match_text" in sent:
-            recurrence.match_text = data.match_text
-    elif data.amount_min is not None or data.amount_max is not None or "match_text" in sent:
-        raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Esta recorrente cria o lancamento sozinha")
     # null explicito tira o fim; enviar um dos dois troca a regra de fim (so uma vale por vez)
     if "end_date" in sent or "max_occurrences" in sent:
         recurrence.end_date = data.end_date
@@ -259,9 +180,7 @@ def update_recurrence(db: Session, user: User, recurrence: Recurrence, data: Rec
 
 def _skip_missed(recurrence: Recurrence, today: date) -> None:
     """Ao retomar, o periodo pausado nao e recuperado: pausar quer dizer nao criar. Pula para a
-    primeira ocorrencia que ainda nao chegou. So vale no modo automatico."""
-    if not recurrence.auto_create:
-        return
+    primeira ocorrencia que ainda nao chegou."""
     index = latest_index(recurrence.first_date, recurrence.frequency, today)
     if index is not None and index + 1 > recurrence.next_index:
         recurrence.next_index = index + 1
@@ -275,14 +194,7 @@ def delete_recurrence(db: Session, recurrence: Recurrence) -> None:
     db.flush()
 
 
-def _places(db: Session, codes: set[str]) -> dict[str, int]:
-    codes.discard(None)
-    if not codes:
-        return {}
-    return dict(db.execute(select(Currency.code, Currency.decimal_places).where(Currency.code.in_(codes))).all())
-
-
-def recurrence_output(recurrence: Recurrence, places: int | None) -> dict:
+def recurrence_output(recurrence: Recurrence) -> dict:
     return {
         "id": recurrence.id,
         "name": recurrence.name,
@@ -291,142 +203,41 @@ def recurrence_output(recurrence: Recurrence, places: int | None) -> dict:
         "end_date": recurrence.end_date,
         "max_occurrences": recurrence.max_occurrences,
         "active": recurrence.active,
-        "auto_create": recurrence.auto_create,
+        "auto_create": True,
         "template": recurrence.template,
-        "type": recurrence.type,
-        "currency_code": recurrence.currency_code,
-        "amount_min": None if recurrence.amount_min is None else quantize_money(recurrence.amount_min, places),
-        "amount_max": None if recurrence.amount_max is None else quantize_money(recurrence.amount_max, places),
-        "match_text": recurrence.match_text,
         "created_count": recurrence.next_index,
         "next_date": recurrence.next_date,
-        "ended": recurrence.auto_create and recurrence.next_date is None,
+        "ended": recurrence.next_date is None,
         "last_error": recurrence.last_error,
         "created_at": recurrence.created_at,
     }
 
 
-def build_outputs(db: Session, recurrences: Sequence[Recurrence]) -> list[dict]:
-    places = _places(db, {recurrence.currency_code for recurrence in recurrences})
-    return [recurrence_output(recurrence, places.get(recurrence.currency_code)) for recurrence in recurrences]
+def build_outputs(recurrences: Sequence[Recurrence]) -> list[dict]:
+    return [recurrence_output(recurrence) for recurrence in recurrences]
 
 
 def to_output(db: Session, recurrence: Recurrence) -> dict:
-    places = None
-    if recurrence.currency_code:
-        places = db.execute(
-            select(Currency.decimal_places).where(Currency.code == recurrence.currency_code)
-        ).scalar_one_or_none()
-    return recurrence_output(recurrence, places)
+    return recurrence_output(recurrence)
 
 
 def list_recurrences(db: Session, user_id: uuid.UUID, params: PageParams, q: str | None, active: bool | None) -> dict:
-    statement = select(Recurrence).where(Recurrence.user_id == user_id)
+    statement = select(Recurrence).where(Recurrence.user_id == user_id, Recurrence.auto_create.is_(True))
     if active is not None:
         statement = statement.where(Recurrence.active == active)
     if q and q.strip():
         statement = statement.where(func.lower(Recurrence.name).contains(q.strip().lower(), autoescape=True))
-    # Quem esta perto de disparar primeiro; as terminadas ou sem data (modo de lembrete) por ultimo
+    # Quem esta perto de disparar primeiro; as terminadas, sem proxima data, por ultimo
     page = paginate(
         db,
         statement.order_by(Recurrence.next_date.asc().nulls_last(), func.lower(Recurrence.name), Recurrence.id),
         params,
     )
-    page["items"] = build_outputs(db, page["items"])
+    page["items"] = build_outputs(page["items"])
     return page
 
 
-# ---------- Situacao dos vencimentos (modo de lembrete) ----------
-
-
-def status(db: Session, user_id: uuid.UUID, on: date, include_archived: bool) -> list[dict]:
-    """Cada recorrente do modo de lembrete com o ultimo e o proximo vencimento e se o ultimo foi
-    pago, ordenadas pelo proximo vencimento. Uma consulta busca os pagamentos de todas elas."""
-    statement = select(Recurrence).where(Recurrence.user_id == user_id, Recurrence.auto_create.is_(False))
-    if not include_archived:
-        statement = statement.where(Recurrence.active.is_(True))
-    items_db = list(db.execute(statement).scalars())
-    if not items_db:
-        return []
-
-    indexes = {item.id: latest_index(item.first_date, item.frequency, on) for item in items_db}
-    payments: dict[uuid.UUID, list[date]] = defaultdict(list)
-    # O tipo do split sempre bate com o da recorrente ligada (checado na criacao do lancamento),
-    # entao o bill_id ja basta: nao precisa repetir o filtro de tipo aqui
-    rows = db.execute(
-        select(TransactionSplit.bill_id, TransactionSplit.date).where(
-            TransactionSplit.user_id == user_id,
-            TransactionSplit.bill_id.in_([item.id for item in items_db]),
-        )
-    ).all()
-    for bill_id, day in rows:
-        payments[bill_id].append(day)
-
-    places = _places(db, {item.currency_code for item in items_db})
-    results = []
-    for item in items_db:
-        index = indexes[item.id]
-        next_index = 0 if index is None else index + 1
-        next_due = occurrence(item.first_date, item.frequency, next_index)
-        low_next, high_next = window(item.first_date, item.frequency, next_index)
-        overdue_count, oldest_overdue = 0, None
-        if index is None:
-            last_due, state = None, "upcoming"
-        else:
-            last_due = occurrence(item.first_date, item.frequency, index)
-            low, high = window(item.first_date, item.frequency, index)
-            if _paid(payments[item.id], low, high):
-                state = "paid"
-            else:
-                state = "overdue"
-                overdue_count, oldest_overdue = _overdue_run(item.first_date, item.frequency, payments[item.id], index)
-        results.append(
-            {
-                **recurrence_output(item, places[item.currency_code]),
-                "last_due_date": last_due,
-                "next_due_date": next_due,
-                "status": state,
-                "overdue_count": overdue_count,
-                "oldest_overdue_date": oldest_overdue,
-                "next_due_paid": _paid(payments[item.id], low_next, high_next),
-            }
-        )
-    results.sort(key=lambda item: (item["next_due_date"], item["name"].lower(), str(item["id"])))
-    return results
-
-
-# ---------- Ligacao automatica (modo de lembrete) ----------
-
-
-def find_matching_recurrence(
-    db: Session, user_id: uuid.UUID, type_: TransactionType, currency_code: str, amount: Decimal, texts: Sequence[str]
-) -> Recurrence | None:
-    """A recorrente do modo de lembrete que combina com o lancamento, ou None. So liga se exatamente
-    UMA combinar: com duas candidatas o app nao chuta, e a pessoa escolhe. Combina quem esta ativa,
-    do mesmo tipo (saida ou entrada), na mesma moeda, com o valor dentro da faixa e o texto
-    presente em alguma das `texts`."""
-    candidates = (
-        db.execute(
-            select(Recurrence).where(
-                Recurrence.user_id == user_id,
-                Recurrence.auto_create.is_(False),
-                Recurrence.active.is_(True),
-                Recurrence.type == type_,
-                Recurrence.currency_code == currency_code,
-                Recurrence.match_text.is_not(None),
-                Recurrence.amount_min <= amount,
-                Recurrence.amount_max >= amount,
-            )
-        )
-        .scalars()
-        .all()
-    )
-    haystacks = [text.lower() for text in texts]
-    found = [item for item in candidates if any(item.match_text.lower() in text for text in haystacks)]
-    return found[0] if len(found) == 1 else None
-
-
-# ---------- Criar os lancamentos que faltam (modo automatico) ----------
+# ---------- Criar os lancamentos que faltam ----------
 
 
 def process_recurrence(db: Session, recurrence: Recurrence, today: date) -> int:

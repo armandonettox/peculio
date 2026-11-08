@@ -555,17 +555,6 @@ def test_confirm_runs_the_rules_like_any_new_transaction(client, headers, accoun
     assert by_description["Compra Mercado Bom Preco"] == category and by_description["Padaria"] is None
 
 
-def test_confirm_links_a_matching_bill_like_any_new_transaction(client, headers, account_id):
-    bill = {
-        "name": "Netflix", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-        "match_text": "netflix", "first_date": "2026-03-05", "frequency": "monthly",
-    }
-    bill_id = client.post(f"{API}/recurrences", json=bill, headers=headers).json()["id"]
-    confirm(client, headers, account_id, [{"date": "2026-03-06", "description": "Assinatura Netflix", "amount": "-55.90"}])
-    items = client.get(TX, params={"account_id": account_id}, headers=headers).json()["items"]
-    assert items[0]["splits"][0]["bill_id"] == bill_id
-
-
 def test_confirm_saves_the_external_id_and_skips_a_known_one(client, headers, account_id, db_session):
     row = {"date": "2026-03-05", "description": "Compra", "amount": "-50.00", "external_id": "F1"}
     assert confirm(client, headers, account_id, [row]).json() == {"created": 1, "skipped": 0}

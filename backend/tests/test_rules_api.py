@@ -155,33 +155,18 @@ def test_targets_of_another_user_are_refused(client, headers, other_headers):
     assert make_rule(client, headers, triggers=[account]).json()["code"] == "rule_invalid"
 
 
-def test_own_account_trigger_and_budget_and_bill_actions_are_accepted(client, headers):
+def test_own_account_trigger_and_budget_action_are_accepted(client, headers):
     account = make_account(client, headers)
     budget = client.post(
         f"{API}/budgets",
         json={"name": "Casa", "currency_code": "BRL", "amount": "800.00", "period": "monthly"},
         headers=headers,
     ).json()["id"]
-    bill = client.post(
-        f"{API}/recurrences",
-        json={
-            "name": "Netflix",
-            "auto_create": False,
-            "type": "withdrawal",
-            "currency_code": "BRL",
-            "amount_min": "40.00",
-            "amount_max": "60.00",
-            "match_text": "netflix",
-            "first_date": "2026-03-05",
-            "frequency": "monthly",
-        },
-        headers=headers,
-    ).json()["id"]
     response = make_rule(
         client,
         headers,
         triggers=[{"field": "account", "op": "is", "value": account}],
-        actions=[{"kind": "set_budget", "target_id": budget}, {"kind": "set_bill", "target_id": bill}],
+        actions=[{"kind": "set_budget", "target_id": budget}],
     )
     assert response.status_code == 201
 
@@ -346,3 +331,15 @@ def test_deleting_a_category_does_not_break_listing_rules(client, headers):
     ).json()["id"]
     assert client.delete(f"{API}/categories/{category}", headers=headers).status_code in (204, 409)
     assert client.get(f"{RULES}/{rule_id}", headers=headers).status_code == 200
+
+
+def test_the_discontinued_bill_action_is_refused(client, headers):
+    account = make_account(client, headers)
+    response = make_rule(
+        client,
+        headers,
+        triggers=[{"field": "account", "op": "is", "value": account}],
+        actions=[{"kind": "set_bill", "target_id": "00000000-0000-4000-8000-000000000999"}],
+    )
+    assert response.status_code == 422
+    assert "conta a pagar" in response.text.lower()

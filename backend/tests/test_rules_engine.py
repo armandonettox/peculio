@@ -24,8 +24,6 @@ CATEGORY = uuid.UUID(int=10)
 CATEGORY_2 = uuid.UUID(int=11)
 BUDGET = uuid.UUID(int=20)
 BUDGET_2 = uuid.UUID(int=21)
-BILL = uuid.UUID(int=30)
-BILL_2 = uuid.UUID(int=31)
 TAG = uuid.UUID(int=40)
 TAG_2 = uuid.UUID(int=41)
 
@@ -157,27 +155,25 @@ def test_fills_empty_fields():
         [
             rule(
                 [MATCH],
-                [act("set_category", CATEGORY), act("set_budget", BUDGET), act("set_bill", BILL), act("add_tag", TAG)],
+                [act("set_category", CATEGORY), act("set_budget", BUDGET), act("add_tag", TAG)],
             )
         ],
         facts(),
     )
     assert fill.category_id == CATEGORY
     assert fill.budget_id == BUDGET
-    assert fill.bill_id == BILL
     assert fill.add_tag_ids == [TAG]
     assert not fill.is_empty
 
 
 def test_never_overwrites_what_is_already_chosen():
-    chosen = facts(category_id=CATEGORY_2, budget_id=BUDGET_2, bill_id=BILL)
+    chosen = facts(category_id=CATEGORY_2, budget_id=BUDGET_2)
     fill = apply_rules(
-        [rule([MATCH], [act("set_category", CATEGORY), act("set_budget", BUDGET), act("set_bill", uuid.UUID(int=31))])],
+        [rule([MATCH], [act("set_category", CATEGORY), act("set_budget", BUDGET)])],
         chosen,
     )
     assert fill.category_id is None
     assert fill.budget_id is None
-    assert fill.bill_id is None
     assert fill.is_empty
 
 
@@ -193,17 +189,16 @@ def test_each_field_is_decided_on_its_own():
 def test_first_rule_wins_for_single_value_fields():
     fill = apply_rules(
         [
-            rule([MATCH], [act("set_category", CATEGORY), act("set_budget", BUDGET), act("set_bill", BILL)]),
+            rule([MATCH], [act("set_category", CATEGORY), act("set_budget", BUDGET)]),
             rule(
                 [MATCH],
-                [act("set_category", CATEGORY_2), act("set_budget", BUDGET_2), act("set_bill", BILL_2)],
+                [act("set_category", CATEGORY_2), act("set_budget", BUDGET_2)],
             ),
         ],
         facts(),
     )
     assert fill.category_id == CATEGORY
     assert fill.budget_id == BUDGET
-    assert fill.bill_id == BILL
 
 
 def test_later_rule_fills_what_the_first_left_empty():
@@ -271,3 +266,10 @@ def test_rules_do_not_see_what_earlier_rules_filled():
         facts(),
     )
     assert (fill.category_id, fill.budget_id) == (CATEGORY, BUDGET)
+
+
+def test_the_discontinued_bill_action_fills_nothing_and_does_not_become_a_tag():
+    fill = apply_rules([rule([MATCH], [act("set_bill", uuid.UUID(int=77)), act("add_tag", TAG)])], facts())
+    assert fill.add_tag_ids == [TAG]
+    assert fill.category_id is None and fill.budget_id is None
+    assert not hasattr(fill, "bill_id")

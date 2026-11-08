@@ -68,7 +68,7 @@ class SpendingForecastOut(BaseModel):
 
 
 class UpcomingItem(BaseModel):
-    kind: Literal["bill", "recurrence", "pending"]
+    kind: Literal["recurrence", "pending"]
     id: uuid.UUID
     name: str
     # Proxima data (vencimento da conta a pagar, proxima ocorrencia da recorrente ou data do lancamento pendente)

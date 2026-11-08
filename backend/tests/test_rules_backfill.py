@@ -101,7 +101,8 @@ def test_preview_shows_changes_without_saving_and_apply_saves(client, headers):
     assert item["amount"] == "120.50"
     assert item["date"] == "2026-03-10"
     assert item["category_id"] == category
-    assert (item["budget_id"], item["bill_id"], item["add_tag_ids"]) == (None, None, [])
+    assert (item["budget_id"], item["add_tag_ids"]) == (None, [])
+    assert "bill_id" not in item
     assert item["rule_ids"] == [rule]
     assert get_split(client, headers, transaction)["category_id"] is None
 
@@ -140,15 +141,8 @@ def test_tags_are_added_without_duplicates_and_keep_existing(client, headers):
     assert sorted(get_split(client, headers, transaction)["tag_ids"]) == sorted([first, second])
 
 
-def test_bill_is_linked_and_invalid_targets_are_skipped(client, headers):
+def test_invalid_targets_are_skipped(client, headers):
     account = make_account(client, headers)
-    bill = post(
-        client, headers, "recurrences",
-        {
-            "name": "Netflix", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-            "match_text": "zzz-nunca-casa", "first_date": "2026-03-05", "frequency": "monthly",
-        },
-    )
     budget = post(client, headers, "budgets", {"name": "Casa", "currency_code": "BRL", "amount": "800.00", "period": "monthly"})
     category = make_category(client, headers, "Salario")
     expense = create(client, headers, account_id=account)
@@ -156,17 +150,16 @@ def test_bill_is_linked_and_invalid_targets_are_skipped(client, headers):
     make_rule(
         client, headers, "Tudo", "mercado",
         [
-            {"kind": "set_bill", "target_id": bill},
             {"kind": "set_budget", "target_id": budget},
             {"kind": "set_category", "target_id": category},
         ],
     )
     apply(client, headers)
     saved_expense = get_split(client, headers, expense)
-    assert (saved_expense["bill_id"], saved_expense["budget_id"], saved_expense["category_id"]) == (bill, budget, category)
+    assert (saved_expense["budget_id"], saved_expense["category_id"]) == (budget, category)
     saved_deposit = get_split(client, headers, deposit)
-    # Nenhum dos tres vale para a entrada: orcamento e conta a pagar nunca valem, e a categoria e de saida
-    assert (saved_deposit["bill_id"], saved_deposit["budget_id"], saved_deposit["category_id"]) == (None, None, None)
+    # Nenhum dos dois vale para a entrada: orcamento nunca vale, e a categoria e de saida
+    assert (saved_deposit["budget_id"], saved_deposit["category_id"]) == (None, None)
 
 
 def test_counterparty_account_and_type_triggers_work_on_old_transactions(client, headers):

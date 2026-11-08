@@ -24,7 +24,6 @@ from app.schemas.transaction import TransactionCreate, TransactionOut, Transacti
 from app.services.clearings import assert_unlocked, capture_clearings, clearing_states, restore_clearings
 from app.services.accounts import check_amount, get_currency, get_owned_account, quantize_money
 from app.services.attachment_storage import storage_path
-from app.services.recurrences import find_matching_recurrence, get_owned_bill_mode_recurrence
 from app.services.budgets import check_alerts, get_owned_budget
 from app.services.transaction_status import TransactionStatus, status_condition
 from app.services.rule_defs import load_rule_defs
@@ -204,34 +203,6 @@ def _check_budget(db: Session, user: User, data: TransactionSplitCreate, destina
     return budget
 
 
-def _resolve_bill(db: Session, user: User, data: TransactionSplitCreate, source_id: uuid.UUID, destination_id: uuid.UUID):
-    """Recorrente do modo de lembrete ligada ao split. Com `bill_id` no corpo (um id ou null) vale
-    o que veio; sem ele, liga sozinho quando exatamente uma combina. So entra saida para uma
-    despesa ou entrada de uma receita, do mesmo tipo do lembrete; transferencia nunca liga."""
-    expected = COUNTERPARTY_TYPE.get(data.type)
-    if expected is None:
-        if data.bill_id is not None:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Recorrente so vale para saida ou entrada, nunca transferencia")
-        return None
-    counterparty_id = destination_id if data.type == "withdrawal" else source_id
-    counterparty = db.get(Account, counterparty_id)
-    matches = counterparty.type == expected
-    if "bill_id" in data.model_fields_set:
-        if data.bill_id is None:
-            return None
-        bill = get_owned_bill_mode_recurrence(db, user.id, data.bill_id)
-        if not matches or bill.type != data.type:
-            raise AppError(400, ErrorCode.BILL_NOT_ALLOWED, "Essa recorrente nao vale para este lancamento")
-        if data.currency_code != bill.currency_code:
-            raise _mismatch(f"A moeda do lancamento deve ser a da recorrente ({bill.currency_code})")
-        return bill
-    if not matches:
-        return None
-    return find_matching_recurrence(
-        db, user.id, data.type, data.currency_code, data.amount, [data.description, counterparty.name]
-    )
-
-
 def vet_rule_fill(
     db: Session, user: User, data: TransactionSplitCreate, source_id: uuid.UUID, destination_id: uuid.UUID, fill: Fill
 ) -> dict:
@@ -247,13 +218,6 @@ def vet_rule_fill(
         try:
             _check_budget(db, user, data.model_copy(update={"budget_id": fill.budget_id}), destination_id)
             changes["budget_id"] = fill.budget_id
-        except AppError:
-            pass
-    if fill.bill_id is not None and not ("bill_id" in data.model_fields_set and data.bill_id is None):
-        try:
-            candidate = data.model_copy(update={"bill_id": fill.bill_id})
-            if _resolve_bill(db, user, candidate, source_id, destination_id) is not None:
-                changes["bill_id"] = fill.bill_id
         except AppError:
             pass
     if fill.add_tag_ids:
@@ -278,7 +242,7 @@ def _apply_rules(
 
     Um alvo que a regra cita e nao serve para este lancamento (categoria ou etiqueta excluida,
     orcamento numa entrada, moeda diferente...) e ignorado em silencio: a regra nunca derruba o
-    lancamento. Um `bill_id: null` explicito conta como escolha de nao ligar."""
+    lancamento."""
     if not rules:
         return data
     other = db.get(Account, destination_id if data.account_id == source_id else source_id)
@@ -292,7 +256,6 @@ def _apply_rules(
             counterparty_name=other.name if other else None,
             category_id=data.category_id,
             budget_id=data.budget_id,
-            bill_id=data.bill_id,
             tag_ids=tuple(data.tag_ids),
         ),
     )
@@ -330,7 +293,6 @@ def _build_split(
             raise AppError(400, ErrorCode.CATEGORY_KIND_MISMATCH, message)
     tags = get_owned_tags(db, user.id, data.tag_ids)
     budget = _check_budget(db, user, data, destination_id) if data.budget_id is not None else None
-    bill = _resolve_bill(db, user, data, source_id, destination_id)
     if data.invoice_date is not None:
         source = db.get(Account, source_id)
         if data.type != TransactionType.withdrawal or source is None or source.role != AccountRole.credit_card:
@@ -355,7 +317,6 @@ def _build_split(
         foreign_currency_code=data.foreign_currency_code,
         category_id=category.id if category else None,
         budget_id=budget.id if budget else None,
-        bill_id=bill.id if bill else None,
         notes=data.notes,
         is_paid=data.is_paid,
         ignored=data.ignored,
@@ -602,7 +563,6 @@ class TransactionFilters:
     # So vale quando category_id nao vier (os dois juntos nao combinam: nenhum grupo atende)
     uncategorized: bool = False
     budget_id: uuid.UUID | None = None
-    bill_id: uuid.UUID | None = None
     tag_id: uuid.UUID | None = None
     date_from: date | None = None
     date_to: date | None = None
@@ -633,8 +593,6 @@ def _matched_groups(user_id: uuid.UUID, filters: TransactionFilters):
         conditions.append(TransactionSplit.category_id.is_(None))
     if filters.budget_id is not None:
         conditions.append(TransactionSplit.budget_id == filters.budget_id)
-    if filters.bill_id is not None:
-        conditions.append(TransactionSplit.bill_id == filters.bill_id)
     if filters.date_from is not None:
         conditions.append(TransactionSplit.date >= filters.date_from)
     if filters.date_to is not None:
@@ -684,7 +642,6 @@ def list_transactions(
     category_id: uuid.UUID | None = None,
     uncategorized: bool = False,
     budget_id: uuid.UUID | None = None,
-    bill_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
@@ -699,7 +656,6 @@ def list_transactions(
         category_id=category_id,
         uncategorized=uncategorized,
         budget_id=budget_id,
-        bill_id=bill_id,
         tag_id=tag_id,
         date_from=date_from,
         date_to=date_to,

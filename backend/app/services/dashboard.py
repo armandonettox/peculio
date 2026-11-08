@@ -281,36 +281,6 @@ def spending_forecast(db: Session, user_id: uuid.UUID, months: int, as_of: date)
 # ---------- Proximos vencimentos ----------
 
 
-def _bill_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> list[dict]:
-    """Uma entrada por conta a pagar ativa: a atrasada (ultimo vencimento sem pagamento) tem
-    prioridade; senao o proximo vencimento, se cair na janela e ainda nao estiver pago."""
-    items = []
-    for bill in recurrences.status(db, user_id, as_of, include_archived=False):
-        last_due = bill["last_due_date"]
-        if bill["status"] == "overdue":
-            # Vencida hoje e ainda nao paga: o dia nao acabou, entao nao e atraso
-            day = last_due
-        elif bill["next_due_date"] <= limit and not bill["next_due_paid"]:
-            day = bill["next_due_date"]
-        else:
-            continue
-        items.append(
-            {
-                "kind": "bill",
-                "id": bill["id"],
-                "name": bill["name"],
-                "date": day,
-                "days_until": (day - as_of).days,
-                "overdue": day < as_of,
-                "direction": "out",
-                "currency_code": bill["currency_code"],
-                "amount_min": bill["amount_min"],
-                "amount_max": bill["amount_max"],
-            }
-        )
-    return items
-
-
 def _recurrence_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> list[dict]:
     found = []
     statement = select(Recurrence).where(Recurrence.user_id == user_id, Recurrence.auto_create.is_(True))
@@ -402,13 +372,9 @@ def _pending_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) ->
 
 
 def upcoming(db: Session, user_id: uuid.UUID, days: int, as_of: date) -> dict:
-    """Contas a pagar (lembretes), lancamentos pendentes e recorrentes de hoje ate hoje + `days`, mais o que ja esta atrasado.
+    """Lancamentos pendentes (as contas a pagar) e recorrentes de hoje ate hoje + `days`, mais o que ja esta atrasado.
     Atrasadas primeiro (da mais antiga), depois por data e por nome, no maximo 50."""
     limit = as_of + timedelta(days=days)
-    items = (
-        _bill_items(db, user_id, as_of, limit)
-        + _pending_items(db, user_id, as_of, limit)
-        + _recurrence_items(db, user_id, as_of, limit)
-    )
+    items = _pending_items(db, user_id, as_of, limit) + _recurrence_items(db, user_id, as_of, limit)
     items.sort(key=lambda item: (not item["overdue"], item["date"], item["name"].lower(), str(item["id"])))
     return {"as_of": as_of, "days": days, "items": items[:MAX_UPCOMING_ITEMS]}

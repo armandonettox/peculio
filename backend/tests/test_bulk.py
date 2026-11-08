@@ -407,23 +407,6 @@ def test_duplicate_keeps_the_budget(client, headers, account_id):
     assert get_tx(client, headers, copy)["splits"][0]["budget_id"] == budget.json()["id"]
 
 
-def test_duplicate_does_not_pay_the_same_bill_again(client, headers, account_id):
-    bill = client.post(
-        f"{API}/recurrences",
-        json={
-            "name": "Netflix", "auto_create": False, "type": "withdrawal", "currency_code": "BRL", "amount_min": "40.00", "amount_max": "60.00",
-            "match_text": "netflix", "first_date": "2026-03-05", "frequency": "monthly",
-        },
-        headers=headers,
-    )
-    assert bill.status_code == 201, bill.text
-    original = post_tx(client, headers, [split(account_id, "Netflix", "50.00", on="2026-03-05")])
-    # O original foi ligado sozinho a conta a pagar; a copia nao
-    assert get_tx(client, headers, original["id"])["splits"][0]["bill_id"] == bill.json()["id"]
-    copy = bulk(client, headers, [original["id"]], "duplicate").json()["created_ids"][0]
-    assert get_tx(client, headers, copy)["splits"][0]["bill_id"] is None
-
-
 def test_duplicate_does_not_copy_attachments(client, headers, account_id, storage_dir):
     original = post_tx(client, headers, [split(account_id)])
     uploaded = client.post(f"{TX}/{original['id']}/attachments", files={"file": ("nota.pdf", PDF, "application/octet-stream")}, headers=headers)

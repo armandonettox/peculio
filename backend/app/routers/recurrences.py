@@ -1,5 +1,4 @@
 import uuid
-from datetime import date
 
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
@@ -9,7 +8,7 @@ from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.models.user import User
-from app.schemas.recurrence import RecurrenceCreate, RecurrenceOut, RecurrenceStatusOut, RecurrenceUpdate, RunResult
+from app.schemas.recurrence import RecurrenceCreate, RecurrenceOut, RecurrenceUpdate, RunResult
 from app.services import recurrences as service
 
 router = APIRouter(prefix="/recurrences", tags=["recurrences"])
@@ -36,19 +35,7 @@ def list_recurrences(
     return service.list_recurrences(db, user.id, params, q, active)
 
 
-# Precisa vir antes de /{recurrence_id}: senao "status"/"run" seriam lidos como um id
-@router.get("/status", response_model=list[RecurrenceStatusOut])
-def recurrences_status(
-    on: date | None = None,
-    include_archived: bool = False,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Ultimo e proximo vencimento de cada recorrente do modo de lembrete na data `on` (hoje, se
-    omitida), e se o ultimo foi pago. Ordenadas pelo proximo vencimento."""
-    return service.status(db, user.id, on or clock.today(), include_archived)
-
-
+# Precisa vir antes de /{recurrence_id}: senao "run" seria lido como um id
 @router.post("/run", response_model=RunResult)
 def run_now(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Cria agora os lancamentos que faltam das recorrentes automaticas do usuario (o laco de fundo

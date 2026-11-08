@@ -42,23 +42,6 @@ def make_budget(client, headers, name="Casa", currency="BRL"):
     )
 
 
-def make_bill(client, headers, name="Netflix"):
-    return post(
-        client, headers, "recurrences",
-        {
-            "name": name,
-            "auto_create": False,
-            "type": "withdrawal",
-            "currency_code": "BRL",
-            "amount_min": "40.00",
-            "amount_max": "60.00",
-            "match_text": "zzz-nunca-casa",
-            "first_date": "2026-03-05",
-            "frequency": "monthly",
-        },
-    )
-
-
 def make_rule(client, headers, name, triggers, actions, **extra):
     body = {"name": name, "triggers": triggers, "actions": actions, **extra}
     response = client.post(f"{API}/rules", json=body, headers=headers)
@@ -96,26 +79,23 @@ def first_split(transaction):
 # ---------- Preenchimento ao criar ----------
 
 
-def test_rule_fills_category_tag_budget_and_bill(client, headers):
+def test_rule_fills_category_tag_and_budget(client, headers):
     account = make_account(client, headers)
     category = make_category(client, headers, "Mercado")
     tag = make_tag(client, headers, "casa")
     budget = make_budget(client, headers)
-    bill = make_bill(client, headers)
     make_rule(
         client, headers, "Mercado", when_description_has("mercado"),
         [
             {"kind": "set_category", "target_id": category},
             {"kind": "add_tag", "target_id": tag},
             {"kind": "set_budget", "target_id": budget},
-            {"kind": "set_bill", "target_id": bill},
         ],
     )
     saved = first_split(create(client, headers, split(account)))
     assert saved["category_id"] == category
     assert saved["tag_ids"] == [tag]
     assert saved["budget_id"] == budget
-    assert saved["bill_id"] == bill
 
 
 def test_without_a_matching_rule_nothing_changes(client, headers):
@@ -123,7 +103,7 @@ def test_without_a_matching_rule_nothing_changes(client, headers):
     category = make_category(client, headers, "Mercado")
     make_rule(client, headers, "Farmacia", when_description_has("farmacia"), [{"kind": "set_category", "target_id": category}])
     saved = first_split(create(client, headers, split(account)))
-    assert (saved["category_id"], saved["budget_id"], saved["bill_id"], saved["tag_ids"]) == (None, None, None, [])
+    assert (saved["category_id"], saved["budget_id"], saved["tag_ids"]) == (None, None, [])
 
 
 def test_what_the_person_chose_is_never_overwritten(client, headers):
@@ -167,22 +147,6 @@ def test_tags_are_added_to_the_ones_chosen_without_duplicates(client, headers):
     )
     saved = first_split(create(client, headers, split(account, tag_ids=[chosen])))
     assert saved["tag_ids"] == [chosen, added]
-
-
-def test_explicit_null_bill_means_do_not_link(client, headers):
-    account = make_account(client, headers)
-    bill = make_bill(client, headers)
-    make_rule(client, headers, "Mercado", when_description_has("mercado"), [{"kind": "set_bill", "target_id": bill}])
-    assert first_split(create(client, headers, split(account, bill_id=None)))["bill_id"] is None
-    assert first_split(create(client, headers, split(account)))["bill_id"] == bill
-
-
-def test_rule_bill_wins_over_nothing_but_not_over_a_chosen_bill(client, headers):
-    account = make_account(client, headers)
-    ruled = make_bill(client, headers, "Netflix")
-    chosen = make_bill(client, headers, "Spotify")
-    make_rule(client, headers, "Mercado", when_description_has("mercado"), [{"kind": "set_bill", "target_id": ruled}])
-    assert first_split(create(client, headers, split(account, bill_id=chosen)))["bill_id"] == chosen
 
 
 # ---------- Gatilhos ----------
@@ -401,29 +365,20 @@ def test_budget_in_another_currency_is_skipped(client, headers):
     assert first_split(create(client, headers, split(account)))["budget_id"] is None
 
 
-def test_bill_on_a_deposit_is_skipped(client, headers):
-    account = make_account(client, headers)
-    bill = make_bill(client, headers)
-    make_rule(client, headers, "Entrada", [{"field": "type", "op": "is", "value": "deposit"}], [{"kind": "set_bill", "target_id": bill}])
-    assert first_split(create(client, headers, split(account, type="deposit", counterparty_name="Empresa")))["bill_id"] is None
-
-
 def test_deleted_targets_are_ignored(client, headers):
     account = make_account(client, headers)
     category = make_category(client, headers, "Velha")
     tag = make_tag(client, headers, "velha")
     budget = make_budget(client, headers, "Velho")
-    bill = make_bill(client, headers, "Velha")
     make_rule(
         client, headers, "Mercado", when_description_has("mercado"),
         [
             {"kind": "set_category", "target_id": category},
             {"kind": "add_tag", "target_id": tag},
             {"kind": "set_budget", "target_id": budget},
-            {"kind": "set_bill", "target_id": bill},
         ],
     )
-    for path, item in (("categories", category), ("tags", tag), ("budgets", budget), ("recurrences", bill)):
+    for path, item in (("categories", category), ("tags", tag), ("budgets", budget)):
         assert client.delete(f"{API}/{path}/{item}", headers=headers).status_code == 204
     response = client.post(TX, json={"splits": [split(account)]}, headers=headers)
     assert response.status_code == 201

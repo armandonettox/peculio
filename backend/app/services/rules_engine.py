@@ -39,6 +39,7 @@ class ActionKind(enum.StrEnum):
     set_category = "set_category"
     add_tag = "add_tag"
     set_budget = "set_budget"
+    # Descontinuada (nao ha mais conta a pagar): regras antigas ainda a guardam, mas ela nao preenche nada
     set_bill = "set_bill"
 
 
@@ -66,7 +67,6 @@ class SplitFacts:
     counterparty_name: str | None = None
     category_id: uuid.UUID | None = None
     budget_id: uuid.UUID | None = None
-    bill_id: uuid.UUID | None = None
     tag_ids: tuple[uuid.UUID, ...] = ()
 
 
@@ -99,13 +99,12 @@ class Fill:
 
     category_id: uuid.UUID | None = None
     budget_id: uuid.UUID | None = None
-    bill_id: uuid.UUID | None = None
     add_tag_ids: list[uuid.UUID] = field(default_factory=list)
     matched_rule_ids: list[uuid.UUID] = field(default_factory=list)
 
     @property
     def is_empty(self) -> bool:
-        return not (self.category_id or self.budget_id or self.bill_id or self.add_tag_ids)
+        return not (self.category_id or self.budget_id or self.add_tag_ids)
 
 
 def normalize_text(text: str) -> str:
@@ -173,8 +172,7 @@ def apply_rules(rules: list[RuleDef], facts: SplitFacts) -> Fill:
                 if facts.budget_id is None and fill.budget_id is None:
                     fill.budget_id = action.target_id
             elif action.kind == ActionKind.set_bill:
-                if facts.bill_id is None and fill.bill_id is None:
-                    fill.bill_id = action.target_id
+                continue
             elif action.target_id not in known_tags:
                 known_tags.add(action.target_id)
                 fill.add_tag_ids.append(action.target_id)
