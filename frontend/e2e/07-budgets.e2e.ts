@@ -24,6 +24,9 @@ async function openBudgets(page: Page) {
 async function switchToCustom(page: Page) {
   await page.getByRole("button", { name: "Tipo de planejamento" }).click();
   await page.getByRole("menuitem", { name: "Planejamento Personalizado" }).click();
+  // Espera a troca terminar: so o Personalizado tem as abas Ativos e Expirados, e os dois tipos tem um botao "Mes anterior"
+  await expect(page.getByRole("tab", { name: "Ativos" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mês anterior" })).toHaveCount(1);
 }
 
 async function menu(page: Page, item: string) {
