@@ -4,7 +4,6 @@ import { MemoryRouter } from "react-router-dom";
 import { expect, it } from "vitest";
 
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -18,7 +17,8 @@ const otherCategory = makeLabel({ name: "Lazer" });
 const tag = makeLabel({ name: "casa" });
 const otherTag = makeLabel({ name: "viagem" });
 const budget = makeBudget({ name: "Casa" });
-const bill = makeReminder({ name: "Netflix" });
+// Regra antiga que ligava a uma conta a pagar (acao descontinuada): ainda aparece, sem o nome
+const LEGACY_BILL_ID = "d0000000-0000-4000-8000-0000000000b1";
 
 function renderPage(initial: Parameters<typeof fakeRulesApi>[0] = {}) {
   const api = fakeRulesApi(initial);
@@ -28,7 +28,6 @@ function renderPage(initial: Parameters<typeof fakeRulesApi>[0] = {}) {
     ...fakeLabelsApi("categories", [category, otherCategory]).handlers,
     ...fakeLabelsApi("tags", [tag, otherTag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>
@@ -90,7 +89,7 @@ it("o cartao resume gatilhos e acoes com os nomes de cada item", async () => {
           { kind: "set_category", target_id: category.id },
           { kind: "add_tag", target_id: tag.id },
           { kind: "set_budget", target_id: budget.id },
-          { kind: "set_bill", target_id: bill.id },
+          { kind: "set_bill", target_id: LEGACY_BILL_ID },
         ],
       }),
     ],

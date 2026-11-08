@@ -1196,27 +1196,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/recurrences/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Recurrences Status
-         * @description Ultimo e proximo vencimento de cada recorrente do modo de lembrete na data `on` (hoje, se
-         *     omitida), e se o ultimo foi pago. Ordenadas pelo proximo vencimento.
-         */
-        get: operations["recurrences_status_api_v1_recurrences_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/recurrences/{recurrence_id}": {
         parameters: {
             query?: never;
@@ -3260,23 +3239,16 @@ export interface components {
         };
         /**
          * RecurrenceCreate
-         * @description `auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja
-         *     data de cada linha e trocada pela data de cada ocorrencia) e o tipo vem dele. Desligado, pede
-         *     `type` (saida ou entrada), `currency_code` e a faixa de valor (`amount_min`/`amount_max`) para
-         *     so lembrar o vencimento.
+         * @description Uma recorrencia cria o lancamento sozinha a cada ocorrencia: `template` e um lancamento comum, cuja data de cada
+         *     linha e trocada pela data de cada ocorrencia. O modo lembrete (so avisar o vencimento) deixou de existir: a conta a
+         *     pagar e um lancamento pendente (`is_paid` falso no modelo).
          */
         RecurrenceCreate: {
-            /** Amount Max */
-            amount_max?: number | string | null;
-            /** Amount Min */
-            amount_min?: number | string | null;
             /**
              * Auto Create
-             * @default false
+             * @default true
              */
             auto_create: boolean;
-            /** Currency Code */
-            currency_code?: string | null;
             /** End Date */
             end_date?: string | null;
             /**
@@ -3285,15 +3257,11 @@ export interface components {
              */
             first_date: string;
             frequency: components["schemas"]["RecurrenceFrequency"];
-            /** Match Text */
-            match_text?: string | null;
             /** Max Occurrences */
             max_occurrences?: number | null;
             /** Name */
             name: string;
-            template?: components["schemas"]["TransactionCreate-Input"] | null;
-            /** Type */
-            type?: ("withdrawal" | "deposit") | null;
+            template: components["schemas"]["TransactionCreate-Input"];
         };
         /**
          * RecurrenceFrequency
@@ -3304,10 +3272,6 @@ export interface components {
         RecurrenceOut: {
             /** Active */
             active: boolean;
-            /** Amount Max */
-            amount_max: string | null;
-            /** Amount Min */
-            amount_min: string | null;
             /** Auto Create */
             auto_create: boolean;
             /**
@@ -3317,8 +3281,6 @@ export interface components {
             created_at: string;
             /** Created Count */
             created_count: number;
-            /** Currency Code */
-            currency_code: string | null;
             /** End Date */
             end_date: string | null;
             /** Ended */
@@ -3336,8 +3298,6 @@ export interface components {
             id: string;
             /** Last Error */
             last_error: string | null;
-            /** Match Text */
-            match_text: string | null;
             /** Max Occurrences */
             max_occurrences: number | null;
             /** Name */
@@ -3345,101 +3305,20 @@ export interface components {
             /** Next Date */
             next_date: string | null;
             template: components["schemas"]["TransactionCreate-Output"] | null;
-            /** Type */
-            type: ("withdrawal" | "deposit") | null;
-        };
-        /**
-         * RecurrenceStatusOut
-         * @description Uma recorrente do modo de lembrete, com a situacao na data pedida.
-         */
-        RecurrenceStatusOut: {
-            /** Active */
-            active: boolean;
-            /** Amount Max */
-            amount_max: string | null;
-            /** Amount Min */
-            amount_min: string | null;
-            /** Auto Create */
-            auto_create: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Created Count */
-            created_count: number;
-            /** Currency Code */
-            currency_code: string | null;
-            /** End Date */
-            end_date: string | null;
-            /** Ended */
-            ended: boolean;
-            /**
-             * First Date
-             * Format: date
-             */
-            first_date: string;
-            frequency: components["schemas"]["RecurrenceFrequency"];
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Last Due Date */
-            last_due_date: string | null;
-            /** Last Error */
-            last_error: string | null;
-            /** Match Text */
-            match_text: string | null;
-            /** Max Occurrences */
-            max_occurrences: number | null;
-            /** Name */
-            name: string;
-            /** Next Date */
-            next_date: string | null;
-            /**
-             * Next Due Date
-             * Format: date
-             */
-            next_due_date: string;
-            /** Next Due Paid */
-            next_due_paid: boolean;
-            /** Oldest Overdue Date */
-            oldest_overdue_date: string | null;
-            /** Overdue Count */
-            overdue_count: number;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "upcoming" | "paid" | "overdue";
-            template: components["schemas"]["TransactionCreate-Output"] | null;
-            /** Type */
-            type: ("withdrawal" | "deposit") | null;
         };
         /**
          * RecurrenceUpdate
-         * @description `auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo
-         *     automatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que
-         *     ja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir
-         *     delas), mas o `type` (saida ou entrada) nao muda, como a moeda: trocaria o sentido dos
-         *     lancamentos ja ligados. `end_date` e `max_occurrences` enviados como null tiram o fim.
-         *     `match_text` enviado como null apaga a ligacao automatica.
+         * @description A frequencia e a primeira data nao mudam depois de criada: elas definem todas as datas que ja foram geradas.
+         *     `end_date` e `max_occurrences` enviados como null tiram o fim.
          */
         RecurrenceUpdate: {
             /** Active */
             active?: boolean | null;
-            /** Amount Max */
-            amount_max?: number | string | null;
-            /** Amount Min */
-            amount_min?: number | string | null;
             /** End Date */
             end_date?: string | null;
             /** First Date */
             first_date?: string | null;
             frequency?: components["schemas"]["RecurrenceFrequency"] | null;
-            /** Match Text */
-            match_text?: string | null;
             /** Max Occurrences */
             max_occurrences?: number | null;
             /** Name */
@@ -3641,8 +3520,6 @@ export interface components {
             add_tag_ids: string[];
             /** Amount */
             amount: string;
-            /** Bill Id */
-            bill_id: string | null;
             /** Budget Id */
             budget_id: string | null;
             /** Category Id */
@@ -4249,7 +4126,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "bill" | "recurrence" | "pending";
+            kind: "recurrence" | "pending";
             /** Name */
             name: string;
             /** Overdue */
@@ -6949,38 +6826,6 @@ export interface operations {
             };
         };
     };
-    recurrences_status_api_v1_recurrences_status_get: {
-        parameters: {
-            query?: {
-                on?: string | null;
-                include_archived?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RecurrenceStatusOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_recurrence_api_v1_recurrences__recurrence_id__get: {
         parameters: {
             query?: never;
@@ -8003,7 +7848,6 @@ export interface operations {
                 category_id?: string | null;
                 uncategorized?: boolean;
                 budget_id?: string | null;
-                bill_id?: string | null;
                 tag_id?: string | null;
                 date_from?: string | null;
                 date_to?: string | null;
@@ -8146,7 +7990,6 @@ export interface operations {
                 category_id?: string | null;
                 uncategorized?: boolean;
                 budget_id?: string | null;
-                bill_id?: string | null;
                 tag_id?: string | null;
                 date_from?: string | null;
                 date_to?: string | null;

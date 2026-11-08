@@ -7,7 +7,6 @@ import { expect, it } from "vitest";
 import type { RulePreviewItem } from "@/api/rules";
 import { BackfillDialog } from "@/features/rules/backfill-dialog";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -20,7 +19,6 @@ const otherAccount = makeAccount({ name: "Itau" });
 const category = makeLabel({ name: "Mercado" });
 const tag = makeLabel({ name: "casa" });
 const budget = makeBudget({ name: "Casa" });
-const bill = makeReminder({ name: "Netflix" });
 
 const mercado = makeRule({ name: "Mercado", actions: [{ kind: "set_category", target_id: category.id }] });
 const lazer = makeRule({ name: "Lazer" });
@@ -36,7 +34,6 @@ function item(overrides: Partial<RulePreviewItem> = {}): RulePreviewItem {
     currency_code: "BRL",
     category_id: category.id,
     budget_id: null,
-    bill_id: null,
     add_tag_ids: [],
     rule_ids: [mercado.id],
     ...overrides,
@@ -51,7 +48,6 @@ function renderPage(rules = [mercado, lazer, pausada]) {
     ...fakeLabelsApi("categories", [category]).handlers,
     ...fakeLabelsApi("tags", [tag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>
@@ -300,7 +296,6 @@ it("o botao de aplicar nas antigas espera as regras carregarem", async () => {
     ...fakeLabelsApi("categories", [category]).handlers,
     ...fakeLabelsApi("tags", [tag]).handlers,
     ...fakeBudgetsApi([budget]).handlers,
-    ...fakeRecurrencesApi([bill]).handlers,
   );
   render(
     <FakeAuth>
@@ -315,7 +310,7 @@ it("o botao de aplicar nas antigas espera as regras carregarem", async () => {
 });
 
 it("regras que chegam depois de o dialogo abrir ja aparecem marcadas e a previa fica habilitada", () => {
-  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map(), bills: new Map() };
+  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map() };
   const { rerender } = render(
     <FakeAuth>
       <MemoryRouter>
@@ -337,7 +332,7 @@ it("regras que chegam depois de o dialogo abrir ja aparecem marcadas e a previa 
 });
 
 it("o que a pessoa desmarcou continua desmarcado quando a lista de regras muda", async () => {
-  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map(), bills: new Map() };
+  const lookups = { accounts: new Map(), categories: new Map(), tags: new Map(), budgets: new Map() };
   const { rerender } = render(
     <FakeAuth>
       <MemoryRouter>

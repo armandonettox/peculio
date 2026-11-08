@@ -9,7 +9,7 @@ import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth, WithSidebar, openIncomeForm, pickChip } from "@/test-utils/providers";
-import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
+import { fakeRecurrencesApi } from "@/test-utils/recurrences-api";
 import { deposit } from "@/test-utils/transaction-fixtures";
 import { fakeTransactionsApi } from "@/test-utils/transactions-api";
 import { makeTransaction } from "@/test-utils/transaction-fixtures";
@@ -19,12 +19,11 @@ const salario = makeLabel({ id: "c0000000-0000-4000-8000-0000000000a1", name: "S
 const mercado = makeLabel({ id: "c0000000-0000-4000-8000-0000000000a2", name: "Mercado", kind: "expense" });
 const nubank = makeAccount({ id: "a0000000-0000-4000-8000-000000000001", name: "Nubank" });
 const orcamento = makeBudget({ id: "b0000000-0000-4000-8000-0000000000a1", name: "Orcamento qualquer" });
-const salarioEsperado = makeReminder({ id: "d0000000-0000-4000-8000-0000000000c1", name: "Salario esperado", type: "deposit" });
 
-function renderPage(transactions: Transaction[] = [], bills = [salarioEsperado]) {
+function renderPage(transactions: Transaction[] = []) {
   const accounts = [nubank];
   const tx = fakeTransactionsApi(transactions, accounts);
-  const recurrences = fakeRecurrencesApi(bills);
+  const recurrences = fakeRecurrencesApi([]);
   server.use(
     ...tx.handlers,
     ...fakeAccountsApi(accounts).handlers,

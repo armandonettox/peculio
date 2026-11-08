@@ -6,7 +6,7 @@ import { expect, it } from "vitest";
 import type { Transaction } from "@/api/transactions";
 import { appToday } from "@/lib/dates";
 import { fakeAccountsApi, makeAccount } from "@/test-utils/accounts-api";
-import { fakeRecurrencesApi, makeReminder } from "@/test-utils/recurrences-api";
+import { fakeRecurrencesApi } from "@/test-utils/recurrences-api";
 import { fakeBudgetsApi, makeBudget } from "@/test-utils/budgets-api";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
@@ -50,29 +50,16 @@ const dolarOrc = makeBudget({
   amount: "100.00",
 });
 
-const netflixBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b1", name: "Netflix conta" });
-const aluguelBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b2", name: "Aluguel conta" });
-const velhaBill = makeReminder({ id: "d0000000-0000-4000-8000-0000000000b3", name: "Velha conta", active: false });
-const dolarBill = makeReminder({
-  id: "d0000000-0000-4000-8000-0000000000b4",
-  name: "Dolar conta",
-  currency_code: "USD",
-  amount_min: "10.00",
-  amount_max: "10.00",
-});
-
 type Options = {
   transactions?: Transaction[];
   accounts?: ReturnType<typeof makeAccount>[];
   budgets?: ReturnType<typeof makeBudget>[];
-  bills?: ReturnType<typeof makeReminder>[];
 };
 
 function renderPage({
   transactions = [],
   accounts = [nubank, poupanca, antiga, wise, financiamento],
   budgets = [mercadoOrc, lazerOrc, velhoOrc, dolarOrc],
-  bills = [netflixBill, aluguelBill, velhaBill, dolarBill],
 }: Options = {}) {
   const tx = fakeTransactionsApi(transactions, accounts);
   const accountsApi = fakeAccountsApi(accounts);
@@ -80,7 +67,7 @@ function renderPage({
     ...tx.handlers,
     ...accountsApi.handlers,
     ...fakeBudgetsApi(budgets).handlers,
-    ...fakeRecurrencesApi(bills).handlers,
+    ...fakeRecurrencesApi([]).handlers,
     ...fakeLabelsApi("categories", [mercado, lazer]).handlers,
     ...fakeLabelsApi("tags", [viagem, casa]).handlers,
   );
@@ -885,7 +872,8 @@ it("editar um lancamento que estava ligado a uma conta a pagar abre sem o campo 
       source_account_id: nubank.id,
       source_account_name: "Nubank",
       destination_account_name: "Streaming",
-      bill_id: netflixBill.id,
+      // Lancamento antigo, ligado a uma conta a pagar que deixou de existir
+      bill_id: "d0000000-0000-4000-8000-0000000000b1",
     },
   ]);
   const { tx } = renderPage({ transactions: [transaction] });

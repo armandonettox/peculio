@@ -462,8 +462,6 @@
     "plan_items_exceed_budget": "The limits add up to more than the month's spending budget.",
     "tag_not_found": "Tag not found.",
     "tag_name_taken": "A tag with that name already exists.",
-    "bill_not_found": "Bill not found.",
-    "bill_name_taken": "A recurrence with that name already exists.",
     "bill_not_allowed": "A bill only applies to expenses, not to income, transfers or debt payments.",
     "recurrence_not_found": "Recurring transaction not found.",
     "recurrence_invalid": "Check when the recurrence ends: give either an end date or a number of repetitions, and the end date can't be before the first one.",

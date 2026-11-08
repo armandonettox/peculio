@@ -7,12 +7,9 @@ import type { components } from "./schema";
 import { transactionsKey } from "./transactions";
 
 export type Recurrence = components["schemas"]["RecurrenceOut"];
-export type RecurrenceStatus = components["schemas"]["RecurrenceStatusOut"];
 export type RecurrenceCreate = components["schemas"]["RecurrenceCreate"];
 export type RecurrenceUpdate = components["schemas"]["RecurrenceUpdate"];
 export type RecurrenceFrequency = components["schemas"]["RecurrenceFrequency"];
-// So withdrawal ou deposit: so o modo de lembrete usa; a recorrente automatica guarda null
-export type RecurrenceType = NonNullable<Recurrence["type"]>;
 
 export { recurrencesKey };
 

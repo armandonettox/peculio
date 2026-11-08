@@ -4268,57 +4268,12 @@
       },
       "RecurrenceCreate": {
         "additionalProperties": false,
-        "description": "`auto_create` liga ou desliga o modo. Ligado, pede `template` (um lancamento comum, cuja\ndata de cada linha e trocada pela data de cada ocorrencia) e o tipo vem dele. Desligado, pede\n`type` (saida ou entrada), `currency_code` e a faixa de valor (`amount_min`/`amount_max`) para\nso lembrar o vencimento.",
+        "description": "Uma recorrencia cria o lancamento sozinha a cada ocorrencia: `template` e um lancamento comum, cuja data de cada\nlinha e trocada pela data de cada ocorrencia. O modo lembrete (so avisar o vencimento) deixou de existir: a conta a\npagar e um lancamento pendente (`is_paid` falso no modelo).",
         "properties": {
-          "amount_max": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Min"
-          },
           "auto_create": {
-            "default": false,
+            "default": true,
             "title": "Auto Create",
             "type": "boolean"
-          },
-          "currency_code": {
-            "anyOf": [
-              {
-                "maxLength": 3,
-                "minLength": 3,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency Code"
           },
           "end_date": {
             "anyOf": [
@@ -4340,18 +4295,6 @@
           "frequency": {
             "$ref": "#/components/schemas/RecurrenceFrequency"
           },
-          "match_text": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
           "max_occurrences": {
             "anyOf": [
               {
@@ -4372,35 +4315,14 @@
             "type": "string"
           },
           "template": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TransactionCreate-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "withdrawal",
-                  "deposit"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
+            "$ref": "#/components/schemas/TransactionCreate-Input"
           }
         },
         "required": [
           "name",
           "frequency",
-          "first_date"
+          "first_date",
+          "template"
         ],
         "title": "RecurrenceCreate",
         "type": "object"
@@ -4423,30 +4345,6 @@
             "title": "Active",
             "type": "boolean"
           },
-          "amount_max": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Min"
-          },
           "auto_create": {
             "title": "Auto Create",
             "type": "boolean"
@@ -4459,17 +4357,6 @@
           "created_count": {
             "title": "Created Count",
             "type": "integer"
-          },
-          "currency_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency Code"
           },
           "end_date": {
             "anyOf": [
@@ -4511,17 +4398,6 @@
             ],
             "title": "Last Error"
           },
-          "match_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
           "max_occurrences": {
             "anyOf": [
               {
@@ -4558,21 +4434,6 @@
                 "type": "null"
               }
             ]
-          },
-          "type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "withdrawal",
-                  "deposit"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
           }
         },
         "required": [
@@ -4585,11 +4446,6 @@
           "active",
           "auto_create",
           "template",
-          "type",
-          "currency_code",
-          "amount_min",
-          "amount_max",
-          "match_text",
           "created_count",
           "next_date",
           "ended",
@@ -4599,244 +4455,9 @@
         "title": "RecurrenceOut",
         "type": "object"
       },
-      "RecurrenceStatusOut": {
-        "description": "Uma recorrente do modo de lembrete, com a situacao na data pedida.",
-        "properties": {
-          "active": {
-            "title": "Active",
-            "type": "boolean"
-          },
-          "amount_max": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Min"
-          },
-          "auto_create": {
-            "title": "Auto Create",
-            "type": "boolean"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "created_count": {
-            "title": "Created Count",
-            "type": "integer"
-          },
-          "currency_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Currency Code"
-          },
-          "end_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "End Date"
-          },
-          "ended": {
-            "title": "Ended",
-            "type": "boolean"
-          },
-          "first_date": {
-            "format": "date",
-            "title": "First Date",
-            "type": "string"
-          },
-          "frequency": {
-            "$ref": "#/components/schemas/RecurrenceFrequency"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "last_due_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Due Date"
-          },
-          "last_error": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Last Error"
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
-          },
-          "max_occurrences": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Max Occurrences"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "next_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Date"
-          },
-          "next_due_date": {
-            "format": "date",
-            "title": "Next Due Date",
-            "type": "string"
-          },
-          "next_due_paid": {
-            "title": "Next Due Paid",
-            "type": "boolean"
-          },
-          "oldest_overdue_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Oldest Overdue Date"
-          },
-          "overdue_count": {
-            "title": "Overdue Count",
-            "type": "integer"
-          },
-          "status": {
-            "enum": [
-              "upcoming",
-              "paid",
-              "overdue"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "template": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TransactionCreate-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "type": {
-            "anyOf": [
-              {
-                "enum": [
-                  "withdrawal",
-                  "deposit"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "frequency",
-          "first_date",
-          "end_date",
-          "max_occurrences",
-          "active",
-          "auto_create",
-          "template",
-          "type",
-          "currency_code",
-          "amount_min",
-          "amount_max",
-          "match_text",
-          "created_count",
-          "next_date",
-          "ended",
-          "last_error",
-          "created_at",
-          "last_due_date",
-          "next_due_date",
-          "status",
-          "overdue_count",
-          "oldest_overdue_date",
-          "next_due_paid"
-        ],
-        "title": "RecurrenceStatusOut",
-        "type": "object"
-      },
       "RecurrenceUpdate": {
         "additionalProperties": false,
-        "description": "`auto_create` nao muda depois de criada: define o que a recorrente precisa. No modo\nautomatico, a frequencia e a primeira data tambem nao mudam: elas definem todas as datas que\nja foram geradas. No modo de lembrete, as duas podem ser corrigidas (nada foi gerado a partir\ndelas), mas o `type` (saida ou entrada) nao muda, como a moeda: trocaria o sentido dos\nlancamentos ja ligados. `end_date` e `max_occurrences` enviados como null tiram o fim.\n`match_text` enviado como null apaga a ligacao automatica.",
+        "description": "A frequencia e a primeira data nao mudam depois de criada: elas definem todas as datas que ja foram geradas.\n`end_date` e `max_occurrences` enviados como null tiram o fim.",
         "properties": {
           "active": {
             "anyOf": [
@@ -4848,38 +4469,6 @@
               }
             ],
             "title": "Active"
-          },
-          "amount_max": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Max"
-          },
-          "amount_min": {
-            "anyOf": [
-              {
-                "exclusiveMinimum": 0.0,
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Amount Min"
           },
           "end_date": {
             "anyOf": [
@@ -4914,18 +4503,6 @@
                 "type": "null"
               }
             ]
-          },
-          "match_text": {
-            "anyOf": [
-              {
-                "maxLength": 100,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Match Text"
           },
           "max_occurrences": {
             "anyOf": [
@@ -5494,18 +5071,6 @@
             "title": "Amount",
             "type": "string"
           },
-          "bill_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bill Id"
-          },
           "budget_id": {
             "anyOf": [
               {
@@ -5571,7 +5136,6 @@
           "currency_code",
           "category_id",
           "budget_id",
-          "bill_id",
           "add_tag_ids",
           "rule_ids"
         ],
@@ -7298,7 +6862,6 @@
           },
           "kind": {
             "enum": [
-              "bill",
               "recurrence",
               "pending"
             ],
@@ -11881,76 +11444,6 @@
         ]
       }
     },
-    "/api/v1/recurrences/status": {
-      "get": {
-        "description": "Ultimo e proximo vencimento de cada recorrente do modo de lembrete na data `on` (hoje, se\nomitida), e se o ultimo foi pago. Ordenadas pelo proximo vencimento.",
-        "operationId": "recurrences_status_api_v1_recurrences_status_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "on",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "date",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "On"
-            }
-          },
-          {
-            "in": "query",
-            "name": "include_archived",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Include Archived",
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/RecurrenceStatusOut"
-                  },
-                  "title": "Response Recurrences Status Api V1 Recurrences Status Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Recurrences Status",
-        "tags": [
-          "recurrences"
-        ]
-      }
-    },
     "/api/v1/recurrences/{recurrence_id}": {
       "delete": {
         "operationId": "delete_recurrence_api_v1_recurrences__recurrence_id__delete",
@@ -14482,23 +13975,6 @@
           },
           {
             "in": "query",
-            "name": "bill_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Bill Id"
-            }
-          },
-          {
-            "in": "query",
             "name": "tag_id",
             "required": false,
             "schema": {
@@ -14920,23 +14396,6 @@
                 }
               ],
               "title": "Budget Id"
-            }
-          },
-          {
-            "in": "query",
-            "name": "bill_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Bill Id"
             }
           },
           {
