@@ -3,16 +3,20 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAccounts } from "@/api/accounts";
-import { type ReportPeriod } from "@/api/reports";
 import { getErrorMessage } from "@/api/error-messages";
 import { useAuth } from "@/auth/auth-context";
 import { InstallBanner } from "@/components/install-banner";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
-import { MasonryColumns } from "@/components/masonry-columns";
+import { MonthPicker } from "@/components/month-picker";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
+import { LEFT_CARDS, RIGHT_CARDS, readEnabledCards, type DashboardCardId } from "@/features/dashboard/cards";
+import { FirstStepsBlock } from "@/features/dashboard/first-steps-block";
+import { AccountsBlock, CreditCardsBlock, FavoritesBlock, PendingBlock, ProfileBlock } from "@/features/dashboard/list-blocks";
+import { CalendarBlock, FrequencyBlock, PeriodBalanceBlock, SavingsBlock } from "@/features/dashboard/month-blocks";
+import { SummaryCards } from "@/features/dashboard/summary-cards";
 import { BudgetsBlock } from "@/features/dashboard/budgets-block";
 import { CategoryBlock } from "@/features/dashboard/category-block";
 import { NetWorthBlock } from "@/features/dashboard/net-worth-block";
@@ -21,21 +25,65 @@ import { ThisMonthBlock } from "@/features/dashboard/this-month-block";
 import { TransactionsBlock } from "@/features/dashboard/transactions-block";
 import { UpcomingBlock } from "@/features/dashboard/upcoming-block";
 import { appToday } from "@/lib/dates";
+import { monthRange, type MonthRange } from "@/lib/month";
 import { useTranslation } from "react-i18next";
 
-const PERIOD_OPTIONS: { value: ReportPeriod; label: string }[] = [
-  { value: "this-month", label: "Este mês" },
-  { value: "last-month", label: "Mês passado" },
-  { value: "last-3-months", label: "Últimos 3 meses" },
-  { value: "this-year", label: "Este ano" },
-];
+/** O dia que vale como "hoje" para os orcamentos do mes escolhido: hoje no mes atual, senao o ultimo ou o primeiro dia dele. */
+function budgetDay(range: MonthRange, today: string): string {
+  if (today >= range.from && today <= range.to) return today;
+  return today > range.to ? range.to : range.from;
+}
+
+function renderCard(id: DashboardCardId, range: MonthRange, today: string) {
+  switch (id) {
+    case "expensesByCategory":
+      return <CategoryBlock range={range} />;
+    case "incomeByCategory":
+      return <CategoryBlock range={range} kind="income" />;
+    case "spendingFrequency":
+      return <FrequencyBlock range={range} />;
+    case "monthlyBalance":
+      return <ThisMonthBlock range={range} />;
+    case "pendingTransactions":
+      return <PendingBlock range={range} />;
+    case "budgetSummary":
+      return <BudgetsBlock today={budgetDay(range, today)} />;
+    case "favorites":
+      return <FavoritesBlock />;
+    case "calendar":
+      return <CalendarBlock range={range} />;
+    case "accounts":
+      return <AccountsBlock />;
+    case "upcoming":
+      return <UpcomingBlock />;
+    case "recentTransactions":
+      return <TransactionsBlock />;
+    case "semesterBalance":
+      return <PeriodBalanceBlock range={range} months={6} />;
+    case "quarterBalance":
+      return <PeriodBalanceBlock range={range} months={3} />;
+    case "creditCards":
+      return <CreditCardsBlock />;
+    case "goals":
+      return <PiggyBanksBlock />;
+    case "savings":
+      return <SavingsBlock range={range} />;
+    case "profile":
+      return <ProfileBlock />;
+    case "netWorth":
+      return <NetWorthBlock />;
+  }
+}
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const firstName = user?.name.trim().split(/\s+/)[0];
   const today = appToday();
-  const [period, setPeriod] = useState<ReportPeriod>("this-month");
+  const [month, setMonth] = useState(() => monthRange(today).month);
+  const range = monthRange(month);
+  const currentMonth = monthRange(today).month;
+  const [enabled] = useState(readEnabledCards);
 
   // Enquanto nao houver nenhuma conta, o painel nao tem o que mostrar: nem dispara os
   // pedidos dos outros blocos (todos dependem, direto ou indireto, de uma conta existir)
@@ -47,6 +95,7 @@ export default function DashboardPage() {
       <PageHeader
         title={t("pages.dashboard.painel")}
         description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
+        actions={hasAccounts ? <MonthPicker value={month} currentMonth={currentMonth} onChange={setMonth} /> : undefined}
       />
 
       <InstallBanner />
@@ -77,38 +126,34 @@ export default function DashboardPage() {
         <>
           <AlertsBar />
           <div className="mb-6">
-            <NetWorthBlock />
-          </div>
-          {/* Seletor de periodo para os blocos de resumo e categorias */}
-          <div className="mb-4 flex flex-wrap gap-2">
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setPeriod(option.value)}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                  period === option.value
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+            <SummaryCards range={range} />
           </div>
           {/*
-            Colunas que se encaixam pela altura real de cada bloco, sem buraco ao lado de um bloco curto
-            nem sobra no fim de uma coluna mais curta. A ordem do HTML continua a de leitura, so o lugar
-            visual na grade e que se ajusta (ver MasonryColumns).
+            Duas colunas independentes, cada uma empilhando os blocos que a pessoa deixou ligados em
+            "Gerenciar tela inicial". Os dois lados sobem juntos quando a tela e estreita.
           */}
-          <MasonryColumns className="grid-cols-1 lg:grid-cols-2" data-testid="dashboard-columns">
-            <ThisMonthBlock />
-            <CategoryBlock period={period} />
-            <BudgetsBlock today={today} />
-            <UpcomingBlock />
-            <TransactionsBlock />
-            <PiggyBanksBlock />
-          </MasonryColumns>
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" data-testid="dashboard-columns">
+            <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-left">
+              <FirstStepsBlock />
+              {LEFT_CARDS.filter((id) => enabled.includes(id)).map((id) => (
+                <div key={id} className="min-w-0">
+                  {renderCard(id, range, today)}
+                </div>
+              ))}
+            </div>
+            <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-right">
+              {RIGHT_CARDS.filter((id) => enabled.includes(id)).map((id) => (
+                <div key={id} className="min-w-0">
+                  {renderCard(id, range, today)}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-6">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/configuracoes?aba=painel">{t("dashboard.manageHome")}</Link>
+            </Button>
+          </div>
         </>
       )}
     </>

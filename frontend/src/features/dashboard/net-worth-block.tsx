@@ -22,8 +22,8 @@ export function NetWorthBlock() {
       isEmpty={currencies.length === 0}
       empty={<p className="text-sm text-muted-foreground">{t("dashboard.netWorthBlock.semContasParaCalcular")}</p>}
     >
-      {/* Com mais de uma moeda os graficos ficam lado a lado no desktop, em vez de empilhados */}
-      <div data-testid="net-worth-currencies" className={currencies.length > 1 ? "grid grid-cols-1 gap-6 lg:grid-cols-2" : "flex flex-col gap-6"}>
+      {/* O bloco mora numa coluna de meia largura: uma moeda embaixo da outra, senao os valores se sobrepoem */}
+      <div data-testid="net-worth-currencies" className="flex flex-col gap-6">
         {currencies.map((currency) => (
           <section key={currency.currency_code} aria-label={t("dashboard.netWorthBlock.netWorthIn", { currency: currency.currency_code })} className="min-w-0">
             {currencies.length > 1 && <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{currency.currency_code}</h3>}

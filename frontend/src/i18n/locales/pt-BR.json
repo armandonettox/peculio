@@ -539,7 +539,10 @@
       "verRelatorios": "Ver relatórios",
       "noCategory": "Sem categoria",
       "spendingByCategoryIn": "Gastos por categoria em {{currency}}",
-      "previsaoProximos3Meses": "Previsão dos próximos 3 meses ({{currency}})"
+      "previsaoProximos3Meses": "Previsão dos próximos 3 meses ({{currency}})",
+      "receitasPorCategoria": "Receitas por categoria",
+      "nenhumaReceitaNoMes": "Nenhuma receita neste mês ainda.",
+      "incomeByCategoryIn": "Receitas por categoria em {{currency}}"
     },
     "netWorthBlock": {
       "patrimonio": "Patrimônio",
@@ -559,11 +562,12 @@
       "percentOfTarget": "{{percent}}% da meta"
     },
     "thisMonthBlock": {
-      "esteMes": "Este mês",
       "nenhumaReceitaOuDespesa": "Nenhuma receita ou despesa neste mês ainda.",
       "diferenca": "Diferença",
       "thisMonthIn": "Este mês em {{currency}}",
-      "caption": "Receita, despesa e resultado deste mês em {{currency}}, comparados com o mês passado"
+      "caption": "Receita, despesa e resultado deste mês em {{currency}}, comparados com o mês passado",
+      "balancoMensal": "Balanço mensal",
+      "selectedMonth": "Mês"
     },
     "transactionsBlock": {
       "ultimasTransacoes": "Últimas transações",
@@ -597,6 +601,109 @@
       "receita": "Receita",
       "overduePending_one": "{{count}} lançamento pendente atrasado",
       "overduePending_other": "{{count}} lançamentos pendentes atrasados"
+    },
+    "verMais": "Ver mais",
+    "manageHome": "Gerenciar tela inicial",
+    "monthPicker": {
+      "chooseMonth": "Mês: {{month}}. Escolher outro mês",
+      "monthSelection": "Escolher o mês",
+      "previousYear": "Ano anterior",
+      "nextYear": "Próximo ano",
+      "currentMonth": "Mês atual"
+    },
+    "summaryCards": {
+      "unavailable": "Indisponível",
+      "currentBalance": "Saldo atual",
+      "income": "Receitas",
+      "expenses": "Despesas",
+      "creditCard": "Cartão de crédito"
+    },
+    "pendingBlock": {
+      "title": "Transações pendentes",
+      "empty": "Nenhum lançamento pendente neste mês."
+    },
+    "favoritesBlock": {
+      "title": "Transações favoritas",
+      "empty": "Nenhum favorito ainda. Marque o coração ao lançar uma despesa ou receita."
+    },
+    "accountsBlock": {
+      "title": "Minhas contas",
+      "empty": "Nenhuma conta cadastrada."
+    },
+    "creditCardsBlock": {
+      "title": "Cartões de crédito",
+      "empty": "Nenhum cartão cadastrado.",
+      "limitUsed": "Limite usado de {{name}}",
+      "available": "Limite disponível {{amount}}"
+    },
+    "profileBlock": {
+      "title": "Perfil",
+      "settings": "Abrir configurações"
+    },
+    "calendarBlock": {
+      "title": "Calendário de movimentações",
+      "dayWithMovement_one": "Dia {{day}}, {{count}} lançamento",
+      "dayWithMovement_other": "Dia {{day}}, {{count}} lançamentos"
+    },
+    "frequencyBlock": {
+      "title": "Frequência de gastos",
+      "chartTitle": "Despesas por dia da semana",
+      "expensesCount": "Despesas",
+      "empty": "Nenhuma despesa neste mês.",
+      "count_one": "{{count}} despesa",
+      "count_other": "{{count}} despesas"
+    },
+    "periodBalanceBlock": {
+      "semester": "Balanço semestral",
+      "quarter": "Balanço trimestral",
+      "empty": "Nenhum lançamento no período.",
+      "chartTitle": "Receitas e despesas dos últimos {{months}} meses em {{currency}}"
+    },
+    "savingsBlock": {
+      "title": "Economia do mês",
+      "empty": "Nenhuma receita ou despesa neste mês.",
+      "noIncome": "Sem receita no mês para comparar.",
+      "ofIncome": "{{percent}}% da receita do mês"
+    },
+    "firstSteps": {
+      "title": "Primeiros passos",
+      "subtitle": "Comece a organizar a sua vida financeira por aqui",
+      "account": "Cadastre uma conta bancária",
+      "card": "Cadastre um cartão de crédito",
+      "transaction": "Faça o primeiro lançamento",
+      "budget": "Crie um orçamento",
+      "done": "Feito",
+      "pending": "Pendente"
+    },
+    "settings": {
+      "tab": "Painel",
+      "question": "Quais blocos você quer ver no painel?",
+      "hint": "A escolha vale só neste navegador.",
+      "leftColumn": "Coluna da esquerda",
+      "rightColumn": "Coluna da direita",
+      "save": "Salvar",
+      "restoreDefaults": "Restaurar o padrão",
+      "saved": "Escolha salva."
+    },
+    "cards": {
+      "expensesByCategory": "Gráfico de despesas por categoria",
+      "spendingFrequency": "Gráfico de frequência de gastos",
+      "monthlyBalance": "Balanço mensal",
+      "pendingTransactions": "Transações pendentes",
+      "budgetSummary": "Resumo dos orçamentos",
+      "favorites": "Transações favoritas",
+      "calendar": "Calendário de movimentações",
+      "accounts": "Minhas contas",
+      "upcoming": "Próximos vencimentos",
+      "recentTransactions": "Últimas transações",
+      "incomeByCategory": "Gráfico de receitas por categoria",
+      "semesterBalance": "Gráfico do balanço semestral",
+      "quarterBalance": "Gráfico do balanço trimestral",
+      "creditCards": "Informações de cartão de crédito",
+      "goals": "Cofrinhos",
+      "savings": "Economia do mês",
+      "profile": "Informações de perfil",
+      "netWorth": "Patrimônio"
     }
   },
   "money": {

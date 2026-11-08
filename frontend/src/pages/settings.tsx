@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/auth/auth-context";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tab, TabList } from "@/components/ui/tabs";
+import { DashboardSection } from "@/features/settings/dashboard-section";
 import { AppearanceSection } from "@/features/settings/appearance-section";
 import { InvitesSection } from "@/features/settings/invites-section";
 import { ProfileSection } from "@/features/settings/profile-section";
@@ -11,7 +12,7 @@ import { SecuritySection } from "@/features/settings/security-section";
 import { WebhooksSection } from "@/features/webhooks/webhooks-section";
 import { useTranslation } from "react-i18next";
 
-type Tab = "perfil" | "aparencia" | "seguranca" | "webhooks" | "administracao";
+type Tab = "perfil" | "aparencia" | "painel" | "seguranca" | "webhooks" | "administracao";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -23,7 +24,7 @@ export default function SettingsPage() {
   const tab: Tab =
     requested === "administracao" && user?.is_admin
       ? "administracao"
-      : requested === "aparencia" || requested === "seguranca" || requested === "webhooks"
+      : requested === "aparencia" || requested === "painel" || requested === "seguranca" || requested === "webhooks"
         ? requested
         : "perfil";
 
@@ -50,6 +51,9 @@ export default function SettingsPage() {
         <Tab active={tab === "aparencia"} onSelect={() => chooseTab("aparencia")}>
           {t("pages.settings.aparencia")}
         </Tab>
+        <Tab active={tab === "painel"} onSelect={() => chooseTab("painel")}>
+          {t("dashboard.settings.tab")}
+        </Tab>
         <Tab active={tab === "seguranca"} onSelect={() => chooseTab("seguranca")}>
           {t("common.seguranca")}
         </Tab>
@@ -66,6 +70,8 @@ export default function SettingsPage() {
       {tab === "perfil" && <ProfileSection />}
 
       {tab === "aparencia" && <AppearanceSection />}
+
+      {tab === "painel" && <DashboardSection />}
 
       {tab === "seguranca" && <SecuritySection />}
 

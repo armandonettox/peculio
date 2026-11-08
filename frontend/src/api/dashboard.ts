@@ -29,9 +29,10 @@ export function useNetWorth({ months = 12, forecastMonths = 0 }: { months?: numb
 }
 
 /** Projecao de receitas e despesas dos proximos meses pelas recorrencias auto_create ativas. */
-export function useSpendingForecast({ months = 3 }: { months?: number } = {}) {
+export function useSpendingForecast({ months = 3 }: { months?: number } = {}, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: [...dashboardKey, "spending-forecast", { months }],
+    enabled,
     queryFn: () =>
       unwrap(
         api.client.GET("/api/v1/dashboard/spending-forecast", {

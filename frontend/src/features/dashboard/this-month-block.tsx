@@ -1,6 +1,7 @@
 import { useCurrencies } from "@/api/accounts";
 import { useReportSummary } from "@/api/reports";
 import { TableScroll } from "@/components/table-scroll";
+import { shiftMonthRange, type MonthRange } from "@/lib/month";
 import { formatMoney, placesOf } from "@/lib/money";
 import { DashboardBlock } from "./dashboard-block";
 import { compareToLastMonth, findByCurrency, formatDiff, formatPercent, trendFor, type MonthMetric } from "./presentation";
@@ -14,11 +15,12 @@ const METRICS: { key: MonthMetric; label: string }[] = [
 
 const TREND_CLASS = { good: "text-positive", bad: "text-destructive", neutral: "text-muted-foreground" } as const;
 
-/** Receita, despesa e resultado deste mes, comparados com o mes passado. */
-export function ThisMonthBlock() {
+/** Receita, despesa e resultado do mes escolhido, comparados com o mes anterior a ele. */
+export function ThisMonthBlock({ range }: { range: MonthRange }) {
   const { t } = useTranslation();
-  const thisMonth = useReportSummary({ period: "this-month" });
-  const lastMonth = useReportSummary({ period: "last-month" });
+  const previousRange = shiftMonthRange(range, -1);
+  const thisMonth = useReportSummary({ dateFrom: range.from, dateTo: range.to });
+  const lastMonth = useReportSummary({ dateFrom: previousRange.from, dateTo: previousRange.to });
   // Casas decimais de cada moeda (JPY tem 0, algumas tem 3): a diferenca nao pode truncar nem inventar casas
   const currencyList = useCurrencies();
   const placesByCurrency = Object.fromEntries((currencyList.data ?? []).map((item) => [item.code, item.decimal_places]));
@@ -29,7 +31,7 @@ export function ThisMonthBlock() {
 
   return (
     <DashboardBlock
-      title={t("dashboard.thisMonthBlock.esteMes")}
+      title={t("dashboard.thisMonthBlock.balancoMensal")}
       isLoading={isLoading}
       isError={isError}
       error={thisMonth.error ?? lastMonth.error}
@@ -62,7 +64,7 @@ export function ThisMonthBlock() {
                         {t("common.valor")}
                       </th>
                       <th scope="col" className="py-1 font-normal">
-                        {t("dashboard.thisMonthBlock.esteMes")}
+                        {t("dashboard.thisMonthBlock.selectedMonth")}
                       </th>
                       <th scope="col" className="py-1 font-normal">
                         {t("dashboard.thisMonthBlock.diferenca")}

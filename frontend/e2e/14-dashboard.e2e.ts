@@ -81,7 +81,7 @@ test("prepara dados ficticios: conta, divida, orcamento perto do limite, pendent
 test("mostra todos os blocos com os dados do usuario", async ({ page }) => {
   await openDashboard(page);
   await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
-  for (const title of ["Patrimônio", "Este mês", "Gastos por categoria", "Orçamentos", "Próximos vencimentos", "Últimas transações", "Cofrinhos"]) {
+  for (const title of ["Patrimônio", "Balanço mensal", "Gastos por categoria", "Orçamentos", "Próximos vencimentos", "Últimas transações", "Cofrinhos"]) {
     await expect(block(page, title)).toBeVisible();
   }
   await expect(block(page, "Orçamentos")).toContainText("Mercado Painel E2E");
@@ -171,13 +171,14 @@ test("no celular a pagina nao ganha rolagem horizontal e os blocos empilham", as
   await expect(block(page, "Orçamentos")).toBeVisible();
   const widths = await page.evaluate(() => ({ page: document.documentElement.scrollWidth, window: window.innerWidth }));
   expect(widths.page).toBeLessThanOrEqual(widths.window);
-  const first = await block(page, "Este mês").boundingBox();
-  const second = await block(page, "Gastos por categoria").boundingBox();
+  // Numa coluna so, a ordem e a da lista de blocos: gastos por categoria, depois o balanco mensal
+  const first = await block(page, "Gastos por categoria").boundingBox();
+  const second = await block(page, "Balanço mensal").boundingBox();
   // Empilhados: o segundo comeca abaixo do primeiro, nao ao lado
   expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
-  // Na tabela "Este mes" o valor fica numa linha so (nao quebra o sinal de menos nem o simbolo da moeda).
+  // Na tabela do balanco mensal o valor fica numa linha so (nao quebra o sinal de menos nem o simbolo da moeda).
   // Conta as linhas de texto da celula: a altura da celula e a da linha da tabela, que a coluna da diferenca estica.
-  const lines = await block(page, "Este mês").locator("tbody tr td:first-of-type").evaluateAll((cells) =>
+  const lines = await block(page, "Balanço mensal").locator("tbody tr td:first-of-type").evaluateAll((cells) =>
     cells.map((cell) => {
       const range = document.createRange();
       range.selectNodeContents(cell);

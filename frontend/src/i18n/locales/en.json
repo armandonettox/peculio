@@ -539,7 +539,10 @@
       "verRelatorios": "View reports",
       "noCategory": "No category",
       "spendingByCategoryIn": "Spending by category in {{currency}}",
-      "previsaoProximos3Meses": "Forecast for the next 3 months ({{currency}})"
+      "previsaoProximos3Meses": "Forecast for the next 3 months ({{currency}})",
+      "receitasPorCategoria": "Income by category",
+      "nenhumaReceitaNoMes": "No income this month yet.",
+      "incomeByCategoryIn": "Income by category in {{currency}}"
     },
     "netWorthBlock": {
       "patrimonio": "Net worth",
@@ -559,11 +562,12 @@
       "percentOfTarget": "{{percent}}% of target"
     },
     "thisMonthBlock": {
-      "esteMes": "This month",
       "nenhumaReceitaOuDespesa": "No income or expenses this month yet.",
       "diferenca": "Difference",
       "thisMonthIn": "This month in {{currency}}",
-      "caption": "Income, expenses and result for this month in {{currency}}, compared with last month"
+      "caption": "Income, expenses and result for this month in {{currency}}, compared with last month",
+      "balancoMensal": "Monthly balance",
+      "selectedMonth": "Month"
     },
     "transactionsBlock": {
       "ultimasTransacoes": "Latest transactions",
@@ -597,6 +601,109 @@
       "receita": "Income",
       "overduePending_one": "{{count}} overdue pending transaction",
       "overduePending_other": "{{count}} overdue pending transactions"
+    },
+    "verMais": "See more",
+    "manageHome": "Manage home screen",
+    "monthPicker": {
+      "chooseMonth": "Month: {{month}}. Choose another month",
+      "monthSelection": "Choose the month",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
+      "currentMonth": "Current month"
+    },
+    "summaryCards": {
+      "unavailable": "Unavailable",
+      "currentBalance": "Current balance",
+      "income": "Income",
+      "expenses": "Expenses",
+      "creditCard": "Credit card"
+    },
+    "pendingBlock": {
+      "title": "Pending transactions",
+      "empty": "No pending entries this month."
+    },
+    "favoritesBlock": {
+      "title": "Favorite transactions",
+      "empty": "No favorites yet. Tap the heart when you add an expense or income."
+    },
+    "accountsBlock": {
+      "title": "My accounts",
+      "empty": "No accounts yet."
+    },
+    "creditCardsBlock": {
+      "title": "Credit cards",
+      "empty": "No cards yet.",
+      "limitUsed": "Limit used on {{name}}",
+      "available": "Available limit {{amount}}"
+    },
+    "profileBlock": {
+      "title": "Profile",
+      "settings": "Open settings"
+    },
+    "calendarBlock": {
+      "title": "Transaction calendar",
+      "dayWithMovement_one": "Day {{day}}, {{count}} entry",
+      "dayWithMovement_other": "Day {{day}}, {{count}} entries"
+    },
+    "frequencyBlock": {
+      "title": "Spending frequency",
+      "chartTitle": "Expenses by day of the week",
+      "expensesCount": "Expenses",
+      "empty": "No expenses this month.",
+      "count_one": "{{count}} expense",
+      "count_other": "{{count}} expenses"
+    },
+    "periodBalanceBlock": {
+      "semester": "Six-month balance",
+      "quarter": "Three-month balance",
+      "empty": "No entries in the period.",
+      "chartTitle": "Income and expenses for the last {{months}} months in {{currency}}"
+    },
+    "savingsBlock": {
+      "title": "Savings this month",
+      "empty": "No income or expenses this month.",
+      "noIncome": "No income this month to compare with.",
+      "ofIncome": "{{percent}}% of the month income"
+    },
+    "firstSteps": {
+      "title": "First steps",
+      "subtitle": "Start organizing your finances here",
+      "account": "Add a bank account",
+      "card": "Add a credit card",
+      "transaction": "Make your first entry",
+      "budget": "Create a budget",
+      "done": "Done",
+      "pending": "Pending"
+    },
+    "settings": {
+      "tab": "Home",
+      "question": "Which blocks do you want on the home screen?",
+      "hint": "The choice applies only to this browser.",
+      "leftColumn": "Left column",
+      "rightColumn": "Right column",
+      "save": "Save",
+      "restoreDefaults": "Restore defaults",
+      "saved": "Choice saved."
+    },
+    "cards": {
+      "expensesByCategory": "Expenses by category chart",
+      "spendingFrequency": "Spending frequency chart",
+      "monthlyBalance": "Monthly balance",
+      "pendingTransactions": "Pending transactions",
+      "budgetSummary": "Budget summary",
+      "favorites": "Favorite transactions",
+      "calendar": "Transaction calendar",
+      "accounts": "My accounts",
+      "upcoming": "Upcoming due dates",
+      "recentTransactions": "Latest transactions",
+      "incomeByCategory": "Income by category chart",
+      "semesterBalance": "Six-month balance chart",
+      "quarterBalance": "Three-month balance chart",
+      "creditCards": "Credit card information",
+      "goals": "Piggy banks",
+      "savings": "Savings this month",
+      "profile": "Profile information",
+      "netWorth": "Net worth"
     }
   },
   "money": {

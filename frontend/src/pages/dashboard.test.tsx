@@ -59,11 +59,12 @@ afterEach(() => vi.useRealTimers());
 // comparacao com o mes passado (a API de relatorios de mentira nao distingue periodo)
 function summaryByPeriod(thisMonth: ReportTotals[], lastMonth: ReportTotals[] = []) {
   return http.get("*/api/v1/reports/summary", ({ request }) => {
-    const period = new URL(request.url).searchParams.get("period");
+    // O painel pede o mes inteiro por datas: fevereiro e o mes anterior ao de hoje (15/03/2026)
+    const dateFrom = new URL(request.url).searchParams.get("date_from");
     return HttpResponse.json({
       date_from: "2026-03-01",
       date_to: "2026-03-31",
-      currencies: period === "last-month" ? lastMonth : thisMonth,
+      currencies: dateFrom === "2026-02-01" ? lastMonth : thisMonth,
     });
   });
 }
@@ -289,7 +290,7 @@ it("este mes: resultado negativo que piora mostra diferenca negativa como ruim",
 
 it("este mes: sem nenhum lancamento no periodo mostra o estado vazio do bloco", async () => {
   renderPage({ summary: summaryByPeriod([]) });
-  const section = await region("Este mês");
+  const section = await region("Balanço mensal");
   expect(await within(section).findByText(/Nenhuma receita ou despesa neste mês/)).toBeInTheDocument();
 });
 
@@ -535,7 +536,7 @@ it("alertas: sem nada para avisar, a faixa some por completo", async () => {
 
 it("enquanto um bloco carrega, nao mostra ao mesmo tempo o esqueleto e o estado vazio", async () => {
   renderPage({ summary: summaryByPeriod([]) });
-  const section = await region("Este mês");
+  const section = await region("Balanço mensal");
   // Logo apos o render, antes do pedido simulado responder, so o esqueleto aparece
   expect(within(section).getByRole("status")).toBeInTheDocument();
   expect(within(section).queryByText(/Nenhuma receita/)).not.toBeInTheDocument();
@@ -709,33 +710,30 @@ it("transacoes: o dia vem do relogio do app (aparelho atrasado ainda mostra Hoje
 
 // ---------- Layout no desktop: sem buracos nem faixas vazias ----------
 
-it("os blocos ficam numa grade que se encaixa pela altura real, de 1 a 2 colunas conforme a tela", async () => {
+it("os blocos ficam em duas colunas independentes, de 1 a 2 conforme a tela", async () => {
   renderPage();
   const columns = await screen.findByTestId("dashboard-columns");
-  expect(columns).toHaveClass("grid-cols-1", "lg:grid-cols-2");
-  // Grade com "dense": cada bloco ocupa quantas linhas precisar, sem buraco ao lado do bloco curto
-  // nem sobra no fim de uma coluna mais curta (ver MasonryColumns)
-  expect(columns.className).toContain("grid");
-  expect(columns.className).toContain("[grid-auto-flow:dense]");
+  expect(columns).toHaveClass("grid", "grid-cols-1", "lg:grid-cols-2");
+  expect(within(columns).getByTestId("dashboard-left")).toBeInTheDocument();
+  expect(within(columns).getByTestId("dashboard-right")).toBeInTheDocument();
 });
 
-it("o patrimonio fica fora das colunas, ocupando a largura toda", async () => {
+it("o patrimonio e um bloco da coluna da direita, como os demais", async () => {
   renderPage();
-  const columns = await screen.findByTestId("dashboard-columns");
-  const networth = await screen.findByRole("region", { name: "Patrimônio" });
-  expect(columns.contains(networth)).toBe(false);
-  expect(networth.className).not.toContain("col-span");
+  const right = await screen.findByTestId("dashboard-right");
+  expect(await within(right).findByRole("region", { name: "Patrimônio" })).toBeInTheDocument();
 });
 
-it("as colunas trazem os outros blocos, na ordem de leitura", async () => {
+it("a coluna da esquerda traz os blocos padrao na ordem de leitura", async () => {
   renderPage();
-  const columns = await screen.findByTestId("dashboard-columns");
-  await within(columns).findByRole("region", { name: "Este mês" });
-  const names = [...columns.children].map((child) => child.getAttribute("aria-label") ?? child.querySelector("h2")?.textContent);
-  expect(names.slice(0, 2)).toEqual(["Este mês", "Gastos por categoria"]);
+  const left = await screen.findByTestId("dashboard-left");
+  await within(left).findByRole("region", { name: "Balanço mensal" });
+  const names = [...left.querySelectorAll("h2")].map((heading) => heading.textContent);
+  // Sem lancamentos nem orcamentos, o checklist aparece primeiro; depois a ordem fixa da lista de blocos
+  expect(names.slice(0, 3)).toEqual(["Primeiros passos", "Gastos por categoria", "Balanço mensal"]);
 });
 
-it("com mais de uma moeda, os graficos do patrimonio ficam lado a lado no desktop", async () => {
+it("com mais de uma moeda, o patrimonio empilha uma moeda embaixo da outra (o bloco ocupa meia largura)", async () => {
   renderWithDashboard({
     netWorth: makeNetWorth({
       currencies: [
@@ -744,8 +742,9 @@ it("com mais de uma moeda, os graficos do patrimonio ficam lado a lado no deskto
       ],
     }),
   });
-  const grid = await screen.findByTestId("net-worth-currencies");
-  expect(grid).toHaveClass("grid", "lg:grid-cols-2");
+  const list = await screen.findByTestId("net-worth-currencies");
+  expect(list).toHaveClass("flex", "flex-col");
+  expect(within(list).getAllByRole("region")).toHaveLength(2);
 });
 
 it("com uma moeda so, o patrimonio continua em uma coluna", async () => {
@@ -809,4 +808,52 @@ it("alertas: lancamento pendente atrasado aparece no topo com link para a lista 
   );
   const alerts = await screen.findByLabelText("Alertas");
   expect(await within(alerts).findByRole("link", { name: /pendente atrasado/ })).toHaveAttribute("href", "/transacoes?situacao=pending");
+});
+
+// ---------- Seletor de mes, cards do topo e blocos escolhidos ----------
+
+it("os quatro cards do topo levam as telas de detalhe, com o mes na URL", async () => {
+  renderPage();
+  const cards = await screen.findByTestId("summary-cards");
+  const hrefs = within(cards).getAllByRole("link").map((link) => link.getAttribute("href"));
+  expect(hrefs).toEqual([
+    "/contas",
+    "/transacoes?tipo=deposit&de=2026-03-01&ate=2026-03-31",
+    "/transacoes?tipo=withdrawal&de=2026-03-01&ate=2026-03-31",
+    "/cartoes",
+  ]);
+});
+
+it("trocar o mes pede os dados do mes escolhido, nao mais os de hoje", async () => {
+  const requested: string[] = [];
+  const spy = http.get("*/api/v1/reports/summary", ({ request }) => {
+    requested.push(new URL(request.url).searchParams.get("date_from") ?? "");
+    return HttpResponse.json({ date_from: "2026-01-01", date_to: "2026-01-31", currencies: [] });
+  });
+  renderPage({ summary: spy });
+  await screen.findByTestId("summary-cards");
+  await waitFor(() => expect(requested).toContain("2026-03-01"));
+
+  await userEvent.click(screen.getByRole("button", { name: /Março de 2026/ }));
+  await userEvent.click(screen.getByRole("button", { name: /^jan/i }));
+
+  await waitFor(() => expect(requested).toContain("2026-01-01"));
+  const cards = screen.getByTestId("summary-cards");
+  expect(within(cards).getAllByRole("link")[1]).toHaveAttribute("href", "/transacoes?tipo=deposit&de=2026-01-01&ate=2026-01-31");
+});
+
+it("so aparecem os blocos que a pessoa deixou ligados nas configuracoes", async () => {
+  window.localStorage.setItem("peculio.dashboard.cards", JSON.stringify(["profile", "savings"]));
+  renderPage();
+  expect(await screen.findByRole("region", { name: "Perfil" })).toBeInTheDocument();
+  expect(await screen.findByRole("region", { name: "Economia do mês" })).toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Gastos por categoria" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Balanço mensal" })).not.toBeInTheDocument();
+  window.localStorage.clear();
+});
+
+it("o botao Gerenciar tela inicial leva a aba Painel das configuracoes", async () => {
+  renderPage();
+  const link = await screen.findByRole("link", { name: "Gerenciar tela inicial" });
+  expect(link).toHaveAttribute("href", "/configuracoes?aba=painel");
 });

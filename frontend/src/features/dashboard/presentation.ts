@@ -110,12 +110,15 @@ export function pickCurrency(blocks: { currency_code: string }[], selected: stri
   return blocks[0]?.currency_code ?? null;
 }
 
-/** Fatias de despesa por categoria (so quem gastou alguma coisa; o DonutChart agrupa o resto em "Outras"). */
-export function categorySlices(rows: ReportRow[], fallbackLabel: string): DonutSlice[] {
+/**
+ * Fatias por categoria (so quem movimentou alguma coisa; o DonutChart agrupa o resto em "Outras"). `kind` escolhe
+ * se a fatia e o valor gasto ou o recebido.
+ */
+export function categorySlices(rows: ReportRow[], fallbackLabel: string, kind: "expense" | "income" = "expense"): DonutSlice[] {
   return rows
-    .filter((row) => !isZeroMoney(row.expense) && !isNegativeMoney(row.expense))
-    .sort((a, b) => Number(b.expense) - Number(a.expense))
-    .map((row) => ({ key: row.id ?? "__sem_categoria__", label: row.id === null ? fallbackLabel : row.name, value: row.expense }));
+    .filter((row) => !isZeroMoney(row[kind]) && !isNegativeMoney(row[kind]))
+    .sort((a, b) => Number(b[kind]) - Number(a[kind]))
+    .map((row) => ({ key: row.id ?? "__sem_categoria__", label: row.id === null ? fallbackLabel : row.name, value: row[kind] }));
 }
 
 // ---------- Orcamentos ----------
