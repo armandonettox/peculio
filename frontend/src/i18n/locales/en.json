@@ -753,7 +753,15 @@
       "filtroDeTransacoes": "Transaction filter",
       "novoFiltro": "New filter",
       "nenhumFiltroSalvo": "No saved filters yet.",
-      "aplicarFiltros": "Apply filters"
+      "aplicarFiltros": "Apply filters",
+      "situacao": "Status",
+      "todasAsSituacoes": "All statuses",
+      "status": {
+        "done": "Completed",
+        "pending": "Pending",
+        "fixed": "Fixed transactions",
+        "ignored": "Ignored"
+      }
     },
     "quickRowEditor": {
       "novoLancamento": "New transaction",

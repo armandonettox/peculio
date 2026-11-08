@@ -753,7 +753,15 @@
       "filtroDeTransacoes": "Filtro de transações",
       "novoFiltro": "Novo filtro",
       "nenhumFiltroSalvo": "Nenhum filtro salvo ainda.",
-      "aplicarFiltros": "Aplicar filtros"
+      "aplicarFiltros": "Aplicar filtros",
+      "situacao": "Situação",
+      "todasAsSituacoes": "Todas as situações",
+      "status": {
+        "done": "Efetuadas",
+        "pending": "Pendentes",
+        "fixed": "Movimentações fixas",
+        "ignored": "Ignoradas"
+      }
     },
     "quickRowEditor": {
       "novoLancamento": "Novo lançamento",

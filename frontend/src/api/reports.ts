@@ -6,6 +6,7 @@ import { api, unwrap } from "./client";
 import { ApiError } from "./errors";
 import { reportsKey } from "./query-keys";
 import type { components } from "./schema";
+import type { TransactionStatus } from "./transactions";
 
 export type ReportTotals = components["schemas"]["ReportTotals"];
 export type ReportRow = components["schemas"]["ReportRow"];
@@ -29,9 +30,12 @@ export type ReportFilters = {
   budgetId?: string;
 };
 
+// O resumo dos cartoes da tela de transacoes tambem aceita a situacao do filtro de la; os relatorios, nao
+export type SummaryFilters = ReportFilters & { status?: TransactionStatus };
+
 export type GroupedDimension = "category" | "tag" | "budget" | "account" | "counterparty";
 
-function toQuery(filters: ReportFilters) {
+function toQuery(filters: SummaryFilters) {
   return {
     ...(filters.period ? { period: filters.period } : {}),
     ...(filters.dateFrom ? { date_from: filters.dateFrom } : {}),
@@ -40,12 +44,13 @@ function toQuery(filters: ReportFilters) {
     ...(filters.categoryId ? { category_id: filters.categoryId } : {}),
     ...(filters.tagId ? { tag_id: filters.tagId } : {}),
     ...(filters.budgetId ? { budget_id: filters.budgetId } : {}),
+    ...(filters.status ? { status: filters.status } : {}),
   };
 }
 
 type Options = { enabled?: boolean };
 
-export function useReportSummary(filters: ReportFilters, { enabled = true }: Options = {}) {
+export function useReportSummary(filters: SummaryFilters, { enabled = true }: Options = {}) {
   return useQuery({
     queryKey: [...reportsKey, "summary", filters],
     enabled,

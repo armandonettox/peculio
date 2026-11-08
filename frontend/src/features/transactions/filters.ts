@@ -1,5 +1,5 @@
 import { i18n } from "@/i18n";
-import type { TransactionFilters } from "@/api/transactions";
+import type { TransactionFilters, TransactionStatus } from "@/api/transactions";
 
 export type KindFilter = "withdrawal" | "deposit" | "transfer" | "credit_card_expense";
 
@@ -14,9 +14,13 @@ const PARAM = {
   q: "busca",
   minAmount: "min",
   maxAmount: "max",
+  status: "situacao",
 } as const satisfies Record<keyof TransactionFilters, string>;
 
 const KIND_PARAM = "tipo";
+
+// Na ordem do Mobills: Efetuadas, Pendentes, Movimentacoes fixas, Ignoradas
+export const STATUSES: TransactionStatus[] = ["done", "pending", "fixed", "ignored"];
 
 const FIELDS = Object.keys(PARAM) as (keyof TransactionFilters)[];
 
@@ -24,8 +28,10 @@ export function readFilters(params: URLSearchParams): TransactionFilters {
   const filters: TransactionFilters = {};
   for (const field of FIELDS) {
     const value = params.get(PARAM[field]);
-    if (value) filters[field] = value;
+    if (value) (filters as Record<string, string>)[field] = value;
   }
+  // Valor que nao e uma situacao conhecida (link antigo ou digitado a mao) nao filtra nada
+  if (filters.status && !STATUSES.includes(filters.status)) delete filters.status;
   return filters;
 }
 

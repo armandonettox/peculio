@@ -15,6 +15,7 @@ function matches(transaction: Transaction, query: URLSearchParams): boolean {
   const to = query.get("date_to");
   const min = query.get("min_amount");
   const max = query.get("max_amount");
+  const status = query.get("status");
 
   // Como no backend: o grupo entra se algum split atende a todos os filtros ao mesmo tempo
   return transaction.splits.some(
@@ -27,6 +28,12 @@ function matches(transaction: Transaction, query: URLSearchParams): boolean {
       (!to || split.date <= to) &&
       (!min || Number(split.amount) >= Number(min)) &&
       (!max || Number(split.amount) <= Number(max)) &&
+      // "fixed": o falso nao conhece o fim da recorrencia; basta o lancamento ter vindo de uma
+      (!status ||
+        (status === "done" && split.is_paid) ||
+        (status === "pending" && !split.is_paid) ||
+        (status === "ignored" && split.ignored) ||
+        (status === "fixed" && transaction.recurrence_id !== null)) &&
       (!q || split.description.toLowerCase().includes(q) || (transaction.title ?? "").toLowerCase().includes(q)),
   );
 }

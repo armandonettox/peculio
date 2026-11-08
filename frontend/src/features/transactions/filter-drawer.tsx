@@ -4,14 +4,14 @@ import { useTranslation } from "react-i18next";
 
 import type { Account } from "@/api/accounts";
 import type { Category, Tag } from "@/api/labels";
-import type { TransactionFilters } from "@/api/transactions";
+import type { TransactionFilters, TransactionStatus } from "@/api/transactions";
 import { MoneyInput } from "@/components/money-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SheetTitle } from "@/components/ui/sheet";
 import { Tab, TabList } from "@/components/ui/tabs";
 
-import type { KindFilter } from "./filters";
+import { STATUSES, type KindFilter } from "./filters";
 import { deleteSavedFilter, loadSavedFilters, saveFilter, type SavedFilter } from "./saved-filters";
 
 type Props = {
@@ -77,6 +77,12 @@ function NewFilterTab(props: Props) {
     { value: "", label: t("common.todas") },
     ...tags.map((tg) => ({ value: tg.id, label: tg.name })),
   ], [tags, t]);
+
+  // Situacao: uma so por vez, como no Mobills (a primeira opcao e "todas")
+  const statusOptions = useMemo(() => [
+    { value: "", label: t("transactions.filterBar.todasAsSituacoes") },
+    ...STATUSES.map((status) => ({ value: status, label: t(`transactions.filterBar.status.${status}`) })),
+  ], [t]);
 
   return (
     <div className="space-y-5 px-5 py-4">
@@ -164,6 +170,21 @@ function NewFilterTab(props: Props) {
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {tagOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </section>
+
+      {/* Situacao */}
+      <section>
+        <label htmlFor="filter-status" className="mb-2 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t("transactions.filterBar.situacao")}</label>
+        <select
+          id="filter-status"
+          value={filters.status ?? ""}
+          onChange={(e) => props.onChange({ status: (e.target.value || undefined) as TransactionStatus | undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>

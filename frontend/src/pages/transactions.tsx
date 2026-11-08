@@ -431,7 +431,7 @@ export default function TransactionsPage() {
       </Sheet>
 
       {/* Cards de resumo do mes */}
-      <TransactionsSummaryCards dateFrom={monthStart} dateTo={monthEnd} />
+      <TransactionsSummaryCards dateFrom={monthStart} dateTo={monthEnd} status={filters.status} />
 
       {/* Navegador de mes */}
       {(() => {

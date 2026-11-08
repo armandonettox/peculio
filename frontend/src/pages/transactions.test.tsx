@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 
@@ -549,4 +550,149 @@ it("o botao de excluir da tabela pede confirmacao", async () => {
   await userEvent.click(within(screen.getByRole("row", { name: /Padaria/ })).getByRole("button", { name: "Ações" }));
   await userEvent.click(screen.getByRole("menuitem", { name: "Excluir" }));
   expect(await screen.findByRole("dialog")).toHaveTextContent("Excluir lançamento");
+});
+
+// ---------- Situacao (igual ao filtro do Mobills) ----------
+
+const statusSelect = () => screen.getByLabelText("Situação");
+
+it("o filtro de situacao tem as quatro opcoes do Mobills, na ordem, e comeca em todas", async () => {
+  renderPage({ transactions: [tx("Qualquer")] });
+  await screen.findByText("Qualquer");
+  await openFilters();
+  const options = within(statusSelect()).getAllByRole("option").map((option) => option.textContent);
+  expect(options).toEqual(["Todas as situações", "Efetuadas", "Pendentes", "Movimentações fixas", "Ignoradas"]);
+  expect(statusSelect()).toHaveValue("");
+});
+
+it("escolher Pendentes mostra so os nao pagos e grava a situacao na URL", async () => {
+  const api = renderPage({ transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false })] });
+  await screen.findByText("Paga");
+  await openFilters();
+  await userEvent.selectOptions(statusSelect(), "Pendentes");
+
+  await waitFor(() => expect(screen.queryByText("Paga")).not.toBeInTheDocument());
+  expect(screen.getByText("Aberta")).toBeInTheDocument();
+  expect(api.params()).toMatchObject({ status: "pending" });
+  expect(location()).toContain("situacao=pending");
+});
+
+it("Efetuadas inclui a ignorada que esta paga, como no Mobills", async () => {
+  renderPage({
+    transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false }), tx("Ignorada", appToday(), { ignored: true })],
+  });
+  await screen.findByText("Aberta");
+  await openFilters();
+  await userEvent.selectOptions(statusSelect(), "Efetuadas");
+
+  await waitFor(() => expect(screen.queryByText("Aberta")).not.toBeInTheDocument());
+  expect(screen.getByText("Paga")).toBeInTheDocument();
+  expect(row("Ignorada")).toBeInTheDocument();
+});
+
+it("Ignoradas mostra so as ignoradas", async () => {
+  renderPage({ transactions: [tx("Paga"), tx("Ignorada", appToday(), { ignored: true })] });
+  await screen.findByText("Paga");
+  await openFilters();
+  await userEvent.selectOptions(statusSelect(), "Ignoradas");
+
+  await waitFor(() => expect(screen.queryByText("Paga")).not.toBeInTheDocument());
+  expect(row("Ignorada")).toBeInTheDocument();
+});
+
+it("so uma situacao vale por vez: escolher outra troca a anterior", async () => {
+  const api = renderPage({ transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false })] });
+  await screen.findByText("Paga");
+  await openFilters();
+  await userEvent.selectOptions(statusSelect(), "Pendentes");
+  await waitFor(() => expect(screen.queryByText("Paga")).not.toBeInTheDocument());
+  await userEvent.selectOptions(statusSelect(), "Efetuadas");
+
+  await screen.findByText("Paga");
+  expect(screen.queryByText("Aberta")).not.toBeInTheDocument();
+  expect(api.params()).toMatchObject({ status: "done" });
+  expect(location()).toContain("situacao=done");
+  expect(location()).not.toContain("pending");
+});
+
+it("voltar para Todas as situacoes tira o filtro da consulta e da URL", async () => {
+  const api = renderPage({ transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false })], url: "/transacoes?situacao=pending" });
+  await screen.findByText("Aberta");
+  // Com filtro na URL a gaveta ja abre sozinha
+  expect(await screen.findByLabelText("Situação")).toHaveValue("pending");
+  await userEvent.selectOptions(statusSelect(), "Todas as situações");
+
+  await screen.findByText("Paga");
+  expect(api.params()).not.toHaveProperty("status");
+  expect(location()).not.toContain("situacao");
+});
+
+it("o link com situacao=fixed abre a lista ja filtrada nas movimentacoes fixas", async () => {
+  renderPage({
+    transactions: [tx("Normal"), makeTransaction({ recurrence_id: "r0000000-0000-4000-8000-000000000001" }, [{ description: "Aluguel", date: appToday() }])],
+    url: "/transacoes?situacao=fixed",
+  });
+  await screen.findByText("Aluguel");
+  expect(screen.queryByText("Normal")).not.toBeInTheDocument();
+  expect(await screen.findByLabelText("Situação")).toHaveValue("fixed");
+});
+
+it("uma situacao desconhecida na URL e ignorada e nao filtra nada", async () => {
+  const api = renderPage({ transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false })], url: "/transacoes?situacao=qualquer" });
+  await screen.findByText("Paga");
+  expect(screen.getByText("Aberta")).toBeInTheDocument();
+  expect(api.params()).not.toHaveProperty("status");
+});
+
+it("a situacao conta no numero do botao de filtros", async () => {
+  renderPage({ transactions: [tx("Paga")], url: "/transacoes?situacao=done" });
+  await screen.findByText("Paga");
+  expect(screen.getByRole("button", { name: "Filtros (1)" })).toBeInTheDocument();
+});
+
+// ---------- Cartoes de resumo acompanham a situacao ----------
+
+function summaryRequests() {
+  const requests: URLSearchParams[] = [];
+  server.use(
+    http.get("*/api/v1/reports/summary", ({ request }) => {
+      requests.push(new URL(request.url).searchParams);
+      return HttpResponse.json({
+        date_from: "2026-11-01",
+        date_to: "2026-11-30",
+        currencies: [{ currency_code: "BRL", income: "0.00", expense: "20.00", net: "-20.00", count: 1 }],
+      });
+    }),
+  );
+  return requests;
+}
+
+it("com uma situacao escolhida, o resumo pede so ela e o patrimonio liquido some", async () => {
+  const requests = summaryRequests();
+  renderPage({ transactions: [tx("Aberta", appToday(), { is_paid: false })], url: "/transacoes?situacao=pending" });
+  await screen.findByText("Aberta");
+
+  await waitFor(() => expect(requests.at(-1)?.get("status")).toBe("pending"));
+  expect(screen.getByText("Despesas")).toBeInTheDocument();
+  expect(screen.queryByText("Patrimônio líquido")).not.toBeInTheDocument();
+});
+
+it("sem situacao, o resumo nao manda status e o patrimonio liquido aparece", async () => {
+  const requests = summaryRequests();
+  renderPage({ transactions: [tx("Qualquer")] });
+  await screen.findByText("Qualquer");
+
+  await waitFor(() => expect(requests.length).toBeGreaterThan(0));
+  expect(requests.at(-1)?.has("status")).toBe(false);
+  expect(await screen.findByText("Patrimônio líquido")).toBeInTheDocument();
+});
+
+it("o link de um cartao de resumo mantem a situacao escolhida", async () => {
+  summaryRequests();
+  renderPage({ transactions: [tx("Aberta", appToday(), { is_paid: false })], url: "/transacoes?situacao=pending" });
+  await screen.findByText("Aberta");
+  await userEvent.click(screen.getByText("Despesas"));
+
+  await waitFor(() => expect(location()).toContain("tipo=withdrawal"));
+  expect(location()).toContain("situacao=pending");
 });

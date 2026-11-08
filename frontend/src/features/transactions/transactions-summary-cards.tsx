@@ -6,11 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { useAccounts } from "@/api/accounts";
 import { useNetWorth } from "@/api/dashboard";
 import { useReportSummary } from "@/api/reports";
+import type { TransactionStatus } from "@/api/transactions";
 import { formatMoney } from "@/lib/money";
 
 type Props = {
   dateFrom: string;
   dateTo: string;
+  // Com uma situacao escolhida os cartoes somam so ela, como no Mobills
+  status?: TransactionStatus;
 };
 
 type CardProps = {
@@ -45,11 +48,11 @@ function SummaryCard({ icon, label, value, currency, colorClass, onClick }: Card
   );
 }
 
-export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
+export function TransactionsSummaryCards({ dateFrom, dateTo, status }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const accounts = useAccounts({ includeArchived: false });
-  const summary = useReportSummary({ dateFrom, dateTo });
+  const summary = useReportSummary({ dateFrom, dateTo, status });
   // Mesmo numero do Painel: patrimonio de hoje, com cartoes e sem lancamentos futuros (somar os saldos das contas
   // contava a parcela de um mes que ainda nao chegou e dava um valor diferente)
   const netWorth = useNetWorth({ months: 12, forecastMonths: 3 });
@@ -73,9 +76,13 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
     );
   }
 
+  // Os links dos cartoes mantem a situacao escolhida
+  const statusParam = status ? `&situacao=${status}` : "";
+
   return (
-    <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {netWorthNow !== undefined && (
+    <div className={`mb-4 grid grid-cols-2 gap-3 ${status ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
+      {/* O patrimonio e de hoje e nao depende da situacao: com filtro de situacao ele some, como no Mobills */}
+      {netWorthNow !== undefined && !status && (
         <SummaryCard
           icon={<Landmark className="size-5 text-white" />}
           label={t("pages.transactions.patrimonioLiquido")}
@@ -91,7 +98,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.income ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-green-500"
-        onClick={() => navigate(`/transacoes?tipo=deposit&de=${dateFrom}&ate=${dateTo}`)}
+        onClick={() => navigate(`/transacoes?tipo=deposit&de=${dateFrom}&ate=${dateTo}${statusParam}`)}
       />
       <SummaryCard
         icon={<TrendingDown className="size-5 text-white" />}
@@ -99,7 +106,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.expense ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-red-500"
-        onClick={() => navigate(`/transacoes?tipo=withdrawal&de=${dateFrom}&ate=${dateTo}`)}
+        onClick={() => navigate(`/transacoes?tipo=withdrawal&de=${dateFrom}&ate=${dateTo}${statusParam}`)}
       />
       <SummaryCard
         icon={<ArrowLeftRight className="size-5 text-white" />}
@@ -107,7 +114,7 @@ export function TransactionsSummaryCards({ dateFrom, dateTo }: Props) {
         value={totals?.net ?? "0.00"}
         currency={mainCurrency}
         colorClass="bg-teal-600"
-        onClick={() => navigate(`/transacoes?de=${dateFrom}&ate=${dateTo}`)}
+        onClick={() => navigate(`/transacoes?de=${dateFrom}&ate=${dateTo}${statusParam}`)}
       />
     </div>
   );

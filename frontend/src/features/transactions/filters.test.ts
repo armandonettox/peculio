@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { countActiveFilters, dateRangeError, readFilters, writeFilters } from "./filters";
+import { countActiveFilters, dateRangeError, readFilters, STATUSES, writeFilters } from "./filters";
 
 const params = (query: string) => new URLSearchParams(query);
 
@@ -80,5 +80,31 @@ describe("dateRangeError", () => {
   it("compara ano e mes corretamente", () => {
     expect(dateRangeError({ dateFrom: "2026-12-01", dateTo: "2027-01-01" })).toBeUndefined();
     expect(dateRangeError({ dateFrom: "2027-01-01", dateTo: "2026-12-31" })).toBeDefined();
+  });
+});
+
+describe("situacao", () => {
+  it("as quatro situacoes ficam na ordem do Mobills", () => {
+    expect(STATUSES).toEqual(["done", "pending", "fixed", "ignored"]);
+  });
+
+  it("le cada situacao conhecida da URL", () => {
+    for (const status of STATUSES) expect(readFilters(params(`situacao=${status}`))).toEqual({ status });
+  });
+
+  it("situacao desconhecida na URL nao filtra nada, mas os outros filtros ficam", () => {
+    expect(readFilters(params("situacao=todas&conta=a1"))).toEqual({ accountId: "a1" });
+  });
+
+  it("grava e remove a situacao como qualquer filtro", () => {
+    const written = writeFilters(params("conta=a1"), { status: "pending" });
+    expect(written.get("situacao")).toBe("pending");
+    expect(readFilters(written)).toEqual({ accountId: "a1", status: "pending" });
+    expect(readFilters(writeFilters(written, { status: undefined }))).toEqual({ accountId: "a1" });
+  });
+
+  it("conta no numero de filtros ativos", () => {
+    expect(countActiveFilters({ status: "fixed" })).toBe(1);
+    expect(countActiveFilters({ status: "fixed", accountId: "a1" })).toBe(2);
   });
 });

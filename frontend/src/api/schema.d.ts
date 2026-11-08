@@ -7086,6 +7086,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7123,6 +7124,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7160,6 +7162,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7197,6 +7200,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7234,6 +7238,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7271,6 +7276,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -7456,6 +7462,7 @@ export interface operations {
                 category_id?: string | null;
                 tag_id?: string | null;
                 budget_id?: string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;
@@ -8003,6 +8010,7 @@ export interface operations {
                 q?: string | null;
                 min_amount?: number | string | null;
                 max_amount?: number | string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
                 limit?: number;
                 offset?: number;
             };
@@ -8145,6 +8153,7 @@ export interface operations {
                 q?: string | null;
                 min_amount?: number | string | null;
                 max_amount?: number | string | null;
+                status?: ("done" | "pending" | "fixed" | "ignored") | null;
             };
             header?: never;
             path?: never;

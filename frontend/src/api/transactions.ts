@@ -17,6 +17,9 @@ export const counterpartiesKey = ["counterparties"] as const;
 // Quantos lancamentos vem por vez; "Carregar mais" busca a pagina seguinte
 export const PAGE_SIZE = 25;
 
+// Uma situacao so, como no Mobills: efetivada, pendente, movimentacao fixa (recorrencia sem fim) ou ignorada
+export type TransactionStatus = "done" | "pending" | "fixed" | "ignored";
+
 export type TransactionFilters = {
   accountId?: string;
   // Id de uma categoria, ou "none" para filtrar so o que ainda nao tem categoria
@@ -29,6 +32,7 @@ export type TransactionFilters = {
   // Valores no formato da API ("1234.50")
   minAmount?: string;
   maxAmount?: string;
+  status?: TransactionStatus;
 };
 
 function toQuery(filters: TransactionFilters, offset: number) {
@@ -47,6 +51,7 @@ function toQuery(filters: TransactionFilters, offset: number) {
     ...(filters.q ? { q: filters.q } : {}),
     ...(filters.minAmount ? { min_amount: filters.minAmount } : {}),
     ...(filters.maxAmount ? { max_amount: filters.maxAmount } : {}),
+    ...(filters.status ? { status: filters.status } : {}),
   };
 }
 
