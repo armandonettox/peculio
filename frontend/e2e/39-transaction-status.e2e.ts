@@ -140,5 +140,8 @@ test("o link com a situacao abre a lista ja filtrada", async ({ page }) => {
   await page.goto(`/transacoes?busca=${encodeURIComponent(TAG)}&situacao=fixed`);
   await expect(shows(page, FIXED)).toBeVisible();
   await expect(shows(page, PAID)).toHaveCount(0);
+  // A gaveta chega fechada, com o filtro contado no botao do funil; aberta, mostra a situacao escolhida
+  await expect(page.getByRole("button", { name: "Filtros (1)" })).toHaveAttribute("aria-expanded", "false");
+  await page.getByRole("button", { name: "Filtros (1)" }).click();
   await expect(page.getByLabel("Situação", { exact: true })).toHaveValue("fixed");
 });

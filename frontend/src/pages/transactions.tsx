@@ -91,10 +91,9 @@ export default function TransactionsPage() {
   const remove = useDeleteTransaction();
   const settle = useSettleTransaction();
   const [view, setView] = useState<ViewMode>(readViewMode);
-  const [filterOpen, setFilterOpen] = useState(() => {
-    const { q: _q, ...pf } = readFilters(searchParams);
-    return countActiveFilters(pf) > 0;
-  });
+  // Fechada ao chegar, mesmo com filtros na URL (link do painel, botao Voltar): aberta, ela cobria o menu das linhas.
+  // Os filtros aplicados aparecem no numero do botao do funil.
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
   const kind = useMemo(() => readKind(searchParams), [searchParams]);

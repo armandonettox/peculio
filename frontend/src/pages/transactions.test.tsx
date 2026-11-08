@@ -224,7 +224,7 @@ it("erro ao carregar mais mantem a lista e deixa tentar de novo", async () => {
 
 // ---------- Filtros ----------
 
-it("os filtros da URL ja vem aplicados, com o painel aberto", async () => {
+it("os filtros da URL ja vem aplicados, com o painel fechado e o numero no botao do funil", async () => {
   const api = renderPage({
     url: `/transacoes?conta=${nubank.id}&categoria=${mercado.id}&tag=${viagem.id}&de=2026-01-01&ate=2026-12-31&busca=pao&min=10.50&max=99.90`,
   });
@@ -240,8 +240,11 @@ it("os filtros da URL ja vem aplicados, com o painel aberto", async () => {
     min_amount: "10.50",
     max_amount: "99.90",
   });
-  expect(screen.getByRole("button", { name: "Filtros (7)" })).toHaveAttribute("aria-expanded", "true");
+  // Fechado ao chegar (aberto ele cobria o menu das linhas); os filtros aparecem no numero do botao
+  expect(screen.getByRole("button", { name: "Filtros (7)" })).toHaveAttribute("aria-expanded", "false");
   expect(screen.getByLabelText("Buscar lançamentos")).toHaveValue("pao");
+  await openFilters();
+  expect(screen.getByRole("button", { name: "Filtros (7)" })).toHaveAttribute("aria-expanded", "true");
   expect(screen.getByLabelText("Valor mínimo")).toHaveValue("10,50");
   expect(screen.getByLabelText("Data inicial")).toHaveValue("2026-01-01");
   expect(await screen.findByLabelText("Conta")).toHaveValue(nubank.id);
@@ -322,6 +325,7 @@ it("filtra por periodo", async () => {
     url: "/transacoes?de=2026-10-01&ate=2026-11-30",
   });
   await screen.findByText("Outubro");
+  await openFilters();
   await userEvent.clear(screen.getByLabelText("Data inicial"));
   await userEvent.type(screen.getByLabelText("Data inicial"), "2026-11-01");
   await waitFor(() => expect(screen.queryByText("Outubro")).not.toBeInTheDocument());
@@ -336,6 +340,7 @@ it("periodo com a data inicial depois da final mostra o erro e nao busca", async
     url: "/transacoes?de=2026-10-01&ate=2026-10-31",
   });
   await screen.findByText("Outubro");
+  await openFilters();
   await userEvent.clear(screen.getByLabelText("Data inicial"));
   await userEvent.type(screen.getByLabelText("Data inicial"), "2026-11-01");
   const before = api.state.requests.length;
@@ -392,7 +397,8 @@ it("valor grande demais mostra o erro e nao envia o filtro", async () => {
 
 it("apagar o valor tira o filtro", async () => {
   const api = renderPage({ transactions: [tx("x")], url: "/transacoes?min=10.00" });
-  await screen.findByLabelText("Valor mínimo");
+  await screen.findByLabelText("Buscar lançamentos");
+  await openFilters();
   await userEvent.clear(screen.getByLabelText("Valor mínimo"));
   await waitFor(() => expect(api.params()).not.toHaveProperty("min_amount"));
   expect(location()).not.toContain("min=");
@@ -432,8 +438,10 @@ it("Limpar logo depois de digitar mais nao deixa o texto antigo voltar", async (
 
 it("Limpar filtros esvazia tambem os campos digitados", async () => {
   renderPage({ transactions: [tx("x")], url: "/transacoes?busca=pao&min=10.00&conta=" + nubank.id });
-  await screen.findByLabelText("Valor mínimo");
-  await userEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+  await screen.findByText("Nada encontrado");
+  await openFilters();
+  // O botao da propria gaveta: clicar fora dela (o da lista vazia) a fecharia, porque ela nao e modal
+  await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Limpar filtros" }));
 
   await waitFor(() => expect(screen.getByLabelText("Buscar lançamentos")).toHaveValue(""));
   expect(screen.getByLabelText("Valor mínimo")).toHaveValue("");
@@ -619,7 +627,8 @@ it("so uma situacao vale por vez: escolher outra troca a anterior", async () => 
 it("voltar para Todas as situacoes tira o filtro da consulta e da URL", async () => {
   const api = renderPage({ transactions: [tx("Paga"), tx("Aberta", appToday(), { is_paid: false })], url: "/transacoes?situacao=pending" });
   await screen.findByText("Aberta");
-  // Com filtro na URL a gaveta ja abre sozinha
+  // Com filtro na URL a gaveta chega fechada
+  await openFilters();
   expect(await screen.findByLabelText("Situação")).toHaveValue("pending");
   await userEvent.selectOptions(statusSelect(), "Todas as situações");
 
@@ -635,6 +644,7 @@ it("o link com situacao=fixed abre a lista ja filtrada nas movimentacoes fixas",
   });
   await screen.findByText("Aluguel");
   expect(screen.queryByText("Normal")).not.toBeInTheDocument();
+  await openFilters();
   expect(await screen.findByLabelText("Situação")).toHaveValue("fixed");
 });
 
