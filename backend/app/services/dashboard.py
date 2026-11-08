@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.models.account import USER_ACCOUNT_TYPES, Account, AccountType
 from app.models.currency import Currency
 from app.models.recurrence import Recurrence
-from app.models.transaction import TransactionType
+from app.models.transaction import Transaction, TransactionSplit, TransactionType
 from app.schemas.transaction import TransactionCreate
 from app.services import recurrences
 from app.services.accounts import quantize_money
@@ -19,6 +19,8 @@ from app.services.ledger import monthly_changes
 
 ZERO = Decimal("0")
 MAX_UPCOMING_ITEMS = 50
+# Quantas linhas de lancamento pendente o painel le (as mais antigas primeiro): o painel mostra so 50 itens
+MAX_PENDING_ROWS = 500
 
 # Tipo do primeiro lancamento do modelo da recorrente -> sentido do dinheiro
 DIRECTION = {
@@ -346,10 +348,67 @@ def _recurrence_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date)
     return items
 
 
+def _pending_items(db: Session, user_id: uuid.UUID, as_of: date, limit: date) -> list[dict]:
+    """Um item por lancamento que ainda nao foi efetivado (pago ou recebido) e vence ate `limit`: o que ja passou do dia e
+    atrasado. E a conta a pagar do jeito do Mobills, um lancamento pendente. Ignorados ficam de fora, como nos totais."""
+    rows = db.execute(
+        select(
+            TransactionSplit.transaction_id,
+            Transaction.title,
+            TransactionSplit.description,
+            TransactionSplit.type,
+            TransactionSplit.amount,
+            TransactionSplit.currency_code,
+            TransactionSplit.date,
+        )
+        .join(Transaction, Transaction.id == TransactionSplit.transaction_id)
+        .where(
+            TransactionSplit.user_id == user_id,
+            TransactionSplit.is_paid.is_(False),
+            TransactionSplit.ignored.is_(False),
+            TransactionSplit.type.in_((TransactionType.withdrawal, TransactionType.deposit)),
+            TransactionSplit.date <= limit,
+        )
+        .order_by(TransactionSplit.date, TransactionSplit.position, TransactionSplit.id)
+        .limit(MAX_PENDING_ROWS)
+    ).all()
+
+    # Os splits de um mesmo lancamento viram um item: a data e a do primeiro pendente, e o valor soma os da moeda dele
+    grouped: dict[uuid.UUID, list] = defaultdict(list)
+    for row in rows:
+        grouped[row.transaction_id].append(row)
+    places = _places(db, {group[0].currency_code for group in grouped.values()})
+    items = []
+    for transaction_id, group in grouped.items():
+        first = group[0]
+        day = first.date
+        total = sum((row.amount for row in group if row.currency_code == first.currency_code), ZERO)
+        amount = quantize_money(total, places[first.currency_code])
+        items.append(
+            {
+                "kind": "pending",
+                "id": transaction_id,
+                "name": first.title or first.description,
+                "date": day,
+                "days_until": (day - as_of).days,
+                "overdue": day < as_of,
+                "direction": DIRECTION[first.type],
+                "currency_code": first.currency_code,
+                "amount_min": amount,
+                "amount_max": amount,
+            }
+        )
+    return items
+
+
 def upcoming(db: Session, user_id: uuid.UUID, days: int, as_of: date) -> dict:
-    """Contas a pagar e recorrentes de hoje ate hoje + `days`, mais as contas a pagar atrasadas.
+    """Contas a pagar (lembretes), lancamentos pendentes e recorrentes de hoje ate hoje + `days`, mais o que ja esta atrasado.
     Atrasadas primeiro (da mais antiga), depois por data e por nome, no maximo 50."""
     limit = as_of + timedelta(days=days)
-    items = _bill_items(db, user_id, as_of, limit) + _recurrence_items(db, user_id, as_of, limit)
+    items = (
+        _bill_items(db, user_id, as_of, limit)
+        + _pending_items(db, user_id, as_of, limit)
+        + _recurrence_items(db, user_id, as_of, limit)
+    )
     items.sort(key=lambda item: (not item["overdue"], item["date"], item["name"].lower(), str(item["id"])))
     return {"as_of": as_of, "days": days, "items": items[:MAX_UPCOMING_ITEMS]}

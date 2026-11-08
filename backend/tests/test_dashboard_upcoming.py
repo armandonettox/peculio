@@ -475,3 +475,138 @@ def test_number_of_queries_does_not_grow_with_bills_or_recurrences(client, heade
         make_recurrence(client, headers, account_id, name=f"Rec {index}", first=f"2026-06-2{index}")
     assert count_statements(client, headers) == small
     assert count_statements(client, headers, days=90) == small
+
+
+# ---------- Lancamentos pendentes (a conta a pagar do jeito do Mobills) ----------
+
+
+def pending(client, headers, account_id, description="Internet", on="2026-06-20", amount="100.00", kind="withdrawal", **extra):
+    split = {
+        "type": kind,
+        "date": on,
+        "description": description,
+        "amount": amount,
+        "currency_code": "BRL",
+        "account_id": account_id,
+        "counterparty_name": "Provedor",
+        "is_paid": False,
+        **extra,
+    }
+    resp = client.post(TX_URL, json={"splits": [split]}, headers=headers)
+    assert resp.status_code == 201, resp.text
+    return resp.json()
+
+
+def test_a_pending_transaction_is_an_upcoming_item_with_all_the_fields(client, headers, account_id):
+    created = pending(client, headers, account_id)
+    assert items_of(client, headers) == [
+        {
+            "kind": "pending",
+            "id": created["id"],
+            "name": "Internet",
+            "date": "2026-06-20",
+            "days_until": 5,
+            "overdue": False,
+            "direction": "out",
+            "currency_code": "BRL",
+            "amount_min": "100.00",
+            "amount_max": "100.00",
+        }
+    ]
+
+
+def test_a_pending_transaction_past_its_day_is_overdue_and_listed_even_far_outside_the_window(client, headers, account_id):
+    pending(client, headers, account_id, "Antiga", on="2026-01-10")
+    item = items_of(client, headers)[0]
+    assert item["overdue"] is True and item["days_until"] < 0
+
+
+def test_a_pending_transaction_due_today_is_not_overdue(client, headers, account_id):
+    pending(client, headers, account_id, "Hoje", on="2026-06-15")
+    item = items_of(client, headers)[0]
+    assert (item["overdue"], item["days_until"]) == (False, 0)
+
+
+def test_paid_and_ignored_transactions_are_not_listed(client, headers, account_id):
+    pending(client, headers, account_id, "Paga", is_paid=True)
+    pending(client, headers, account_id, "Ignorada", ignored=True)
+    pending(client, headers, account_id, "Pendente")
+    assert names(items_of(client, headers)) == ["Pendente"]
+
+
+def test_a_pending_deposit_is_an_incoming_item_and_transfers_are_left_out(client, headers, account_id):
+    other = make_account(client, headers, name="Poupanca")
+    pending(client, headers, account_id, "Salario", kind="deposit", amount="3000.00")
+    transfer = {
+        "type": "transfer",
+        "date": "2026-06-20",
+        "description": "Reserva",
+        "amount": "10.00",
+        "currency_code": "BRL",
+        "account_id": account_id,
+        "counterparty_account_id": other,
+        "is_paid": False,
+    }
+    assert client.post(TX_URL, json={"splits": [transfer]}, headers=headers).status_code == 201
+    items = items_of(client, headers)
+    assert [(item["name"], item["direction"]) for item in items] == [("Salario", "in")]
+
+
+def test_the_window_includes_the_last_day_and_excludes_the_day_after(client, headers, account_id):
+    pending(client, headers, account_id, "Ultimo dia", on="2026-07-15")
+    pending(client, headers, account_id, "Dia seguinte", on="2026-07-16")
+    assert names(items_of(client, headers)) == ["Ultimo dia"]
+    assert names(items_of(client, headers, days=31)) == ["Ultimo dia", "Dia seguinte"]
+
+
+def test_one_transaction_with_several_pending_parts_is_a_single_item(client, headers, account_id):
+    def part(description, on, amount, **extra):
+        return {
+            "type": "withdrawal",
+            "date": on,
+            "description": description,
+            "amount": amount,
+            "currency_code": "BRL",
+            "account_id": account_id,
+            "counterparty_name": "Mercado",
+            "is_paid": False,
+            **extra,
+        }
+
+    body = {"title": "Compras do mes", "splits": [part("Feira", "2026-06-22", "40.00"), part("Padaria", "2026-06-18", "10.00"), part("Ja paga", "2026-06-17", "5.00", is_paid=True)]}
+    assert client.post(TX_URL, json=body, headers=headers).status_code == 201
+    [item] = items_of(client, headers)
+    # O titulo do lancamento vence a descricao; a data e a da primeira parte pendente; so entram as pendentes
+    assert item["name"] == "Compras do mes"
+    assert item["date"] == "2026-06-18"
+    assert item["amount_min"] == "50.00"
+
+
+def test_overdue_pending_comes_first_then_by_date(client, headers, account_id):
+    pending(client, headers, account_id, "Depois", on="2026-06-25")
+    pending(client, headers, account_id, "Atrasada", on="2026-06-01")
+    pending(client, headers, account_id, "Antes", on="2026-06-17")
+    assert names(items_of(client, headers)) == ["Atrasada", "Antes", "Depois"]
+
+
+def test_pending_transactions_and_bills_appear_together(client, headers, account_id):
+    make_bill(client, headers, name="Netflix", first="2026-06-20")
+    pending(client, headers, account_id, "Internet")
+    kinds = {item["name"]: item["kind"] for item in items_of(client, headers)}
+    assert kinds == {"Netflix": "bill", "Internet": "pending"}
+
+
+def test_only_my_pending_transactions_are_listed(client, headers, account_id, db_session):
+    pending(client, headers, account_id, "Minha")
+    make_user(db_session, email="outra@example.com")
+    other_headers = auth_headers(client, email="outra@example.com")
+    other_account = make_account(client, other_headers, name="Dela")
+    pending(client, other_headers, other_account, "Dela")
+    assert names(items_of(client, headers)) == ["Minha"]
+
+
+def test_settling_a_pending_transaction_takes_it_out_of_the_list(client, headers, account_id):
+    created = pending(client, headers, account_id)
+    assert names(items_of(client, headers)) == ["Internet"]
+    assert client.post(f"{TX_URL}/{created['id']}/settle", headers=headers).status_code == 200
+    assert items_of(client, headers) == []

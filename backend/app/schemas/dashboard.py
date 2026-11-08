@@ -68,18 +68,18 @@ class SpendingForecastOut(BaseModel):
 
 
 class UpcomingItem(BaseModel):
-    kind: Literal["bill", "recurrence"]
+    kind: Literal["bill", "recurrence", "pending"]
     id: uuid.UUID
     name: str
-    # Proxima data (vencimento da conta a pagar ou proxima ocorrencia da recorrente)
+    # Proxima data (vencimento da conta a pagar, proxima ocorrencia da recorrente ou data do lancamento pendente)
     date: DateType
     # Negativo quando ja passou (atrasada)
     days_until: int
     overdue: bool
-    # Conta a pagar e sempre "out"; recorrente segue o tipo do primeiro lancamento do modelo
+    # Conta a pagar e sempre "out"; recorrente segue o tipo do primeiro lancamento do modelo; pendente, o do lancamento
     direction: Literal["out", "in", "transfer"]
     currency_code: str
-    # Conta a pagar tem faixa de valor; recorrente tem valor unico (min == max)
+    # Conta a pagar tem faixa de valor; recorrente e pendente tem valor unico (min == max)
     amount_min: Money
     amount_max: Money
 
