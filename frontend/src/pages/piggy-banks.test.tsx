@@ -27,7 +27,7 @@ afterEach(() => vi.useRealTimers());
 
 type Setup = { piggies?: ReturnType<typeof makePiggyBank>[]; events?: Parameters<typeof fakePiggyBanksApi>[1] };
 
-// Aceita so a lista de cofrinhos (o caso comum) ou { piggies, events }
+// Aceita so a lista de objetivos (o caso comum) ou { piggies, events }
 function renderPage(input: Setup | ReturnType<typeof makePiggyBank>[] = {}) {
   const { piggies = [makePiggyBank({ name: "Viagem" })], events }: Setup = Array.isArray(input) ? { piggies: input } : input;
   const api = fakePiggyBanksApi(piggies, events);
@@ -42,9 +42,11 @@ function renderPage(input: Setup | ReturnType<typeof makePiggyBank>[] = {}) {
   return api;
 }
 
+// Objetivo que ja chegou na meta mora na aba Concluidos
+const openCompleted = async () => userEvent.click(await screen.findByRole("tab", { name: "Concluídos" }));
 const card = (name: string) => screen.getByRole("heading", { level: 3, name }).closest("li") as HTMLElement;
 const openMenu = async (name: string, item: string) => {
-  await userEvent.click(screen.getByRole("button", { name: `Ações do cofrinho ${name}` }));
+  await userEvent.click(screen.getByRole("button", { name: `Ações do objetivo ${name}` }));
   await userEvent.click(screen.getByRole("menuitem", { name: item }));
 };
 const dialog = () => screen.getByRole("dialog");
@@ -74,6 +76,7 @@ it("a barra informa o percentual a leitores de tela", async () => {
 
 it("meta atingida mostra Meta atingida e a barra cheia, mesmo guardando alem", async () => {
   renderPage([makePiggyBank({ name: "Cheio", saved: "700.00" })]);
+  await openCompleted();
   await screen.findByText("Cheio");
   expect(within(card("Cheio")).getByText("Meta atingida")).toBeInTheDocument();
   const bar = within(card("Cheio")).getByRole("progressbar");
@@ -83,6 +86,7 @@ it("meta atingida mostra Meta atingida e a barra cheia, mesmo guardando alem", a
 
 it("exatamente 100% ja e meta atingida", async () => {
   renderPage([makePiggyBank({ name: "Justo", saved: "600.00" })]);
+  await openCompleted();
   await screen.findByText("Justo");
   expect(within(card("Justo")).getByText("Meta atingida")).toBeInTheDocument();
 });
@@ -106,6 +110,8 @@ it("a cor da barra muda quando a meta e atingida", async () => {
   const fill = (name: string) => within(card(name)).getByRole("progressbar").firstElementChild;
   expect(fill("Andando")).toHaveClass("bg-primary-text");
   expect(fill("Andando")).not.toHaveClass("bg-positive");
+  await openCompleted();
+  await screen.findByText("Pronto");
   expect(fill("Pronto")).toHaveClass("bg-positive");
   expect(fill("Pronto")).not.toHaveClass("bg-primary-text");
 });
@@ -124,6 +130,7 @@ it("data alvo que passou sem chegar a meta avisa", async () => {
 
 it("data alvo que passou mas a meta foi atingida nao avisa", async () => {
   renderPage([makePiggyBank({ name: "Feito", target_date: "2026-03-14", saved: "600.00" })]);
+  await openCompleted();
   await screen.findByText("Feito");
   expect(within(card("Feito")).getByText("Até 14/03/2026")).toBeInTheDocument();
 });
@@ -136,9 +143,10 @@ it("sem data alvo nao ha linha de data", async () => {
 
 it("saldo abaixo do reservado mostra alerta com quanto falta cobrir", async () => {
   renderPage([makePiggyBank({ name: "Viagem", saved: "800.00", account_available: "-300.00" })]);
+  await openCompleted();
   await screen.findByText("Viagem");
   expect(within(card("Viagem")).getByRole("alert")).toHaveTextContent(
-    "O saldo de Nubank está R$ 300,00 abaixo do que está guardado em cofrinhos",
+    "O saldo de Nubank está R$ 300,00 abaixo do que está guardado em objetivos",
   );
 });
 
@@ -161,12 +169,12 @@ it("lista em ordem alfabetica", async () => {
   expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["carro", "Casa", "Viagem"]);
 });
 
-it("sem cofrinhos mostra o estado vazio com a acao de criar", async () => {
+it("sem objetivos mostra o estado vazio com a acao de criar", async () => {
   renderPage([]);
-  expect(await screen.findByText("Nenhum cofrinho ainda")).toBeInTheDocument();
-  const empty = screen.getByText("Nenhum cofrinho ainda").closest("div") as HTMLElement;
-  await userEvent.click(within(empty).getByRole("button", { name: /Novo cofrinho/ }));
-  expect(await screen.findByRole("dialog", { name: "Novo cofrinho" })).toBeInTheDocument();
+  expect(await screen.findByText("Nenhum objetivo ainda")).toBeInTheDocument();
+  const empty = screen.getByText("Nenhum objetivo ainda").closest("div") as HTMLElement;
+  await userEvent.click(within(empty).getByRole("button", { name: /Novo objetivo/ }));
+  expect(await screen.findByRole("dialog", { name: "Novo objetivo" })).toBeInTheDocument();
 });
 
 it("falha ao carregar mostra o erro e permite tentar de novo", async () => {
@@ -182,8 +190,8 @@ it("falha ao carregar mostra o erro e permite tentar de novo", async () => {
 // ---------- Criar ----------
 
 const openCreate = async () => {
-  await userEvent.click(await screen.findByRole("button", { name: /Novo cofrinho/ }));
-  const form = await screen.findByRole("dialog", { name: "Novo cofrinho" });
+  await userEvent.click(await screen.findByRole("button", { name: /Novo objetivo/ }));
+  const form = await screen.findByRole("dialog", { name: "Novo objetivo" });
   await waitFor(() => expect(within(form).getAllByRole("option").length).toBeGreaterThan(1));
   return form;
 };
@@ -203,14 +211,14 @@ it("a lista de contas do formulario tem so contas de ativos", async () => {
   expect(options).toEqual(["Escolha...", "Nubank", "Wise - USD"]);
 });
 
-it("cria um cofrinho com meta e data alvo", async () => {
+it("cria um objetivo com meta e data alvo", async () => {
   const api = renderPage([makePiggyBank({ name: "Outro" })]);
   await openCreate();
   await userEvent.type(inDialog().getByLabelText("Nome"), "  Reserva ");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
   await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "10.000,50");
   setDate("Data alvo (opcional)", "2026-12-31");
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   expect(api.mutations()[0].body).toEqual({
@@ -228,7 +236,7 @@ it("sem data alvo manda null", async () => {
   await userEvent.type(inDialog().getByLabelText("Nome"), "Reserva");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
   await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "500");
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
   await waitFor(() => expect(api.mutations()).toHaveLength(1));
   expect(api.mutations()[0].body).toMatchObject({ target_date: null });
@@ -245,9 +253,9 @@ it("o rotulo do valor mostra a moeda da conta escolhida", async () => {
 it("campos vazios mostram os erros, focam o primeiro e nao chamam a API", async () => {
   const api = renderPage();
   await openCreate();
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
-  expect(inDialog().getByText("Informe o nome do cofrinho.")).toBeInTheDocument();
+  expect(inDialog().getByText("Informe o nome do objetivo.")).toBeInTheDocument();
   expect(inDialog().getByText("Escolha a conta.")).toBeInTheDocument();
   expect(inDialog().getByText("Informe o valor da meta.")).toBeInTheDocument();
   expect(inDialog().getByLabelText("Nome")).toHaveFocus();
@@ -260,7 +268,7 @@ it("valor da meta \"0\" mostra \"Informe um valor maior que zero.\"", async () =
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
   await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "0");
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
   expect(inDialog().getByText("Informe um valor maior que zero.")).toBeInTheDocument();
   expect(api.mutations()).toHaveLength(0);
@@ -272,9 +280,9 @@ it("nome repetido aparece no campo do nome e o dialogo continua aberto", async (
   await userEvent.type(inDialog().getByLabelText("Nome"), "viagem");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
   await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "100");
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
-  expect(await inDialog().findByText("Já existe um cofrinho com esse nome.")).toBeInTheDocument();
+  expect(await inDialog().findByText("Já existe um objetivo com esse nome.")).toBeInTheDocument();
   expect(inDialog().getByLabelText("Nome")).toHaveFocus();
 });
 
@@ -285,7 +293,7 @@ it("falha do servidor aparece no aviso do topo e nada se perde", async () => {
   await userEvent.type(inDialog().getByLabelText("Nome"), "X");
   await userEvent.selectOptions(inDialog().getByLabelText("Conta"), "Nubank");
   await userEvent.type(inDialog().getByLabelText(/^Valor da meta/), "100");
-  await userEvent.click(inDialog().getByRole("button", { name: "Criar cofrinho" }));
+  await userEvent.click(inDialog().getByRole("button", { name: "Criar objetivo" }));
 
   expect(await inDialog().findByRole("alert")).toBeInTheDocument();
   expect(inDialog().getByLabelText("Nome")).toHaveValue("X");
@@ -305,7 +313,7 @@ it("cancelar fecha sem criar", async () => {
 
 const openEdit = async (name: string) => {
   await openMenu(name, "Editar");
-  return await screen.findByRole("dialog", { name: "Editar cofrinho" });
+  return await screen.findByRole("dialog", { name: "Editar objetivo" });
 };
 
 it("editar reabre os campos, com a conta travada", async () => {
@@ -419,7 +427,7 @@ it("retirar mais do que ha guardado mostra o erro no campo", async () => {
   await userEvent.type(inDialog().getByLabelText(/^Valor/), "50,01");
   await userEvent.click(inDialog().getByRole("button", { name: "Retirar" }));
 
-  expect(await inDialog().findByText("O cofrinho não tem esse valor guardado.")).toBeInTheDocument();
+  expect(await inDialog().findByText("O objetivo não tem esse valor guardado.")).toBeInTheDocument();
 });
 
 it("valor vazio, zero e invalido sao recusados sem chamar a API", async () => {
@@ -492,7 +500,7 @@ it("historico vazio avisa", async () => {
   renderPage();
   await screen.findByText("Viagem");
   await openMenu("Viagem", "Histórico");
-  expect(await inDialog().findByText("Ainda não há movimentos neste cofrinho.")).toBeInTheDocument();
+  expect(await inDialog().findByText("Ainda não há movimentos neste objetivo.")).toBeInTheDocument();
 });
 
 it("historico com mais de 50 movimentos avisa que mostra so os mais recentes", async () => {
@@ -519,7 +527,7 @@ it("excluir pede confirmacao, avisa que o valor volta ao disponivel e remove da 
   await screen.findByText("Viagem");
   await openMenu("Viagem", "Excluir");
 
-  const confirm = await screen.findByRole("dialog", { name: "Excluir cofrinho" });
+  const confirm = await screen.findByRole("dialog", { name: "Excluir objetivo" });
   expect(confirm).toHaveTextContent("Viagem");
   expect(confirm).toHaveTextContent("volta a ficar disponível na conta");
   expect(api.mutations()).toHaveLength(0);
@@ -561,7 +569,7 @@ it("arquivados ficam escondidos e aparecem com o aviso ao marcar Mostrar arquiva
   expect(api.state.requests.at(-1)?.query?.has("active")).toBe(false);
 });
 
-it("arquivar manda active falso e o cofrinho some da lista", async () => {
+it("arquivar manda active falso e o objetivo some da lista", async () => {
   const api = renderPage([makePiggyBank({ name: "Viagem" }), makePiggyBank({ name: "Carro" })]);
   await screen.findByText("Viagem");
   await openMenu("Viagem", "Arquivar");
@@ -583,22 +591,48 @@ it("desarquivar manda active verdadeiro e tira o selo", async () => {
   expect(api.mutations()[0].body).toEqual({ active: true });
 });
 
-it("cofrinho arquivado nao oferece Guardar, mas deixa retirar para liberar o valor", async () => {
+it("objetivo arquivado nao oferece Guardar, mas deixa retirar para liberar o valor", async () => {
   renderPage([makePiggyBank({ name: "Antigo", saved: "300.00", active: false })]);
   await userEvent.click(await screen.findByLabelText("Mostrar arquivados"));
   await screen.findByText("Antigo");
-  await userEvent.click(screen.getByRole("button", { name: "Ações do cofrinho Antigo" }));
+  await userEvent.click(screen.getByRole("button", { name: "Ações do objetivo Antigo" }));
   expect(screen.queryByRole("menuitem", { name: "Guardar" })).not.toBeInTheDocument();
   expect(screen.getByRole("menuitem", { name: "Retirar" })).toBeInTheDocument();
   expect(screen.getByRole("menuitem", { name: "Desarquivar" })).toBeInTheDocument();
   expect(screen.queryByRole("menuitem", { name: "Arquivar" })).not.toBeInTheDocument();
 });
 
-it("falha ao arquivar aparece no aviso do topo e o cofrinho continua na lista", async () => {
+it("falha ao arquivar aparece no aviso do topo e o objetivo continua na lista", async () => {
   const api = renderPage([makePiggyBank({ name: "Viagem" })]);
   await screen.findByText("Viagem");
   api.state.nextMutationError = { status: 404, code: "piggy_bank_not_found" };
   await openMenu("Viagem", "Arquivar");
-  expect(await screen.findByRole("alert")).toHaveTextContent("Cofrinho não encontrado.");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Objetivo não encontrado.");
   expect(screen.getByText("Viagem")).toBeInTheDocument();
+});
+
+// ---------- Abas Em andamento e Concluidos ----------
+
+it("as abas separam o que esta em andamento do que ja chegou na meta", async () => {
+  renderPage([makePiggyBank({ name: "Andando", saved: "100.00" }), makePiggyBank({ name: "Pronto", saved: "600.00" })]);
+  expect(await screen.findByRole("tab", { name: "Em andamento" })).toHaveAttribute("aria-selected", "true");
+  expect(await screen.findByText("Andando")).toBeInTheDocument();
+  expect(screen.queryByText("Pronto")).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("tab", { name: "Concluídos" }));
+  expect(await screen.findByText("Pronto")).toBeInTheDocument();
+  expect(screen.queryByText("Andando")).not.toBeInTheDocument();
+});
+
+it("aba sem nada diz isso, em vez de mostrar a tela de primeiro uso", async () => {
+  renderPage([makePiggyBank({ name: "Andando", saved: "100.00" })]);
+  await screen.findByText("Andando");
+  await userEvent.click(screen.getByRole("tab", { name: "Concluídos" }));
+  expect(await screen.findByText(/Nenhum objetivo concluído ainda/)).toBeInTheDocument();
+  expect(screen.queryByText("Nenhum objetivo ainda")).not.toBeInTheDocument();
+});
+
+it("tudo concluido: Em andamento diz que nao ha nada em andamento", async () => {
+  renderPage([makePiggyBank({ name: "Pronto", saved: "600.00" })]);
+  expect(await screen.findByText("Nenhum objetivo em andamento.")).toBeInTheDocument();
 });

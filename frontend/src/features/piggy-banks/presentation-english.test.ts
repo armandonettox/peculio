@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { i18n } from "@/i18n";
 import { availableText, remainingText, targetText } from "./presentation";
 
-// A logica de cofrinhos no idioma ingles: o que falta, a data alvo e o disponivel na conta.
+// A logica de objetivos no idioma ingles: o que falta, a data alvo e o disponivel na conta.
 beforeEach(async () => {
   await i18n.changeLanguage("en");
 });
@@ -33,7 +33,7 @@ describe("textos", () => {
       warning: false,
     });
     expect(availableText({ account_name: "Checking", account_available: "-50.00", currency_code: "USD" })).toEqual({
-      text: "The balance of Checking is $50.00 below what's saved in piggy banks",
+      text: "The balance of Checking is $50.00 below what's saved in goals",
       warning: true,
     });
   });

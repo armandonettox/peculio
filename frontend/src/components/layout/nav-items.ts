@@ -32,7 +32,7 @@ export const navItems: NavItem[] = [
   { labelKey: "nav.categories", icon: Tags, to: "/categorias" },
   { labelKey: "nav.tags", icon: Tag, to: "/tags" },
   { labelKey: "nav.budgets", icon: PiggyBank, to: "/orcamentos" },
-  { labelKey: "nav.piggyBanks", icon: Coins, to: "/cofrinhos" },
+  { labelKey: "nav.piggyBanks", icon: Coins, to: "/objetivos" },
   { labelKey: "nav.rules", icon: Workflow, to: "/regras" },
   { labelKey: "nav.reports", icon: BarChart3, to: "/relatorios" },
 ];

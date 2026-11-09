@@ -43,7 +43,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
-            <Route path="cofrinhos" element={<PiggyBanksPage />} />
+            <Route path="objetivos" element={<PiggyBanksPage />} />
+            <Route path="cofrinhos" element={<Navigate to="/objetivos" replace />} />
             {/* Recorrentes e Contas a pagar viraram o filtro Fixas de Transacoes (favoritos antigos continuam entrando) */}
             <Route path="recorrentes" element={<Navigate to="/transacoes?situacao=fixed" replace />} />
             <Route path="contas-a-pagar" element={<Navigate to="/transacoes?situacao=fixed" replace />} />

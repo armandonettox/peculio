@@ -56,7 +56,7 @@ export function PiggyBanksBlock() {
           );
         })}
       </ul>
-      <Link to="/cofrinhos" className="mt-4 inline-block text-sm font-medium text-primary-text hover:underline">
+      <Link to="/objetivos" className="mt-4 inline-block text-sm font-medium text-primary-text hover:underline">
         {t("dashboard.piggyBanksBlock.verCofrinhos")}
       </Link>
     </DashboardBlock>

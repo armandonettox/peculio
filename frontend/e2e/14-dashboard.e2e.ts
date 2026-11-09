@@ -35,7 +35,7 @@ async function api(request: APIRequestContext, path: string) {
 
 const state = { accountId: "" };
 
-test("prepara dados ficticios: conta, divida, orcamento perto do limite, pendentes (um atrasado), recorrente e cofrinho", async ({ request }) => {
+test("prepara dados ficticios: conta, divida, orcamento perto do limite, pendentes (um atrasado), recorrente e objetivo", async ({ request }) => {
   const headers = await apiHeaders(request, ADMIN);
   const account = await apiPost(request, headers, "/accounts", {
     name: "Conta Painel E2E", type: "asset", currency_code: "BRL", opening_balance: "4000.00", opening_balance_date: "2026-01-01",
@@ -81,12 +81,12 @@ test("prepara dados ficticios: conta, divida, orcamento perto do limite, pendent
 test("mostra todos os blocos com os dados do usuario", async ({ page }) => {
   await openDashboard(page);
   await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
-  for (const title of ["Patrimônio", "Balanço mensal", "Gastos por categoria", "Orçamentos", "Próximos vencimentos", "Últimas transações", "Cofrinhos"]) {
+  for (const title of ["Patrimônio", "Balanço mensal", "Gastos por categoria", "Orçamentos", "Próximos vencimentos", "Últimas transações", "Objetivos"]) {
     await expect(block(page, title)).toBeVisible();
   }
   await expect(block(page, "Orçamentos")).toContainText("Mercado Painel E2E");
   await expect(block(page, "Orçamentos").getByRole("progressbar", { name: "Gasto de Mercado Painel E2E" })).toHaveAttribute("aria-valuenow", "96");
-  await expect(block(page, "Cofrinhos")).toContainText("Viagem Painel E2E");
+  await expect(block(page, "Objetivos")).toContainText("Viagem Painel E2E");
   await expect(block(page, "Últimas transações")).toContainText("Compra do mes no painel");
 });
 

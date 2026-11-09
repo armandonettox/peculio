@@ -4,12 +4,12 @@ import type { PiggyBank, PiggyBankEvent } from "@/api/piggy-banks";
 
 let counter = 0;
 
-/** Cofrinho com valores calculados a partir de `saved` e `target_amount`, como o backend faz. */
+/** Objetivo com valores calculados a partir de `saved` e `target_amount`, como o backend faz. */
 export function makePiggyBank(overrides: Partial<PiggyBank> = {}): PiggyBank {
   counter += 1;
   const base: PiggyBank = {
     id: `c0000000-0000-4000-8000-${String(counter).padStart(12, "0")}`,
-    name: `Cofrinho ${counter}`,
+    name: `Objetivo ${counter}`,
     account_id: "a0000000-0000-4000-8000-000000000001",
     account_name: "Nubank",
     currency_code: "BRL",
@@ -50,8 +50,8 @@ type NextError = { status: number; code: string; errors?: { field: string; messa
 type Recorded = { method: string; path: string; body?: Record<string, unknown>; query?: URLSearchParams };
 
 /**
- * API de cofrinhos de mentira, com estado. Guardar e retirar mexem no guardado e no disponivel (um so
- * valor, como se todos os cofrinhos fossem da mesma conta) e recusam o que passa do limite, como o backend.
+ * API de objetivos de mentira, com estado. Guardar e retirar mexem no guardado e no disponivel (um so
+ * valor, como se todos os objetivos fossem da mesma conta) e recusam o que passa do limite, como o backend.
  */
 export function fakePiggyBanksApi(initial: PiggyBank[] = [], events: Record<string, PiggyBankEvent[]> = {}) {
   const state = {
@@ -151,7 +151,7 @@ export function fakePiggyBanksApi(initial: PiggyBank[] = [], events: Record<stri
       }
       const signed = body.kind === "add" ? amount : -amount;
       const available = (Number(piggy.account_available) - signed).toFixed(2);
-      // Todos os cofrinhos da conta veem o mesmo disponivel
+      // Todos os objetivos da conta veem o mesmo disponivel
       state.piggies = state.piggies.map((item) =>
         item.account_id === piggy.account_id
           ? makePiggyBank({

@@ -99,7 +99,7 @@ it("o Mais abre com as telas que nao cabem na barra, e fecha ao escolher uma", a
     ["Importar extrato", "/importar"],
     ["Categorias", "/categorias"],
     ["Tags", "/tags"],
-    ["Cofrinhos", "/cofrinhos"],
+    ["Objetivos", "/objetivos"],
     ["Regras", "/regras"],
     ["Relatórios", "/relatorios"],
     ["Configurações", "/configuracoes"],
@@ -129,7 +129,7 @@ it("o Mais fecha quando a rota muda por outro caminho (voltar/avancar)", async (
 
 it("o Mais fica destacado quando a pagina atual e uma das que moram nele", async () => {
   const router = renderShell();
-  await act(() => router.navigate("/cofrinhos"));
+  await act(() => router.navigate("/objetivos"));
   expect(moreButton()).toHaveClass("bg-accent");
 });
 

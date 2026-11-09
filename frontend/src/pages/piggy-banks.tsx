@@ -7,13 +7,17 @@ import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
+import { Tab, TabList } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PiggyBankCard, type PiggyAction } from "@/features/piggy-banks/piggy-bank-card";
 import { PiggyBankFormDialog } from "@/features/piggy-banks/piggy-bank-form-dialog";
 import { PiggyBankHistoryDialog } from "@/features/piggy-banks/piggy-bank-history-dialog";
 import { PiggyBankMoneyDialog } from "@/features/piggy-banks/piggy-bank-money-dialog";
+import { isReached } from "@/features/piggy-banks/presentation";
 import { appToday } from "@/lib/dates";
 import { useTranslation } from "react-i18next";
+
+type GoalsTab = "andamento" | "concluidos";
 
 type DialogState = { kind: "create" } | { kind: Exclude<PiggyAction, "archive">; piggy: PiggyBank } | null;
 
@@ -22,11 +26,14 @@ export default function PiggyBanksPage() {
   const today = appToday();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [tab, setTab] = useState<GoalsTab>("andamento");
   const [actionError, setActionError] = useState<string | null>(null);
   const query = usePiggyBanks({ includeArchived });
   const remove = useDeletePiggyBank();
   const archive = useUpdatePiggyBank();
-  const items = query.data ?? [];
+  const all = query.data ?? [];
+  // Concluido e o objetivo que ja chegou na meta; o resto esta em andamento
+  const items = all.filter((piggy) => (tab === "concluidos" ? isReached(piggy) : !isReached(piggy)));
 
   async function handleAction(action: PiggyAction, piggy: PiggyBank) {
     if (action !== "archive") {
@@ -71,6 +78,12 @@ export default function PiggyBanksPage() {
         </Button>
       </div>
     );
+  } else if (all.length > 0 && items.length === 0) {
+    content = (
+      <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        {tab === "concluidos" ? t("pages.piggyBanks.nenhumConcluido") : t("pages.piggyBanks.nenhumEmAndamento")}
+      </p>
+    );
   } else if (items.length === 0) {
     content = (
       <EmptyState
@@ -102,7 +115,15 @@ export default function PiggyBanksPage() {
     <>
       <PageHeader title={t("pages.piggyBanks.cofrinhos")} description={t("pages.piggyBanks.metasGuardadasDentroDas")} actions={newButton} />
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <TabList aria-label={t("pages.piggyBanks.secaoDeObjetivos")} className="min-w-0 flex-1">
+          <Tab active={tab === "andamento"} onSelect={() => setTab("andamento")}>
+            {t("pages.piggyBanks.emAndamento")}
+          </Tab>
+          <Tab active={tab === "concluidos"} onSelect={() => setTab("concluidos")}>
+            {t("pages.piggyBanks.concluidos")}
+          </Tab>
+        </TabList>
         <label className="flex cursor-pointer items-center gap-2 text-sm">
           <input
             type="checkbox"

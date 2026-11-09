@@ -164,16 +164,21 @@
       "osLancamentosQueEla": "Os lançamentos que ela já criou continuam; só deixam de ser criados novos."
     },
     "piggyBanks": {
-      "novoCofrinho": "Novo cofrinho",
-      "carregandoCofrinhos": "Carregando cofrinhos...",
-      "nenhumCofrinhoAinda": "Nenhum cofrinho ainda",
+      "novoCofrinho": "Novo objetivo",
+      "carregandoCofrinhos": "Carregando objetivos...",
+      "nenhumCofrinhoAinda": "Nenhum objetivo ainda",
       "separeUmValorDe": "Separe um valor de uma conta para uma meta, como viagem ou reserva de emergência. O dinheiro continua na conta; só deixa de aparecer como disponível.",
-      "seusCofrinhos": "Seus cofrinhos",
-      "cofrinhos": "Cofrinhos",
+      "seusCofrinhos": "Seus objetivos",
+      "cofrinhos": "Objetivos",
       "metasGuardadasDentroDas": "Metas guardadas dentro das suas contas",
       "mostrarArquivados": "Mostrar arquivados",
-      "excluirCofrinho": "Excluir cofrinho",
-      "oValorGuardadoVolta": "O valor guardado volta a ficar disponível na conta; nenhum dinheiro some."
+      "excluirCofrinho": "Excluir objetivo",
+      "oValorGuardadoVolta": "O valor guardado volta a ficar disponível na conta; nenhum dinheiro some.",
+      "secaoDeObjetivos": "Objetivos em andamento ou concluídos",
+      "emAndamento": "Em andamento",
+      "concluidos": "Concluídos",
+      "nenhumEmAndamento": "Nenhum objetivo em andamento.",
+      "nenhumConcluido": "Nenhum objetivo concluído ainda. Quando o valor guardado chegar à meta, ele aparece aqui."
     },
     "import": {
       "nadaFoiImportado": "Nada foi importado",
@@ -408,7 +413,7 @@
     "import": "Importar extrato",
     "categories": "Categorias",
     "budgets": "Orçamentos",
-    "piggyBanks": "Cofrinhos",
+    "piggyBanks": "Objetivos",
     "rules": "Regras",
     "reports": "Relatórios",
     "settings": "Configurações",
@@ -461,12 +466,12 @@
     "webhook_name_taken": "Já existe um webhook com esse nome.",
     "webhook_limit_reached": "Você chegou ao limite de 20 webhooks. Exclua algum para criar outro.",
     "webhook_url_invalid": "Esse endereço não pode receber webhooks: use um endereço https:// público que responda pela internet, sem usuário e senha na URL.",
-    "piggy_bank_not_found": "Cofrinho não encontrado.",
-    "piggy_bank_name_taken": "Já existe um cofrinho com esse nome.",
-    "piggy_bank_account_invalid": "Um cofrinho fica em uma conta, não em uma dívida.",
-    "piggy_bank_not_enough_available": "A conta não tem esse valor disponível. O que já está guardado em cofrinhos não conta.",
-    "piggy_bank_not_enough_saved": "O cofrinho não tem esse valor guardado.",
-    "piggy_bank_archived": "O cofrinho está arquivado: desarquive para guardar mais.",
+    "piggy_bank_not_found": "Objetivo não encontrado.",
+    "piggy_bank_name_taken": "Já existe um objetivo com esse nome.",
+    "piggy_bank_account_invalid": "Um objetivo fica em uma conta, não em uma dívida.",
+    "piggy_bank_not_enough_available": "A conta não tem esse valor disponível. O que já está guardado em objetivos não conta.",
+    "piggy_bank_not_enough_saved": "O objetivo não tem esse valor guardado.",
+    "piggy_bank_archived": "O objetivo está arquivado: desarquive para guardar mais.",
     "attachment_not_found": "Anexo não encontrado.",
     "attachment_type_not_allowed": "Tipo de arquivo não permitido. Envie PDF, JPEG, PNG, WEBP, TXT ou CSV.",
     "attachment_too_large": "O arquivo passa do limite de 10 MB.",
@@ -555,9 +560,9 @@
       "netWorthLiquidIn": "Patrimônio líquido em {{currency}}"
     },
     "piggyBanksBlock": {
-      "cofrinhos": "Cofrinhos",
-      "nenhumCofrinhoAinda": "Nenhum cofrinho ainda.",
-      "verCofrinhos": "Ver cofrinhos",
+      "cofrinhos": "Objetivos",
+      "nenhumCofrinhoAinda": "Nenhum objetivo ainda.",
+      "verCofrinhos": "Ver objetivos",
       "ofTarget": "de {{target}}",
       "savedOf": "Guardado de {{name}}",
       "percentOfTarget": "{{percent}}% da meta"
@@ -707,7 +712,7 @@
       "semesterBalance": "Gráfico do balanço semestral",
       "quarterBalance": "Gráfico do balanço trimestral",
       "creditCards": "Informações de cartão de crédito",
-      "goals": "Cofrinhos",
+      "goals": "Objetivos",
       "savings": "Economia do mês",
       "profile": "Informações de perfil",
       "netWorth": "Patrimônio"
@@ -1346,21 +1351,21 @@
       "desarquivar": "Desarquivar",
       "arquivar": "Arquivar",
       "arquivadoOValorGuardado": "Arquivado: o valor guardado continua reservado na conta. Retire para liberar.",
-      "acoesDoCofrinho": "Ações do cofrinho {{name}}",
+      "acoesDoCofrinho": "Ações do objetivo {{name}}",
       "progressoDe": "Progresso de {{name}}",
       "percentDaMeta": "{{percent}}% da meta",
       "de": "de"
     },
     "piggyBankFormDialog": {
-      "editarCofrinho": "Editar cofrinho",
-      "novoCofrinho": "Novo cofrinho",
+      "editarCofrinho": "Editar objetivo",
+      "novoCofrinho": "Novo objetivo",
       "aContaNaoPode": "A conta não pode mudar: o valor guardado está reservado nela.",
       "separeUmValorDe": "Separe um valor de uma conta para uma meta. O dinheiro continua na conta; só deixa de aparecer como disponível.",
       "dataAlvoOpcional": "Data alvo (opcional)",
       "salvando": "Salvando...",
       "salvar": "Salvar",
-      "criarCofrinho": "Criar cofrinho",
-      "informeONome": "Informe o nome do cofrinho.",
+      "criarCofrinho": "Criar objetivo",
+      "informeONome": "Informe o nome do objetivo.",
       "escolhaAConta": "Escolha a conta.",
       "informeOValorDaMeta": "Informe o valor da meta.",
       "informeUmValorMaior": "Informe um valor maior que zero.",
@@ -1369,7 +1374,7 @@
     },
     "piggyBankHistoryDialog": {
       "quandoVoceGuardouE": "Quando você guardou e retirou dinheiro, do mais recente para o mais antigo.",
-      "aindaNaoHaMovimentos": "Ainda não há movimentos neste cofrinho.",
+      "aindaNaoHaMovimentos": "Ainda não há movimentos neste objetivo.",
       "movimentos": "Movimentos",
       "guardou": "Guardou",
       "retirou": "Retirou",
@@ -1400,7 +1405,7 @@
         "withSuggestion": "Até {{date}} · guarde {{amount}} por mês"
       },
       "available": {
-        "warning": "O saldo de {{account}} está {{amount}} abaixo do que está guardado em cofrinhos",
+        "warning": "O saldo de {{account}} está {{amount}} abaixo do que está guardado em objetivos",
         "ok": "Disponível em {{account}}: {{amount}}"
       }
     }

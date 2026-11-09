@@ -24,22 +24,22 @@ const isoDaysFromToday = (days: number) => {
 
 async function openPiggyBanks(page: Page) {
   await loginAndWaitForDashboard(page);
-  await nav(page).getByRole("link", { name: "Cofrinhos" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Cofrinhos" })).toBeVisible();
+  await nav(page).getByRole("link", { name: "Objetivos" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Objetivos" })).toBeVisible();
 }
 
 async function action(page: Page, name: string, item: string) {
-  await page.getByRole("button", { name: `Ações do cofrinho ${name}` }).click();
+  await page.getByRole("button", { name: `Ações do objetivo ${name}` }).click();
   await page.getByRole("menuitem", { name: item }).click();
 }
 
 async function createPiggy(page: Page, name: string, target: string, date?: string) {
-  await page.getByRole("button", { name: "Novo cofrinho" }).first().click();
+  await page.getByRole("button", { name: "Novo objetivo" }).first().click();
   await dialog(page).getByLabel("Nome", { exact: true }).fill(name);
   await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
   await dialog(page).getByLabel(/^Valor da meta/).fill(target);
   if (date) await dialog(page).getByLabel("Data alvo (opcional)").fill(date);
-  await dialog(page).getByRole("button", { name: "Criar cofrinho" }).click();
+  await dialog(page).getByRole("button", { name: "Criar objetivo" }).click();
   await expect(dialog(page)).toBeHidden();
 }
 
@@ -60,12 +60,12 @@ test("prepara a conta pela API", async ({ request }) => {
   });
 });
 
-test("sem cofrinhos a pagina convida a criar o primeiro", async ({ page }) => {
+test("sem objetivos a pagina convida a criar o primeiro", async ({ page }) => {
   await openPiggyBanks(page);
-  await expect(page.getByText("Nenhum cofrinho ainda")).toBeVisible();
+  await expect(page.getByText("Nenhum objetivo ainda")).toBeVisible();
 });
 
-test("cria um cofrinho com meta e data alvo, ainda sem nada guardado", async ({ page }) => {
+test("cria um objetivo com meta e data alvo, ainda sem nada guardado", async ({ page }) => {
   await openPiggyBanks(page);
   await createPiggy(page, TRIP, "600,00", isoDaysFromToday(200));
 
@@ -102,7 +102,7 @@ test("nao da para guardar mais do que esta disponivel", async ({ page }) => {
   await expect(card(page, TRIP)).toContainText("R$ 250,00");
 });
 
-test("cofrinhos da mesma conta dividem o disponivel", async ({ page }) => {
+test("objetivos da mesma conta dividem o disponivel", async ({ page }) => {
   await openPiggyBanks(page);
   await createPiggy(page, RESERVE, "5.000,00");
   await expect(card(page, RESERVE)).toContainText(`Disponível em ${ACCOUNT}: R$ 750,00`);
@@ -120,7 +120,7 @@ test("cofrinhos da mesma conta dividem o disponivel", async ({ page }) => {
 test("retirar devolve o valor ao disponivel, e nao da para retirar mais do que ha", async ({ page }) => {
   await openPiggyBanks(page);
   await move(page, TRIP, "Retirar", "300,00");
-  await expect(dialog(page).getByText("O cofrinho não tem esse valor guardado.")).toBeVisible();
+  await expect(dialog(page).getByText("O objetivo não tem esse valor guardado.")).toBeVisible();
 
   await dialog(page).getByLabel(/^Valor/).fill("50,00");
   await dialog(page).getByRole("button", { name: "Retirar" }).click();

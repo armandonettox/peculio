@@ -469,9 +469,9 @@ it("transacoes: sem lancamento nenhum mostra o estado vazio", async () => {
   await waitFor(() => expect(within(section).getByText(/Nenhum lançamento/)).toBeInTheDocument());
 });
 
-// ---------- Cofrinhos ----------
+// ---------- Objetivos ----------
 
-it("cofrinhos: mostra quanto ja foi guardado em cada um", async () => {
+it("objetivos: mostra quanto ja foi guardado em cada um", async () => {
   server.use(
     ...fakeAccountsApi([makeAccount()]).handlers,
     ...fakeDashboardApi({ netWorth: makeNetWorth(), upcoming: makeUpcoming() }).handlers,
@@ -489,7 +489,7 @@ it("cofrinhos: mostra quanto ja foi guardado em cada um", async () => {
       </MemoryRouter>
     </FakeAuth>,
   );
-  const section = await region("Cofrinhos");
+  const section = await region("Objetivos");
   expect(await within(section).findByText("Viagem")).toBeInTheDocument();
   expect(within(section).getByText("R$ 300,00")).toBeInTheDocument();
 });

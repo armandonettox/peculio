@@ -164,16 +164,21 @@
       "osLancamentosQueEla": "The transactions it already created stay; it just stops creating new ones."
     },
     "piggyBanks": {
-      "novoCofrinho": "New piggy bank",
-      "carregandoCofrinhos": "Loading piggy banks...",
-      "nenhumCofrinhoAinda": "No piggy banks yet",
+      "novoCofrinho": "New goal",
+      "carregandoCofrinhos": "Loading goals...",
+      "nenhumCofrinhoAinda": "No goals yet",
       "separeUmValorDe": "Set aside an amount from an account for a goal, like a trip or an emergency fund. The money stays in the account; it just stops showing as available.",
-      "seusCofrinhos": "Your piggy banks",
-      "cofrinhos": "Piggy banks",
+      "seusCofrinhos": "Your goals",
+      "cofrinhos": "Goals",
       "metasGuardadasDentroDas": "Goals saved inside your accounts",
       "mostrarArquivados": "Show archived",
-      "excluirCofrinho": "Delete piggy bank",
-      "oValorGuardadoVolta": "The saved amount becomes available in the account again; no money disappears."
+      "excluirCofrinho": "Delete goal",
+      "oValorGuardadoVolta": "The saved amount becomes available in the account again; no money disappears.",
+      "secaoDeObjetivos": "Goals in progress or completed",
+      "emAndamento": "In progress",
+      "concluidos": "Completed",
+      "nenhumEmAndamento": "No goals in progress.",
+      "nenhumConcluido": "No completed goals yet. When the saved amount reaches the target, it shows up here."
     },
     "import": {
       "nadaFoiImportado": "Nothing was imported",
@@ -408,7 +413,7 @@
     "import": "Import statement",
     "categories": "Categories",
     "budgets": "Budgets",
-    "piggyBanks": "Piggy banks",
+    "piggyBanks": "Goals",
     "rules": "Rules",
     "reports": "Reports",
     "settings": "Settings",
@@ -461,12 +466,12 @@
     "webhook_name_taken": "A webhook with that name already exists.",
     "webhook_limit_reached": "You reached the limit of 20 webhooks. Delete one to create another.",
     "webhook_url_invalid": "That address can't receive webhooks: use a public https:// address that responds over the internet, with no username or password in the URL.",
-    "piggy_bank_not_found": "Piggy bank not found.",
-    "piggy_bank_name_taken": "A piggy bank with that name already exists.",
-    "piggy_bank_account_invalid": "A piggy bank lives in an account, not in a debt.",
-    "piggy_bank_not_enough_available": "The account doesn't have that amount available. What's already saved in piggy banks doesn't count.",
-    "piggy_bank_not_enough_saved": "The piggy bank doesn't have that amount saved.",
-    "piggy_bank_archived": "The piggy bank is archived: unarchive it to save more.",
+    "piggy_bank_not_found": "Goal not found.",
+    "piggy_bank_name_taken": "A goal with that name already exists.",
+    "piggy_bank_account_invalid": "A goal lives in an account, not in a debt.",
+    "piggy_bank_not_enough_available": "The account doesn't have that amount available. What's already saved in goals doesn't count.",
+    "piggy_bank_not_enough_saved": "The goal doesn't have that amount saved.",
+    "piggy_bank_archived": "The goal is archived: unarchive it to save more.",
     "attachment_not_found": "Attachment not found.",
     "attachment_type_not_allowed": "File type not allowed. Upload a PDF, JPEG, PNG, WEBP, TXT or CSV.",
     "attachment_too_large": "The file is over the 10 MB limit.",
@@ -555,9 +560,9 @@
       "netWorthLiquidIn": "Net worth in {{currency}}, net of debts"
     },
     "piggyBanksBlock": {
-      "cofrinhos": "Piggy banks",
-      "nenhumCofrinhoAinda": "No piggy banks yet.",
-      "verCofrinhos": "View piggy banks",
+      "cofrinhos": "Goals",
+      "nenhumCofrinhoAinda": "No goals yet.",
+      "verCofrinhos": "View goals",
       "ofTarget": "of {{target}}",
       "savedOf": "Saved for {{name}}",
       "percentOfTarget": "{{percent}}% of target"
@@ -707,7 +712,7 @@
       "semesterBalance": "Six-month balance chart",
       "quarterBalance": "Three-month balance chart",
       "creditCards": "Credit card information",
-      "goals": "Piggy banks",
+      "goals": "Goals",
       "savings": "Savings this month",
       "profile": "Profile information",
       "netWorth": "Net worth"
@@ -1346,21 +1351,21 @@
       "desarquivar": "Unarchive",
       "arquivar": "Archive",
       "arquivadoOValorGuardado": "Archived: the saved amount stays reserved in the account. Withdraw it to free it up.",
-      "acoesDoCofrinho": "Actions for piggy bank {{name}}",
+      "acoesDoCofrinho": "Actions for goal {{name}}",
       "progressoDe": "Progress for {{name}}",
       "percentDaMeta": "{{percent}}% of the goal",
       "de": "of"
     },
     "piggyBankFormDialog": {
-      "editarCofrinho": "Edit piggy bank",
-      "novoCofrinho": "New piggy bank",
+      "editarCofrinho": "Edit goal",
+      "novoCofrinho": "New goal",
       "aContaNaoPode": "The account can't change: the saved amount is reserved in it.",
       "separeUmValorDe": "Set aside an amount from an account for a goal. The money stays in the account; it just stops showing as available.",
       "dataAlvoOpcional": "Target date (optional)",
       "salvando": "Saving...",
       "salvar": "Save",
-      "criarCofrinho": "Create piggy bank",
-      "informeONome": "Enter the piggy bank's name.",
+      "criarCofrinho": "Create goal",
+      "informeONome": "Enter the goal's name.",
       "escolhaAConta": "Choose the account.",
       "informeOValorDaMeta": "Enter the goal amount.",
       "informeUmValorMaior": "Enter an amount greater than zero.",
@@ -1369,7 +1374,7 @@
     },
     "piggyBankHistoryDialog": {
       "quandoVoceGuardouE": "When you added and withdrew money, most recent first.",
-      "aindaNaoHaMovimentos": "No movements in this piggy bank yet.",
+      "aindaNaoHaMovimentos": "No movements in this goal yet.",
       "movimentos": "Movements",
       "guardou": "Added",
       "retirou": "Withdrew",
@@ -1400,7 +1405,7 @@
         "withSuggestion": "By {{date}} · save {{amount}} a month"
       },
       "available": {
-        "warning": "The balance of {{account}} is {{amount}} below what's saved in piggy banks",
+        "warning": "The balance of {{account}} is {{amount}} below what's saved in goals",
         "ok": "Available in {{account}}: {{amount}}"
       }
     }
