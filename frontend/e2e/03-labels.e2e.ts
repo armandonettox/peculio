@@ -5,13 +5,11 @@ import { ADMIN, loginAndWaitForDashboard, openMore } from "./helpers";
 // Roda depois do 01-auth (que cria o administrador). Os testes seguem em ordem.
 test.describe.configure({ mode: "serial" });
 
-// Categorias e Tags viraram abas de uma unica tela (Categorias no menu lateral); Tags clica a aba depois
+// Categorias e Tags sao duas paginas, cada uma com o seu item no menu lateral
 async function openPage(page: Page, menuLabel: "Categorias" | "Tags") {
   await loginAndWaitForDashboard(page);
-  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: "Categorias" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Categorias e tags" })).toBeVisible();
-  if (menuLabel === "Tags") await page.getByRole("tab", { name: "Tags" }).click();
-  await expect(page.getByRole("heading", { name: menuLabel, exact: true })).toBeVisible();
+  await page.getByRole("navigation", { name: "Navegação principal" }).getByRole("link", { name: menuLabel, exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1, name: menuLabel, exact: true })).toBeVisible();
 }
 
 const dialog = (page: Page, name: string | RegExp) => page.getByRole("dialog", { name });
@@ -232,4 +230,11 @@ test("no celular o formulario de categoria cabe na tela", async ({ page }) => {
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   await dialog(page, "Nova categoria").getByRole("button", { name: "Cancelar" }).click();
+});
+
+test("o link antigo de tags (categorias com aba=tags) leva a pagina de tags", async ({ page }) => {
+  await loginAndWaitForDashboard(page);
+  await page.goto("/categorias?aba=tags");
+  await expect(page).toHaveURL(/\/tags$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Tags", exact: true })).toBeVisible();
 });

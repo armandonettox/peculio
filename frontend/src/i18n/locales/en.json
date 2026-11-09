@@ -219,13 +219,6 @@
       "descricao": "Bring in the bank statement and check the transactions against it.",
       "secao": "Import or reconcile section"
     },
-    "labels": {
-      "categoriasETags": "Categories and tags",
-      "organizeSeusLancamentos": "Organize your transactions by category and mark them with free-form tags.",
-      "secaoDeClassificacao": "Categories or tags section",
-      "categorias": "Categories",
-      "tags": "Tags"
-    },
     "reports": {
       "carregandoRelatorio": "Loading report...",
       "nadaNestePeriodo": "Nothing in this period",
@@ -418,7 +411,8 @@
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "tags": "Tags"
   },
   "validation": {
     "emailRequired": "Enter your email.",

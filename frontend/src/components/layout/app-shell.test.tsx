@@ -98,6 +98,7 @@ it("o Mais abre com as telas que nao cabem na barra, e fecha ao escolher uma", a
     ["Cartões de crédito", "/cartoes"],
     ["Importar extrato", "/importar"],
     ["Categorias", "/categorias"],
+    ["Tags", "/tags"],
     ["Cofrinhos", "/cofrinhos"],
     ["Regras", "/regras"],
     ["Relatórios", "/relatorios"],

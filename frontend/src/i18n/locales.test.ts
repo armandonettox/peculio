@@ -48,6 +48,7 @@ describe("arquivos de traducao", () => {
   const SAME_IN_BOTH = new Set([
     "pages.accounts.total",
     "dashboard.mobile.total",
+    "nav.tags",
     "pages.invoice.status",
     "pages.webhooks.tituloSecao",
     "common.tag",

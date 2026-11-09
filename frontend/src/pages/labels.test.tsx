@@ -7,16 +7,17 @@ import { i18n } from "@/i18n";
 import { fakeLabelsApi, makeLabel } from "@/test-utils/labels-api";
 import { server } from "@/test-utils/msw";
 import { FakeAuth } from "@/test-utils/providers";
-import LabelsTabsPage from "./labels";
+import CategoriesPage from "./categories";
+import TagsPage from "./tags";
 
-// A pagina e em abas (Categorias, Tags); por padrao abre em Categorias, a url ?aba=tags abre em Tags
+// Categorias e Tags sao duas paginas, cada uma na sua rota (/categorias e /tags)
 function renderCategories(initial = [makeLabel({ name: "Mercado", color: "#00A878" })]) {
   const api = fakeLabelsApi("categories", initial);
   server.use(...api.handlers);
   render(
     <FakeAuth>
       <MemoryRouter>
-        <LabelsTabsPage />
+        <CategoriesPage />
       </MemoryRouter>
     </FakeAuth>,
   );
@@ -28,8 +29,8 @@ function renderTags(initial = [makeLabel({ name: "viagem" })]) {
   server.use(...api.handlers);
   render(
     <FakeAuth>
-      <MemoryRouter initialEntries={["/categorias?aba=tags"]}>
-        <LabelsTabsPage />
+      <MemoryRouter initialEntries={["/tags"]}>
+        <TagsPage />
       </MemoryRouter>
     </FakeAuth>,
   );
@@ -42,22 +43,21 @@ const colorText = () => within(dialog()).getByLabelText("Cor");
 const row = (name: string) => screen.getByText(name, { selector: "span" }).closest("li") as HTMLElement;
 const openMenu = (name: string) => userEvent.click(screen.getByRole("button", { name: `Ações de ${name}` }));
 
-// ---------- As abas ----------
+// ---------- As paginas ----------
 
-it("a pagina tem as duas abas, Categorias ja aberta", async () => {
+it("a pagina de categorias tem o titulo Categorias, so categorias e nenhuma aba", async () => {
   renderCategories();
-  expect(await screen.findByRole("heading", { level: 1, name: "Categorias e tags" })).toBeInTheDocument();
-  for (const title of ["Categorias", "Tags"]) expect(screen.getByRole("tab", { name: title })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Categorias" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 1, name: "Categorias" })).toBeInTheDocument();
+  expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+  expect(await screen.findByText("Mercado")).toBeInTheDocument();
 });
 
-it("clicar na aba Tags troca o conteudo, mantendo o h1 da pagina", async () => {
-  renderCategories();
-  await screen.findByText("Mercado");
-  await userEvent.click(screen.getByRole("tab", { name: "Tags" }));
-  expect(await screen.findByRole("heading", { name: "Tags" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { level: 1, name: "Categorias e tags" })).toBeInTheDocument();
-  expect(screen.queryByText("Mercado")).not.toBeInTheDocument();
+it("a pagina de tags tem o titulo Tags, so tags e nenhuma aba", async () => {
+  renderTags();
+  expect(await screen.findByRole("heading", { level: 1, name: "Tags" })).toBeInTheDocument();
+  expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  expect(await screen.findByText("viagem")).toBeInTheDocument();
 });
 
 // ---------- Categorias: Lista ----------
@@ -94,7 +94,7 @@ it("mostra o carregamento enquanto busca", () => {
   render(
     <FakeAuth>
       <MemoryRouter>
-        <LabelsTabsPage />
+        <CategoriesPage />
       </MemoryRouter>
     </FakeAuth>,
   );
@@ -564,11 +564,10 @@ it("excluir explica que a tag sai das transacoes e remove", async () => {
 
 // ---------- Em ingles ----------
 
-it("a pagina em ingles: titulo da aba, contagem, busca e dialogo", async () => {
+it("a pagina em ingles: titulo, contagem, busca e dialogo", async () => {
   await i18n.changeLanguage("en");
   renderCategories([makeLabel({ name: "Rent" }), makeLabel({ name: "Leisure" })]);
-  expect(await screen.findByRole("heading", { level: 1, name: "Categories and tags" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 1, name: "Categories" })).toBeInTheDocument();
   expect(await screen.findByText("2 categories")).toBeInTheDocument();
   expect(screen.getByRole("searchbox", { name: "Search categories" })).toBeInTheDocument();
 
@@ -586,10 +585,10 @@ it("uma categoria so no singular, e a tag tem as proprias frases", async () => {
   expect(await screen.findByText("1 category")).toBeInTheDocument();
 });
 
-it("a aba Tags em ingles", async () => {
+it("a pagina de tags em ingles", async () => {
   await i18n.changeLanguage("en");
   renderTags([makeLabel({ name: "trip", color: null })]);
-  expect(await screen.findByRole("heading", { name: "Tags" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { level: 1, name: "Tags" })).toBeInTheDocument();
   expect(await screen.findByText("1 tag")).toBeInTheDocument();
   expect(screen.getByText(/Mark transactions with free-form words/)).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "New tag" }));
