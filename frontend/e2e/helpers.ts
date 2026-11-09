@@ -28,7 +28,7 @@ export async function loginAndWaitForDashboard(page: Page, user = ADMIN) {
 
 // Configuracoes fica so no menu do usuario (nao tem mais item na sidebar), em abas: Perfil (padrao),
 // Aparencia, Seguranca, Webhooks e APIs e, so para admin, Administracao (convites e contato de seguranca).
-export async function openSettings(page: Page, tab?: "Aparência" | "Segurança" | "Webhooks e APIs" | "Administração") {
+export async function openSettings(page: Page, tab?: "Aparência" | "Segurança" | "Webhooks e APIs" | "Convites" | "Administração") {
   await page.getByRole("button", { name: "Menu do usuário" }).click();
   await page.getByRole("menuitem", { name: "Configurações" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Configurações" })).toBeVisible();

@@ -2,6 +2,7 @@ import { Copy } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { getErrorMessage } from "@/api/error-messages";
+import { useAuth } from "@/auth/auth-context";
 import { useCreateInvite, useInvites, useRenewInvite, useRevokeInvite, type Invite, type InviteCreated } from "@/api/invites";
 import { useDeleteUser } from "@/api/users";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
@@ -16,9 +17,14 @@ import { cn } from "@/lib/utils";
 import { inviteLink, inviteState } from "./model";
 import { Trans, useTranslation } from "react-i18next";
 
-/** Convites para outras pessoas entrarem (so o administrador ve). O codigo do convite aparece uma vez, ao criar. */
+/**
+ * Convites para outras pessoas entrarem. Qualquer pessoa convida e ve so os convites que criou; o administrador ve todos e
+ * tambem pode remover o acesso de quem entrou. O codigo do convite aparece uma vez, ao criar.
+ */
 export function InvitesSection() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.is_admin === true;
   const invites = useInvites();
   const create = useCreateInvite();
   const renew = useRenewInvite();
@@ -123,7 +129,7 @@ export function InvitesSection() {
                   </Button>
                 </>
               )}
-              {state.kind === "used" && invite.used_by_id && (
+              {isAdmin && state.kind === "used" && invite.used_by_id && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -144,8 +150,8 @@ export function InvitesSection() {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle as="h2">{t("settings.invitesSection.usuariosEConvites")}</CardTitle>
-        <CardDescription>{t("settings.invitesSection.soQuemRecebeUm")}</CardDescription>
+        <CardTitle as="h2">{isAdmin ? t("settings.invitesSection.usuariosEConvites") : t("settings.invitesSection.convites")}</CardTitle>
+        <CardDescription>{isAdmin ? t("settings.invitesSection.soQuemRecebeUm") : t("settings.invitesSection.convidePessoas")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <form onSubmit={(event) => void submit(event)} noValidate className="flex flex-col gap-3 sm:flex-row sm:items-end">

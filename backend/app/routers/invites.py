@@ -2,12 +2,12 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Response, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.deps import get_current_admin
+from app.core.deps import get_session_user
 from app.core.errors import AppError, ErrorCode
 from app.core.pagination import Page, PageParams, paginate
 from app.core.security import generate_invite_token, hash_invite_token
@@ -16,21 +16,50 @@ from app.schemas.user import InviteCreate, InviteCreated, InviteOut
 
 router = APIRouter(prefix="/invites", tags=["invites"])
 
+# Quem nao e administrador pode ter, no maximo, tantos convites pendentes ao mesmo tempo. O administrador nao tem teto.
+MAX_PENDING_INVITES_PER_USER = 20
+
+
+def _own_invite(db: Session, invite_id: uuid.UUID, user: User) -> Invite:
+    """O convite, se a pessoa pode mexer nele: o administrador em qualquer um, os demais so nos que criaram.
+    Convite de outra pessoa responde como se nao existisse, para nao revelar que ele existe."""
+    invite = db.get(Invite, invite_id)
+    if not invite or (not user.is_admin and invite.created_by != user.id):
+        raise AppError(404, ErrorCode.INVITE_NOT_FOUND, "Convite nao encontrado")
+    return invite
+
 
 @router.post("", response_model=InviteCreated, status_code=status.HTTP_201_CREATED)
 def create_invite(
     data: InviteCreate,
-    admin: User = Depends(get_current_admin),
+    user: User = Depends(get_session_user),
     db: Session = Depends(get_db),
 ):
     if db.execute(select(User.id).where(User.email == data.email)).first():
         raise AppError(400, ErrorCode.EMAIL_ALREADY_REGISTERED, "Ja existe um usuario com esse email")
 
+    if not user.is_admin:
+        pending = db.execute(
+            select(func.count())
+            .select_from(Invite)
+            .where(
+                Invite.created_by == user.id,
+                Invite.used_at.is_(None),
+                Invite.expires_at > datetime.now(timezone.utc),
+            )
+        ).scalar_one()
+        if pending >= MAX_PENDING_INVITES_PER_USER:
+            raise AppError(
+                400,
+                ErrorCode.INVITE_LIMIT_REACHED,
+                "Voce ja tem muitos convites pendentes: revogue algum ou espere uma pessoa entrar",
+            )
+
     token = generate_invite_token()
     invite = Invite(
         email=data.email,
         token_hash=hash_invite_token(token),
-        created_by=admin.id,
+        created_by=user.id,
         expires_at=datetime.now(timezone.utc) + timedelta(days=settings.invite_expire_days),
     )
     db.add(invite)
@@ -42,11 +71,14 @@ def create_invite(
 @router.get("", response_model=Page[InviteOut])
 def list_invites(
     params: PageParams = Depends(),
-    admin: User = Depends(get_current_admin),
+    user: User = Depends(get_session_user),
     db: Session = Depends(get_db),
 ):
     # Desempate por id: sem ele, convites criados no mesmo instante trocam de pagina
     statement = select(Invite).order_by(Invite.created_at.desc(), Invite.id)
+    # O administrador ve todos; as demais pessoas veem so os convites que criaram
+    if not user.is_admin:
+        statement = statement.where(Invite.created_by == user.id)
     page = paginate(db, statement, params)
 
     invites = page["items"]
@@ -71,12 +103,10 @@ def list_invites(
 @router.post("/{invite_id}/renew", response_model=InviteCreated)
 def renew_invite(
     invite_id: uuid.UUID,
-    admin: User = Depends(get_current_admin),
+    user: User = Depends(get_session_user),
     db: Session = Depends(get_db),
 ):
-    invite = db.get(Invite, invite_id)
-    if not invite:
-        raise AppError(404, ErrorCode.INVITE_NOT_FOUND, "Convite nao encontrado")
+    invite = _own_invite(db, invite_id, user)
     if invite.used_at:
         raise AppError(400, ErrorCode.INVITE_INVALID, "Convite ja utilizado nao pode ser renovado")
     token = generate_invite_token()
@@ -90,12 +120,10 @@ def renew_invite(
 @router.delete("/{invite_id}", status_code=status.HTTP_204_NO_CONTENT)
 def revoke_invite(
     invite_id: uuid.UUID,
-    admin: User = Depends(get_current_admin),
+    user: User = Depends(get_session_user),
     db: Session = Depends(get_db),
 ):
-    invite = db.get(Invite, invite_id)
-    if not invite:
-        raise AppError(404, ErrorCode.INVITE_NOT_FOUND, "Convite nao encontrado")
+    invite = _own_invite(db, invite_id, user)
     db.delete(invite)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

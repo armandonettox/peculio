@@ -45,6 +45,7 @@ class ErrorCode(StrEnum):
     INVITE_REQUIRED = "invite_required"
     INVITE_INVALID = "invite_invalid"
     INVITE_NOT_FOUND = "invite_not_found"
+    INVITE_LIMIT_REACHED = "invite_limit_reached"
     EMAIL_ALREADY_REGISTERED = "email_already_registered"
     # Categorias e tags
     CATEGORY_NOT_FOUND = "category_not_found"

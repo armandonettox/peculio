@@ -12,7 +12,7 @@ import { SecuritySection } from "@/features/settings/security-section";
 import { WebhooksSection } from "@/features/webhooks/webhooks-section";
 import { useTranslation } from "react-i18next";
 
-type Tab = "perfil" | "aparencia" | "painel" | "seguranca" | "webhooks" | "administracao";
+type Tab = "perfil" | "aparencia" | "painel" | "seguranca" | "webhooks" | "convites" | "administracao";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -24,7 +24,7 @@ export default function SettingsPage() {
   const tab: Tab =
     requested === "administracao" && user?.is_admin
       ? "administracao"
-      : requested === "aparencia" || requested === "painel" || requested === "seguranca" || requested === "webhooks"
+      : requested === "aparencia" || requested === "painel" || requested === "seguranca" || requested === "webhooks" || requested === "convites"
         ? requested
         : "perfil";
 
@@ -60,6 +60,9 @@ export default function SettingsPage() {
         <Tab active={tab === "webhooks"} onSelect={() => chooseTab("webhooks")}>
           {t("pages.webhooks.webhooks")}
         </Tab>
+        <Tab active={tab === "convites"} onSelect={() => chooseTab("convites")}>
+          {t("pages.settings.convites")}
+        </Tab>
         {user?.is_admin && (
           <Tab active={tab === "administracao"} onSelect={() => chooseTab("administracao")}>
             {t("pages.settings.administracao")}
@@ -77,9 +80,14 @@ export default function SettingsPage() {
 
       {tab === "webhooks" && <WebhooksSection />}
 
-      {tab === "administracao" && user?.is_admin && (
-        <div className="grid gap-6 xl:grid-cols-2 [&>*]:h-full">
+      {tab === "convites" && (
+        <div className="max-w-3xl">
           <InvitesSection />
+        </div>
+      )}
+
+      {tab === "administracao" && user?.is_admin && (
+        <div className="max-w-3xl">
           <SecurityContactSection />
         </div>
       )}

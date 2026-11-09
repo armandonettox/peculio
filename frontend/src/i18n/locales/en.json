@@ -277,7 +277,8 @@
       "secaoDeConfiguracoes": "Settings section",
       "perfil": "Profile",
       "aparencia": "Appearance",
-      "administracao": "Administration"
+      "administracao": "Administration",
+      "convites": "Invites"
     },
     "security": {
       "desativada": "Disabled",
@@ -524,7 +525,8 @@
     "unauthorized": "You need to sign in to continue.",
     "internal_error": "Something went wrong on our side. Try again.",
     "network_error": "Couldn't connect to the server. Check your connection.",
-    "fallback": "Something went wrong. Try again."
+    "fallback": "Something went wrong. Try again.",
+    "invite_limit_reached": "You already have many pending invites. Revoke one or wait for someone to join."
   },
   "dashboard": {
     "alertsBar": {
@@ -1926,7 +1928,9 @@
       "conviteRenovadoPara": "New link for <strong>{{email}}</strong>. Send this link: it only appears now.",
       "removerAcesso": "Remove access",
       "removerAcessoDe": "access for {{email}}",
-      "oUsuarioPerdera": "The user will lose access and all account data will be permanently deleted."
+      "oUsuarioPerdera": "The user will lose access and all account data will be permanently deleted.",
+      "convites": "Invites",
+      "convidePessoas": "Invite people to use the app. Only people with an invite can create an account, and each invite works for one e-mail. You see the invites you created."
     },
     "passwordSection": {
       "aoTrocarVoceContinua": "When you change it, you stay signed in here and other sessions need to sign in again.",

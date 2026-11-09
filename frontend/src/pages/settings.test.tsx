@@ -91,18 +91,37 @@ it("a aba Webhooks fica disponivel para qualquer usuario", async () => {
   expect(screen.getByText("Nenhum webhook ainda")).toBeInTheDocument();
 });
 
-it("so o administrador ve a aba Administracao, e quem nao e nem pede a lista de convites", async () => {
+it("so o administrador ve a aba Administracao; a lista de convites so e pedida quando a aba Convites abre", async () => {
   const { invitesApi } = renderPage({ as: member });
   await screen.findByRole("heading", { name: "Perfil" });
   expect(screen.queryByRole("tab", { name: "Administração" })).not.toBeInTheDocument();
   expect(invitesApi.state.requests).toEqual([]);
 });
 
-it("o administrador ve a aba Administracao, com convites e contato de seguranca", async () => {
+it("a aba Convites e de qualquer pessoa: titulo e texto proprios, e sem Remover acesso", async () => {
+  renderPage({ as: member });
+  await openTab("Convites");
+  expect(await screen.findByRole("heading", { name: "Convites" })).toBeInTheDocument();
+  expect(screen.getByText(/Você vê os convites que criou/)).toBeInTheDocument();
+  expect(screen.queryByText("Usuários e convites")).not.toBeInTheDocument();
+});
+
+it("quem nao e administrador cria um convite e ve o link", async () => {
+  renderPage({ as: member });
+  await openTab("Convites");
+  await user.type(await screen.findByLabelText("E-mail da pessoa"), "amigo@example.com");
+  await user.click(screen.getByRole("button", { name: "Criar convite" }));
+  expect(await screen.findByText(/Convite criado para/)).toBeInTheDocument();
+  expect(screen.getByText(/\/register\?invite=/)).toBeInTheDocument();
+});
+
+it("o administrador ve a aba Convites com Usuarios e convites, e a aba Administracao so com o contato de seguranca", async () => {
   renderPage({ as: admin });
-  await openTab("Administração");
+  await openTab("Convites");
   expect(await screen.findByText("Usuários e convites")).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Contato de segurança" })).toBeInTheDocument();
+  await openTab("Administração");
+  expect(await screen.findByRole("heading", { name: "Contato de segurança" })).toBeInTheDocument();
+  expect(screen.queryByText("Usuários e convites")).not.toBeInTheDocument();
 });
 
 it("a aba Seguranca mostra a verificacao em duas etapas", async () => {
@@ -319,7 +338,7 @@ it("lista os convites com a situacao de cada um e so deixa revogar os pendentes"
       makeInvite({ email: "vencido@example.com", expires_at: "2026-03-05T10:00:00Z" }),
     ],
   });
-  await openTab("Administração");
+  await openTab("Convites");
   const list = await screen.findByText("pendente@example.com");
   const rowOf = (email: string) => screen.getByText(email).closest("li") as HTMLElement;
   expect(list).toBeInTheDocument();
@@ -333,13 +352,13 @@ it("lista os convites com a situacao de cada um e so deixa revogar os pendentes"
 
 it("sem convites, diz isso", async () => {
   renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   expect(await screen.findByText("Nenhum convite criado ainda.")).toBeInTheDocument();
 });
 
 it("e-mail invalido nao cria convite", async () => {
   const { invitesApi } = renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "isso-nao-e-email");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -350,7 +369,7 @@ it("e-mail invalido nao cria convite", async () => {
 
 it("criar um convite mostra o link com o codigo uma vez, e o convite entra na lista", async () => {
   const { invitesApi } = renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "  nova@example.com ");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -366,7 +385,7 @@ it("copiar o link usa a area de transferencia e avisa", async () => {
   const writeText = vi.fn(async () => undefined);
   Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
   const { invitesApi } = renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "nova@example.com");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -385,7 +404,7 @@ it("sem permissao para copiar, o link continua na tela", async () => {
     configurable: true,
   });
   renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   await user.type(field("E-mail da pessoa"), "nova@example.com");
   await user.click(screen.getByRole("button", { name: "Criar convite" }));
@@ -396,7 +415,7 @@ it("sem permissao para copiar, o link continua na tela", async () => {
 
 it("e-mail que ja tem conta mostra o erro do servidor e nao mostra link", async () => {
   const { invitesApi } = renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   invitesApi.state.nextError = { status: 400, code: "email_already_registered" };
   await user.type(field("E-mail da pessoa"), "ja@example.com");
@@ -409,7 +428,7 @@ it("revogar pede confirmacao, apaga so o escolhido e tira da lista", async () =>
   const keep = makeInvite({ email: "fica@example.com", expires_at: "2026-03-13T12:00:00Z" });
   const gone = makeInvite({ email: "sai@example.com", expires_at: "2026-03-13T12:00:00Z" });
   const { invitesApi } = renderPage({ invites: [keep, gone] });
-  await openTab("Administração");
+  await openTab("Convites");
   await user.click(await screen.findByRole("button", { name: "Revogar o convite de sai@example.com" }));
   const dialog = screen.getByRole("dialog");
   expect(dialog).toHaveTextContent("sai@example.com");
@@ -425,7 +444,7 @@ it("revogar pede confirmacao, apaga so o escolhido e tira da lista", async () =>
 
 it("erro ao carregar os convites tem botao de tentar de novo", async () => {
   const { invitesApi } = renderPage();
-  await openTab("Administração");
+  await openTab("Convites");
   await screen.findByText("Nenhum convite criado ainda.");
   invitesApi.state.listError = true;
   // Recarrega a lista criando um convite que falha na listagem seguinte

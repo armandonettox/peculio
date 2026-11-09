@@ -277,7 +277,8 @@
       "secaoDeConfiguracoes": "Seção de configurações",
       "perfil": "Perfil",
       "aparencia": "Aparência",
-      "administracao": "Administração"
+      "administracao": "Administração",
+      "convites": "Convites"
     },
     "security": {
       "desativada": "Desativada",
@@ -524,7 +525,8 @@
     "unauthorized": "Você precisa entrar para continuar.",
     "internal_error": "Algo deu errado do nosso lado. Tente novamente.",
     "network_error": "Não foi possível conectar ao servidor. Verifique sua conexão.",
-    "fallback": "Algo deu errado. Tente novamente."
+    "fallback": "Algo deu errado. Tente novamente.",
+    "invite_limit_reached": "Você já tem muitos convites pendentes. Revogue algum ou espere uma pessoa entrar."
   },
   "dashboard": {
     "alertsBar": {
@@ -1926,7 +1928,9 @@
       "conviteRenovadoPara": "Novo link para <strong>{{email}}</strong>. Envie este link: ele só aparece agora.",
       "removerAcesso": "Remover acesso",
       "removerAcessoDe": "acesso de {{email}}",
-      "oUsuarioPerdera": "O usuário perderá o acesso e todos os dados da conta serão excluídos permanentemente."
+      "oUsuarioPerdera": "O usuário perderá o acesso e todos os dados da conta serão excluídos permanentemente.",
+      "convites": "Convites",
+      "convidePessoas": "Convide pessoas para usar o Pecúlio. Só quem recebe um convite consegue criar conta, e cada convite vale para um e-mail. Você vê os convites que criou."
     },
     "passwordSection": {
       "aoTrocarVoceContinua": "Ao trocar, você continua conectado aqui e as outras sessões precisam entrar de novo.",

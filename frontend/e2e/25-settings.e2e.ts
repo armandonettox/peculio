@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, field, loginAndWaitForDashboard, openSettings } from "./helpers";
+import { ADMIN, apiHeaders, field, GUEST, loginAndWaitForDashboard, openSettings } from "./helpers";
 
 // A pagina Configuracoes, em abas: Perfil (com senha), Aparencia, Seguranca e, so para admin,
 // Administracao (convites e contato de seguranca). Em ordem: cada passo parte do anterior. O
@@ -12,12 +12,14 @@ const NEW_PASSWORD = "NovaSenha789";
 test("a pagina tem as abas e o menu do usuario leva a ela", async ({ page }) => {
   await loginAndWaitForDashboard(page);
   await openSettings(page);
-  for (const title of ["Perfil", "Aparência", "Segurança", "Webhooks e APIs", "Administração"]) {
+  for (const title of ["Perfil", "Aparência", "Painel", "Segurança", "Webhooks e APIs", "Convites", "Administração"]) {
     await expect(page.getByRole("tab", { name: title, exact: true })).toBeVisible();
   }
   await expect(page.getByRole("heading", { name: "Perfil" }).first()).toBeVisible();
-  await page.getByRole("tab", { name: "Administração", exact: true }).click();
+  await page.getByRole("tab", { name: "Convites", exact: true }).click();
   await expect(page.getByText("Usuários e convites", { exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Administração", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Contato de segurança" })).toBeVisible();
 });
 
 test("trocar o nome e a moeda padrao salva e o nome muda no menu do usuario", async ({ page }) => {
@@ -100,7 +102,7 @@ test("trocar a senha mantem esta aba conectada e encerra as outras sessoes", asy
 
 test("o administrador cria um convite, ve o link uma vez e revoga", async ({ page }) => {
   await loginAndWaitForDashboard(page, { ...ADMIN, password: NEW_PASSWORD });
-  await openSettings(page, "Administração");
+  await openSettings(page, "Convites");
 
   await field(page, "E-mail da pessoa").fill("convidada@example.com");
   await page.getByRole("button", { name: "Criar convite" }).click();
@@ -111,6 +113,26 @@ test("o administrador cria um convite, ve o link uma vez e revoga", async ({ pag
   await page.getByRole("button", { name: "Revogar o convite de convidada@example.com" }).click();
   await page.getByRole("button", { name: "Excluir", exact: true }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "convidada@example.com" })).toHaveCount(0);
+});
+
+test("quem nao e administrador tambem convida, ve so os convites dele e nao tem a aba Administracao", async ({ page }) => {
+  await loginAndWaitForDashboard(page, GUEST);
+  await expect(page.getByRole("tab", { name: "Administração" })).toHaveCount(0);
+  await openSettings(page, "Convites");
+
+  await expect(page.getByRole("heading", { level: 2, name: "Convites" })).toBeVisible();
+  await field(page, "E-mail da pessoa").fill("amiga-do-bruno@example.com");
+  await page.getByRole("button", { name: "Criar convite" }).click();
+  await expect(page.getByText(/Convite criado para/)).toBeVisible();
+  await expect(page.locator("code")).toContainText("/register?invite=");
+  // Convites criados por outra pessoa (o administrador) nao aparecem aqui
+  await expect(page.getByRole("listitem").filter({ hasText: "amiga-do-bruno@example.com" })).toHaveCount(1);
+  await expect(page.getByRole("listitem").filter({ hasText: "convidada@example.com" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Remover acesso/ })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Revogar o convite de amiga-do-bruno@example.com" }).click();
+  await page.getByRole("button", { name: "Excluir", exact: true }).click();
+  await expect(page.getByRole("listitem").filter({ hasText: "amiga-do-bruno@example.com" })).toHaveCount(0);
 });
 
 test("devolve a senha original para os outros arquivos de teste", async ({ page, request }) => {

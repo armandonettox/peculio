@@ -57,7 +57,8 @@ def test_non_admin_gets_403(client, db_session):
     register(client)
     make_user(db_session, email="comum@example.com")
     headers = bearer(login_token(client, email="comum@example.com"))
-    resp = client.get("/api/v1/invites", headers=headers)
+    # Convites ja nao sao so do administrador; o contato de seguranca da instalacao continua sendo
+    resp = client.put("/api/v1/instance/security-contact", json={"contact": "seguranca@example.com"}, headers=headers)
     assert_error(resp, 403, "admin_required")
 
 
