@@ -982,3 +982,20 @@ it("celular: os blocos mostram o titulo acima do cartao, como nas secoes do Mobi
   expect(card).not.toBeNull();
   expect(card.contains(heading)).toBe(false);
 });
+
+it("celular: o balanco mensal vira uma lista de nome e valor com a diferenca embaixo, sem tabela para rolar de lado", async () => {
+  narrowScreen();
+  const thisMonth = [makeTotals({ currency_code: "BRL", income: "5000.00", expense: "400.00", net: "4600.00" })];
+  const lastMonth = [makeTotals({ currency_code: "BRL", income: "4800.00", expense: "500.00", net: "4300.00" })];
+  renderPage({ summary: summaryByPeriod(thisMonth, lastMonth) });
+
+  const block = await screen.findByRole("region", { name: "Balanço mensal" });
+  const section = await within(block).findByRole("region", { name: /mês em BRL/ });
+  expect(within(section).queryByRole("table")).not.toBeInTheDocument();
+  const terms = within(section).getAllByRole("term").map((term) => term.textContent);
+  expect(terms).toEqual(["Receita", "Despesa", "Resultado"]);
+  // O valor e a diferenca de cada linha
+  expect(within(section).getByText("R$ 5.000,00")).toBeInTheDocument();
+  expect(within(section).getByText(/R\$ 200,00 a mais/)).toHaveClass("text-positive");
+  expect(within(section).getByText(/R\$ 100,00 a menos/)).toHaveClass("text-positive");
+});

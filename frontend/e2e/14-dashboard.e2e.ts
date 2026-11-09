@@ -176,9 +176,9 @@ test("no celular a pagina nao ganha rolagem horizontal e os blocos empilham", as
   const second = await block(page, "Balanço mensal").boundingBox();
   // Empilhados: o segundo comeca abaixo do primeiro, nao ao lado
   expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
-  // Na tabela do balanco mensal o valor fica numa linha so (nao quebra o sinal de menos nem o simbolo da moeda).
-  // Conta as linhas de texto da celula: a altura da celula e a da linha da tabela, que a coluna da diferenca estica.
-  const lines = await block(page, "Balanço mensal").locator("tbody tr td:first-of-type").evaluateAll((cells) =>
+  // No celular o balanco mensal e uma lista (sem tabela para rolar de lado): cada valor fica numa linha so (nao quebra
+  // o sinal de menos nem o simbolo da moeda). Conta as linhas de texto de cada valor.
+  const lines = await block(page, "Balanço mensal").locator("dl dd.font-semibold").evaluateAll((cells) =>
     cells.map((cell) => {
       const range = document.createRange();
       range.selectNodeContents(cell);
