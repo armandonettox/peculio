@@ -30,7 +30,9 @@ export function ChartTooltip({
   );
 }
 
-// Tabela equivalente, so para leitor de tela: tem os mesmos numeros do desenho, ja formatados
+// Tabela equivalente, so para leitor de tela: tem os mesmos numeros do desenho, ja formatados.
+// A tabela fica dentro de um recipiente sr-only (1 px, recortado): sozinha, com sr-only, o navegador ainda lhe dava a largura
+// das colunas e ela vazava da tela estreita, criando rolagem horizontal na pagina.
 export function ChartTable({
   caption,
   headers,
@@ -41,28 +43,30 @@ export function ChartTable({
   rows: { header: string; cells: string[] }[];
 }) {
   return (
-    <table className="sr-only table-fixed">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          {headers.map((header, index) => (
-            <th key={index} scope="col">
-              {header}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, rowIndex) => (
-          <tr key={rowIndex}>
-            <th scope="row">{row.header}</th>
-            {row.cells.map((cell, index) => (
-              <td key={index}>{cell}</td>
+    <div className="sr-only">
+      <table className="table-fixed">
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            {headers.map((header, index) => (
+              <th key={index} scope="col">
+                {header}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              <th scope="row">{row.header}</th>
+              {row.cells.map((cell, index) => (
+                <td key={index}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

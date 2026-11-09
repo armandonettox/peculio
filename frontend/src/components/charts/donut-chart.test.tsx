@@ -50,7 +50,7 @@ describe("DonutChart: conteudo", () => {
   it("a tabela equivalente tem legenda, cabecalhos, valores e percentuais", () => {
     renderDonut(base);
     const table = screen.getByRole("table", { name: "Gastos por categoria" });
-    expect(table).toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
     expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Categoria", "Valor", "Participação"]);
     const rows = within(table).getAllByRole("row");
     expect(rows).toHaveLength(4);

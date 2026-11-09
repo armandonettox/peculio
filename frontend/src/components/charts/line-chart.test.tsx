@@ -42,7 +42,7 @@ describe("LineChart: acessibilidade e tabela equivalente", () => {
   it("a tabela equivalente tem legenda, cabecalhos e todos os valores formatados", () => {
     renderChart([sample]);
     const table = screen.getByRole("table", { name: "Patrimônio" });
-    expect(table).toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
     expect(within(table).getByRole("columnheader", { name: "Período" })).toBeInTheDocument();
     expect(within(table).getByRole("columnheader", { name: "Total" })).toBeInTheDocument();
     const rows = within(table).getAllByRole("row");

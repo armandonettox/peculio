@@ -114,7 +114,7 @@ describe("Sparkline", () => {
   it("tem tabela equivalente com legenda, cabecalhos e todos os valores", () => {
     renderSpark(["10.50", "20.00", "-3.25"], { formatValue: formatMoneyTest });
     const table = screen.getByRole("table", { name: "Patrimônio nos últimos 12 meses" });
-    expect(table).toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
     expect(within(table).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Posição", "Valor"]);
     const rows = within(table).getAllByRole("row");
     expect(rows).toHaveLength(4);

@@ -48,7 +48,7 @@ describe("ChartTable", () => {
       />,
     );
     const table = screen.getByRole("table", { name: "Gastos" });
-    expect(table).toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
     expect(within(table).getAllByRole("columnheader")).toHaveLength(2);
     expect(within(table).getAllByRole("rowheader")).toHaveLength(2);
     expect(within(table).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["R$ 10,00", "R$ 20,00"]);
