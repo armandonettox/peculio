@@ -182,11 +182,13 @@ def update_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_session_user),
 ):
-    """Troca nome e moeda padrao. So vale o login da tela: token de API nao mexe na conta."""
+    """Troca nome, moeda padrao e se o passo a passo ja foi visto. So vale o login da tela: token de API nao mexe na conta."""
     if data.name is not None:
         current_user.name = data.name
     if data.default_currency is not None:
         current_user.default_currency = get_currency(db, data.default_currency.upper()).code
+    if data.onboarding_done is not None:
+        current_user.onboarding_done = data.onboarding_done
     db.commit()
     db.refresh(current_user)
     return current_user

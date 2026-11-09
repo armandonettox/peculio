@@ -11,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0044"
+    assert version == "0045"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -355,3 +355,22 @@ def test_migration_0044_adds_goal_fields_and_keeps_existing_piggy_banks(clean_sc
     with engine.connect() as conn:
         row = conn.execute(text("SELECT name, color, icon, description FROM piggy_banks")).one()
     assert tuple(row) == ("Viagem", None, None, None)
+
+
+def test_migration_0045_marks_the_tour_as_pending_for_existing_users(clean_schema):
+    """Quem ja tinha conta antes do passo a passo tambem o ve uma vez (comeca em falso) e nada mais muda."""
+    config = alembic_config()
+    command.upgrade(config, "0044")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('66666666-6666-4666-8666-666666666666', 'Ana', 'ana4@example.com', 'x')"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT name, onboarding_done FROM users")).one()
+    assert tuple(row) == ("Ana", False)

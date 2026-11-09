@@ -4220,6 +4220,17 @@
               }
             ],
             "title": "Name"
+          },
+          "onboarding_done": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarding Done"
           }
         },
         "title": "ProfileUpdate",
@@ -7153,6 +7164,10 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "onboarding_done": {
+            "title": "Onboarding Done",
+            "type": "boolean"
           }
         },
         "required": [
@@ -7160,7 +7175,8 @@
           "name",
           "email",
           "is_admin",
-          "default_currency"
+          "default_currency",
+          "onboarding_done"
         ],
         "title": "UserOut",
         "type": "object"
@@ -8475,7 +8491,7 @@
         ]
       },
       "patch": {
-        "description": "Troca nome e moeda padrao. So vale o login da tela: token de API nao mexe na conta.",
+        "description": "Troca nome, moeda padrao e se o passo a passo ja foi visto. So vale o login da tela: token de API nao mexe na conta.",
         "operationId": "update_me_api_v1_auth_me_patch",
         "requestBody": {
           "content": {

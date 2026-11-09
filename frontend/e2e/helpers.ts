@@ -84,6 +84,14 @@ export async function apiHeaders(request: APIRequestContext, user = ADMIN) {
   return { Authorization: `Bearer ${token}` };
 }
 
+// O passo a passo do primeiro uso abre sozinho na primeira entrada de cada conta e bloquearia a tela. Quem cria uma conta
+// pela API e depois entra pela tela marca como visto por aqui (so o spec 01 fecha o passo a passo pela tela, de proposito).
+export async function markTourDone(request: APIRequestContext, user: { email: string; password: string }) {
+  const headers = await apiHeaders(request, user as typeof ADMIN);
+  const response = await request.patch("/api/v1/auth/me", { headers, data: { onboarding_done: true } });
+  expect(response.status(), await response.text()).toBe(200);
+}
+
 // Outros specs (o 25) deixam a moeda padrao do usuario em USD; quem precisa de R$ na tela volta para BRL por aqui
 export async function setDefaultCurrency(request: APIRequestContext, headers: Record<string, string>, code: string) {
   const response = await request.patch("/api/v1/auth/me", { headers, data: { default_currency: code } });

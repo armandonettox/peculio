@@ -362,7 +362,8 @@
     "userMenu": {
       "menuDoUsuario": "Menu do usuário",
       "instalarApp": "Instalar app",
-      "sair": "Sair"
+      "sair": "Sair",
+      "passoAPasso": "Passo a passo"
     },
     "themeToggle": {
       "switchToLight": "Mudar para o tema claro",
@@ -2220,6 +2221,48 @@
       "doneEdited": "Você atualizou seu planejamento mensal!",
       "doneText": "Acompanhe, em {{month}}, quanto já gastou de cada categoria.",
       "viewPlan": "Ver planejamento"
+    }
+  },
+  "tour": {
+    "skip": "Pular",
+    "back": "Voltar",
+    "next": "Próximo",
+    "finish": "Concluir",
+    "progress": "Passo {{current}} de {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Bem-vindo ao Pecúlio",
+        "text": "Em poucos passos você conhece o essencial para organizar suas finanças. Pode fechar quando quiser e rever depois pelo menu do seu perfil."
+      },
+      "accounts": {
+        "title": "Cadastre suas contas e cartões",
+        "text": "Comece pelas contas onde você guarda dinheiro e pelos cartões de crédito. O saldo e as faturas passam a aparecer no painel.",
+        "go": "Ir para Contas"
+      },
+      "entries": {
+        "title": "Registre receitas e despesas",
+        "text": "Use o botão + (Novo lançamento) para lançar uma despesa, uma receita, uma compra no cartão ou uma transferência. Dá para marcar como paga ou pendente."
+      },
+      "planning": {
+        "title": "Planeje seus gastos",
+        "text": "Defina quanto quer gastar por categoria no mês e acompanhe o quanto já usou.",
+        "go": "Ir para Planejamento"
+      },
+      "goals": {
+        "title": "Crie objetivos",
+        "text": "Guarde dinheiro para o que importa: um fundo de emergência, uma viagem, um carro. Acompanhe o quanto falta para chegar lá.",
+        "go": "Ir para Objetivos"
+      },
+      "home": {
+        "title": "Deixe o painel do seu jeito",
+        "text": "Escolha o mês no topo e decida quais blocos aparecem na tela inicial e em que ordem.",
+        "go": "Personalizar o painel"
+      },
+      "invites": {
+        "title": "Convide pessoas",
+        "text": "Quem recebe um convite consegue criar uma conta. Convide quem quiser usar o Pecúlio com você.",
+        "go": "Ir para Convites"
+      }
     }
   }
 }

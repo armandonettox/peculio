@@ -340,7 +340,7 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Troca nome e moeda padrao. So vale o login da tela: token de API nao mexe na conta.
+         * @description Troca nome, moeda padrao e se o passo a passo ja foi visto. So vale o login da tela: token de API nao mexe na conta.
          */
         patch: operations["update_me_api_v1_auth_me_patch"];
         trace?: never;
@@ -3165,6 +3165,8 @@ export interface components {
             default_currency?: string | null;
             /** Name */
             name?: string | null;
+            /** Onboarding Done */
+            onboarding_done?: boolean | null;
         };
         /** ReconRowOut */
         ReconRowOut: {
@@ -4211,6 +4213,8 @@ export interface components {
             is_admin: boolean;
             /** Name */
             name: string;
+            /** Onboarding Done */
+            onboarding_done: boolean;
         };
         /** ValidationError */
         ValidationError: {

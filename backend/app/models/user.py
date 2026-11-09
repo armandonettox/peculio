@@ -19,6 +19,8 @@ class User(Base):
     default_currency: Mapped[str] = mapped_column(ForeignKey("currencies.code"), default="BRL", server_default="BRL")
     failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Passo a passo do primeiro uso: vira verdadeiro quando a pessoa conclui ou fecha. Fica no servidor para valer em qualquer aparelho.
+    onboarding_done: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     # 2FA (TOTP). O segredo fica cifrado; so vale depois que totp_enabled vira verdadeiro.
     totp_secret_encrypted: Mapped[str | None] = mapped_column(String(255))
     totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())

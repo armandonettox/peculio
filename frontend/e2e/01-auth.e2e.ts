@@ -17,8 +17,34 @@ test("primeiro acesso leva ao cadastro do administrador e entra no painel", asyn
   await page.getByRole("button", { name: "Criar conta" }).click();
 
   await expect(page).toHaveURL("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
   await expect(page.getByText("Olá, Ana.")).toBeVisible();
+
+  // O passo a passo abre sozinho na primeira entrada de uma conta e, sendo um modal, esconde o resto da pagina ate fechar.
+  // Fechar vale para sempre (o servidor guarda).
+  const tour = page.getByRole("dialog", { name: "Bem-vindo ao Pecúlio" });
+  await expect(tour).toBeVisible();
+  await expect(tour.getByText("Passo 1 de 7")).toBeVisible();
+  await tour.getByRole("button", { name: "Pular" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Painel" })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("o passo a passo anda pelos passos, leva as telas e o menu do usuario reabre", async ({ page }) => {
+  await loginAndWaitForDashboard(page);
+  await page.getByRole("button", { name: "Menu do usuário" }).click();
+  await page.getByRole("menuitem", { name: "Passo a passo" }).click();
+  const tour = page.getByRole("dialog", { name: "Bem-vindo ao Pecúlio" });
+  await expect(tour).toBeVisible();
+
+  await tour.getByRole("button", { name: "Próximo" }).click();
+  await expect(page.getByRole("dialog", { name: "Cadastre suas contas e cartões" })).toBeVisible();
+  await page.getByRole("dialog").getByRole("link", { name: "Ir para Contas" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page).toHaveURL(/\/contas$/);
 });
 
 test("depois do primeiro usuario, o login e a porta de entrada", async ({ page }) => {
@@ -112,6 +138,8 @@ test("convite: o admin convida, o link preenche o codigo e o convidado entra sem
   await page.getByRole("button", { name: "Criar conta" }).click();
 
   await expect(page.getByText("Olá, Bruno.")).toBeVisible();
+  // Conta nova ve o passo a passo: fecha, senao ele fica no caminho dos outros specs que entram com o Bruno
+  await page.getByRole("dialog").getByRole("button", { name: "Pular" }).click();
 
   const guestLogin = await request.post("/api/v1/auth/login", {
     data: { email: GUEST.email, password: GUEST.password },

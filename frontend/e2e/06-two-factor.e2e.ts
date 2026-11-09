@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, apiHeaders, field, openSettings, totp } from "./helpers";
+import { ADMIN, apiHeaders, field, markTourDone, openSettings, totp } from "./helpers";
 
 // Roda depois do 01 (que cria o administrador). Usa um usuario so deste arquivo para nao
 // interferir nos outros: o 2FA muda o login dele. Em ordem: cada passo parte do estado do anterior.
@@ -45,6 +45,7 @@ test("prepara o usuario pela API (convite do administrador)", async ({ request }
     data: { name: USER.name, email: USER.email, password: USER.password, invite_token: token },
   });
   expect(created.status()).toBe(201);
+  await markTourDone(request, USER);
 });
 
 test("ativa o 2FA pela tela de seguranca e guarda os codigos de recuperacao", async ({ page }) => {

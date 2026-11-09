@@ -12,6 +12,8 @@ export const testUser: User = {
   name: "Ana Teste",
   email: "ana@example.com",
   is_admin: true, default_currency: "BRL",
+  // Nos testes o passo a passo ja foi visto: so os testes dele o colocam em falso
+  onboarding_done: true,
 };
 
 export function newTestQueryClient() {

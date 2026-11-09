@@ -45,6 +45,7 @@ class UserOut(BaseModel):
     email: EmailStr
     is_admin: bool
     default_currency: str
+    onboarding_done: bool
 
 
 class ProfileUpdate(BaseModel):
@@ -53,6 +54,8 @@ class ProfileUpdate(BaseModel):
 
     name: str | None = Field(default=None, max_length=200)
     default_currency: str | None = Field(default=None, min_length=3, max_length=3)
+    # true: fechou ou concluiu o passo a passo; false: quer ver de novo
+    onboarding_done: bool | None = None
 
     @field_validator("name")
     @classmethod

@@ -241,3 +241,35 @@ def test_token_with_wrong_password_fingerprint_is_refused(client, db_session):
     resp = client.get("/api/v1/auth/me", headers=bearer(forged))
     assert resp.status_code == 401
     assert resp.json()["code"] == "session_invalid"
+
+
+# ---------- Passo a passo do primeiro uso ----------
+
+
+def test_onboarding_starts_pending_for_everyone(client):
+    token = setup(client)
+    assert client.get("/api/v1/auth/me", headers=bearer(token)).json()["onboarding_done"] is False
+
+
+def test_closing_the_tour_is_saved_and_can_be_undone(client):
+    token = setup(client)
+    closed = patch_me(client, token, onboarding_done=True)
+    assert closed.status_code == 200
+    assert closed.json()["onboarding_done"] is True
+    # Vale na proxima leitura (e, no servidor, em qualquer aparelho)
+    assert client.get("/api/v1/auth/me", headers=bearer(token)).json()["onboarding_done"] is True
+
+    reopened = patch_me(client, token, onboarding_done=False)
+    assert reopened.json()["onboarding_done"] is False
+
+
+def test_omitting_onboarding_does_not_change_it(client):
+    token = setup(client)
+    patch_me(client, token, onboarding_done=True)
+    changed = patch_me(client, token, name="Outro nome").json()
+    assert changed["name"] == "Outro nome" and changed["onboarding_done"] is True
+
+
+def test_onboarding_must_be_a_boolean(client):
+    token = setup(client)
+    assert patch_me(client, token, onboarding_done="talvez").status_code == 422

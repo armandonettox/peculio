@@ -1,4 +1,4 @@
-import { Download, LogOut, Settings } from "lucide-react";
+import { Download, HelpCircle, LogOut, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/auth/auth-context";
+import { OPEN_TOUR_EVENT } from "@/components/onboarding-tour";
 import { useInstallPrompt } from "@/pwa/install";
 import { useTranslation } from "react-i18next";
 
@@ -49,6 +50,10 @@ export function UserMenu() {
             <Settings />
             {t("pages.settings.configuracoes")}
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => window.dispatchEvent(new Event(OPEN_TOUR_EVENT))}>
+          <HelpCircle />
+          {t("components.userMenu.passoAPasso")}
         </DropdownMenuItem>
         {canInstall && (
           <DropdownMenuItem onSelect={() => void install()}>

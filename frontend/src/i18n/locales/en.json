@@ -362,7 +362,8 @@
     "userMenu": {
       "menuDoUsuario": "User menu",
       "instalarApp": "Install app",
-      "sair": "Sign out"
+      "sair": "Sign out",
+      "passoAPasso": "Walkthrough"
     },
     "themeToggle": {
       "switchToLight": "Switch to light theme",
@@ -2220,6 +2221,48 @@
       "doneEdited": "You updated your monthly plan!",
       "doneText": "Follow, in {{month}}, how much you already spent in each category.",
       "viewPlan": "View plan"
+    }
+  },
+  "tour": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "progress": "Step {{current}} of {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Welcome",
+        "text": "In a few steps you learn the essentials to organize your finances. You can close this whenever you want and see it again from your profile menu."
+      },
+      "accounts": {
+        "title": "Add your accounts and cards",
+        "text": "Start with the accounts where you keep money and your credit cards. Balances and invoices then show up on the home screen.",
+        "go": "Go to Accounts"
+      },
+      "entries": {
+        "title": "Record income and expenses",
+        "text": "Use the + button (New entry) to add an expense, an income, a card purchase or a transfer. You can mark it as paid or pending."
+      },
+      "planning": {
+        "title": "Plan your spending",
+        "text": "Set how much you want to spend per category in the month and follow how much you have already used.",
+        "go": "Go to Planning"
+      },
+      "goals": {
+        "title": "Create goals",
+        "text": "Save money for what matters: an emergency fund, a trip, a car. Follow how much is left to get there.",
+        "go": "Go to Goals"
+      },
+      "home": {
+        "title": "Make the home screen yours",
+        "text": "Pick the month at the top and choose which blocks show on the home screen and in what order.",
+        "go": "Customize the home screen"
+      },
+      "invites": {
+        "title": "Invite people",
+        "text": "Anyone with an invite can create an account. Invite whoever you want to use the app with you.",
+        "go": "Go to Invites"
+      }
     }
   }
 }
