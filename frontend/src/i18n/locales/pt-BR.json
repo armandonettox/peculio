@@ -344,9 +344,6 @@
     "appShell": {
       "pularParaOConteudo": "Pular para o conteúdo",
       "irParaOPainel": "Ir para o painel inicial",
-      "abrirMenu": "Abrir menu",
-      "menu": "Menu",
-      "navegacaoPrincipalDoAplicativo": "Navegação principal do aplicativo",
       "mostrarMenuLateral": "Mostrar menu lateral",
       "ocultarMenuLateral": "Ocultar menu lateral",
       "showSidebarTitle": "Mostrar menu lateral (Ctrl+B)",
@@ -400,6 +397,13 @@
     "chipSelect": {
       "search": "Buscar",
       "empty": "Nada encontrado"
+    },
+    "bottomNav": {
+      "navegacao": "Navegação inferior",
+      "principal": "Principal",
+      "planejamento": "Planejamento",
+      "mais": "Mais",
+      "maisDescricao": "Outras telas do aplicativo"
     }
   },
   "nav": {
@@ -412,7 +416,8 @@
     "budgets": "Orçamentos",
     "piggyBanks": "Cofrinhos",
     "rules": "Regras",
-    "reports": "Relatórios"
+    "reports": "Relatórios",
+    "settings": "Configurações"
   },
   "validation": {
     "emailRequired": "Informe o e-mail.",
@@ -710,6 +715,20 @@
       "savings": "Economia do mês",
       "profile": "Informações de perfil",
       "netWorth": "Patrimônio"
+    },
+    "mobile": {
+      "summary": "Resumo do mês",
+      "currentBalance": "Saldo atual",
+      "showValues": "Mostrar valores",
+      "hideValues": "Esconder valores",
+      "pendingAndAlerts": "Pendências e alertas",
+      "pendingExpenses": "Despesas pendentes",
+      "pendingIncomes": "Receitas pendentes",
+      "allClear": "Nada pendente por aqui.",
+      "addAccount": "Adicionar conta",
+      "addExpenseTo": "Ver lançamentos de {{name}}",
+      "accounts": "Contas",
+      "total": "Total"
     }
   },
   "money": {

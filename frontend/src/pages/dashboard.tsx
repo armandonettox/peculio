@@ -9,10 +9,12 @@ import { InstallBanner } from "@/components/install-banner";
 import { EmptyState } from "@/components/layout/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { MonthPicker } from "@/components/month-picker";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertsBar } from "@/features/dashboard/alerts-bar";
 import { readLayout, type DashboardCardId } from "@/features/dashboard/cards";
+import { MobileHome } from "@/features/dashboard/mobile-home";
 import { FirstStepsBlock } from "@/features/dashboard/first-steps-block";
 import { AccountsBlock, CreditCardsBlock, FavoritesBlock, PendingBlock, ProfileBlock } from "@/features/dashboard/list-blocks";
 import { CalendarBlock, FrequencyBlock, PeriodBalanceBlock, SavingsBlock } from "@/features/dashboard/month-blocks";
@@ -84,24 +86,35 @@ export default function DashboardPage() {
   const range = monthRange(month);
   const currentMonth = monthRange(today).month;
   const [layout] = useState(readLayout);
+  // Abaixo de 1024 px e a tela inicial do celular (topo com saldo, sem sidebar); acima, o painel de sempre
+  const desktop = useMediaQuery("(min-width: 1024px)");
 
   // Enquanto nao houver nenhuma conta, o painel nao tem o que mostrar: nem dispara os
   // pedidos dos outros blocos (todos dependem, direto ou indireto, de uma conta existir)
   const accounts = useAccounts({ includeArchived: true });
   const hasAccounts = (accounts.data?.length ?? 0) > 0;
 
+  // No celular, com contas cadastradas, o topo e o do Mobills (avatar, mes, saldo); sem contas fica o cabecalho de sempre
+  const mobileHome = !desktop && hasAccounts;
+
   return (
     <>
-      {/* O seletor de mes fica no meio da pagina, no alto, como no Mobills */}
-      {hasAccounts && (
-        <div className="mb-4 flex justify-center">
-          <MonthPicker value={month} currentMonth={currentMonth} onChange={setMonth} />
-        </div>
+      {mobileHome ? (
+        <MobileHome range={range} currentMonth={currentMonth} onMonthChange={setMonth} />
+      ) : (
+        <>
+          {/* O seletor de mes fica no meio da pagina, no alto, como no Mobills */}
+          {hasAccounts && (
+            <div className="mb-4 flex justify-center">
+              <MonthPicker value={month} currentMonth={currentMonth} onChange={setMonth} />
+            </div>
+          )}
+          <PageHeader
+            title={t("pages.dashboard.painel")}
+            description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
+          />
+        </>
       )}
-      <PageHeader
-        title={t("pages.dashboard.painel")}
-        description={firstName ? t("pages.dashboard.greeting", { name: firstName }) : t("pages.dashboard.resumoDasSuasFinancas")}
-      />
 
       <InstallBanner />
 
@@ -129,25 +142,30 @@ export default function DashboardPage() {
         />
       ) : (
         <>
-          <AlertsBar />
-          <div className="mb-6">
-            <SummaryCards range={range} />
-          </div>
+          {/* No celular os alertas e os totais ja estao no topo (MobileHome) */}
+          {!mobileHome && (
+            <>
+              <AlertsBar />
+              <div className="mb-6">
+                <SummaryCards range={range} />
+              </div>
+            </>
+          )}
           {/*
             Duas colunas independentes, cada uma empilhando os blocos que a pessoa deixou ligados em
             "Gerenciar tela inicial". Os dois lados sobem juntos quando a tela e estreita.
           */}
-          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" data-testid="dashboard-columns">
+          <div className={`grid grid-cols-1 items-start gap-4 lg:grid-cols-2 ${mobileHome ? "mt-6" : ""}`} data-testid="dashboard-columns">
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-left">
               <FirstStepsBlock />
-              {layout.left.filter((id) => layout.enabled.includes(id)).map((id) => (
+              {layout.left.filter((id) => layout.enabled.includes(id) && !(mobileHome && id === "accounts")).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>
               ))}
             </div>
             <div className="flex min-w-0 flex-col gap-4" data-testid="dashboard-right">
-              {layout.right.filter((id) => layout.enabled.includes(id)).map((id) => (
+              {layout.right.filter((id) => layout.enabled.includes(id) && !(mobileHome && id === "accounts")).map((id) => (
                 <div key={id} className="min-w-0">
                   {renderCard(id, range, today)}
                 </div>

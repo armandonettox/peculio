@@ -17,6 +17,22 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => undefined;
 }
 
+// O jsdom nao tem matchMedia. Por padrao os testes rodam numa tela larga (desktop: painel em duas colunas, menu lateral);
+// quem testa o celular redefine window.matchMedia dentro do proprio teste.
+function wideScreen() {
+  window.matchMedia = ((query: string) => ({
+    matches: /min-width/.test(query),
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+wideScreen();
+
 // findBy e waitFor desistem em 1 s por padrao. Com a suite inteira disputando CPU, as respostas
 // simuladas passam disso de vez em quando e o teste falha sem ter nada errado. So atrasa quem ja falharia.
 configure({ asyncUtilTimeout: 5000 });
@@ -38,4 +54,6 @@ afterEach(async () => {
   resetAppClock();
   document.documentElement.classList.remove("dark");
   localStorage.clear();
+  // Um teste de celular nao pode deixar a tela estreita para o proximo
+  wideScreen();
 });

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { apiHeaders, apiPost, ADMIN, field, loginAndWaitForDashboard } from "./helpers";
+import { apiHeaders, apiPost, ADMIN, bottomNav, field, loginAndWaitForDashboard } from "./helpers";
 
 // Roda depois do 01-auth (que cria o administrador). Os testes seguem em ordem: o primeiro
 // cria os dados pela API e os demais so olham a tela.
@@ -259,8 +259,7 @@ test("o saldo das contas na tela de Contas bate com os lancamentos", async ({ pa
 test("no celular o painel de filtros abre e cabe na tela", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await loginAndWaitForDashboard(page);
-  await page.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Transações" }).click();
+  await bottomNav(page).getByRole("link", { name: "Transações" }).click();
   await expect(main(page).getByText("32 lançamentos")).toBeVisible();
 
   const toggle = page.getByRole("button", { name: "Filtros" }).first();

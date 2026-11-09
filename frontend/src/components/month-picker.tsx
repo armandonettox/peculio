@@ -14,6 +14,8 @@ type Props = {
   // Primeiro dia do mes de hoje: o botao "Mes atual" volta para ele
   currentMonth: string;
   onChange: (month: string) => void;
+  // "plain": so o texto do mes e a seta, sem borda (o topo da tela inicial do celular)
+  variant?: "pill" | "plain";
 };
 
 function shortMonthName(year: number, index: number): string {
@@ -25,7 +27,7 @@ function shortMonthName(year: number, index: number): string {
  * Seletor de mes do painel: um botao com o mes escolhido que abre uma grade de 12 meses, com setas para
  * trocar o ano, "Cancelar" e "Mes atual". Esc e clique fora fecham sem mudar nada.
  */
-export function MonthPicker({ value, currentMonth, onChange }: Props) {
+export function MonthPicker({ value, currentMonth, onChange, variant = "pill" }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [year, setYear] = useState(() => yearOf(value));
@@ -77,9 +79,12 @@ export function MonthPicker({ value, currentMonth, onChange }: Props) {
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
         aria-label={t("dashboard.monthPicker.chooseMonth", { month: formatMonthYear(value) })}
-        className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm font-medium hover:bg-muted"
+        className={cn(
+          "inline-flex items-center gap-2 font-medium",
+          variant === "pill" ? "rounded-full border bg-card px-4 py-1.5 text-sm hover:bg-muted" : "rounded-md px-2 py-1 text-lg hover:bg-muted",
+        )}
       >
-        <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+        {variant === "pill" && <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />}
         {formatMonthYear(value)}
         <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
       </button>

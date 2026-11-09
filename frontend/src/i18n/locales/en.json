@@ -344,9 +344,6 @@
     "appShell": {
       "pularParaOConteudo": "Skip to content",
       "irParaOPainel": "Go to the dashboard",
-      "abrirMenu": "Open menu",
-      "menu": "Menu",
-      "navegacaoPrincipalDoAplicativo": "Main application navigation",
       "mostrarMenuLateral": "Show sidebar",
       "ocultarMenuLateral": "Hide sidebar",
       "showSidebarTitle": "Show sidebar (Ctrl+B)",
@@ -400,6 +397,13 @@
     "chipSelect": {
       "search": "Search",
       "empty": "Nothing found"
+    },
+    "bottomNav": {
+      "navegacao": "Bottom navigation",
+      "principal": "Home",
+      "planejamento": "Planning",
+      "mais": "More",
+      "maisDescricao": "Other screens of the app"
     }
   },
   "nav": {
@@ -412,7 +416,8 @@
     "budgets": "Budgets",
     "piggyBanks": "Piggy banks",
     "rules": "Rules",
-    "reports": "Reports"
+    "reports": "Reports",
+    "settings": "Settings"
   },
   "validation": {
     "emailRequired": "Enter your email.",
@@ -710,6 +715,20 @@
       "savings": "Savings this month",
       "profile": "Profile information",
       "netWorth": "Net worth"
+    },
+    "mobile": {
+      "summary": "Month summary",
+      "currentBalance": "Current balance",
+      "showValues": "Show values",
+      "hideValues": "Hide values",
+      "pendingAndAlerts": "Pending and alerts",
+      "pendingExpenses": "Pending expenses",
+      "pendingIncomes": "Pending income",
+      "allClear": "Nothing pending here.",
+      "addAccount": "Add account",
+      "addExpenseTo": "See entries of {{name}}",
+      "accounts": "Accounts",
+      "total": "Total"
     }
   },
   "money": {

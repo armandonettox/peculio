@@ -20,8 +20,6 @@ beforeEach(() => {
   setScreen(true);
 });
 afterEach(() => {
-  // @ts-expect-error o jsdom nao tem matchMedia
-  delete window.matchMedia;
   // @ts-expect-error o jsdom nao tem elementFromPoint: o teste o define e aqui some de novo
   delete document.elementFromPoint;
 });

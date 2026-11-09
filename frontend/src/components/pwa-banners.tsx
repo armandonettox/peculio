@@ -16,7 +16,7 @@ export function PwaBanners() {
   if (online && !updateReady) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 p-3">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 max-lg:bottom-20 flex flex-col items-center gap-2 p-3">
       {!online && (
         <p role="status" className="pointer-events-auto flex max-w-md items-start gap-2 rounded-lg border bg-card px-4 py-3 text-sm shadow-lg">
           <WifiOff className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />

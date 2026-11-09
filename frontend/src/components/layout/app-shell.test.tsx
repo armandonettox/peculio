@@ -24,8 +24,6 @@ function renderShell() {
   return Object.assign(router, { unmount: view.unmount });
 }
 
-const openButton = () => screen.getByRole("button", { name: "Abrir menu" });
-
 it("renderiza o conteudo dentro do main", () => {
   renderShell();
   const main = screen.getByRole("main");
@@ -47,52 +45,91 @@ it("tem o alternador de tema e o menu do usuario no topo", () => {
   expect(screen.getByRole("button", { name: "Menu do usuário" })).toBeInTheDocument();
 });
 
-it("a gaveta comeca fechada e abre pelo botao do menu", async () => {
+const bottomNav = () => screen.getByRole("navigation", { name: "Navegação inferior" });
+const moreButton = () => within(bottomNav()).getByRole("button", { name: "Mais" });
+
+it("no celular nao ha botao de menu nem gaveta: a navegacao e a barra inferior", () => {
   renderShell();
+  expect(screen.queryByRole("button", { name: "Abrir menu" })).not.toBeInTheDocument();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-
-  await userEvent.click(openButton());
-
-  const dialog = screen.getByRole("dialog", { name: "Menu" });
-  expect(within(dialog).getByRole("navigation", { name: "Navegação principal" })).toBeInTheDocument();
+  expect(bottomNav()).toHaveClass("lg:hidden", "fixed", "bottom-0");
 });
 
-it("a gaveta fecha com Esc e devolve o foco ao botao", async () => {
+it("a barra inferior tem Principal, Transacoes, o botao de novo lancamento no meio, Planejamento e Mais", () => {
   renderShell();
-  await userEvent.click(openButton());
-  expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-  await userEvent.keyboard("{Escape}");
-
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(openButton()).toHaveFocus();
+  const items = within(bottomNav()).getAllByRole("listitem");
+  expect(items).toHaveLength(5);
+  expect(within(items[0]).getByRole("link", { name: "Principal" })).toHaveAttribute("href", "/");
+  expect(within(items[1]).getByRole("link", { name: "Transações" })).toHaveAttribute("href", "/transacoes");
+  expect(within(items[2]).getByRole("button", { name: "Novo lançamento" })).toBeInTheDocument();
+  expect(within(items[3]).getByRole("link", { name: "Planejamento" })).toHaveAttribute("href", "/orcamentos");
+  expect(within(items[4]).getByRole("button", { name: "Mais" })).toBeInTheDocument();
 });
 
-it("a gaveta fecha pelo botao Fechar", async () => {
+it("a aba da pagina atual fica destacada e marcada para leitor de tela", () => {
   renderShell();
-  await userEvent.click(openButton());
-  await userEvent.click(screen.getByRole("button", { name: "Fechar" }));
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  const current = within(bottomNav()).getByRole("link", { name: "Principal" });
+  expect(current).toHaveAttribute("aria-current", "page");
+  expect(current).toHaveClass("bg-accent");
+  expect(within(bottomNav()).getByRole("link", { name: "Transações" })).not.toHaveAttribute("aria-current");
 });
 
-it("a gaveta fecha ao clicar num item, mesmo sendo a pagina atual", async () => {
+it("o botao do meio abre as quatro opcoes de lancamento", async () => {
   renderShell();
-  await userEvent.click(openButton());
-  const dialog = screen.getByRole("dialog");
-
-  await userEvent.click(within(dialog).getByRole("link", { name: "Painel" }));
-
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await userEvent.click(within(bottomNav()).getByRole("button", { name: "Novo lançamento" }));
+  const menu = screen.getByRole("menu");
+  expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+    "Despesa",
+    "Receita",
+    "Despesa de Cartão",
+    "Transferência",
+  ]);
 });
 
-it("a gaveta fecha quando a rota muda por outro caminho (voltar/avancar)", async () => {
+it("o Mais abre com as telas que nao cabem na barra, e fecha ao escolher uma", async () => {
   const router = renderShell();
-  await userEvent.click(openButton());
-  expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-  await act(() => router.navigate("/outra-pagina"));
-
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await userEvent.click(moreButton());
+
+  const dialog = screen.getByRole("dialog", { name: "Mais" });
+  const links = within(dialog).getAllByRole("link").map((link) => [link.textContent, link.getAttribute("href")]);
+  expect(links).toEqual([
+    ["Contas", "/contas"],
+    ["Cartões de crédito", "/cartoes"],
+    ["Importar extrato", "/importar"],
+    ["Categorias", "/categorias"],
+    ["Cofrinhos", "/cofrinhos"],
+    ["Regras", "/regras"],
+    ["Relatórios", "/relatorios"],
+    ["Configurações", "/configuracoes"],
+  ]);
+
+  await userEvent.click(within(dialog).getByRole("link", { name: "Contas" }));
+  expect(router.state.location.pathname).toBe("/contas");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("o Mais fecha com Esc e devolve o foco ao botao", async () => {
+  renderShell();
+  await userEvent.click(moreButton());
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(moreButton()).toHaveFocus();
+});
+
+it("o Mais fecha quando a rota muda por outro caminho (voltar/avancar)", async () => {
+  const router = renderShell();
+  await userEvent.click(moreButton());
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  await act(() => router.navigate("/outra-pagina"));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("o Mais fica destacado quando a pagina atual e uma das que moram nele", async () => {
+  const router = renderShell();
+  await act(() => router.navigate("/cofrinhos"));
+  expect(moreButton()).toHaveClass("bg-accent");
 });
 
 it("a area de conteudo cresce com o monitor, sem teto fixo que deixe faixas vazias", () => {
@@ -161,11 +198,11 @@ it("o botao diz o atalho no titulo e declara a tecla para leitor de tela", () =>
   expect(sidebarToggle()).toHaveAttribute("aria-keyshortcuts", "Control+B Meta+B");
 });
 
-it("a gaveta do celular continua igual com o menu lateral oculto", async () => {
+it("ocultar o menu lateral do desktop nao mexe na barra inferior do celular", async () => {
   renderShell();
   await userEvent.click(sidebarToggle());
-  await userEvent.click(openButton());
-  expect(screen.getByRole("dialog", { name: "Menu" })).toBeInTheDocument();
+  expect(bottomNav()).toBeInTheDocument();
+  expect(within(bottomNav()).getAllByRole("listitem")).toHaveLength(5);
 });
 
 it("a marca no menu lateral e um link que leva ao painel inicial", async () => {

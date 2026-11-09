@@ -125,3 +125,11 @@ export function totp(secret: string, atMs: number = Date.now()): string {
   const value = digest.readUInt32BE(offset) & 0x7fffffff;
   return String(value % 1_000_000).padStart(6, "0");
 }
+
+// No celular a navegacao e a barra inferior: Principal, Transacoes, Planejamento ficam nela e o resto fica no "Mais"
+export const bottomNav = (page: Page) => page.getByRole("navigation", { name: "Navegação inferior" });
+
+export async function openMore(page: Page, linkName: string) {
+  await bottomNav(page).getByRole("button", { name: "Mais" }).click();
+  await page.getByRole("dialog", { name: "Mais" }).getByRole("link", { name: linkName, exact: true }).click();
+}

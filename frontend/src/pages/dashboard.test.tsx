@@ -891,3 +891,94 @@ it("um bloco passado para a outra coluna nas configuracoes aparece nela", async 
   expect(await within(rightColumn).findByRole("region", { name: "Economia do mês" })).toBeInTheDocument();
   window.localStorage.clear();
 });
+
+// ---------- Celular: topo do Mobills, sem sidebar ----------
+
+// Tela estreita: o painel vira a tela inicial do celular (a mesma consulta que o painel usa para as duas colunas)
+function narrowScreen() {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
+it("celular: o topo traz o saldo, o mes e receitas e despesas lado a lado, e o titulo da pagina continua para leitor de tela", async () => {
+  narrowScreen();
+  renderPage({ summary: summaryByPeriod([makeTotals({ currency_code: "BRL", income: "7.00", expense: "12.04", net: "-5.04" })]) });
+  const top = await screen.findByRole("region", { name: "Resumo do mês" });
+  expect(screen.getByRole("heading", { level: 1, name: "Painel" })).toBeInTheDocument();
+  expect(within(top).getByText("Saldo atual")).toBeInTheDocument();
+  expect(within(top).getByRole("button", { name: /Março de 2026/ })).toBeInTheDocument();
+  expect(await within(top).findByText("R$ 7,00")).toBeInTheDocument();
+  expect(within(top).getByText("R$ 12,04")).toBeInTheDocument();
+  expect(within(top).getByRole("link", { name: /Receitas/ })).toHaveAttribute("href", "/transacoes?tipo=deposit&de=2026-03-01&ate=2026-03-31");
+  expect(within(top).getByRole("link", { name: /Despesas/ })).toHaveAttribute("href", "/transacoes?tipo=withdrawal&de=2026-03-01&ate=2026-03-31");
+});
+
+it("celular: os quatro cards e a faixa de alertas do desktop nao aparecem, porque o topo ja traz os totais", async () => {
+  narrowScreen();
+  renderPage();
+  await screen.findByRole("region", { name: "Resumo do mês" });
+  expect(screen.queryByTestId("summary-cards")).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Alertas" })).not.toBeInTheDocument();
+  // E o cabecalho do desktop (titulo com saudacao) tambem nao
+  expect(screen.queryByText(/Este é o resumo/)).not.toBeInTheDocument();
+});
+
+it("celular: o olho esconde os valores do topo e a escolha fica lembrada", async () => {
+  narrowScreen();
+  const summary = summaryByPeriod([makeTotals({ currency_code: "BRL", income: "7.00", expense: "12.04", net: "-5.04" })]);
+  renderPage({ summary });
+  const top = await screen.findByRole("region", { name: "Resumo do mês" });
+  expect(await within(top).findByText("R$ 7,00")).toBeInTheDocument();
+
+  await userEvent.click(within(top).getByRole("button", { name: "Esconder valores" }));
+  expect(within(top).queryByText("R$ 7,00")).not.toBeInTheDocument();
+  expect(within(top).queryByText("R$ 12,04")).not.toBeInTheDocument();
+  expect(within(top).getByRole("button", { name: "Mostrar valores" })).toHaveAttribute("aria-pressed", "true");
+  expect(window.localStorage.getItem("peculio.dashboard.hide-values")).toBe("1");
+
+  await userEvent.click(within(top).getByRole("button", { name: "Mostrar valores" }));
+  expect(await within(top).findByText("R$ 7,00")).toBeInTheDocument();
+});
+
+it("celular: Pendencias e alertas lista o que esta pendente no mes, e o cartao de Contas traz as contas e o total", async () => {
+  narrowScreen();
+  const accounts = [makeAccount({ name: "Conta corrente", balance: "99.96" })];
+  renderPage({ accounts });
+  const alerts = await screen.findByRole("heading", { level: 2, name: "Pendências e alertas" });
+  expect(alerts).toBeInTheDocument();
+  expect(await screen.findByText("Nada pendente por aqui.")).toBeInTheDocument();
+
+  const contas = screen.getByRole("heading", { level: 2, name: "Contas" }).closest("section") as HTMLElement;
+  expect(await within(contas).findByText("Conta corrente")).toBeInTheDocument();
+  expect(within(contas).getByRole("button", { name: "Adicionar conta" })).toBeInTheDocument();
+  expect(within(contas).getByText("Total")).toBeInTheDocument();
+  expect(within(contas).getAllByText("R$ 99,96").length).toBeGreaterThanOrEqual(2);
+});
+
+it("celular: o bloco Minhas contas das configuracoes nao repete o cartao de Contas do topo", async () => {
+  narrowScreen();
+  window.localStorage.setItem("peculio.dashboard.layout", JSON.stringify({ enabled: ["accounts", "profile"], left: ["accounts"], right: ["profile"] }));
+  renderPage();
+  await screen.findByRole("region", { name: "Resumo do mês" });
+  expect(await screen.findByRole("region", { name: "Perfil" })).toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Minhas contas" })).not.toBeInTheDocument();
+});
+
+it("celular: os blocos mostram o titulo acima do cartao, como nas secoes do Mobills", async () => {
+  narrowScreen();
+  renderPage();
+  const block = await screen.findByRole("region", { name: "Balanço mensal" });
+  const heading = within(block).getByRole("heading", { level: 2 });
+  // O titulo nao esta no mesmo recipiente do conteudo (o cartao arredondado)
+  const card = [...block.querySelectorAll("div")].find((div) => div.className.includes("max-lg:rounded-3xl")) as HTMLElement;
+  expect(card).not.toBeNull();
+  expect(card.contains(heading)).toBe(false);
+});

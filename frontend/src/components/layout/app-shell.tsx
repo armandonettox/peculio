@@ -1,12 +1,12 @@
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import type { ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import { AppClockGate } from "@/components/app-clock-gate";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { UserMenu } from "@/components/user-menu";
+import { BottomNav } from "./bottom-nav";
 import { Brand } from "./brand";
 import { SidebarNav } from "./sidebar-nav";
 import { SidebarNewButton } from "./sidebar-new-button";
@@ -18,15 +18,11 @@ export const SIDEBAR_ID = "sidebar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  // So vale no desktop: no celular o menu e a gaveta
+  // So vale no desktop: no celular nao ha menu lateral, a navegacao e a barra inferior
   const { collapsed, toggle } = useSidebar();
-
-  // Fecha a gaveta quando a rota muda por qualquer caminho (clique, voltar, avancar)
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  // Na tela inicial do celular o proprio painel traz o topo (avatar, mes e saldo): sem o cabecalho do app
+  const hideHeaderOnMobile = pathname === "/";
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,30 +40,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className={`flex h-14 items-center border-b ${collapsed ? "justify-center px-0" : "px-4"}`}>
           {!collapsed && <Brand to="/" />}
         </div>
-        {/* SidebarNewButton existe aqui (desktop) e no Sheet abaixo (mobile) — dois nos no DOM simultaneamente */}
         <SidebarNewButton collapsed={collapsed} />
         <SidebarNav collapsed={collapsed} />
       </aside>
 
       <div className={collapsed ? "lg:pl-16" : "lg:pl-60"}>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t("components.appShell.abrirMenu")}>
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <div className="flex h-14 items-center border-b px-4">
-                <SheetTitle className="sr-only">{t("components.appShell.menu")}</SheetTitle>
-                <SheetDescription className="sr-only">{t("components.appShell.navegacaoPrincipalDoAplicativo")}</SheetDescription>
-                <Brand to="/" onNavigate={() => setMenuOpen(false)} />
-              </div>
-              <SidebarNewButton collapsed={false} />
-              <SidebarNav onNavigate={() => setMenuOpen(false)} />
-            </SheetContent>
-          </Sheet>
-
+        <header
+          className={`sticky top-0 z-20 h-14 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur ${hideHeaderOnMobile ? "hidden lg:flex" : "flex"}`}
+        >
           {/* Desktop: mostra ou oculta o menu lateral (Ctrl+B). Sem o menu, a marca passa para o cabecalho. */}
           <Button
             variant="ghost"
@@ -99,10 +79,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         {/* Em monitor largo a area de conteudo cresce com ele: um teto fixo de 72rem deixava faixas vazias nas laterais */}
-        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="mx-auto w-full max-w-6xl p-4 sm:p-6 xl:max-w-7xl 2xl:max-w-[96rem]">
+        <main id={MAIN_CONTENT_ID} tabIndex={-1} className="mx-auto w-full max-w-6xl p-4 max-lg:pb-28 sm:p-6 xl:max-w-7xl 2xl:max-w-[96rem]">
           {children}
         </main>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

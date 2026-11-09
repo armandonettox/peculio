@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, loginAndWaitForDashboard, openMore } from "./helpers";
 
 // Roda depois do 01-auth, que cria o administrador. Os testes seguem em ordem e reaproveitam
 // as contas criadas nos anteriores.
@@ -156,8 +156,7 @@ test("excluir pede confirmacao e remove a conta", async ({ page }) => {
 test("no celular a lista fica em uma coluna e o formulario cabe na tela", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await loginAndWaitForDashboard(page);
-  await page.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Contas", exact: true }).click();
+  await openMore(page, "Contas");
 
   await expect(card(page, "Nubank Roxinho")).toBeVisible();
   await page.getByRole("button", { name: "Nova conta" }).first().click();

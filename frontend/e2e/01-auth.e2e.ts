@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { ADMIN, field, GUEST, login, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, bottomNav, field, GUEST, login, loginAndWaitForDashboard } from "./helpers";
 
 // Os testes rodam em ordem contra o mesmo banco: o primeiro cria o administrador
 test.describe.configure({ mode: "serial" });
@@ -140,21 +140,36 @@ test("cadastro sem convite valido mostra o erro", async ({ page }) => {
 test.describe("celular", () => {
   test.use({ viewport: { width: 390, height: 800 } });
 
-  test("a gaveta do menu abre, navega e fecha", async ({ page }) => {
+  test("a barra inferior navega, e o Mais abre as outras telas e fecha", async ({ page }) => {
     await loginAndWaitForDashboard(page);
+    // Sem menu lateral nem gaveta no celular
     await expect(page.getByRole("link", { name: "Painel" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Abrir menu" })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Abrir menu" }).click();
-    const drawer = page.getByRole("dialog", { name: "Menu" });
-    await expect(drawer).toBeVisible();
+    const bar = bottomNav(page);
+    await expect(bar).toBeVisible();
+    await bar.getByRole("link", { name: "Transações" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Transações" })).toBeVisible();
+    await bar.getByRole("link", { name: "Principal" }).click();
+    await expect(page).toHaveURL(/\/$/);
 
-    await drawer.getByRole("link", { name: "Painel" }).click();
-    await expect(drawer).toBeHidden();
+    await bar.getByRole("button", { name: "Mais" }).click();
+    const sheet = page.getByRole("dialog", { name: "Mais" });
+    await expect(sheet).toBeVisible();
+    await sheet.getByRole("link", { name: "Contas", exact: true }).click();
+    await expect(sheet).toBeHidden();
+    await expect(page).toHaveURL(/\/contas$/);
 
-    await page.getByRole("button", { name: "Abrir menu" }).click();
+    await bar.getByRole("button", { name: "Mais" }).click();
     await page.keyboard.press("Escape");
-    await expect(drawer).toBeHidden();
-    await expect(page.getByRole("button", { name: "Abrir menu" })).toBeFocused();
+    await expect(sheet).toBeHidden();
+    await expect(bar.getByRole("button", { name: "Mais" })).toBeFocused();
+  });
+
+  test("o botao do meio abre as quatro opcoes de lancamento", async ({ page }) => {
+    await loginAndWaitForDashboard(page);
+    await bottomNav(page).getByRole("button", { name: "Novo lançamento" }).click();
+    await expect(page.getByRole("menuitem")).toHaveText(["Despesa", "Receita", "Despesa de Cartão", "Transferência"]);
   });
 });
 

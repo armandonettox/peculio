@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, loginAndWaitForDashboard } from "./helpers";
+import { ADMIN, loginAndWaitForDashboard, openMore } from "./helpers";
 
 // Roda depois do 01-auth (que cria o administrador). Os testes seguem em ordem.
 test.describe.configure({ mode: "serial" });
@@ -226,8 +226,7 @@ test.describe("tags", () => {
 test("no celular o formulario de categoria cabe na tela", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await loginAndWaitForDashboard(page);
-  await page.getByRole("button", { name: "Abrir menu" }).click();
-  await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Categorias" }).click();
+  await openMore(page, "Categorias");
   await page.getByRole("button", { name: "Nova categoria" }).first().click();
   const box = await dialog(page, "Nova categoria").boundingBox();
   expect(box!.x).toBeGreaterThanOrEqual(0);
