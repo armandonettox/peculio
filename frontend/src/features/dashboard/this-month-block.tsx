@@ -98,12 +98,11 @@ export function ThisMonthBlock({ range }: { range: MonthRange }) {
               ) : (
                 <dl className="flex flex-col divide-y">
                   {rows.map(({ key, label, current, diffText, trend }) => (
-                    <div key={key} className="py-3 first:pt-0 last:pb-0">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <dt className="font-medium">{label}</dt>
-                        <dd className="text-lg font-semibold tabular-nums">{formatMoney(current, totals.currency_code)}</dd>
-                      </div>
-                      <dd className={`mt-0.5 text-right text-xs tabular-nums ${TREND_CLASS[trend]}`}>{diffText}</dd>
+                    // dt e dd direto dentro da div do grupo (a lista de definicao nao aceita div no meio)
+                    <div key={key} className="grid grid-cols-[1fr_auto] items-baseline gap-x-3 py-3 first:pt-0 last:pb-0">
+                      <dt className="font-medium">{label}</dt>
+                      <dd className="text-lg font-semibold tabular-nums">{formatMoney(current, totals.currency_code)}</dd>
+                      <dd className={`col-span-2 mt-0.5 text-right text-xs tabular-nums ${TREND_CLASS[trend]}`}>{diffText}</dd>
                     </div>
                   ))}
                 </dl>
