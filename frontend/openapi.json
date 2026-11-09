@@ -3513,6 +3513,71 @@
             "title": "Account Id",
             "type": "string"
           },
+          "color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "enum": [
+                  "target",
+                  "shield",
+                  "car",
+                  "house",
+                  "hammer",
+                  "plane",
+                  "heart-pulse",
+                  "wallet",
+                  "graduation-cap",
+                  "gift",
+                  "laptop",
+                  "piggy-bank"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "initial_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Initial Amount"
+          },
           "name": {
             "maxLength": 100,
             "minLength": 1,
@@ -3682,6 +3747,17 @@
             "title": "Active",
             "type": "boolean"
           },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -3690,6 +3766,28 @@
           "currency_code": {
             "title": "Currency Code",
             "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
           },
           "id": {
             "format": "uuid",
@@ -3752,6 +3850,9 @@
           "currency_code",
           "target_amount",
           "target_date",
+          "color",
+          "icon",
+          "description",
           "active",
           "saved",
           "remaining",
@@ -3777,6 +3878,55 @@
               }
             ],
             "title": "Active"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9A-Fa-f]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "enum": [
+                  "target",
+                  "shield",
+                  "car",
+                  "house",
+                  "hammer",
+                  "plane",
+                  "heart-pulse",
+                  "wallet",
+                  "graduation-cap",
+                  "gift",
+                  "laptop",
+                  "piggy-bank"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
           },
           "name": {
             "anyOf": [

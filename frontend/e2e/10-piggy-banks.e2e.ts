@@ -35,6 +35,8 @@ async function action(page: Page, name: string, item: string) {
 
 async function createPiggy(page: Page, name: string, target: string, date?: string) {
   await page.getByRole("button", { name: "Novo objetivo" }).first().click();
+  // Criar comeca pela escolha de um modelo
+  await dialog(page).getByRole("button", { name: "Objetivo personalizado" }).click();
   await dialog(page).getByLabel("Nome", { exact: true }).fill(name);
   await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
   await dialog(page).getByLabel(/^Valor da meta/).fill(target);
@@ -166,4 +168,38 @@ test("excluir pede confirmacao e libera o valor guardado na conta", async ({ pag
   await expect(main(page).getByRole("heading", { level: 2, name: TRIP })).toHaveCount(0);
   // Os 200 que estavam guardados voltam a ficar disponiveis: 50 + 200
   await expect(card(page, RESERVE)).toContainText(`Disponível em ${ACCOUNT}: R$ 250,00`);
+});
+
+test("um modelo pronto ja traz nome, icone e cor, e o valor inicial entra guardado", async ({ page }) => {
+  await openPiggyBanks(page);
+  await page.getByRole("button", { name: "Novo objetivo" }).first().click();
+  await dialog(page).getByRole("button", { name: "Viagem nas férias" }).click();
+  await expect(dialog(page).getByLabel("Nome", { exact: true })).toHaveValue("Viagem nas férias");
+  await expect(dialog(page).getByRole("button", { name: "Avião" })).toHaveAttribute("aria-pressed", "true");
+
+  await dialog(page).getByLabel("Conta", { exact: true }).selectOption({ label: ACCOUNT });
+  await dialog(page).getByLabel(/^Valor da meta/).fill("2000,00");
+  await dialog(page).getByLabel(/^Valor inicial/).fill("100,00");
+  await dialog(page).getByLabel(/^Descrição/).fill("Praia em dezembro");
+  await dialog(page).getByRole("button", { name: "Criar objetivo" }).click();
+  await expect(dialog(page)).toBeHidden();
+
+  const created = card(page, "Viagem nas férias");
+  await expect(created).toContainText("Praia em dezembro");
+  await expect(created).toContainText(/R\$\s?100,00/);
+});
+
+test("as abas separam em andamento de concluidos", async ({ page }) => {
+  await openPiggyBanks(page);
+  await expect(page.getByRole("tab", { name: "Em andamento" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Concluídos" }).click();
+  await expect(page.getByRole("tab", { name: "Concluídos" })).toHaveAttribute("aria-selected", "true");
+  await expect(main(page).getByRole("heading", { level: 3, name: "Viagem nas férias" })).toHaveCount(0);
+});
+
+test("o link antigo de cofrinhos leva a pagina de objetivos", async ({ page }) => {
+  await loginAndWaitForDashboard(page);
+  await page.goto("/cofrinhos");
+  await expect(page).toHaveURL(/\/objetivos$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Objetivos" })).toBeVisible();
 });

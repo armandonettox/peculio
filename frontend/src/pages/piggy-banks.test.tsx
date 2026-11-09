@@ -174,7 +174,8 @@ it("sem objetivos mostra o estado vazio com a acao de criar", async () => {
   expect(await screen.findByText("Nenhum objetivo ainda")).toBeInTheDocument();
   const empty = screen.getByText("Nenhum objetivo ainda").closest("div") as HTMLElement;
   await userEvent.click(within(empty).getByRole("button", { name: /Novo objetivo/ }));
-  expect(await screen.findByRole("dialog", { name: "Novo objetivo" })).toBeInTheDocument();
+  const chooser = await screen.findByRole("dialog", { name: "Novo objetivo" });
+  expect(within(chooser).getByText("Escolha um modelo ou crie um objetivo personalizado.")).toBeInTheDocument();
 });
 
 it("falha ao carregar mostra o erro e permite tentar de novo", async () => {
@@ -189,8 +190,10 @@ it("falha ao carregar mostra o erro e permite tentar de novo", async () => {
 
 // ---------- Criar ----------
 
-const openCreate = async () => {
+// Criar comeca pela escolha de um modelo; os testes do formulario escolhem o personalizado (em branco)
+const openCreate = async (template = "Objetivo personalizado") => {
   await userEvent.click(await screen.findByRole("button", { name: /Novo objetivo/ }));
+  await userEvent.click(await screen.findByRole("button", { name: template }));
   const form = await screen.findByRole("dialog", { name: "Novo objetivo" });
   await waitFor(() => expect(within(form).getAllByRole("option").length).toBeGreaterThan(1));
   return form;
@@ -635,4 +638,114 @@ it("aba sem nada diz isso, em vez de mostrar a tela de primeiro uso", async () =
 it("tudo concluido: Em andamento diz que nao ha nada em andamento", async () => {
   renderPage([makePiggyBank({ name: "Pronto", saved: "600.00" })]);
   expect(await screen.findByText("Nenhum objetivo em andamento.")).toBeInTheDocument();
+});
+
+
+// ---------- Modelos, cor, icone, descricao e valor inicial ----------
+
+const bodyOfLastPost = (api: ReturnType<typeof renderPage>) => api.state.requests.filter((r) => r.method === "POST").at(-1)?.body;
+
+it("o criar comeca pelos oito modelos do Mobills", async () => {
+  renderPage([]);
+  await userEvent.click(await screen.findByRole("button", { name: /Novo objetivo/ }));
+  const chooser = await screen.findByRole("dialog", { name: "Novo objetivo" });
+  expect(within(chooser).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+    "Objetivo personalizado",
+    "Fundo de emergência",
+    "Novo carro",
+    "Nova casa",
+    "Reforma",
+    "Viagem nas férias",
+    "Gastos médicos",
+    "Pagar uma dívida",
+  ]);
+});
+
+it("escolher um modelo ja preenche o nome e marca o icone e a cor dele", async () => {
+  const api = renderPage();
+  const form = await openCreate("Fundo de emergência");
+  expect(within(form).getByLabelText("Nome")).toHaveValue("Fundo de emergência");
+  expect(within(form).getByRole("button", { name: "Escudo" })).toHaveAttribute("aria-pressed", "true");
+  expect(within(form).getByRole("button", { name: "Cor #15803D" })).toHaveAttribute("aria-pressed", "true");
+
+  await userEvent.selectOptions(within(form).getByLabelText("Conta"), "Nubank");
+  await userEvent.type(within(form).getByLabelText(/Valor da meta/), "5000,00");
+  await userEvent.click(within(form).getByRole("button", { name: "Criar objetivo" }));
+  await waitFor(() => expect(bodyOfLastPost(api)).toMatchObject({ name: "Fundo de emergência", icon: "shield", color: "#15803D" }));
+});
+
+it("o personalizado comeca em branco e o criar manda cor, icone, descricao e valor inicial", async () => {
+  const api = renderPage();
+  const form = await openCreate();
+  expect(within(form).getByLabelText("Nome")).toHaveValue("");
+  expect(within(form).getByRole("button", { name: "Sem cor" })).toHaveAttribute("aria-pressed", "true");
+
+  await userEvent.type(within(form).getByLabelText("Nome"), "Troca do notebook");
+  await userEvent.selectOptions(within(form).getByLabelText("Conta"), "Nubank");
+  await userEvent.type(within(form).getByLabelText(/Valor da meta/), "3000,00");
+  await userEvent.type(within(form).getByLabelText(/Valor inicial/), "250,00");
+  await userEvent.click(within(form).getByRole("button", { name: "Computador" }));
+  await userEvent.click(within(form).getByRole("button", { name: "Cor #7C3AED" }));
+  await userEvent.type(within(form).getByLabelText(/Descrição/), "Para o trabalho");
+  await userEvent.click(within(form).getByRole("button", { name: "Criar objetivo" }));
+
+  await waitFor(() =>
+    expect(bodyOfLastPost(api)).toMatchObject({
+      name: "Troca do notebook",
+      target_amount: "3000.00",
+      initial_amount: "250.00",
+      icon: "laptop",
+      color: "#7C3AED",
+      description: "Para o trabalho",
+    }),
+  );
+});
+
+it("sem preencher os campos novos o criar nao manda nenhum deles", async () => {
+  const api = renderPage();
+  const form = await openCreate();
+  await userEvent.type(within(form).getByLabelText("Nome"), "Simples");
+  await userEvent.selectOptions(within(form).getByLabelText("Conta"), "Nubank");
+  await userEvent.type(within(form).getByLabelText(/Valor da meta/), "100,00");
+  await userEvent.click(within(form).getByRole("button", { name: "Criar objetivo" }));
+  await waitFor(() => expect(bodyOfLastPost(api)).toBeDefined());
+  const body = bodyOfLastPost(api)!;
+  for (const field of ["color", "icon", "description", "initial_amount"]) expect(body).not.toHaveProperty(field);
+});
+
+it("valor inicial passando do disponivel mostra o erro no proprio campo", async () => {
+  const api = renderPage();
+  const form = await openCreate();
+  api.state.nextMutationError = { status: 400, code: "piggy_bank_not_enough_available" };
+  await userEvent.type(within(form).getByLabelText("Nome"), "Caro");
+  await userEvent.selectOptions(within(form).getByLabelText("Conta"), "Nubank");
+  await userEvent.type(within(form).getByLabelText(/Valor da meta/), "100,00");
+  await userEvent.type(within(form).getByLabelText(/Valor inicial/), "5000,00");
+  await userEvent.click(within(form).getByRole("button", { name: "Criar objetivo" }));
+  const field = await within(form).findByLabelText(/Valor inicial/);
+  await waitFor(() => expect(field).toHaveAccessibleDescription(/não tem esse valor disponível|disponível/i));
+});
+
+it("editar nao tem valor inicial, mostra o que ja tem e manda so o que mudou, limpando com null", async () => {
+  const api = renderPage([makePiggyBank({ name: "Viagem", color: "#B91C1C", icon: "plane", description: "Ferias" })]);
+  await screen.findByText("Viagem");
+  await openMenu("Viagem", "Editar");
+  const form = screen.getByRole("dialog");
+  expect(within(form).queryByLabelText(/Valor inicial/)).not.toBeInTheDocument();
+  expect(within(form).getByRole("button", { name: "Avião" })).toHaveAttribute("aria-pressed", "true");
+  expect(within(form).getByLabelText(/Descrição/)).toHaveValue("Ferias");
+
+  await userEvent.click(within(form).getByRole("button", { name: "Sem cor" }));
+  await userEvent.clear(within(form).getByLabelText(/Descrição/));
+  await userEvent.click(within(form).getByRole("button", { name: "Salvar" }));
+  await waitFor(() => expect(api.state.requests.filter((r) => r.method === "PATCH").at(-1)?.body).toEqual({ color: null, description: null }));
+});
+
+it("o cartao mostra o icone, a descricao e a cor do objetivo na barra", async () => {
+  renderPage([makePiggyBank({ name: "Casa", saved: "100.00", color: "#0E7490", icon: "house", description: "Entrada do apartamento" })]);
+  await screen.findByText("Casa");
+  expect(within(card("Casa")).getByText("Entrada do apartamento")).toBeInTheDocument();
+  const fill = within(card("Casa")).getByRole("progressbar").firstElementChild as HTMLElement;
+  expect(fill.style.backgroundColor).not.toBe("");
+  expect(fill).not.toHaveClass("bg-primary-text");
 });

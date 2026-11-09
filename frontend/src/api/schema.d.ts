@@ -2958,6 +2958,14 @@ export interface components {
              * Format: uuid
              */
             account_id: string;
+            /** Color */
+            color?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Icon */
+            icon?: ("target" | "shield" | "car" | "house" | "hammer" | "plane" | "heart-pulse" | "wallet" | "graduation-cap" | "gift" | "laptop" | "piggy-bank") | null;
+            /** Initial Amount */
+            initial_amount?: number | string | null;
             /** Name */
             name: string;
             /** Target Amount */
@@ -3019,6 +3027,8 @@ export interface components {
             account_name: string;
             /** Active */
             active: boolean;
+            /** Color */
+            color: string | null;
             /**
              * Created At
              * Format: date-time
@@ -3026,6 +3036,10 @@ export interface components {
             created_at: string;
             /** Currency Code */
             currency_code: string;
+            /** Description */
+            description: string | null;
+            /** Icon */
+            icon: string | null;
             /**
              * Id
              * Format: uuid
@@ -3053,6 +3067,12 @@ export interface components {
         PiggyBankUpdate: {
             /** Active */
             active?: boolean | null;
+            /** Color */
+            color?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Icon */
+            icon?: ("target" | "shield" | "car" | "house" | "hammer" | "plane" | "heart-pulse" | "wallet" | "graduation-cap" | "gift" | "laptop" | "piggy-bank") | null;
             /** Name */
             name?: string | null;
             /** Target Amount */

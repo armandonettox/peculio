@@ -61,8 +61,14 @@ def create_piggy_bank(db: Session, user: User, data: PiggyBankCreate) -> PiggyBa
         name=data.name,
         target_amount=data.target_amount,
         target_date=data.target_date,
+        color=data.color,
+        icon=data.icon,
+        description=data.description,
     )
     _save(db, piggy)
+    if data.initial_amount is not None:
+        # O valor inicial e o primeiro "guardar": passa pelas mesmas regras (moeda, saldo disponivel na conta)
+        add_event(db, piggy, PiggyBankEventCreate(kind="add", amount=data.initial_amount, note=None))
     return piggy
 
 
@@ -76,6 +82,9 @@ def update_piggy_bank(db: Session, piggy: PiggyBank, data: PiggyBankUpdate) -> P
         piggy.target_amount = data.target_amount
     if "target_date" in sent:
         piggy.target_date = data.target_date
+    for field in ("color", "icon", "description"):
+        if field in sent:
+            setattr(piggy, field, getattr(data, field))
     if data.active is not None:
         piggy.active = data.active
     _save(db, piggy)
@@ -166,6 +175,9 @@ def build_outputs(db: Session, piggies: Sequence[PiggyBank], today: date) -> lis
                 "currency_code": account.currency_code,
                 "target_amount": quantize_money(piggy.target_amount, decimals),
                 "target_date": piggy.target_date,
+                "color": piggy.color,
+                "icon": piggy.icon,
+                "description": piggy.description,
                 "active": piggy.active,
                 "saved": quantize_money(total, decimals),
                 "remaining": quantize_money(remaining, decimals),

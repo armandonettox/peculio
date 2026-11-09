@@ -22,6 +22,10 @@ class PiggyBank(Base):
     name: Mapped[str] = mapped_column(String(100))
     target_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2))
     target_date: Mapped[date | None] = mapped_column(Date)
+    # Aparencia e nota do objetivo (como no Mobills): todos opcionais. Cor em #RRGGBB, icone e um nome da lista da API.
+    color: Mapped[str | None] = mapped_column(String(7))
+    icon: Mapped[str | None] = mapped_column(String(32))
+    description: Mapped[str | None] = mapped_column(String(300))
     # Arquivado some da lista, mas o guardado continua reservado na conta ate ser retirado
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

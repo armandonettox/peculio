@@ -11,7 +11,7 @@ def test_upgrade_head_on_empty_database(clean_schema):
     command.upgrade(alembic_config(), "head")
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0043"
+    assert version == "0044"
 
 
 def test_downgrade_to_base_and_upgrade_again(clean_schema):
@@ -322,3 +322,36 @@ def test_models_match_migrations(clean_schema):
         context = MigrationContext.configure(conn, opts={"compare_type": True})
         diff = compare_metadata(context, Base.metadata)
     assert diff == []
+
+
+def test_migration_0044_adds_goal_fields_and_keeps_existing_piggy_banks(clean_schema):
+    """Um cofrinho que ja existia continua valendo depois da migration, com cor, icone e descricao vazios."""
+    config = alembic_config()
+    command.upgrade(config, "0043")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO users (id, name, email, hashed_password) "
+                "VALUES ('33333333-3333-4333-8333-333333333333', 'Ana', 'ana3@example.com', 'x')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO accounts (id, user_id, name, type, currency_code, role, active, created_at) "
+                "VALUES ('44444444-4444-4444-8444-444444444444', '33333333-3333-4333-8333-333333333333', "
+                "'Nubank', 'asset', 'BRL', 'checking', true, now())"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO piggy_banks (id, user_id, account_id, name, target_amount, active, created_at) "
+                "VALUES ('55555555-5555-4555-8555-555555555555', '33333333-3333-4333-8333-333333333333', "
+                "'44444444-4444-4444-8444-444444444444', 'Viagem', 600, true, now())"
+            )
+        )
+
+    command.upgrade(config, "head")
+
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT name, color, icon, description FROM piggy_banks")).one()
+    assert tuple(row) == ("Viagem", None, None, None)

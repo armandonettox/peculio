@@ -86,10 +86,66 @@ def test_create_returns_the_piggy_bank_with_zero_saved(client, headers, account_
         {"name": "   "},
         {"target_date": "05/03/2026"},
         {"unknown": 1},
+        {"color": "vermelho"},
+        {"color": "#FFF"},
+        {"icon": "icone-que-nao-existe"},
+        {"description": "x" * 301},
+        {"initial_amount": "0"},
+        {"initial_amount": "-1"},
     ],
 )
 def test_create_validation_returns_422(client, headers, account_id, overrides):
     assert make_piggy(client, headers, account_id, **overrides).status_code == 422
+
+
+def test_create_with_color_icon_and_description(client, headers, account_id):
+    body = make_piggy(client, headers, account_id, color="#ff8800", icon="car", description="  Trocar o carro  ").json()
+    assert (body["color"], body["icon"], body["description"]) == ("#FF8800", "car", "Trocar o carro")
+    assert get_piggy(client, headers, body["id"])["color"] == "#FF8800"
+
+
+def test_a_piggy_bank_without_the_new_fields_has_them_empty(client, headers, account_id):
+    body = make_piggy(client, headers, account_id).json()
+    assert (body["color"], body["icon"], body["description"]) == (None, None, None)
+
+
+def test_a_blank_description_is_stored_as_empty(client, headers, account_id):
+    assert make_piggy(client, headers, account_id, description="   ").json()["description"] is None
+
+
+def test_initial_amount_becomes_the_first_saved_movement(client, headers, account_id):
+    body = make_piggy(client, headers, account_id, initial_amount="150.00").json()
+    assert (body["saved"], body["remaining"], body["percent"]) == ("150.00", "450.00", 25)
+    assert body["account_available"] == "850.00"
+    events = client.get(f"{URL}/{body['id']}/events", headers=headers).json()["items"]
+    assert [(item["kind"], item["amount"]) for item in events] == [("add", "150.00")]
+    # O dinheiro continua na conta: o objetivo so reserva
+    assert balance_of(client, headers, account_id) == "1000.00"
+
+
+def test_initial_amount_follows_the_same_rule_as_saving(client, headers, account_id):
+    resp = make_piggy(client, headers, account_id, initial_amount="1500.00")
+    assert resp.status_code == 400
+    assert resp.json()["code"] == "piggy_bank_not_enough_available"
+    # Nada foi criado: nem o objetivo nem o movimento
+    assert client.get(URL, headers=headers).json()["total"] == 0
+
+
+def test_initial_amount_reaching_the_target_is_a_completed_goal(client, headers, account_id):
+    body = make_piggy(client, headers, account_id, initial_amount="600.00").json()
+    assert (body["percent"], body["remaining"]) == (100, "0.00")
+
+
+def test_patch_changes_and_clears_color_icon_and_description(client, headers, account_id):
+    created = make_piggy(client, headers, account_id, color="#00A878", icon="house", description="Entrada").json()
+    url = f"{URL}/{created['id']}"
+    changed = client.patch(url, json={"color": "#112233", "icon": "gift"}, headers=headers).json()
+    assert (changed["color"], changed["icon"], changed["description"]) == ("#112233", "gift", "Entrada")
+    cleared = client.patch(url, json={"color": None, "icon": None, "description": None}, headers=headers).json()
+    assert (cleared["color"], cleared["icon"], cleared["description"]) == (None, None, None)
+    # Omitir nao mexe
+    client.patch(url, json={"description": "Nova nota"}, headers=headers)
+    assert client.patch(url, json={"name": "Outro nome"}, headers=headers).json()["description"] == "Nova nota"
 
 
 def test_the_account_must_exist_belong_to_the_user_and_be_an_asset(client, headers, account_id, db_session):

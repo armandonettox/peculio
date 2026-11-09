@@ -1370,7 +1370,15 @@
       "informeOValorDaMeta": "Enter the goal amount.",
       "informeUmValorMaior": "Enter an amount greater than zero.",
       "informeUmaData": "Enter a valid date.",
-      "valorDaMeta": "Goal amount ({{currency}})"
+      "valorDaMeta": "Goal amount ({{currency}})",
+      "valorInicial": "Initial amount ({{currency}}, optional)",
+      "valorInicialNegativo": "The initial amount cannot be negative.",
+      "cor": "Color",
+      "semCor": "No color",
+      "corNome": "Color {{color}}",
+      "icone": "Icon",
+      "descricao": "Description (optional)",
+      "descricaoPlaceholder": "What is this goal for?"
     },
     "piggyBankHistoryDialog": {
       "quandoVoceGuardouE": "When you added and withdrew money, most recent first.",
@@ -1408,6 +1416,31 @@
         "warning": "The balance of {{account}} is {{amount}} below what's saved in goals",
         "ok": "Available in {{account}}: {{amount}}"
       }
+    },
+    "templates": {
+      "subtitle": "Pick a template or create a custom goal.",
+      "custom": "Custom goal",
+      "emergency": "Emergency fund",
+      "car": "New car",
+      "house": "New house",
+      "renovation": "Renovation",
+      "vacation": "Vacation trip",
+      "medical": "Medical expenses",
+      "debt": "Pay off a debt"
+    },
+    "icons": {
+      "target": "Target",
+      "shield": "Shield",
+      "car": "Car",
+      "house": "House",
+      "hammer": "Renovation",
+      "plane": "Plane",
+      "heart-pulse": "Health",
+      "wallet": "Wallet",
+      "graduation-cap": "Studies",
+      "gift": "Gift",
+      "laptop": "Computer",
+      "piggy-bank": "Piggy bank"
     }
   },
   "imports": {

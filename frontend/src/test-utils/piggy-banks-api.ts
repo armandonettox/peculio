@@ -15,6 +15,9 @@ export function makePiggyBank(overrides: Partial<PiggyBank> = {}): PiggyBank {
     currency_code: "BRL",
     target_amount: "600.00",
     target_date: null,
+    color: null,
+    icon: null,
+    description: null,
     active: true,
     saved: "0.00",
     remaining: "600.00",
@@ -107,6 +110,11 @@ export function fakePiggyBanksApi(initial: PiggyBank[] = [], events: Record<stri
         account_id: String(body.account_id),
         target_amount: String(body.target_amount),
         target_date: body.target_date ?? null,
+        color: body.color ?? null,
+        icon: body.icon ?? null,
+        description: body.description ?? null,
+        // O valor inicial ja entra guardado, como no backend
+        ...(body.initial_amount ? { saved: String(body.initial_amount) } : {}),
       });
       state.piggies.push(created);
       return HttpResponse.json(created, { status: 201 });

@@ -1370,7 +1370,15 @@
       "informeOValorDaMeta": "Informe o valor da meta.",
       "informeUmValorMaior": "Informe um valor maior que zero.",
       "informeUmaData": "Informe uma data válida.",
-      "valorDaMeta": "Valor da meta ({{currency}})"
+      "valorDaMeta": "Valor da meta ({{currency}})",
+      "valorInicial": "Valor inicial ({{currency}}, opcional)",
+      "valorInicialNegativo": "O valor inicial não pode ser negativo.",
+      "cor": "Cor",
+      "semCor": "Sem cor",
+      "corNome": "Cor {{color}}",
+      "icone": "Ícone",
+      "descricao": "Descrição (opcional)",
+      "descricaoPlaceholder": "Para que é este objetivo?"
     },
     "piggyBankHistoryDialog": {
       "quandoVoceGuardouE": "Quando você guardou e retirou dinheiro, do mais recente para o mais antigo.",
@@ -1408,6 +1416,31 @@
         "warning": "O saldo de {{account}} está {{amount}} abaixo do que está guardado em objetivos",
         "ok": "Disponível em {{account}}: {{amount}}"
       }
+    },
+    "templates": {
+      "subtitle": "Escolha um modelo ou crie um objetivo personalizado.",
+      "custom": "Objetivo personalizado",
+      "emergency": "Fundo de emergência",
+      "car": "Novo carro",
+      "house": "Nova casa",
+      "renovation": "Reforma",
+      "vacation": "Viagem nas férias",
+      "medical": "Gastos médicos",
+      "debt": "Pagar uma dívida"
+    },
+    "icons": {
+      "target": "Alvo",
+      "shield": "Escudo",
+      "car": "Carro",
+      "house": "Casa",
+      "hammer": "Reforma",
+      "plane": "Avião",
+      "heart-pulse": "Saúde",
+      "wallet": "Carteira",
+      "graduation-cap": "Estudos",
+      "gift": "Presente",
+      "laptop": "Computador",
+      "piggy-bank": "Cofrinho"
     }
   },
   "imports": {

@@ -6,8 +6,36 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.labels import Color
+
 Money = Annotated[Decimal, Field(max_digits=18, decimal_places=2)]
 PositiveMoney = Annotated[Decimal, Field(max_digits=18, decimal_places=2, gt=0)]
+
+
+# Icones que um objetivo pode ter: nomes do lucide-react em minusculas com hifen. A tela mapeia cada nome para o desenho
+# (frontend/src/features/piggy-banks/goal-icons.ts); o tipo gerado da API garante que as duas listas batem.
+GoalIcon = Literal[
+    "target",
+    "shield",
+    "car",
+    "house",
+    "hammer",
+    "plane",
+    "heart-pulse",
+    "wallet",
+    "graduation-cap",
+    "gift",
+    "laptop",
+    "piggy-bank",
+]
+
+
+def _upper_color(value: str | None) -> str | None:
+    return value.upper() if value else value
+
+
+def _blank_to_none(value: str | None) -> str | None:
+    return (value.strip() or None) if value else None
 
 
 def _strip_name(value: str | None) -> str | None:
@@ -26,8 +54,16 @@ class PiggyBankCreate(BaseModel):
     account_id: uuid.UUID
     target_amount: PositiveMoney
     target_date: date | None = None
+    color: Color | None = None
+    icon: GoalIcon | None = None
+    description: str | None = Field(default=None, max_length=300)
+    # Valor que ja entra guardado (como o "valor inicial" do Mobills). Vira o primeiro movimento de guardar, entao segue
+    # a regra de sempre: nao passa do disponivel na conta.
+    initial_amount: PositiveMoney | None = None
 
     _strip_name = field_validator("name")(_strip_name)
+    _upper_color = field_validator("color")(_upper_color)
+    _blank_description = field_validator("description")(_blank_to_none)
 
 
 class PiggyBankUpdate(BaseModel):
@@ -40,8 +76,14 @@ class PiggyBankUpdate(BaseModel):
     target_date: date | None = None
     # false arquiva (o guardado continua reservado); true desarquiva
     active: bool | None = None
+    # null limpa (cor, icone e descricao); omitir nao mexe
+    color: Color | None = None
+    icon: GoalIcon | None = None
+    description: str | None = Field(default=None, max_length=300)
 
     _strip_name = field_validator("name")(_strip_name)
+    _upper_color = field_validator("color")(_upper_color)
+    _blank_description = field_validator("description")(_blank_to_none)
 
 
 class PiggyBankOut(BaseModel):
@@ -54,6 +96,9 @@ class PiggyBankOut(BaseModel):
     currency_code: str
     target_amount: Money
     target_date: date | None
+    color: str | None
+    icon: str | None
+    description: str | None
     active: bool
     # Soma dos movimentos
     saved: Money
